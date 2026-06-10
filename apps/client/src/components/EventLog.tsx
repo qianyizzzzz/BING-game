@@ -7,7 +7,15 @@ interface EventLogProps {
 }
 
 export function EventLog({ state }: EventLogProps) {
-  const events = state.eventLog.slice(-18).reverse();
+  const events = state.eventLog
+    .filter(
+      (event) =>
+        event.type !== "action_submitted" &&
+        event.type !== "cake_changed" &&
+        event.type !== "skill_used"
+    )
+    .slice(-10)
+    .reverse();
 
   return (
     <aside className="surface-card p-4">
@@ -20,7 +28,7 @@ export function EventLog({ state }: EventLogProps) {
           {events.length}
         </span>
       </div>
-      <div className="max-h-[520px] space-y-2 overflow-auto pr-1">
+      <div className="max-h-[130px] space-y-2 overflow-auto pr-1">
         {events.length === 0 ? (
           <p className="text-sm text-gray-500">暂无事件</p>
         ) : (
@@ -58,7 +66,7 @@ function eventTone(type: string): string {
     return "event-block";
   }
 
-  if (type === "turn_revealed") {
+  if (type === "turn_revealed" || type === "skill_revealed" || type === "action_switched") {
     return "event-turn";
   }
 

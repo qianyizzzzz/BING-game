@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Human crimson mender portrait placeholder">
+  <rect width="256" height="256" rx="42" fill="#881337"/>
+  <circle cx="128" cy="130" r="100" fill="#fb7185" opacity=".2"/>
+  <path d="M52 226c13-50 47-78 76-78s63 28 76 78" fill="#4c0519"/>
+  <path d="M77 223c10-40 31-61 51-61s41 21 51 61" fill="#ffe4e6"/>
+  <circle cx="128" cy="106" r="51" fill="#efbd9a"/>
+  <path d="M80 103c4-43 35-72 74-63 25 6 41 26 46 58-47-27-85-24-120 5z" fill="#581c2b"/>
+  <path d="M84 95c13-23 37-36 73-33" fill="none" stroke="#be123c" stroke-width="14" stroke-linecap="round"/>
+  <path d="M79 112c-14-4-13-25 2-26 7 0 10 8 9 17" fill="#efbd9a"/>
+  <path d="M174 103c-1-9 3-17 10-17 15 1 16 22 2 26" fill="#efbd9a"/>
+  <circle cx="109" cy="113" r="6" fill="#111827"/>
+  <circle cx="149" cy="113" r="6" fill="#111827"/>
+  <path d="M123 119l-5 20h17" fill="none" stroke="#9a5b33" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M108 150c13 10 27 10 40 0" fill="none" stroke="#be123c" stroke-width="7" stroke-linecap="round"/>
+  <path d="M193 55h17v18h18v17h-18v18h-17V90h-18V73h18z" fill="#fecdd3"/>
+  <path d="M92 214h72" stroke="#fb7185" stroke-width="9" stroke-linecap="round"/>
+</svg>

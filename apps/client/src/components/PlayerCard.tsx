@@ -1,5 +1,5 @@
 import { Bot, CheckCircle2, Cookie, HeartPulse, UserRound, XCircle } from "lucide-react";
-import { PublicGameState, PlayerState } from "@bing/shared";
+import { DEFEAT_LEVEL_LABELS, PublicGameState, PlayerState } from "@bing/shared";
 
 interface PlayerCardProps {
   player: PlayerState;
@@ -11,8 +11,10 @@ interface PlayerCardProps {
 export function PlayerCard({ player, state, isViewer, highlighted = false }: PlayerCardProps) {
   const hasPendingAction = state.pendingActionPlayerIds.includes(player.id);
   const isDead = player.status === "dead";
+  const defeatLabel = DEFEAT_LEVEL_LABELS[player.defeatLevel ?? 1];
   const cakeText = player.cakes < 0 ? "?" : String(player.cakes);
   const hpPercent = Math.max(0, Math.min(100, (player.hp / 6) * 100));
+  const visibleBuffs = getVisibleStatusBuffs(player.buffs);
 
   return (
     <section
@@ -53,7 +55,7 @@ export function PlayerCard({ player, state, isViewer, highlighted = false }: Pla
           {isDead ? (
             <>
               <XCircle className="h-4 w-4 text-red-600" aria-hidden="true" />
-              <span className="text-red-700">死亡</span>
+              <span className="text-red-700">{defeatLabel}</span>
             </>
           ) : hasPendingAction ? (
             <>
@@ -93,6 +95,101 @@ export function PlayerCard({ player, state, isViewer, highlighted = false }: Pla
           </div>
         </div>
       </div>
+
+      {visibleBuffs.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {visibleBuffs.slice(0, 4).map((buff) => (
+            <span
+              className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-xs font-bold text-violet-700"
+              key={`${buff.id}-${buff.name}`}
+              title={statusBuffTitle(buff)}
+            >
+              {statusBuffLabel(buff)}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
+}
+
+function getVisibleStatusBuffs(
+  buffs: PlayerState["buffs"]
+): PlayerState["buffs"] {
+  const priority = (buff: PlayerState["buffs"][number]): number => {
+    if (buff.id === "frozen") {
+      return 0;
+    }
+    if (buff.id.startsWith("paralysis_next_action:")) {
+      return 1;
+    }
+    if (buff.id.startsWith("sealed_skill:")) {
+      return 2;
+    }
+    if (buff.id === "no_revive") {
+      return 3;
+    }
+    if (buff.id.startsWith("collapse_until_round:")) {
+      return 4;
+    }
+    if (buff.id.startsWith("skill_disabled_until_round:")) {
+      return 5;
+    }
+    if (buff.id === "defense_value") {
+      return 6;
+    }
+    if (buff.id.startsWith("small_space:")) {
+      return 7;
+    }
+    if (buff.id.startsWith("puppet_of:")) {
+      return 8;
+    }
+    return 99;
+  };
+
+  return buffs
+    .filter((buff) => priority(buff) < 99)
+    .sort((a, b) => priority(a) - priority(b));
+}
+
+function statusBuffLabel(buff: PlayerState["buffs"][number]): string {
+  if (buff.id === "frozen") {
+    return buff.stacks > 1 ? `冰冻${buff.stacks}` : "冰冻";
+  }
+  if (buff.id.startsWith("paralysis_next_action:")) {
+    return "麻痹";
+  }
+  if (buff.id.startsWith("sealed_skill:")) {
+    return "封锁";
+  }
+  if (buff.id === "no_revive") {
+    return "禁复";
+  }
+  if (buff.id.startsWith("collapse_until_round:")) {
+    return "沦陷";
+  }
+  if (buff.id.startsWith("skill_disabled_until_round:")) {
+    return "失效";
+  }
+  if (buff.id === "defense_value") {
+    return `防${buff.stacks}`;
+  }
+  if (buff.id === "small_space:past_time") {
+    return `时空${buff.stacks}`;
+  }
+  if (buff.id.startsWith("puppet_of:")) {
+    return "傀儡";
+  }
+  return buff.name.slice(0, 2);
+}
+
+function statusBuffTitle(buff: PlayerState["buffs"][number]): string {
+  if (buff.id.startsWith("puppet_of:")) {
+    return buff.name;
+  }
+  if (buff.id === "frozen") {
+    return buff.stacks > 1 ? `冰冻 ${buff.stacks} 回合` : "冰冻";
+  }
+  const label = statusBuffLabel(buff);
+  return buff.stacks > 1 ? `${label} x${buff.stacks}` : label;
 }

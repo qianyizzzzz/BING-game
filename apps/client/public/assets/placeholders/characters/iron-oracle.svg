@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Human iron oracle portrait placeholder">
+  <rect width="256" height="256" rx="42" fill="#1e293b"/>
+  <circle cx="128" cy="130" r="100" fill="#94a3b8" opacity=".24"/>
+  <path d="M52 226c13-51 46-80 76-80s63 29 76 80" fill="#0f172a"/>
+  <path d="M78 223c9-42 30-64 50-64s41 22 50 64" fill="#e2e8f0"/>
+  <circle cx="128" cy="106" r="51" fill="#d7a985"/>
+  <path d="M78 100c5-44 37-71 77-60 25 7 40 27 45 57-46-25-85-25-122 3z" fill="#334155"/>
+  <path d="M91 82c27-16 59-18 91 2" fill="none" stroke="#64748b" stroke-width="13" stroke-linecap="round"/>
+  <path d="M78 112c-14-4-13-25 2-26 7 0 10 8 9 17" fill="#d7a985"/>
+  <path d="M174 103c-1-9 3-17 10-17 15 1 16 22 2 26" fill="#d7a985"/>
+  <rect x="93" y="106" width="30" height="17" rx="7" fill="#0f172a"/>
+  <rect x="133" y="106" width="30" height="17" rx="7" fill="#0f172a"/>
+  <path d="M123 114h10" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+  <path d="M122 122l-5 18h17" fill="none" stroke="#8b5e3c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M108 151c14 7 27 7 41 0" fill="none" stroke="#334155" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="198" cy="60" r="23" fill="#94a3b8"/>
+  <path d="M185 60h26M198 47v26" stroke="#f8fafc" stroke-width="7" stroke-linecap="round"/>
+</svg>

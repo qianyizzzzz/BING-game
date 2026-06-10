@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BookOpen, Search } from "lucide-react";
+import { BookOpen, Gem, Search, Sparkles } from "lucide-react";
 import {
   ATTACK_ORDER,
   BASE_ATTACKS,
@@ -7,6 +7,7 @@ import {
   DEFENSE_TAG_LABELS,
   getAllSkills
 } from "@bing/shared";
+import { getSkillVisualProfile, skillCardStyle, skillCostPipCount } from "../lib/skillVisuals";
 
 type Tab = "attacks" | "skills" | "attributes";
 
@@ -107,25 +108,9 @@ export function ReferencePanel() {
               value={query}
             />
           </label>
-          <div className="mt-3 max-h-72 space-y-2 overflow-auto pr-1">
+          <div className="reference-skill-gallery mt-3 max-h-[34rem] overflow-auto pr-1">
             {filteredSkills.map((skill) => (
-              <div
-                key={skill.id}
-                className={["skill-list-item", skillToneClass(skill)].join(" ")}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-gray-900">{skill.name}</span>
-                  <span className="skill-power-badge">{skillPowerLabel(skill)}</span>
-                </div>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  <span className="reference-chip">{categoryLabel(skill.category)}</span>
-                  <span className="reference-chip">{playLabel(skill)}</span>
-                  <span className="reference-chip">#{skill.sourceRow}</span>
-                </div>
-                <p className="mt-1 text-sm leading-6 text-gray-600">
-                  {skill.description || "无"}
-                </p>
-              </div>
+              <ReferenceSkillCard key={skill.id} skill={skill} />
             ))}
           </div>
         </div>
@@ -141,7 +126,13 @@ export function ReferencePanel() {
             {Object.entries(DEFENSE_LABELS).map(([id, label]) => (
               <div key={id} className="attribute-row">
                 <strong>{label}</strong>
-                <span>{id === "rebound" ? "消耗所有饼，转移非破弹基础攻击" : "基础防御，不消耗饼"}</span>
+                <span>
+                  {id === "rebound"
+                    ? "消耗所有饼，转移非破弹基础攻击"
+                    : id === "self_destruct"
+                      ? "无目标，立即重开本轮并承受自爆惩罚"
+                      : "基础防御，不消耗饼"}
+                </span>
               </div>
             ))}
           </div>
@@ -156,6 +147,61 @@ function tabClass(active: boolean): string {
     "rounded-md px-3 py-1 transition",
     active ? "bg-teal-700 text-white shadow-sm" : "text-gray-600 hover:bg-gray-100"
   ].join(" ");
+}
+
+function ReferenceSkillCard({ skill }: { skill: ReturnType<typeof getAllSkills>[number] }) {
+  const visual = getSkillVisualProfile(skill, skill.id);
+
+  return (
+    <article
+      className={[
+        "skill-list-item",
+        "skill-relic-card",
+        "reference-skill-card",
+        `skill-affinity-${visual.affinity}`,
+        skillToneClass(skill)
+      ].join(" ")}
+      style={skillCardStyle(visual)}
+    >
+      <div className="skill-relic-topline">
+        <span>{visual.label}</span>
+        <span className="skill-power-badge">{skillPowerLabel(skill)}</span>
+      </div>
+      <div className="skill-relic-art reference-skill-art" aria-hidden="true">
+        <span className="skill-relic-etch skill-relic-etch-a" />
+        <span className="skill-relic-etch skill-relic-etch-b" />
+        <span className="skill-relic-halo" />
+        <span className="skill-relic-crest">
+          <Gem className="skill-relic-gem" />
+          <span className="skill-relic-crest-mark" />
+        </span>
+        <span className="skill-relic-specimen">
+          SPEC-{skill.sourceRow}
+        </span>
+        <span className="skill-relic-cost-track">
+          {Array.from({ length: skillCostPipCount(skill) }).map((_, index) => (
+            <span key={index} className="skill-relic-cost-pip" />
+          ))}
+        </span>
+        <span className="skill-relic-energy-bar">
+          <span />
+        </span>
+        <strong>{visual.sigil}</strong>
+      </div>
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="skill-relic-name">{skill.name}</h3>
+        {skill.fusion.trim() ? (
+          <Sparkles className="mt-1 h-4 w-4 flex-none" aria-hidden="true" />
+        ) : null}
+      </div>
+      <div className="skill-relic-tags">
+        <span>{categoryLabel(skill.category)}</span>
+        <span>{playLabel(skill)}</span>
+        <span>#{skill.sourceRow}</span>
+      </div>
+      <p className="skill-relic-description">{skill.description || "无"}</p>
+    </article>
+  );
 }
 
 function InfoBlock({ title, text }: { title: string; text: string }) {

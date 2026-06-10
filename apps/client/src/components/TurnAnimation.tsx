@@ -38,8 +38,9 @@ interface BattleStep {
   amount?: number;
 }
 
-const STEP_DURATION_MS = 1650;
-const MAX_REPLAY_AGE_MS = 5000;
+const STEP_DURATION_MS = 900;
+const MAX_REPLAY_AGE_MS = 3500;
+const MAX_BATTLE_STEPS = 6;
 const AREA_ATTACK_NAMES = new Set(["万箭齐发", "南蛮入侵"]);
 
 export function TurnAnimation({ state }: TurnAnimationProps) {
@@ -53,7 +54,7 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
   );
 
   useEffect(() => {
-    if (!broadcast || playedRevealIds.current.has(broadcast.reveal.id)) {
+    if (state.turnResolutionStarted || !broadcast || playedRevealIds.current.has(broadcast.reveal.id)) {
       return;
     }
 
@@ -64,7 +65,7 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
 
     setActiveRevealId(broadcast.reveal.id);
     setActiveStepIndex(0);
-    const stepCount = Math.max(1, buildBattleSteps(broadcast.events, state).length);
+    const stepCount = Math.max(1, battleSteps.length);
     const totalDuration = stepCount * STEP_DURATION_MS + 900;
     const interval = window.setInterval(() => {
       setActiveStepIndex((index) => Math.min(index + 1, stepCount - 1));
@@ -74,9 +75,9 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
       window.clearInterval(interval);
       window.clearTimeout(timeout);
     };
-  }, [broadcast, state]);
+  }, [battleSteps.length, broadcast, state.turnResolutionStarted]);
 
-  if (!broadcast || activeRevealId !== broadcast.reveal.id) {
+  if (state.turnResolutionStarted || !broadcast || activeRevealId !== broadcast.reveal.id) {
     return null;
   }
 
@@ -84,7 +85,7 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
   const totalDuration = Math.max(1, battleSteps.length) * STEP_DURATION_MS + 900;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-3 sm:bottom-6">
+    <div className="battle-stage-overlay pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-3 py-5">
       <div
         className="battle-stage-panel battle-stage-floating w-full max-w-4xl rounded-lg border border-teal-200 bg-white/95 p-4 shadow-2xl"
         style={{ animationDuration: `${totalDuration}ms` }}
@@ -217,6 +218,8 @@ function buildBattleSteps(events: GameEvent[], state: PublicGameState): BattleSt
     .filter((event) =>
       ["damage", "heal", "attack_blocked", "attack_reflected", "rebound_broken", "clash", "system"].includes(event.type)
     )
+    .filter((event) => event.type !== "system" || event.message.includes("反弹形成环"))
+    .slice(0, MAX_BATTLE_STEPS)
     .map((event): BattleStep | null => {
       if (event.type === "damage") {
         const attackName = event.attackName ?? "攻击";

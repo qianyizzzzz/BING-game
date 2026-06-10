@@ -7,6 +7,7 @@ import {
   PlayerAction,
   PlayerId,
   addPlayerToGame,
+  advanceActionWindow,
   alivePlayers,
   createGame,
   createPlayer,
@@ -95,7 +96,7 @@ function playTrainingGame(options: TrainingOptions): {
     skillCount,
     firstTurnNoAttack: true,
     turnTimeLimitSeconds: 45,
-    speedMode: Math.random() < 0.2 ? "accelerating" : "normal"
+    speedMode: "normal"
   };
 
   let state = createGame("AI 1", config);
@@ -109,7 +110,19 @@ function playTrainingGame(options: TrainingOptions): {
   const decisions: DecisionSample[] = [];
   const maxTurns = 180;
 
-  while (state.phase === "collecting_actions" && state.turnNumber <= maxTurns) {
+  let safetySteps = 0;
+  while (state.phase !== "finished" && state.turnNumber <= maxTurns && safetySteps < 2_000) {
+    safetySteps += 1;
+
+    if (state.phase === "action_window") {
+      state = advanceActionWindow(state);
+      continue;
+    }
+
+    if (state.phase !== "collecting_actions") {
+      break;
+    }
+
     const turnNumber = state.turnNumber;
     const actingPlayers = alivePlayers(state).filter(
       (player) => !state.pendingActions[player.id]

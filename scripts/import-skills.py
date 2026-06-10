@@ -41,10 +41,16 @@ def resolve_source() -> Path:
             return matches[0]
         raise SystemExit(f"No .xlsx skill file matched {pattern}")
 
-    files = sorted(ROOT.glob("*.xlsx"))
+    files = sorted(path for path in ROOT.glob("*.xlsx") if not path.name.startswith("~$"))
     if not files:
         raise SystemExit("No .xlsx skill file found in project root")
-    return files[0]
+    return sorted(files, key=skill_source_sort_key)[0]
+
+
+def skill_source_sort_key(path: Path) -> tuple[int, str]:
+    match = re.search(r"v(\d+)", path.name, re.IGNORECASE)
+    version = int(match.group(1)) if match else 0
+    return (-version, path.name)
 
 
 def normalize_rows(rows: list[tuple[int, list[str]]]) -> list[dict]:
@@ -52,8 +58,16 @@ def normalize_rows(rows: list[tuple[int, list[str]]]) -> list[dict]:
     if "技能名字" in header and "技能效果" in header:
         name_index = header.index("技能名字")
         timing_index = header.index("生效时间") if "生效时间" in header else -1
+        exposure_index = header.index("暴露时机") if "暴露时机" in header else -1
         effect_index = header.index("技能效果")
-        tag_index = header.index("特殊标签") if "特殊标签" in header else -1
+        attribute_tag_index = (
+            header.index("属性标签")
+            if "属性标签" in header
+            else header.index("特殊标签")
+            if "特殊标签" in header
+            else -1
+        )
+        type_tag_index = header.index("类型标签") if "类型标签" in header else -1
 
         skills = []
         for row_number, row in rows[1:]:
@@ -61,17 +75,23 @@ def normalize_rows(rows: list[tuple[int, list[str]]]) -> list[dict]:
             if not name:
                 continue
 
-            skills.append(
-                {
-                    "id": skill_id(name, row_number),
-                    "name": name,
-                    "fusion": "",
-                    "timing": cell(row, timing_index),
-                    "description": cell(row, effect_index),
-                    "tags": split_tags(cell(row, tag_index)),
-                    "sourceRow": row_number,
-                }
-            )
+            tags = split_tags(cell(row, attribute_tag_index))
+            type_tags = split_tags(cell(row, type_tag_index))
+            skill = {
+                "id": skill_id(name, row_number),
+                "name": name,
+                "fusion": "",
+                "timing": cell(row, timing_index),
+                "exposureTiming": cell(row, exposure_index) or "不暴露",
+                "description": cell(row, effect_index),
+                "tags": tags,
+                "typeTags": type_tags,
+                "sourceRow": row_number,
+            }
+            attribute = skill_attribute(tags)
+            if attribute:
+                skill["attribute"] = attribute
+            skills.append(skill)
         return skills
 
     skills = []
@@ -80,17 +100,22 @@ def normalize_rows(rows: list[tuple[int, list[str]]]) -> list[dict]:
         if not name:
             continue
 
-        skills.append(
-            {
-                "id": skill_id(name, row_number),
-                "name": name,
-                "fusion": cell(row, 2),
-                "timing": "",
-                "description": cell(row, 3),
-                "tags": split_tags(cell(row, 4)),
-                "sourceRow": row_number,
-            }
-        )
+        tags = split_tags(cell(row, 4))
+        skill = {
+            "id": skill_id(name, row_number),
+            "name": name,
+            "fusion": cell(row, 2),
+            "timing": "",
+            "exposureTiming": "不暴露",
+            "description": cell(row, 3),
+            "tags": tags,
+            "typeTags": [],
+            "sourceRow": row_number,
+        }
+        attribute = skill_attribute(tags)
+        if attribute:
+            skill["attribute"] = attribute
+        skills.append(skill)
     return skills
 
 
@@ -107,8 +132,8 @@ def read_first_sheet(path: Path) -> list[tuple[int, list[str]]]:
         rid = first_sheet.attrib[
             "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
         ]
-        target = relmap[rid]
-        sheet_path = "xl/" + target.lstrip("/")
+        target = relmap[rid].lstrip("/")
+        sheet_path = target if target.startswith("xl/") else "xl/" + target
         sheet = ET.fromstring(archive.read(sheet_path))
         rows = []
         for row_node in sheet.findall(".//a:sheetData/a:row", NS):
@@ -184,6 +209,19 @@ def cell(row: list[str], index: int) -> str:
 
 def split_tags(raw: str) -> list[str]:
     return [tag.strip() for tag in re.split(r"[,，、/;；\n]", raw) if tag.strip()]
+
+
+def skill_attribute(tags: list[str]) -> str | None:
+    for tag in tags:
+        if "火" in tag:
+            return "fire"
+        if "冰" in tag:
+            return "ice"
+        if "电" in tag:
+            return "electric"
+        if "毒" in tag:
+            return "poison"
+    return None
 
 
 def skill_id(name: str, row_number: int) -> str:

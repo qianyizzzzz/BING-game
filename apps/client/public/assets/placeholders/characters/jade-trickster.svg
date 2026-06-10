@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Human jade trickster portrait placeholder">
+  <rect width="256" height="256" rx="42" fill="#134e4a"/>
+  <circle cx="128" cy="128" r="100" fill="#14b8a6" opacity=".18"/>
+  <path d="M52 226c13-50 45-79 76-79s63 29 76 79" fill="#0f766e"/>
+  <path d="M83 223c7-39 27-61 45-61s38 22 45 61" fill="#ccfbf1"/>
+  <circle cx="128" cy="105" r="51" fill="#e8b98f"/>
+  <path d="M80 96c3-39 31-66 68-62 28 4 47 22 51 56-42-26-82-23-119 6z" fill="#102a2a"/>
+  <path d="M78 106c-13-3-12-24 2-25 7 0 10 7 9 16" fill="#e8b98f"/>
+  <path d="M174 97c-1-9 3-16 10-16 14 1 15 22 2 25" fill="#e8b98f"/>
+  <circle cx="109" cy="112" r="6" fill="#0f172a"/>
+  <circle cx="149" cy="112" r="6" fill="#0f172a"/>
+  <path d="M125 118l-6 19h16" fill="none" stroke="#9a5b33" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M108 149c13 8 27 8 40 0" fill="none" stroke="#0f766e" stroke-width="7" stroke-linecap="round"/>
+  <path d="M89 82c20-20 53-26 91-4" fill="none" stroke="#2dd4bf" stroke-width="8" stroke-linecap="round"/>
+  <path d="M95 211c19 15 47 16 66 0" fill="none" stroke="#14b8a6" stroke-width="8" stroke-linecap="round"/>
+  <path d="M190 49l10 19 21 3-15 15 4 21-20-10-19 10 3-21-15-15 21-3z" fill="#99f6e4"/>
+</svg>

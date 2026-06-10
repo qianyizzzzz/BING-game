@@ -1,5 +1,5 @@
 import { GamePhase, GameState } from "../types";
-import { alivePlayers } from "../engine/gameFactory";
+import { alivePlayers, playerHasActiveSkill, victoryEligiblePlayers } from "../engine/gameFactory";
 
 export type GameTransition =
   | "join"
@@ -12,7 +12,12 @@ export type GameTransition =
 export const GAME_STATE_GRAPH: Record<GamePhase, Partial<Record<GameTransition, GamePhase>>> = {
   lobby: {
     join: "lobby",
-    start: "collecting_actions"
+    start: "action_window"
+  },
+  action_window: {
+    submit_action: "action_window",
+    resolve_done: "collecting_actions",
+    finish: "finished"
   },
   collecting_actions: {
     submit_action: "collecting_actions",
@@ -34,13 +39,22 @@ export function canTransition(
 }
 
 export function shouldFinishGame(state: GameState): boolean {
-  return alivePlayers(state).length <= 1;
+  const alive = alivePlayers(state);
+  const victoryAlive = victoryEligiblePlayers(state);
+  return (
+    victoryAlive.length <= 1 ||
+    alive.some((player) => player.buffs.some((buff) => buff.id.startsWith("instant_win:"))) ||
+    (victoryAlive.length === 2 &&
+      victoryAlive.some((player) => playerHasActiveSkill(player, "skill_105_48309")))
+  );
 }
 
 export const STATE_MACHINE_MERMAID = `stateDiagram-v2
   [*] --> lobby
   lobby --> lobby: join
-  lobby --> collecting_actions: start
+  lobby --> action_window: start
+  action_window --> action_window: action / pass
+  action_window --> collecting_actions: turn action
   collecting_actions --> collecting_actions: submit_action
   collecting_actions --> resolving: all_actions_ready
   resolving --> collecting_actions: no winner

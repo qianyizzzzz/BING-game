@@ -6,7 +6,9 @@ import {
   ActionSubmission,
   PlayerAction,
   PlayerId,
-  PublicGameState
+  PublicGameState,
+  SkillAction,
+  SkillId
 } from "./types";
 
 export interface SocketAck<T> {
@@ -33,6 +35,8 @@ export interface JoinRoomPayload {
   avatarUrl?: string;
 }
 
+export type SpectateRoomPayload = JoinRoomPayload;
+
 export interface ResumeRoomPayload {
   roomId: GameId;
   playerId: PlayerId;
@@ -49,6 +53,21 @@ export interface StartGamePayload {
 export interface SubmitActionPayload {
   roomId: GameId;
   action: ActionSubmission;
+}
+
+export interface ActionWindowPayload {
+  roomId: GameId;
+}
+
+export interface SubmitWindowSkillPayload {
+  roomId: GameId;
+  action: SkillAction;
+}
+
+export interface GuessSkillPayload {
+  roomId: GameId;
+  targetPlayerId: PlayerId;
+  targetSkillId: SkillId;
 }
 
 export interface RenamePlayerPayload {
@@ -70,6 +89,12 @@ export interface UpdateSettingsPayload {
   config: Partial<GameConfig>;
 }
 
+export interface UpdatePlayerSkillsPayload {
+  roomId: GameId;
+  targetPlayerId: PlayerId;
+  skillIds: SkillId[];
+}
+
 export interface ClientToServerEvents {
   "room:create": (
     payload: CreateRoomPayload,
@@ -77,6 +102,10 @@ export interface ClientToServerEvents {
   ) => void;
   "room:join": (
     payload: JoinRoomPayload,
+    ack: (response: SocketAck<RoomIdentity & { state: PublicGameState }>) => void
+  ) => void;
+  "room:spectate": (
+    payload: SpectateRoomPayload,
     ack: (response: SocketAck<RoomIdentity & { state: PublicGameState }>) => void
   ) => void;
   "room:resume": (
@@ -103,6 +132,10 @@ export interface ClientToServerEvents {
     payload: UpdateSettingsPayload,
     ack: (response: SocketAck<{ state: PublicGameState }>) => void
   ) => void;
+  "room:update_player_skills": (
+    payload: UpdatePlayerSkillsPayload,
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
+  ) => void;
   "game:start": (
     payload: StartGamePayload,
     ack: (response: SocketAck<{ state: PublicGameState }>) => void
@@ -110,6 +143,26 @@ export interface ClientToServerEvents {
   "game:submit_action": (
     payload: SubmitActionPayload,
     ack: (response: SocketAck<{ state: PublicGameState; resolved: boolean }>) => void
+  ) => void;
+  "game:enter_action_window": (
+    payload: ActionWindowPayload,
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
+  ) => void;
+  "game:pass_action_window": (
+    payload: ActionWindowPayload,
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
+  ) => void;
+  "game:skip_to_next_action": (
+    payload: ActionWindowPayload,
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
+  ) => void;
+  "game:submit_window_skill": (
+    payload: SubmitWindowSkillPayload,
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
+  ) => void;
+  "game:guess_skill": (
+    payload: GuessSkillPayload,
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
   ) => void;
 }
 

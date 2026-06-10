@@ -12,11 +12,17 @@
     "dev:server": "npm run dev -w @bing/server",
     "dev:client": "npm run dev -w @bing/client",
     "serve": "tsx apps/server/src/index.ts",
+    "public": "node scripts/public-play.mjs",
+    "public:no-build": "node scripts/public-play.mjs --skip-build",
+    "public:tunnel": "node scripts/public-play.mjs --tunnel-only --skip-build",
     "build": "npm run build -w @bing/shared && npm run build -w @bing/server && npm run build -w @bing/client",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "test:rules": "tsx scripts/rule-regression-check.ts",
     "import:skills": "python scripts/import-skills.py",
     "training:export": "node scripts/export-training-data.mjs",
     "training:selfplay": "tsx scripts/self-play-training.ts",
+    "training:roles": "tsx scripts/role-self-play-training.ts",
+    "training:roles:3h": "tsx scripts/role-self-play-training.ts --duration-minutes 180 --target-error 0.01 --skill-heavy",
     "training:selfplay:2h": "tsx scripts/self-play-training.ts --duration-minutes 120 --skill-heavy"
   },
   "dependencies": {
@@ -31,6 +37,7 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "tailwindcss": "^3.4.17",
+    "three": "^0.184.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.1.12"
@@ -39,6 +46,8 @@
     "@types/express": "^5.0.5",
     "@types/node": "^24.9.1",
     "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2"
+    "@types/react-dom": "^19.2.2",
+    "@types/three": "^0.184.1",
+    "playwright": "^1.60.0"
   }
 }

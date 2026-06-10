@@ -1,0 +1,49 @@
+# Codex Agent Rules
+
+## Project Goal
+
+This is a commercial indie game project targeting a future Steam release.
+
+## Must Read Before Work
+
+- `workflow/docs/00-game-pillars.md`
+- `workflow/docs/01-visual-bible.md`
+- `workflow/docs/03-agent-rules.md`
+- The current task file under `workflow/tasks/`
+
+## Codex Role
+
+Codex owns implementation, integration, debugging, build verification, local testing, and screenshot-based UI checks.
+
+Codex should not invent the product direction. Use the task file, Game Pillars, Visual Bible, and Figma as source material.
+
+## Implementation Rules
+
+- Preserve existing project structure.
+- Keep changes scoped to the task.
+- Do not rewrite unrelated systems.
+- Do not change gameplay behavior unless the task asks for it.
+- Do not touch files listed in the task's "Do Not Touch" section.
+- If a UI task uses Figma, read the relevant frame before implementing.
+- After implementation, run the available build, test, or dev command.
+- For UI changes, verify at common desktop sizes and a Steam Deck-like layout when possible.
+
+## Reporting
+
+At the end of a task, report:
+
+- Changed files
+- What was implemented
+- What was verified
+- Screenshots or visual verification notes for UI work
+- Known risks or unfinished items
+
+## Figma MCP
+
+Prefer the local MCP server:
+
+```text
+figma-desktop -> http://127.0.0.1:3845/mcp
+```
+
+Figma Desktop must be open with Desktop MCP server enabled.

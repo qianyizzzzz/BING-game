@@ -10,6 +10,8 @@ import {
   ServerToClientEvents,
   SocketAck,
   SocketData,
+  DEFEAT_LEVEL_LABELS,
+  getActionLabel,
   getActionPlanLabel,
   getSkill
 } from "@bing/shared";
@@ -18,6 +20,9 @@ import type { PlayerState } from "@bing/shared";
 
 const PORT = Number(process.env.PORT ?? 3001);
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
+const EXTRA_ALLOWED_ORIGINS = parseOriginList(
+  process.env.PUBLIC_ORIGINS ?? process.env.CLIENT_ORIGINS ?? ""
+);
 const serverDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultPublicDir = path.resolve(serverDir, "../../client/dist");
 const publicDir = path.resolve(process.env.PUBLIC_DIR ?? defaultPublicDir);
@@ -79,7 +84,7 @@ app.post("/api/accounts/register", (request, response) => {
     updatedAt: now
   };
 
-  if (rawAvatarUrl.startsWith("data:image/") && rawAvatarUrl.length <= 750_000) {
+  if (rawAvatarUrl.startsWith("data:image/") && rawAvatarUrl.length <= 14_000_000) {
     account.avatarUrl = rawAvatarUrl;
   } else if (existing?.avatarUrl) {
     account.avatarUrl = existing.avatarUrl;
@@ -178,6 +183,22 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("room:spectate", (payload, ack) => {
+    safely(ack, () => {
+      const { state, player } = rooms.spectateRoom(payload.roomId, payload.playerName, playerProfile(payload));
+      socket.data.roomId = state.id;
+      socket.data.playerId = player.id;
+      void socket.join(state.id);
+      const publicState = rooms.publicState(state.id, player.id);
+      void broadcastRoomState(state.id);
+      return {
+        roomId: state.id,
+        playerId: player.id,
+        state: publicState
+      };
+    });
+  });
+
   socket.on("room:resume", (payload, ack) => {
     safely(ack, () => {
       const { state, player } = rooms.resumePlayer(payload.roomId, payload.playerId);
@@ -259,6 +280,22 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("room:update_player_skills", (payload, ack) => {
+    safely(ack, () => {
+      const playerId = requirePlayerId(socket.data.playerId);
+      rooms.updatePlayerSkills(
+        payload.roomId,
+        playerId,
+        payload.targetPlayerId,
+        payload.skillIds
+      );
+      void broadcastRoomState(payload.roomId);
+      return {
+        state: rooms.publicState(payload.roomId, playerId)
+      };
+    });
+  });
+
   socket.on("game:start", (payload, ack) => {
     safely(ack, () => {
       const playerId = requirePlayerId(socket.data.playerId);
@@ -279,6 +316,61 @@ io.on("connection", (socket) => {
       return {
         state: rooms.publicState(payload.roomId, playerId),
         resolved: result.resolved
+      };
+    });
+  });
+
+  socket.on("game:enter_action_window", (payload, ack) => {
+    safely(ack, () => {
+      const playerId = requirePlayerId(socket.data.playerId);
+      rooms.enterActionWindow(payload.roomId, playerId);
+      void broadcastRoomState(payload.roomId);
+      return {
+        state: rooms.publicState(payload.roomId, playerId)
+      };
+    });
+  });
+
+  socket.on("game:pass_action_window", (payload, ack) => {
+    safely(ack, () => {
+      const playerId = requirePlayerId(socket.data.playerId);
+      rooms.passActionWindow(payload.roomId, playerId);
+      void broadcastRoomState(payload.roomId);
+      return {
+        state: rooms.publicState(payload.roomId, playerId)
+      };
+    });
+  });
+
+  socket.on("game:skip_to_next_action", (payload, ack) => {
+    safely(ack, () => {
+      const playerId = requirePlayerId(socket.data.playerId);
+      rooms.skipActionWindowsUntilTurnAction(payload.roomId, playerId);
+      void broadcastRoomState(payload.roomId);
+      return {
+        state: rooms.publicState(payload.roomId, playerId)
+      };
+    });
+  });
+
+  socket.on("game:submit_window_skill", (payload, ack) => {
+    safely(ack, () => {
+      const playerId = requirePlayerId(socket.data.playerId);
+      rooms.submitWindowSkill(payload.roomId, playerId, payload.action);
+      void broadcastRoomState(payload.roomId);
+      return {
+        state: rooms.publicState(payload.roomId, playerId)
+      };
+    });
+  });
+
+  socket.on("game:guess_skill", (payload, ack) => {
+    safely(ack, () => {
+      const playerId = requirePlayerId(socket.data.playerId);
+      rooms.guessSkill(payload.roomId, playerId, payload.targetPlayerId, payload.targetSkillId);
+      void broadcastRoomState(payload.roomId);
+      return {
+        state: rooms.publicState(payload.roomId, playerId)
       };
     });
   });
@@ -330,11 +422,17 @@ async function kickSocketFromRoom(roomId: string, playerId: string): Promise<voi
 function scheduleTurnTimer(roomId: string): void {
   clearRoomTimer(roomId);
   const state = rooms.get(roomId);
-  if (!state || state.phase !== "collecting_actions" || !state.turnDeadlineAt) {
+  const deadline =
+    state?.phase === "action_window"
+      ? state.actionWindowDeadlineAt
+      : state?.phase === "collecting_actions"
+        ? state.turnDeadlineAt
+        : undefined;
+  if (!state || !deadline) {
     return;
   }
 
-  const delay = Math.max(0, state.turnDeadlineAt - Date.now());
+  const delay = Math.max(0, deadline - Date.now());
   const timer = setTimeout(() => {
     try {
       rooms.resolveTimedOutActions(roomId);
@@ -427,7 +525,8 @@ function isAllowedOrigin(
   const allowedOrigins = new Set([
     CLIENT_ORIGIN,
     "http://localhost:5173",
-    "http://127.0.0.1:5173"
+    "http://127.0.0.1:5173",
+    ...EXTRA_ALLOWED_ORIGINS
   ]);
 
   if (allowedOrigins.has(origin)) {
@@ -437,18 +536,67 @@ function isAllowedOrigin(
 
   try {
     const url = new URL(origin);
-    const isDevVitePort = url.port === "5173";
-    const isPrivateHost =
-      url.hostname === "localhost" ||
-      url.hostname === "127.0.0.1" ||
-      url.hostname.startsWith("10.") ||
-      url.hostname.startsWith("192.168.") ||
-      /^172\.(1[6-9]|2\d|3[0-1])\./.test(url.hostname);
+    const isAppPort = url.port === "5173" || url.port === String(PORT);
+    const isDefaultWebPort = url.port === "" || url.port === "80" || url.port === "443";
 
-    callback(null, isDevVitePort && isPrivateHost);
+    callback(
+      null,
+      (isAppPort && isLocalNetworkHost(url.hostname)) ||
+        (isDefaultWebPort && isKnownTunnelHost(url.hostname))
+    );
   } catch {
     callback(null, false);
   }
+}
+
+function parseOriginList(value: string): string[] {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function isLocalNetworkHost(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  if (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "::1" ||
+    host === "[::1]" ||
+    host.endsWith(".ts.net")
+  ) {
+    return true;
+  }
+
+  const octets = host.split(".").map((part) => Number(part));
+  if (
+    octets.length !== 4 ||
+    octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)
+  ) {
+    return false;
+  }
+
+  const [first, second] = octets as [number, number, number, number];
+  return (
+    first === 10 ||
+    first === 25 ||
+    first === 26 ||
+    (first === 192 && second === 168) ||
+    (first === 172 && second >= 16 && second <= 31) ||
+    (first === 100 && second >= 64 && second <= 127)
+  );
+}
+
+function isKnownTunnelHost(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  return (
+    host.endsWith(".trycloudflare.com") ||
+    host.endsWith(".ngrok-free.app") ||
+    host.endsWith(".ngrok.app") ||
+    host.endsWith(".serveousercontent.com") ||
+    host.endsWith(".serveo.net") ||
+    host.endsWith(".loca.lt")
+  );
 }
 
 type RecordedMatch = NonNullable<ReturnType<RoomStore["readRecordedMatch"]>>;
@@ -461,17 +609,21 @@ function renderReplayText(state: ReturnType<RoomStore["readRecordedMatch"]>): st
 
   const players = new Map(state.players.map((player) => [player.id, player.name]));
   const lines = [
-    "《饼》比赛复盘",
-    `房间：${state.id}`,
-    `结束阶段：${phaseLabel(state.phase)}`,
-    `总轮数：${state.roundNumber}`,
-    `总回合：${state.turnNumber}`,
+    "============================================================",
+    "《饼》复盘报告",
+    "============================================================",
+    `房间号：${state.id}`,
+    `当前阶段：${phaseLabel(state.phase)}`,
+    `轮 / 回合：第 ${state.roundNumber} 轮 · 本轮第 ${state.roundTurnNumber} 回合`,
     `生成时间：${new Date().toLocaleString("zh-CN")}`,
     "",
-    "== AI 总结 ==",
+    "一、快速结论",
+    "------------------------------------------------------------",
     ...buildReplaySummary(state, players),
     "",
-    "== 玩家状态 =="
+    "二、玩家终局",
+    "------------------------------------------------------------",
+    "玩家           身份   状态   血量   饼   技能"
   ];
 
   for (const player of state.players) {
@@ -479,12 +631,21 @@ function renderReplayText(state: ReturnType<RoomStore["readRecordedMatch"]>): st
       .map((skillId) => getSkill(skillId)?.name ?? skillId)
       .join("、") || "无";
     lines.push(
-      `- ${player.name}：${player.kind === "ai" ? "AI" : "真人"}，${player.status === "alive" ? "存活" : "阵亡"}，血量 ${player.hp}，饼 ${player.cakes}，技能：${skills}`
+      `${padText(player.name, 13)} ${padText(player.kind === "ai" ? "AI" : "真人", 6)} ${padText(playerStatusLabel(player), 6)} ${padText(String(player.hp), 6)} ${padText(String(player.cakes), 4)} ${skills}`
     );
   }
 
-  lines.push("", "== 回合明细 ==");
-  for (const event of state.eventLog) {
+  lines.push(
+    "",
+    "三、关键回合",
+    "------------------------------------------------------------",
+    ...buildReplayTurnBlocks(state, players),
+    "",
+    "四、完整事件流（已隐藏“等待提交”等噪声事件）",
+    "------------------------------------------------------------"
+  );
+
+  for (const event of state.eventLog.filter((item) => !isReplayNoiseEvent(item))) {
     lines.push(...renderReplayTextEvent(event, players));
   }
 
@@ -570,6 +731,71 @@ function buildReplaySummary(
   return lines;
 }
 
+function buildReplayTurnBlocks(
+  state: RecordedMatch,
+  players: Map<string, string>
+): string[] {
+  const blocks: string[] = [];
+  let current: Extract<RecordedEvent, { type: "turn_revealed" }> | undefined;
+  let currentEvents: RecordedEvent[] = [];
+
+  const flush = () => {
+    if (!current) {
+      return;
+    }
+
+    blocks.push(`R${current.roundNumber}/T${current.turnNumber} 亮招`);
+    const actions = Object.entries(current.actions)
+      .map(([playerId, plan]) => `${playerLabel(players, playerId)}：${getActionPlanLabel(plan)}`)
+      .join("  |  ");
+    blocks.push(`  出招：${actions || "无"}`);
+
+    const highlights = currentEvents
+      .filter((event) =>
+        [
+          "damage",
+          "heal",
+          "attack_blocked",
+          "attack_reflected",
+          "rebound_broken",
+          "clash",
+          "round_ended",
+          "player_died",
+          "game_finished",
+          "system"
+        ].includes(event.type)
+      )
+      .flatMap((event) => renderReplayTextEvent(event, players).map((line) => `  ${line.replace(/^\[[^\]]+\]\s*/, "")}`));
+
+    if (highlights.length === 0) {
+      blocks.push("  结果：无人受伤，进入下一回合。");
+    } else {
+      blocks.push(...highlights);
+    }
+    blocks.push("");
+  };
+
+  for (const event of state.eventLog) {
+    if (event.type === "turn_revealed") {
+      flush();
+      current = event;
+      currentEvents = [];
+      continue;
+    }
+
+    if (current) {
+      currentEvents.push(event);
+    }
+  }
+  flush();
+
+  return blocks.length > 0 ? blocks : ["暂无亮招记录。"];
+}
+
+function isReplayNoiseEvent(event: RecordedEvent): boolean {
+  return event.type === "action_submitted" || event.type === "player_ready";
+}
+
 function renderReplayTextEvent(
   event: RecordedEvent,
   players: Map<string, string>
@@ -608,9 +834,9 @@ function renderReplayTextEvent(
     case "player_kicked":
       return [`${time} ${event.name} 被房主 ${playerLabel(players, event.byPlayerId)} 踢出房间。`];
     case "settings_updated":
-      return [`${time} 房间设置更新：限时 ${event.config.turnTimeLimitSeconds}s，速度 ${speedLabel(event.config.speedMode)}，小技能 ${event.config.skillCount} 张。`];
+      return [`${time} 房间设置更新：限时 ${event.config.turnTimeLimitSeconds}s，小技能 ${event.config.skillCount} 张。`];
     case "player_died":
-      return [`${time} ${playerLabel(players, event.playerId)} 阵亡。`];
+      return [`${time} ${playerLabel(players, event.playerId)} ${defeatStatusLabel(event.defeatLevel)}。`];
     case "game_finished":
       return [`${time} 游戏结束，胜者：${event.winnerIds.map((playerId) => playerLabel(players, playerId)).join("、") || "无"}。`];
     case "system":
@@ -619,6 +845,8 @@ function renderReplayTextEvent(
       return [`${time} 房间已创建：${event.gameId}`];
     case "action_submitted":
       return [`${time} ${playerLabel(players, event.playerId)} 已提交出招。`];
+    case "action_switched":
+      return [`${time} ${playerLabel(players, event.playerId)} 使用 ${event.skillName} 将 ${getActionLabel(event.before)} 切换为 ${getActionLabel(event.after)}，消耗 ${event.cost} 饼。`];
     case "player_ready":
       return [`${time} ${playerLabel(players, event.playerId)} 已准备。`];
     default:
@@ -635,6 +863,11 @@ function topStat(values: Map<string, number>, players: Map<string, string>): str
   return `${playerLabel(players, playerId)} ${amount}`;
 }
 
+function padText(value: string, width: number): string {
+  const clipped = value.length > width ? `${value.slice(0, Math.max(1, width - 1))}…` : value;
+  return clipped.padEnd(width, " ");
+}
+
 function phaseLabel(phase: RecordedMatch["phase"]): string {
   if (phase === "lobby") {
     return "房间等待";
@@ -644,15 +877,15 @@ function phaseLabel(phase: RecordedMatch["phase"]): string {
     return "收招中";
   }
 
+  if (phase === "action_window") {
+    return "行动窗口";
+  }
+
   if (phase === "resolving") {
     return "结算中";
   }
 
   return "已结束";
-}
-
-function speedLabel(speedMode: RecordedMatch["config"]["speedMode"]): string {
-  return speedMode === "accelerating" ? "越来越快" : "普通";
 }
 
 function renderReplayHtml(state: ReturnType<RoomStore["readRecordedMatch"]>): string {
@@ -669,7 +902,7 @@ function renderReplayHtml(state: ReturnType<RoomStore["readRecordedMatch"]>): st
         <div class="avatar">${escapeHtml(player.name.slice(0, 1))}</div>
         <div>
           <strong>${escapeHtml(player.name)}</strong>
-          <span>${player.kind === "ai" ? "AI 玩家" : "真人玩家"} · ${player.status === "alive" ? "存活" : "阵亡"}</span>
+          <span>${player.kind === "ai" ? "AI 玩家" : "真人玩家"} · ${playerStatusLabel(player)}</span>
         </div>
         <dl>
           <div><dt>血量</dt><dd>${player.hp}</dd></div>
@@ -752,7 +985,7 @@ function renderReplayHtml(state: ReturnType<RoomStore["readRecordedMatch"]>): st
     </header>
     <section class="summary" aria-label="比赛概览">
       <div class="metric"><span>当前轮</span><strong>${state.roundNumber}</strong></div>
-      <div class="metric"><span>总回合</span><strong>${state.turnNumber}</strong></div>
+      <div class="metric"><span>本轮回合</span><strong>${state.roundTurnNumber}</strong></div>
       <div class="metric"><span>事件数</span><strong>${state.eventLog.length}</strong></div>
       <div class="metric"><span>存活人数</span><strong>${aliveCount}</strong></div>
     </section>
@@ -830,10 +1063,24 @@ function renderReplayEvent(event: RecordedEvent, players: Map<string, string>): 
       return replayEvent("join", "踢", time, `${event.name} 被移出房间`, `房主：${playerLabel(players, event.byPlayerId)}`);
     case "settings_updated":
       return replayEvent("system", "设", time, "房间设置已更新", "新的设置会从开局后生效。");
+    case "skill_revealed":
+      return replayEvent(
+        "turn",
+        "技",
+        time,
+        `${playerLabel(players, event.playerId)} 暴露了 ${event.skillName}`,
+        event.reason
+      );
     case "cake_changed":
       return replayEvent("system", "饼", time, `${playerLabel(players, event.playerId)} 饼数 ${event.before} → ${event.after}`, event.reason);
     case "player_died":
-      return replayEvent("end", "亡", time, `${playerLabel(players, event.playerId)} 阵亡`, "血量为负数时死亡。");
+      return replayEvent(
+        "end",
+        defeatStatusLabel(event.defeatLevel).slice(0, 1),
+        time,
+        `${playerLabel(players, event.playerId)} ${defeatStatusLabel(event.defeatLevel)}`,
+        event.reason ? `原因：${event.reason}` : `${defeatStatusLabel(event.defeatLevel)}状态。`
+      );
     case "game_finished":
       return replayEvent(
         "end",
@@ -869,6 +1116,14 @@ function replayEvent(
     <p>${escapeHtml(body)}</p>
     ${extra}
   </article>`;
+}
+
+function defeatStatusLabel(defeatLevel: PlayerState["defeatLevel"]): string {
+  return DEFEAT_LEVEL_LABELS[defeatLevel ?? 1];
+}
+
+function playerStatusLabel(player: Pick<PlayerState, "status" | "defeatLevel">): string {
+  return player.status === "alive" ? "存活" : defeatStatusLabel(player.defeatLevel);
 }
 
 function playerLabel(players: Map<string, string>, playerId: string | undefined): string {

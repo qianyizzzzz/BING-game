@@ -1,6 +1,8 @@
 import {
   AttackId,
+  AttackElement,
   AttackStats,
+  AttackTrait,
   BaseAttackDefinition,
   DefenseKind,
   DefenseTag,
@@ -128,7 +130,8 @@ export const DEFENSE_LABELS: Record<DefenseKind, string> = {
   small: "小防",
   youtiao: "油条",
   stone: "石头",
-  rebound: "反弹"
+  rebound: "反弹",
+  self_destruct: "自爆"
 };
 
 export const DEFENSE_TAG_LABELS: Record<DefenseTag, string> = {
@@ -162,15 +165,71 @@ export function getStackedAttackStats(
     defenseTag: definition.defenseTag,
     traits: [...definition.traits],
     element: definition.element,
+    elements: normalizeAttackElements([definition.element]),
     isArea: definition.isArea,
     stacks,
     isSkill: false
   };
 }
 
+export function addAttackElement(stats: AttackStats, element: AttackElement): AttackStats {
+  const elements = normalizeAttackElements([...getAttackElements(stats), element]);
+  const elementTrait = toElementTrait(element);
+  const traits = elementTrait
+    ? Array.from(new Set([...stats.traits, elementTrait]))
+    : [...stats.traits];
+  return {
+    ...stats,
+    element: elements[0] ?? element,
+    elements,
+    traits
+  };
+}
+
+export function getAttackElements(
+  stats: Pick<AttackStats, "element" | "elements" | "traits"> | undefined
+): AttackElement[] {
+  if (!stats) {
+    return [];
+  }
+
+  const traitElements = stats.traits
+    .map((trait) => toAttackElement(trait))
+    .filter((element): element is AttackElement => Boolean(element));
+  return normalizeAttackElements([...(stats.elements ?? []), stats.element, ...traitElements]);
+}
+
+export function attackHasElement(
+  stats: Pick<AttackStats, "element" | "elements" | "traits"> | undefined,
+  element: AttackElement
+): boolean {
+  return getAttackElements(stats).includes(element);
+}
+
+export function normalizeAttackElements(elements: AttackElement[]): AttackElement[] {
+  const unique = Array.from(new Set(elements));
+  const nonPhysical = unique.filter((element) => element !== "physical");
+  return nonPhysical.length > 0 ? nonPhysical : ["physical"];
+}
+
+function toElementTrait(element: AttackElement): AttackTrait | undefined {
+  return element === "physical" ? undefined : element;
+}
+
+function toAttackElement(trait: AttackTrait): AttackElement | undefined {
+  return trait === "fire" || trait === "electric" || trait === "ice" || trait === "poison"
+    ? trait
+    : undefined;
+}
+
 export function getActionLabel(action: PlayerAction): string {
   if (action.type === "gain_cake") {
     return "饼";
+  }
+
+  if (action.type === "discard_skill") {
+    const skill = getSkill(action.targetSkillId);
+    return `丢弃${skill?.name ?? "技能"}`;
   }
 
   if (action.type === "defense") {
@@ -233,6 +292,9 @@ export function getDefenseForEvent(
   }
 
   if (action.type === "defense") {
+    if (action.defense === "self_destruct") {
+      return undefined;
+    }
     return action.defense;
   }
 

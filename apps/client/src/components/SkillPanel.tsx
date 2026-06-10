@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Sparkles } from "lucide-react";
-import { PublicGameState, getSkill } from "@bing/shared";
+import { Gem, Sparkles } from "lucide-react";
+import {
+  PublicGameState,
+  SKILL_TIMING_PHASE_LABELS,
+  getSkill
+} from "@bing/shared";
+import { getSkillVisualProfile, skillCardStyle, skillCostPipCount } from "../lib/skillVisuals";
 
 interface SkillPanelProps {
   state: PublicGameState;
@@ -9,29 +14,37 @@ interface SkillPanelProps {
 export function SkillPanel({ state }: SkillPanelProps) {
   const viewer = state.players.find((player) => player.id === state.viewerPlayerId);
   const [activeSkillIds, setActiveSkillIds] = useState<Set<string>>(() => new Set());
-  const lastRevealId = useRef<string | null>(null);
+  const lastFlashEventId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!viewer) {
       return;
     }
 
-    const reveal = [...state.eventLog]
+    const skillEvent = [...state.eventLog]
       .reverse()
-      .find((event) => event.type === "turn_revealed");
-    if (!reveal || reveal.id === lastRevealId.current) {
+      .find(
+        (event) =>
+          (event.type === "skill_used" && event.playerId === viewer.id) ||
+          event.type === "turn_revealed"
+      );
+    if (!skillEvent || skillEvent.id === lastFlashEventId.current) {
       return;
     }
 
-    lastRevealId.current = reveal.id;
     const usedSkillIds =
-      reveal.actions[viewer.id]?.actions
-        .filter((action) => action.type === "skill")
-        .map((action) => action.skillId) ?? [];
+      skillEvent.type === "skill_used"
+        ? [skillEvent.skillId]
+        : skillEvent.type === "turn_revealed"
+          ? skillEvent.actions[viewer.id]?.actions
+            .filter((action) => action.type === "skill")
+            .map((action) => action.skillId) ?? []
+          : [];
     if (usedSkillIds.length === 0) {
       return;
     }
 
+    lastFlashEventId.current = skillEvent.id;
     setActiveSkillIds(new Set(usedSkillIds));
     const timeout = window.setTimeout(() => setActiveSkillIds(new Set()), 2200);
     return () => window.clearTimeout(timeout);
@@ -42,41 +55,110 @@ export function SkillPanel({ state }: SkillPanelProps) {
   }
 
   return (
-    <section className="surface-card skill-card p-4">
-      <div className="mb-3 flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-teal-700" aria-hidden="true" />
-        <h2 className="text-base font-semibold text-gray-900">你的技能</h2>
+    <section className="surface-card skill-card abyss-skill-panel p-4">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-amber-200" aria-hidden="true" />
+          <div>
+            <h2 className="text-base font-black text-amber-50">深渊遗物技能牌</h2>
+            <p className="mt-0.5 text-xs font-semibold text-amber-100/70">
+              First-person relic loadout
+            </p>
+          </div>
+        </div>
+        <span className="skill-panel-count">{viewer.skills.length} CARDS</span>
       </div>
-      <div className="space-y-2">
+
+      <div className="skill-gallery">
         {viewer.skills.map((skillId) => {
           const skill = getSkill(skillId);
-          const timing = (skill as { timing?: string } | undefined)?.timing;
+          const visual = getSkillVisualProfile(skill, skillId);
+          const phaseLabels =
+            skill?.timingPhases
+              .slice(0, 3)
+              .map((phase) => SKILL_TIMING_PHASE_LABELS[phase]) ?? [];
+          const playSummary = skill ? formatPlaySummary(skill) : "";
+
           return (
             <div
               key={skillId}
               className={[
                 "skill-list-item",
+                "skill-relic-card",
+                `skill-affinity-${visual.affinity}`,
                 skill ? skillToneClass(skill) : "",
                 activeSkillIds.has(skillId) ? "skill-used-flash" : ""
               ].join(" ")}
+              style={skillCardStyle(visual)}
             >
-              <div className="flex items-center justify-between gap-2">
-                <div className="font-bold text-gray-900">{skill?.name ?? skillId}</div>
+              <div className="skill-relic-topline">
+                <span>{visual.label}</span>
                 {skill ? <span className="skill-power-badge">{skillPowerLabel(skill)}</span> : null}
               </div>
-              {timing ? (
-                <div className="mt-1 text-xs font-black text-teal-700">{timing}</div>
+
+              <div className="skill-relic-art">
+                <span className="skill-relic-etch skill-relic-etch-a" aria-hidden="true" />
+                <span className="skill-relic-etch skill-relic-etch-b" aria-hidden="true" />
+                <span className="skill-relic-halo" aria-hidden="true" />
+                <span className="skill-relic-crest" aria-hidden="true">
+                  <Gem className="skill-relic-gem" />
+                  <span className="skill-relic-crest-mark" />
+                </span>
+                <span className="skill-relic-specimen" aria-hidden="true">
+                  SPEC-{skill?.sourceRow ?? visual.sigil}
+                </span>
+                <span className="skill-relic-cost-track" aria-hidden="true">
+                  {Array.from({ length: skillCostPipCount(skill) }).map((_, index) => (
+                    <span key={index} className="skill-relic-cost-pip" />
+                  ))}
+                </span>
+                <span className="skill-relic-energy-bar" aria-hidden="true">
+                  <span />
+                </span>
+                <strong>{visual.sigil}</strong>
+              </div>
+
+              <div className="skill-relic-name" title={skill?.name ?? skillId}>
+                {skill?.name ?? skillId}
+              </div>
+
+              {phaseLabels.length > 0 ? (
+                <div className="skill-stage-strip mt-2">
+                  {phaseLabels.map((label) => (
+                    <span key={label}>{label}</span>
+                  ))}
+                </div>
               ) : null}
-              <p className="mt-1 text-sm leading-6 text-gray-600">
+
+              {skill?.timing ? (
+                <div className="skill-relic-timing mt-2">{skill.timing}</div>
+              ) : null}
+
+              <p className="skill-relic-description mt-2">
                 {skill?.description ?? "技能效果待接入。"}
               </p>
+
+              {playSummary ? (
+                <div className="skill-relic-stats" aria-label="技能出牌参数">
+                  {playSummary}
+                </div>
+              ) : null}
+
+              {skill?.tags.length ? (
+                <div className="skill-relic-tags">
+                  {skill.tags.slice(0, 2).map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </div>
+              ) : null}
+
               {skill?.play ? (
-                <p className="mt-2 text-xs font-black text-teal-700">
+                <p className="skill-relic-note">
                   可在出招面板主动施放。
                 </p>
               ) : !skill?.implemented ? (
-                <p className="mt-2 text-xs font-medium text-amber-700">
-                  当前为展示/抽卡阶段，复杂效果会逐张接入结算引擎。
+                <p className="skill-relic-note skill-relic-note-muted">
+                  展示/抽卡阶段，复杂效果会逐步接入结算引擎。
                 </p>
               ) : null}
             </div>
@@ -85,6 +167,28 @@ export function SkillPanel({ state }: SkillPanelProps) {
       </div>
     </section>
   );
+}
+
+function formatPlaySummary(skill: NonNullable<ReturnType<typeof getSkill>>): string {
+  const play = skill.play;
+  if (!play) {
+    return "";
+  }
+
+  const parts = [`COST ${play.cost}`];
+  if (play.power !== undefined) {
+    parts.push(`POW ${play.power}`);
+  }
+  if (play.level !== undefined) {
+    parts.push(`LV ${play.level}`);
+  }
+  if (play.maxStacks > 1) {
+    parts.push(`x${play.maxStacks}`);
+  }
+  if (play.targetMode === "all") {
+    parts.push("AOE");
+  }
+  return parts.join(" / ");
 }
 
 function skillToneClass(skill: NonNullable<ReturnType<typeof getSkill>>): string {
