@@ -1882,8 +1882,8 @@ export function ActionPanel({
         ) : null}
       </div>
 
-      <form className="mt-4 space-y-4" onSubmit={submit}>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <form className="action-form mt-4 space-y-4" onSubmit={submit}>
+        <div className="action-mode-grid grid grid-cols-2 gap-2 sm:grid-cols-4">
           <ModeButton
             active={mode === "gain_cake"}
             icon={<Cookie className="h-4 w-4" aria-hidden="true" />}
@@ -2291,7 +2291,7 @@ export function ActionPanel({
         </div>
 
         <button
-          className="btn-primary w-full justify-center py-3 disabled:cursor-not-allowed disabled:bg-gray-300"
+          className="btn-primary action-submit-button w-full justify-center py-3 disabled:cursor-not-allowed disabled:bg-gray-300"
           disabled={!canAct || submitting || actionInvalid}
           type="submit"
         >

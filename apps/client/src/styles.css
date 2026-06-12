@@ -2401,6 +2401,8 @@ select {
   width: min(292px, 29%);
   max-height: min(30vh, 270px);
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   border: 1px solid rgba(20, 184, 166, 0.32);
   border-radius: 8px;
   box-shadow:
@@ -2440,6 +2442,10 @@ select {
   margin-top: 10px;
 }
 
+.table-action-dock .action-mode-grid {
+  align-items: stretch;
+}
+
 .table-action-dock .action-board form > .rounded-lg.border-amber-200 {
   padding: 8px;
 }
@@ -2459,9 +2465,20 @@ select {
   padding: 8px;
 }
 
+.table-action-dock .action-summary-panel strong {
+  overflow-wrap: anywhere;
+}
+
 .table-action-dock .btn-primary {
   padding: 7px 9px;
   font-size: 12px;
+}
+
+.table-action-dock .action-submit-button {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  min-height: 42px;
 }
 
 .skill-effect-vectors {
@@ -3280,7 +3297,8 @@ select {
     right: 10px;
     bottom: 10px;
     width: auto;
-    max-height: 40vh;
+    max-height: min(46vh, 360px);
+    max-height: min(46dvh, 360px);
   }
 
   .battle-lane {
@@ -4391,9 +4409,65 @@ select {
   .table-action-dock {
     left: 12px;
     right: 12px;
-    bottom: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
     width: auto;
-    max-height: 250px;
+    max-height: min(46vh, 360px);
+    max-height: min(46dvh, 360px);
+  }
+
+  .table-action-dock .action-board {
+    padding-bottom: 8px !important;
+  }
+
+  .table-action-dock .action-board > .flex:first-child {
+    margin-bottom: 8px;
+  }
+
+  .table-action-dock .action-mode-grid {
+    display: flex;
+    margin-right: -6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+  }
+
+  .table-action-dock .action-mode-grid .mode-button {
+    min-width: 76px;
+    scroll-snap-align: start;
+  }
+
+  .table-action-dock .action-summary-panel {
+    gap: 8px;
+  }
+
+  .table-action-dock .action-summary-meta {
+    gap: 6px;
+  }
+
+  .table-action-dock .action-submit-button {
+    bottom: 0;
+    min-height: 46px;
+    box-shadow:
+      0 -12px 18px rgba(5, 8, 7, 0.38),
+      0 10px 22px rgba(20, 184, 166, 0.2);
+  }
+}
+
+@media (max-width: 430px) {
+  .table-action-dock {
+    left: 8px;
+    right: 8px;
+    max-height: min(44vh, 330px);
+    max-height: min(44dvh, 330px);
+  }
+
+  .table-action-dock .action-board > .flex:first-child p {
+    display: none;
+  }
+
+  .table-action-dock .action-summary-meta span {
+    flex: 1 1 112px;
+    text-align: center;
   }
 }
 
