@@ -7,6 +7,10 @@ import {
 import { formatDamage, playerName } from "../lib/format";
 import { playBattleCue } from "../lib/battleAudio";
 import {
+  buildBattlePresentation,
+  type BattlePresentationCue
+} from "../lib/battlePresentation";
+import {
   MAX_REPLAY_AGE_MS,
   STEP_DURATION_MS,
   buildBattleSteps,
@@ -27,6 +31,10 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
     () => (broadcast ? buildBattleSteps(broadcast.events, state) : []),
     [broadcast, state]
   );
+  const presentationCues = useMemo(
+    () => (broadcast ? buildBattlePresentation(broadcast.events, state) : []),
+    [broadcast, state]
+  );
 
   useEffect(() => {
     if (state.turnResolutionStarted || !broadcast || playedRevealIds.current.has(broadcast.reveal.id)) {
@@ -41,7 +49,7 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
     setActiveRevealId(broadcast.reveal.id);
     setActiveStepIndex(0);
     playBattleCue("turn-reveal");
-    const stepCount = Math.max(1, battleSteps.length);
+    const stepCount = Math.max(1, presentationCues.length);
     const totalDuration = stepCount * STEP_DURATION_MS + 900;
     const interval = window.setInterval(() => {
       setActiveStepIndex((index) => Math.min(index + 1, stepCount - 1));
@@ -51,17 +59,18 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
       window.clearInterval(interval);
       window.clearTimeout(timeout);
     };
-  }, [battleSteps.length, broadcast, state.turnResolutionStarted]);
+  }, [broadcast, presentationCues.length, state.turnResolutionStarted]);
 
   const visibleStep = battleSteps[activeStepIndex];
+  const visibleCue = presentationCues[activeStepIndex];
 
   useEffect(() => {
     if (!broadcast || !visibleStep || activeRevealId !== broadcast.reveal.id) {
       return;
     }
 
-    playBattleCue(visibleStep.soundCue);
-  }, [activeRevealId, activeStepIndex, broadcast?.reveal.id, visibleStep]);
+    playBattleCue(visibleCue?.sfx ?? visibleStep.soundCue);
+  }, [activeRevealId, activeStepIndex, broadcast?.reveal.id, visibleCue, visibleStep]);
 
   if (state.turnResolutionStarted || !broadcast || activeRevealId !== broadcast.reveal.id) {
     return null;
@@ -75,6 +84,9 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
         className="battle-stage-panel battle-stage-floating w-full max-w-4xl rounded-lg border border-teal-200 bg-white/95 p-4 shadow-2xl"
         data-battle-reveal-id={broadcast.reveal.id}
         data-beat="reveal"
+        data-active-beat={visibleCue?.beat ?? "reveal"}
+        data-active-vfx={visibleCue?.vfx ?? "none"}
+        data-active-camera-cue={visibleCue?.camera ?? "none"}
         data-sound-cue="turn-reveal"
         style={{ animationDuration: `${totalDuration}ms` }}
       >
@@ -107,7 +119,7 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
               本回合无人受伤，博弈继续。
             </div>
           ) : (
-            <BattleLane key={visibleStep.id} index={0} step={visibleStep} />
+            <BattleLane key={visibleStep.id} cue={visibleCue} index={0} step={visibleStep} />
           )}
         </div>
       </div>
@@ -151,7 +163,15 @@ function ActionAvatar({
   );
 }
 
-function BattleLane({ step, index }: { step: BattleStep; index: number }) {
+function BattleLane({
+  cue,
+  step,
+  index
+}: {
+  cue: BattlePresentationCue | undefined;
+  step: BattleStep;
+  index: number;
+}) {
   const isArea = step.kind === "area";
   const laneClass = `battle-lane battle-lane-${step.kind}`;
 
@@ -159,7 +179,13 @@ function BattleLane({ step, index }: { step: BattleStep; index: number }) {
     <div
       className={laneClass}
       data-beat={step.beat}
-      data-sound-cue={step.soundCue ?? "system"}
+      data-camera-cue={cue?.camera ?? "none"}
+      data-hit-stop-ms={cue?.hitStopMs ?? 0}
+      data-intensity={cue?.intensity ?? 0}
+      data-sound-cue={cue?.sfx ?? step.soundCue ?? "system"}
+      data-source-id={cue?.sourceId ?? ""}
+      data-target-ids={cue?.targetIds.join(",") ?? ""}
+      data-vfx={cue?.vfx ?? "none"}
       style={{ animationDelay: `${Math.min(index * 110, 440)}ms` }}
     >
       <div className="battle-combatant">
