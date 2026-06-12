@@ -42,8 +42,8 @@ export function PokerTableGame({
   );
   const feedbackMap = useMemo(() => buildSeatFeedbackMap(state), [state]);
   const effects = useMemo(() => buildTableEffects(state), [state]);
-  const activePlayers = state.players.filter((player) => player.status === "alive");
   const seatedPlayers = state.players.filter((player) => player.kind !== "spectator");
+  const activePlayers = seatedPlayers.filter((player) => player.status === "alive");
   const spectators = state.players.filter((player) => player.kind === "spectator");
   const owner = state.players.find((player) => player.id === state.ownerId);
   const viewer = state.players.find((player) => player.id === viewerPlayerId);
@@ -79,6 +79,18 @@ export function PokerTableGame({
     state.phase === "action_window"
       ? `${state.actionWindowPassPlayerIds.length}/${activePlayers.length} 已结束`
       : `${state.pendingActionPlayerIds.length}/${activePlayers.length} 已出招`;
+  const waitingPlayers =
+    state.phase === "action_window"
+      ? activePlayers.filter((player) => !state.actionWindowPassPlayerIds.includes(player.id))
+      : state.phase === "collecting_actions"
+        ? activePlayers.filter((player) => !state.pendingActionPlayerIds.includes(player.id))
+        : [];
+  const waitingLabel =
+    waitingPlayers.length > 0
+      ? `还差 ${waitingPlayers.map((player) => player.name).join("、")}`
+      : state.phase === "collecting_actions" || state.phase === "action_window"
+        ? "全部就绪"
+        : "";
   const tablePrompt = getTablePrompt(state, Boolean(viewerNeedsAction));
   const depthMeters = 720 + state.roundNumber * 180 + state.roundTurnNumber * 14;
   const layerLabel = `LAYER ${String(Math.min(9, Math.max(1, state.roundNumber))).padStart(2, "0")}`;
@@ -166,6 +178,7 @@ export function PokerTableGame({
             <div>
               <span>桌面进度</span>
               <strong>{progressLabel}</strong>
+              {waitingLabel ? <small className="battle-status-detail">{waitingLabel}</small> : null}
             </div>
             <div>
               <span>倒计时</span>
