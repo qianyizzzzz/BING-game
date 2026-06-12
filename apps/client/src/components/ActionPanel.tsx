@@ -702,6 +702,32 @@ export function ActionPanel({
       hasAreaMixed ||
       hasInvalidMultiTargetSkillTargets
   );
+  const selectedActionSummary = summarizeActionSelection({
+    attackRows,
+    defense,
+    mode,
+    selectedSkillName: selectedSkill?.skill.name,
+    skillCost,
+    skillStacks,
+    skillTargetName: getPlayerName(state, skillTargetId),
+    state,
+    totalAttackCost: attackCost
+  });
+  const selectedActionCost =
+    mode === "attack" ? attackCost : mode === "skill" ? skillCost : mode === "defense" && defense === "rebound" ? 1 : 0;
+  const submitLabel =
+    mode === "gain_cake"
+      ? "提交：吃饼"
+      : mode === "defense"
+        ? "提交：防御"
+        : mode === "attack"
+          ? "提交：攻击"
+          : "提交：技能";
+  const readinessLabel = alreadySubmitted
+    ? "已提交，等待亮招"
+    : actionInvalid
+      ? "需要补全选择"
+      : "可以提交";
 
   useEffect(() => {
     if (enemies[0] && !enemies.some((enemy) => enemy.id === targetId)) {
@@ -2248,6 +2274,22 @@ export function ActionPanel({
           </div>
         ) : null}
 
+        <div
+          className={[
+            "action-summary-panel",
+            actionInvalid ? "action-summary-panel-warning" : ""
+          ].join(" ")}
+        >
+          <div>
+            <span>当前选择</span>
+            <strong>{selectedActionSummary}</strong>
+          </div>
+          <div className="action-summary-meta">
+            <span>{readinessLabel}</span>
+            <span>{selectedActionCost > 0 ? `消耗 ${selectedActionCost} 饼` : "无消耗"}</span>
+          </div>
+        </div>
+
         <button
           className="btn-primary w-full justify-center py-3 disabled:cursor-not-allowed disabled:bg-gray-300"
           disabled={!canAct || submitting || actionInvalid}
@@ -2258,7 +2300,7 @@ export function ActionPanel({
           ) : (
             <Send className="h-4 w-4" aria-hidden="true" />
           )}
-          提交出招
+          {submitLabel}
         </button>
       </form>
     </section>
@@ -2608,6 +2650,74 @@ interface ModeButtonProps {
   icon: ReactNode;
   label: string;
   onClick: () => void;
+}
+
+function summarizeActionSelection({
+  attackRows,
+  defense,
+  mode,
+  selectedSkillName,
+  skillStacks,
+  skillTargetName,
+  state
+}: {
+  attackRows: AttackRow[];
+  defense: DefenseKind;
+  mode: Mode;
+  selectedSkillName: string | undefined;
+  skillCost: number;
+  skillStacks: number;
+  skillTargetName: string;
+  state: PublicGameState;
+  totalAttackCost: number;
+}): string {
+  if (mode === "gain_cake") {
+    return "吃饼：本回合获得 1 饼";
+  }
+
+  if (mode === "defense") {
+    return `防御：${DEFENSE_LABELS[defense]}`;
+  }
+
+  if (mode === "skill") {
+    if (!selectedSkillName) {
+      return "技能：请选择可用技能";
+    }
+
+    const target = skillTargetName ? ` -> ${skillTargetName}` : "";
+    const stacks = skillStacks > 1 ? ` x${skillStacks}` : "";
+    return `技能：${selectedSkillName}${stacks}${target}`;
+  }
+
+  if (attackRows.length === 0) {
+    return "攻击：请选择攻击招式";
+  }
+
+  return attackRows
+    .map((row) => {
+      const name =
+        row.kind === "skill"
+          ? getSkill(row.skillId)?.name ?? "技能攻击"
+          : BASE_ATTACKS[row.attackId]?.name ?? "攻击";
+      const stacks = row.stacks > 1 ? ` x${row.stacks}` : "";
+      const target = isAttackRowArea(row)
+        ? "全体"
+        : getPlayerName(state, row.targetId) || "未选目标";
+      return `${name}${stacks} -> ${target}`;
+    })
+    .join(" / ");
+}
+
+function isAttackRowArea(row: AttackRow): boolean {
+  if (row.kind === "skill") {
+    return getSkillPlay(row.skillId)?.targetMode === "all";
+  }
+
+  return Boolean(BASE_ATTACKS[row.attackId]?.isArea);
+}
+
+function getPlayerName(state: PublicGameState, playerId: string): string {
+  return state.players.find((player) => player.id === playerId)?.name ?? "";
 }
 
 function ModeButton({ active, disabled, icon, label, onClick }: ModeButtonProps) {

@@ -637,6 +637,52 @@ select {
   padding: 12px;
 }
 
+.action-summary-panel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(15, 118, 110, 0.22);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(20, 184, 166, 0.1), rgba(245, 158, 11, 0.08)),
+    rgba(240, 253, 250, 0.68);
+  padding: 12px;
+}
+
+.action-summary-panel span {
+  display: block;
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.action-summary-panel strong {
+  display: block;
+  margin-top: 3px;
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.action-summary-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.action-summary-meta span {
+  border: 1px solid rgba(15, 118, 110, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.68);
+  padding: 4px 8px;
+}
+
+.action-summary-panel-warning {
+  border-color: rgba(245, 158, 11, 0.42);
+  background:
+    linear-gradient(90deg, rgba(245, 158, 11, 0.13), rgba(220, 38, 38, 0.07)),
+    rgba(255, 251, 235, 0.74);
+}
+
 .stat-chip {
   padding: 8px 10px;
 }
@@ -4186,9 +4232,30 @@ select {
 }
 
 .table-action-dock .action-board .rounded-lg.border-amber-200,
-.table-action-dock .action-row {
+.table-action-dock .action-row,
+.table-action-dock .action-summary-panel {
   border-color: rgba(201, 178, 124, 0.2);
   background: rgba(5, 8, 7, 0.56);
+}
+
+.table-action-dock .action-summary-panel {
+  background:
+    linear-gradient(90deg, rgba(136, 247, 219, 0.12), rgba(201, 178, 124, 0.08)),
+    rgba(5, 8, 7, 0.68);
+}
+
+.table-action-dock .action-summary-panel span {
+  color: #88f7db;
+}
+
+.table-action-dock .action-summary-panel strong {
+  color: #fff7d7;
+}
+
+.table-action-dock .action-summary-meta span {
+  border-color: rgba(136, 247, 219, 0.16);
+  background: rgba(5, 8, 7, 0.52);
+  color: rgba(248, 237, 210, 0.82);
 }
 
 .table-action-dock .mode-button {
