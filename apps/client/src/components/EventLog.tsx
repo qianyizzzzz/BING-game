@@ -11,8 +11,7 @@ export function EventLog({ state }: EventLogProps) {
     .filter(
       (event) =>
         event.type !== "action_submitted" &&
-        event.type !== "cake_changed" &&
-        event.type !== "skill_used"
+        event.type !== "cake_changed"
     )
     .slice(-10)
     .reverse();
@@ -21,8 +20,8 @@ export function EventLog({ state }: EventLogProps) {
     <aside className="surface-card p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-        <ScrollText className="h-5 w-5 text-teal-700" aria-hidden="true" />
-        <h2 className="text-base font-semibold text-gray-900">结算日志</h2>
+          <ScrollText className="h-5 w-5 text-teal-700" aria-hidden="true" />
+          <h2 className="text-base font-semibold text-gray-900">结算日志</h2>
         </div>
         <span className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-bold text-gray-500">
           {events.length}
@@ -66,7 +65,7 @@ function eventTone(type: string): string {
     return "event-block";
   }
 
-  if (type === "turn_revealed" || type === "skill_revealed" || type === "action_switched") {
+  if (type === "turn_revealed" || type === "skill_revealed" || type === "skill_used" || type === "action_switched") {
     return "event-turn";
   }
 

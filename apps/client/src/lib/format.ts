@@ -41,6 +41,8 @@ export function formatEvent(event: GameEvent, state: PublicGameState): string {
       return "房主更新了房间设置";
     case "skill_revealed":
       return `${playerName(state, event.playerId)} 暴露了 ${event.skillName}（${event.reason}）`;
+    case "skill_used":
+      return `${playerName(state, event.playerId)} 触发 ${event.skillName}（${event.reason}）`;
     case "system":
       return event.message;
     case "action_submitted":
