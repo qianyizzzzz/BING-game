@@ -59,8 +59,8 @@ Required art-director workflow:
 3. Read `apps/client/src/lib/characters.ts`.
 4. For each character, create a role brief before touching Blender.
 5. Use Blender MCP to create or edit the model, materials, lights, cameras, and exports.
-6. Check material quality: skin pores, cloth weave, leather grain, metal wear, and non-plastic roughness.
-7. Render front, side, three-quarter, table-scale, portrait-crop, and mobile-avatar QA images.
-8. Export `.blend`, LOD0/LOD1 `.glb`, portrait, mobile-avatar, turnaround images, table-scale images, and `docs/CHARACTER_ASSET_AUDIT.md`.
+6. Check material quality: skin pores, cloth weave, leather grain, metal wear, non-plastic roughness, and exported PBR PNG maps.
+7. Render front, side, three-quarter, table-scale, portrait-crop, mobile-avatar, and material close-up QA images.
+8. Export `.blend`, LOD0/LOD1 `.glb`, portrait, mobile-avatar, turnaround images, table-scale images, PBR PNG maps, material QA image, and `docs/CHARACTER_ASSET_AUDIT.md`.
 
 If Blender MCP is unavailable, report the missing tool and continue only with briefs, asset lists, Blender Python drafts, and acceptance criteria. Do not claim that modeling was completed.

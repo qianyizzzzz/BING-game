@@ -8,7 +8,9 @@
 
 - 源场景：`apps/client/public/assets/characters/source/bing-character-blockouts.blend`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
-- 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump 和 roughness variation 节点
+- 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
+- PBR 贴图目录：`apps/client/public/assets/characters/materials/pbr`，当前 `84` 张 PNG
+- 材质近景 QA：`apps/client/public/assets/characters/materials/material-qa.png`
 - 预算：LOD0 不超过 35000 faces；LOD1 不超过 12000 faces
 
 | id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
@@ -22,13 +24,13 @@
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、脸部体块、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染和程序化 PBR 材质细节。
-- 仍不足：还没有真实高模雕刻、烘焙贴图、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、脸部体块、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染、材质近景 QA 和可追踪 PBR 贴图文件。
+- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
 
 ## 下一步 P0
 
 - 替换程序几何脸为雕刻面部或外部授权模型基底，减少“几何拼装感”。
-- 为皮肤、布料、皮革、金属补烘焙法线/粗糙度贴图，而不是只靠程序化节点。
+- 用高模或授权基底烘焙替换当前程序化 PBR 贴图。
 
 ## 下一步 P1
 

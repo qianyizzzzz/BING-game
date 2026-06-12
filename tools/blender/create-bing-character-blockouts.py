@@ -12,6 +12,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ASSET_ROOT = PROJECT_ROOT / "apps" / "client" / "public" / "assets" / "characters"
 ARTIFACT_ROOT = PROJECT_ROOT / "artifacts" / "art"
 DOCS_ROOT = PROJECT_ROOT / "docs"
+PBR_TEXTURE_ROOT = ASSET_ROOT / "materials" / "pbr"
+PBR_TEXTURE_SIZE = 256
 LOD0_FACE_BUDGET = 35_000
 LOD1_FACE_BUDGET = 12_000
 LOD1_DECIMATE_RATIO = 0.08
@@ -115,6 +117,7 @@ def main() -> None:
     for spec in CHARACTERS:
         lod1_metrics[spec.character_id] = export_character(spec, roots)
         render_character_views(spec, roots)
+    render_material_qa_board()
 
     scene_path = ASSET_ROOT / "source" / "bing-character-blockouts.blend"
     bpy.ops.wm.save_as_mainfile(filepath=str(scene_path))
@@ -536,12 +539,22 @@ def export_character(spec: CharacterSpec, roots: dict[str, bpy.types.Object]) ->
 
 
 def export_lod1_character(spec: CharacterSpec, root: bpy.types.Object, out_dir: Path) -> tuple[int, int]:
+    stale_collection = bpy.data.collections.get(f"BING_{spec.character_id}_lod1_export")
+    if stale_collection:
+        for obj in list(stale_collection.objects):
+            mesh = obj.data if obj.type == "MESH" else None
+            bpy.data.objects.remove(obj, do_unlink=True)
+            if mesh and mesh.users == 0:
+                bpy.data.meshes.remove(mesh)
+        bpy.data.collections.remove(stale_collection)
+
     lod_collection = bpy.data.collections.new(f"BING_{spec.character_id}_lod1_export")
     bpy.context.scene.collection.children.link(lod_collection)
     lod_root = bpy.data.objects.new(f"{spec.character_id}_lod1_root", None)
     lod_collection.objects.link(lod_root)
 
     duplicates: list[bpy.types.Object] = [lod_root]
+    depsgraph = bpy.context.evaluated_depsgraph_get()
     for obj in character_objects(root):
         if obj == root or obj.type != "MESH":
             continue
@@ -557,22 +570,44 @@ def export_lod1_character(spec: CharacterSpec, root: bpy.types.Object, out_dir: 
             decimate.ratio = LOD1_DECIMATE_RATIO
             if hasattr(decimate, "use_collapse_triangulate"):
                 decimate.use_collapse_triangulate = True
-            bpy.ops.object.select_all(action="DESELECT")
-            duplicate.select_set(True)
-            bpy.context.view_layer.objects.active = duplicate
-            bpy.ops.object.modifier_apply(modifier=decimate.name)
+            bpy.context.view_layer.update()
+            original_mesh = duplicate.data
+            evaluated = duplicate.evaluated_get(depsgraph)
+            decimated_mesh = bpy.data.meshes.new_from_object(evaluated, depsgraph=depsgraph)
+            decimated_mesh.name = f"{duplicate.name}_mesh"
+            duplicate.modifiers.clear()
+            duplicate.data = decimated_mesh
+            if original_mesh.users == 0:
+                bpy.data.meshes.remove(original_mesh)
 
     vertices, faces = mesh_metrics(lod_root)
     bpy.ops.object.select_all(action="DESELECT")
     for obj in duplicates:
         obj.select_set(True)
     bpy.context.view_layer.objects.active = lod_root
-    bpy.ops.export_scene.gltf(
-        filepath=str(out_dir / f"{spec.character_id}-lod1.glb"),
-        export_format="GLB",
-        use_selection=True,
-        export_apply=True,
-    )
+    override = {
+        "active_object": lod_root,
+        "object": lod_root,
+        "selected_objects": duplicates,
+        "selected_editable_objects": duplicates,
+        "scene": bpy.context.scene,
+        "view_layer": bpy.context.view_layer,
+    }
+    if bpy.context.window:
+        override["window"] = bpy.context.window
+    if bpy.context.screen:
+        override["screen"] = bpy.context.screen
+    if bpy.context.area:
+        override["area"] = bpy.context.area
+    if bpy.context.region:
+        override["region"] = bpy.context.region
+    with bpy.context.temp_override(**override):
+        bpy.ops.export_scene.gltf(
+            filepath=str(out_dir / f"{spec.character_id}-lod1.glb"),
+            export_format="GLB",
+            use_selection=True,
+            export_apply=True,
+        )
 
     for obj in list(duplicates):
         mesh = obj.data if obj.type == "MESH" else None
@@ -614,9 +649,50 @@ def render_character_views(spec: CharacterSpec, roots: dict[str, bpy.types.Objec
     set_all_visible(roots)
 
 
+def render_material_qa_board() -> None:
+    out_dir = ASSET_ROOT / "materials"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    swatches = [
+        ("skin", "skin_warm_semireal", "#d8a27f", 0.72),
+        ("cloth", "deep_abyss_cloth", "#171b18", 0.88),
+        ("leather", "worn_dark_leather", "#342017", 0.84),
+        ("metal", "ember-guardian_aged_metal", "#c89b4a", 0.38),
+        ("hair", "dark_hair", "#17100d", 0.82),
+    ]
+    tile = 128
+    gutter = 16
+    width = gutter + 3 * tile + 4 * gutter
+    height = gutter + len(swatches) * tile + (len(swatches) + 1) * gutter
+    image = bpy.data.images.new(name="material_qa_contact_sheet", width=width, height=height, alpha=True)
+    pixels = [0.02, 0.035, 0.032, 1.0] * (width * height)
+
+    for row, (detail, material_name, hex_color, roughness) in enumerate(swatches):
+        color = hex_to_rgba(hex_color)
+        for col, kind in enumerate(["albedo", "normal", "roughness"]):
+            offset_x = gutter + col * (tile + gutter)
+            offset_y = gutter + row * (tile + gutter)
+            for y in range(tile):
+                for x in range(tile):
+                    u = x / max(tile - 1, 1)
+                    v = y / max(tile - 1, 1)
+                    rgba = material_sample_rgba(kind, detail, color, roughness, u, v)
+                    target_x = offset_x + x
+                    target_y = height - 1 - (offset_y + y)
+                    pixel_index = (target_y * width + target_x) * 4
+                    pixels[pixel_index : pixel_index + 4] = rgba
+        ensure_pbr_texture_pack(material_name, detail, hex_to_rgba(hex_color), roughness)
+
+    image.pixels = pixels
+    image.filepath_raw = str(out_dir / "material-qa.png")
+    image.file_format = "PNG"
+    image.save()
+    bpy.data.images.remove(image)
+
+
 def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metrics: dict[str, tuple[int, int]]) -> None:
     rows = []
     review_rows = []
+    pbr_texture_count = len(list(PBR_TEXTURE_ROOT.rglob("*.png"))) if PBR_TEXTURE_ROOT.exists() else 0
     for spec in CHARACTERS:
         out_dir = ASSET_ROOT / spec.character_id
         vertex_count, face_count = mesh_metrics(roots[spec.character_id])
@@ -646,6 +722,8 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - Blender 源场景：`{repo_path(scene_path)}`
 - 每个角色导出 LOD0 `.glb` 和 LOD1 `-lod1.glb`
 - 每个角色导出 `portrait.png`、`mobile-avatar.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`、`table-scale.png`
+- PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
+- 材质近景 QA：`{repo_path(ASSET_ROOT / "materials" / "material-qa.png")}`
 
 | id | 中文名 | 定位 | 剪影方向 | LOD0 GLB | LOD1 GLB | 头像 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -681,7 +759,9 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 - 源场景：`{repo_path(scene_path)}`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
-- 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump 和 roughness variation 节点
+- 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
+- PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
+- 材质近景 QA：`{repo_path(ASSET_ROOT / "materials" / "material-qa.png")}`
 - 预算：LOD0 不超过 {LOD0_FACE_BUDGET} faces；LOD1 不超过 {LOD1_FACE_BUDGET} faces
 
 | id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
@@ -690,13 +770,13 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、脸部体块、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染和程序化 PBR 材质细节。
-- 仍不足：还没有真实高模雕刻、烘焙贴图、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、脸部体块、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染、材质近景 QA 和可追踪 PBR 贴图文件。
+- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
 
 ## 下一步 P0
 
 - 替换程序几何脸为雕刻面部或外部授权模型基底，减少“几何拼装感”。
-- 为皮肤、布料、皮革、金属补烘焙法线/粗糙度贴图，而不是只靠程序化节点。
+- 用高模或授权基底烘焙替换当前程序化 PBR 贴图。
 
 ## 下一步 P1
 
@@ -829,7 +909,151 @@ def mat(
             bsdf.inputs["Emission Color"].default_value = color
             bsdf.inputs["Emission Strength"].default_value = emission
         add_material_microdetail(material, bsdf, detail, roughness)
+        add_pbr_texture_nodes(material, bsdf, detail, color, roughness)
     return material
+
+
+def add_pbr_texture_nodes(
+    material: bpy.types.Material,
+    bsdf: bpy.types.Node,
+    detail: str,
+    color: tuple[float, float, float, float],
+    roughness: float,
+) -> None:
+    if detail in {"matte", "emissive"}:
+        return
+    texture_paths = ensure_pbr_texture_pack(material.name, detail, color, roughness)
+    nodes = material.node_tree.nodes
+    links = material.node_tree.links
+
+    albedo_node = nodes.new(type="ShaderNodeTexImage")
+    albedo_node.name = f"{material.name}_albedo_texture"
+    albedo_node.image = bpy.data.images.load(str(texture_paths["albedo"]), check_existing=True)
+    if albedo_node.image:
+        albedo_node.image.colorspace_settings.name = "sRGB"
+    links.new(albedo_node.outputs["Color"], bsdf.inputs["Base Color"])
+
+    roughness_node = nodes.new(type="ShaderNodeTexImage")
+    roughness_node.name = f"{material.name}_roughness_texture"
+    roughness_node.image = bpy.data.images.load(str(texture_paths["roughness"]), check_existing=True)
+    if roughness_node.image:
+        roughness_node.image.colorspace_settings.name = "Non-Color"
+    links.new(roughness_node.outputs["Color"], bsdf.inputs["Roughness"])
+
+    normal_node = nodes.new(type="ShaderNodeTexImage")
+    normal_node.name = f"{material.name}_normal_texture"
+    normal_node.image = bpy.data.images.load(str(texture_paths["normal"]), check_existing=True)
+    if normal_node.image:
+        normal_node.image.colorspace_settings.name = "Non-Color"
+    normal_map = nodes.new(type="ShaderNodeNormalMap")
+    normal_map.name = f"{material.name}_normal_map"
+    normal_map.inputs["Strength"].default_value = 0.32 if detail in {"skin", "metal", "polished"} else 0.45
+    links.new(normal_node.outputs["Color"], normal_map.inputs["Color"])
+    if "Normal" in bsdf.inputs:
+        links.new(normal_map.outputs["Normal"], bsdf.inputs["Normal"])
+
+
+def ensure_pbr_texture_pack(
+    material_name: str,
+    detail: str,
+    color: tuple[float, float, float, float],
+    roughness: float,
+) -> dict[str, Path]:
+    safe = safe_asset_name(material_name)
+    out_dir = PBR_TEXTURE_ROOT / safe
+    out_dir.mkdir(parents=True, exist_ok=True)
+    paths = {
+        "albedo": out_dir / "albedo.png",
+        "normal": out_dir / "normal.png",
+        "roughness": out_dir / "roughness.png",
+    }
+    for kind, path in paths.items():
+        if not path.exists():
+            write_pbr_texture(path, kind, detail, color, roughness)
+    return paths
+
+
+def write_pbr_texture(
+    path: Path,
+    kind: str,
+    detail: str,
+    color: tuple[float, float, float, float],
+    roughness: float,
+) -> None:
+    width = PBR_TEXTURE_SIZE
+    height = PBR_TEXTURE_SIZE
+    image = bpy.data.images.new(name=f"{path.stem}_{safe_asset_name(path.parent.name)}", width=width, height=height, alpha=True)
+    pixels: list[float] = []
+    for y in range(height):
+        for x in range(width):
+            u = x / max(width - 1, 1)
+            v = y / max(height - 1, 1)
+            pixels.extend(material_sample_rgba(kind, detail, color, roughness, u, v))
+    image.pixels = pixels
+    image.filepath_raw = str(path)
+    image.file_format = "PNG"
+    image.save()
+    bpy.data.images.remove(image)
+
+
+def material_sample_rgba(
+    kind: str,
+    detail: str,
+    color: tuple[float, float, float, float],
+    roughness: float,
+    u: float,
+    v: float,
+) -> list[float]:
+    height_value = material_height(detail, u, v)
+    if kind == "albedo":
+        tint = 0.86 + height_value * 0.22 + material_grain(detail, u + 0.37, v + 0.19) * 0.04
+        return [clamp(color[0] * tint), clamp(color[1] * tint), clamp(color[2] * tint), 1.0]
+    if kind == "roughness":
+        variation = material_grain(detail, u + 0.13, v + 0.41) * 0.16 + (height_value - 0.5) * 0.12
+        value = clamp(roughness + variation)
+        return [value, value, value, 1.0]
+
+    step = 1.0 / PBR_TEXTURE_SIZE
+    dx = material_height(detail, min(u + step, 1.0), v) - material_height(detail, max(u - step, 0.0), v)
+    dy = material_height(detail, u, min(v + step, 1.0)) - material_height(detail, u, max(v - step, 0.0))
+    strength = {"skin": 2.2, "cloth": 4.4, "leather": 3.4, "metal": 2.0, "hair": 3.0, "polished": 1.0}.get(detail, 2.0)
+    normal = mathutils.Vector((-dx * strength, -dy * strength, 1.0)).normalized()
+    return [normal.x * 0.5 + 0.5, normal.y * 0.5 + 0.5, normal.z * 0.5 + 0.5, 1.0]
+
+
+def material_height(detail: str, u: float, v: float) -> float:
+    base = material_grain(detail, u, v)
+    if detail == "cloth":
+        weave = (math.sin(u * math.tau * 32) * 0.5 + 0.5) * 0.45 + (math.sin(v * math.tau * 28) * 0.5 + 0.5) * 0.45
+        return clamp(base * 0.35 + weave * 0.65)
+    if detail == "leather":
+        pores = material_grain(detail, u * 1.7, v * 1.7)
+        return clamp(base * 0.5 + pores * 0.5)
+    if detail == "metal":
+        scratches = (math.sin((u * 90 + v * 12) * math.tau) * 0.5 + 0.5) * 0.28
+        return clamp(base * 0.48 + scratches + 0.24)
+    if detail == "hair":
+        strands = math.sin(u * math.tau * 38 + material_grain(detail, v, u) * 1.8) * 0.5 + 0.5
+        return clamp(base * 0.32 + strands * 0.68)
+    if detail == "polished":
+        return clamp(base * 0.24 + 0.38)
+    return clamp(base * 0.7 + material_grain(detail, u * 4.0, v * 4.0) * 0.3)
+
+
+def material_grain(detail: str, u: float, v: float) -> float:
+    salt = sum(ord(ch) for ch in detail) * 0.017
+    wave = math.sin((u * 17.3 + salt) * math.tau) * math.sin((v * 19.7 + salt * 0.31) * math.tau)
+    speckle = math.sin((u * 61.0 + v * 37.0 + salt) * 12.9898) * 43758.5453
+    speckle = speckle - math.floor(speckle)
+    return clamp(0.5 + wave * 0.24 + (speckle - 0.5) * 0.42)
+
+
+def safe_asset_name(value: str) -> str:
+    return "".join(ch.lower() if ch.isalnum() else "-" for ch in value).strip("-")
+
+
+def clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
+    return max(lower, min(upper, value))
 
 
 def add_material_microdetail(material: bpy.types.Material, bsdf: bpy.types.Node, detail: str, roughness: float) -> None:
