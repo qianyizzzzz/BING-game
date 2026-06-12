@@ -89,13 +89,13 @@ export function findLatestBroadcast(events: GameEvent[]): Broadcast | undefined 
 
 export function buildBattleSteps(events: GameEvent[], state: PublicGameState): BattleStep[] {
   return events
-    .map((event) => buildBattleStep(event, state))
+    .map((event) => buildBattleStepForEvent(event, state))
     .filter((step): step is BattleStep => Boolean(step))
     .slice(0, MAX_BATTLE_STEPS);
 }
 
 export function battleBeatForEvent(event: GameEvent, state: PublicGameState): BattleBeat | undefined {
-  return buildBattleStep(event, state)?.beat;
+  return buildBattleStepForEvent(event, state)?.beat;
 }
 
 export function battleBeatLabel(beat: BattleBeat): string {
@@ -119,7 +119,7 @@ export function battleBeatLabel(beat: BattleBeat): string {
   }
 }
 
-function buildBattleStep(event: GameEvent, state: PublicGameState): BattleStep | null {
+export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState): BattleStep | null {
   if (event.type === "damage") {
     const attackName = event.attackName ?? "攻击";
     const source = playerRef(state, event.sourceId, "系统");

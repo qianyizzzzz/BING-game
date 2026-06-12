@@ -12,6 +12,7 @@ import {
   type BattleSoundCue,
   type BattleStepKind
 } from "../apps/client/src/lib/turnTimeline";
+import { buildBattlePresentation } from "../apps/client/src/lib/battlePresentation";
 import { getBattleCueProfile } from "../apps/client/src/lib/battleAudio";
 
 const now = Date.now();
@@ -277,6 +278,15 @@ for (const item of cases) {
   assert.ok(getBattleCueProfile(step.soundCue).durationMs > 0, `${item.name} registered cue`);
   assert.ok(step.label.length > 0, `${item.name} label`);
   assert.ok(step.description.length > 0, `${item.name} description`);
+
+  const [cue] = buildBattlePresentation([item.event], state);
+  assert.ok(cue, `${item.name} should map to a presentation cue`);
+  assert.equal(cue.kind, item.expected.kind, `${item.name} presentation kind`);
+  assert.equal(cue.beat, item.expected.beat, `${item.name} presentation beat`);
+  assert.equal(cue.sfx, item.expected.soundCue, `${item.name} presentation sound cue`);
+  assert.ok(cue.durationMs > 0, `${item.name} presentation duration`);
+  assert.ok(cue.intensity >= 0 && cue.intensity <= 1, `${item.name} presentation intensity`);
+  assert.ok(cue.vfx !== "none", `${item.name} presentation vfx`);
 }
 
 const broadcast = findLatestBroadcast([reveal, ...cases.map((item) => item.event)]);
@@ -286,7 +296,12 @@ assert.equal(broadcast?.events.length, cases.length);
 const cappedSteps = buildBattleSteps(cases.map((item) => item.event), state);
 assert.equal(cappedSteps.length, MAX_BATTLE_STEPS);
 
-console.log(`turn timeline check passed: ${cases.length} event mappings covered`);
+const cappedPresentation = buildBattlePresentation(cases.map((item) => item.event), state);
+assert.equal(cappedPresentation.length, MAX_BATTLE_STEPS);
+assert.equal(cappedPresentation[0]?.startMs, 0);
+assert.ok((cappedPresentation[1]?.startMs ?? 0) > (cappedPresentation[0]?.startMs ?? -1));
+
+console.log(`turn timeline check passed: ${cases.length} event mappings and presentation cues covered`);
 
 function baseEvent(id: string) {
   return {
