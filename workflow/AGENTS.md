@@ -60,6 +60,6 @@ Required art-director workflow:
 4. For each character, create a role brief before touching Blender.
 5. Use Blender MCP to create or edit the model, materials, lights, cameras, and exports.
 6. Render front, side, three-quarter, table-scale, and portrait-crop QA images.
-7. Export `.blend`, `.glb`, portrait, turnaround images, and an `artifacts/art/` review report.
+7. Export `.blend`, `.glb`, portrait, turnaround images, table-scale images, and `docs/CHARACTER_ASSET_AUDIT.md`.
 
 If Blender MCP is unavailable, report the missing tool and continue only with briefs, asset lists, Blender Python drafts, and acceptance criteria. Do not claim that modeling was completed.

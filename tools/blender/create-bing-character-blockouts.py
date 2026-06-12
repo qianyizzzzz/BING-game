@@ -11,6 +11,7 @@ import mathutils
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ASSET_ROOT = PROJECT_ROOT / "apps" / "client" / "public" / "assets" / "characters"
 ARTIFACT_ROOT = PROJECT_ROOT / "artifacts" / "art"
+DOCS_ROOT = PROJECT_ROOT / "docs"
 
 
 @dataclass(frozen=True)
@@ -28,7 +29,7 @@ class CharacterSpec:
 CHARACTERS = [
     CharacterSpec(
         "ember-guardian",
-        "烬火守卫",
+        "烛火守卫",
         "稳健防御",
         "#c86b2d",
         "#5b1f16",
@@ -48,7 +49,7 @@ CHARACTERS = [
     ),
     CharacterSpec(
         "violet-duelist",
-        "紫曜剑客",
+        "紫曦剑客",
         "单体进攻",
         "#7b5bd6",
         "#211945",
@@ -78,7 +79,7 @@ CHARACTERS = [
     ),
     CharacterSpec(
         "iron-oracle",
-        "铁面观测者",
+        "铁面观察者",
         "AI 推荐",
         "#697484",
         "#18202b",
@@ -113,7 +114,7 @@ def main() -> None:
 
     scene_path = ASSET_ROOT / "source" / "bing-character-blockouts.blend"
     bpy.ops.wm.save_as_mainfile(filepath=str(scene_path))
-    write_report(scene_path)
+    write_report(scene_path, roots)
     print(f"BING_CHARACTER_BLOCKOUTS_DONE={scene_path}")
 
 
@@ -155,6 +156,66 @@ def build_materials() -> dict[str, bpy.types.Material]:
     }
 
 
+def character_profile(spec: CharacterSpec) -> dict[str, object]:
+    defaults = {
+        "head": (0.122, 0.102, 0.164),
+        "ribcage": (0.19, 0.108, 0.285),
+        "abdomen": (0.155, 0.095, 0.155),
+        "pelvis": (0.19, 0.108, 0.112),
+        "coat_tail": (0.2, 0.068, 0.11),
+        "shoulder_scale": 1.0,
+    }
+    variants = {
+        "shield": {
+            "ribcage": (0.215, 0.118, 0.29),
+            "abdomen": (0.17, 0.1, 0.15),
+            "pelvis": (0.205, 0.116, 0.112),
+            "coat_tail": (0.215, 0.07, 0.112),
+            "shoulder_scale": 1.24,
+        },
+        "jade": {
+            "head": (0.118, 0.098, 0.162),
+            "ribcage": (0.172, 0.1, 0.292),
+            "abdomen": (0.138, 0.088, 0.15),
+            "pelvis": (0.17, 0.1, 0.108),
+            "coat_tail": (0.18, 0.062, 0.116),
+            "shoulder_scale": 0.92,
+        },
+        "blade": {
+            "head": (0.118, 0.098, 0.162),
+            "ribcage": (0.178, 0.102, 0.29),
+            "abdomen": (0.142, 0.09, 0.15),
+            "pelvis": (0.178, 0.102, 0.108),
+            "coat_tail": (0.188, 0.064, 0.11),
+            "shoulder_scale": 0.96,
+        },
+        "pan": {
+            "ribcage": (0.198, 0.114, 0.284),
+            "abdomen": (0.176, 0.104, 0.158),
+            "pelvis": (0.198, 0.112, 0.115),
+            "coat_tail": (0.208, 0.07, 0.11),
+            "shoulder_scale": 1.02,
+        },
+        "vial": {
+            "head": (0.12, 0.1, 0.165),
+            "ribcage": (0.184, 0.104, 0.3),
+            "abdomen": (0.148, 0.092, 0.16),
+            "pelvis": (0.18, 0.104, 0.11),
+            "coat_tail": (0.205, 0.068, 0.13),
+            "shoulder_scale": 0.98,
+        },
+        "mask": {
+            "head": (0.124, 0.102, 0.166),
+            "ribcage": (0.185, 0.11, 0.292),
+            "abdomen": (0.152, 0.096, 0.152),
+            "pelvis": (0.185, 0.108, 0.11),
+            "coat_tail": (0.195, 0.066, 0.112),
+            "shoulder_scale": 1.04,
+        },
+    }
+    return defaults | variants.get(spec.prop, {})
+
+
 def create_character(spec: CharacterSpec) -> bpy.types.Object:
     collection = bpy.data.collections.new(f"BING_{spec.character_id}")
     bpy.context.scene.collection.children.link(collection)
@@ -170,19 +231,21 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     metal = mat(f"{spec.character_id}_aged_metal", spec.metal, roughness=0.38, metallic=0.45)
     emissive = mat(f"{spec.character_id}_relic_glow", spec.main, roughness=0.22, emission=0.65)
 
+    profile = character_profile(spec)
+
     # 7.5-head semi-realistic proportion blockout: narrower torso, longer limbs, smaller head.
-    add_ellipsoid(collection, root, f"{spec.character_id}_head", (0, -0.006, 1.76), (0.126, 0.105, 0.168), skin)
-    add_ellipsoid(collection, root, f"{spec.character_id}_jaw_plane", (0, -0.02, 1.645), (0.094, 0.077, 0.058), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_head", (0, -0.006, 1.76), profile["head"], skin)
+    add_ellipsoid(collection, root, f"{spec.character_id}_jaw_plane", (0, -0.02, 1.645), (profile["head"][0] * 0.72, 0.072, 0.052), skin_shadow)
     add_ellipsoid(collection, root, f"{spec.character_id}_neck", (0, 0, 1.51), (0.058, 0.048, 0.095), skin_shadow)
-    add_ellipsoid(collection, root, f"{spec.character_id}_ribcage", (0, 0, 1.17), (0.215, 0.12, 0.34), main)
-    add_ellipsoid(collection, root, f"{spec.character_id}_abdomen", (0, -0.005, 0.92), (0.175, 0.105, 0.205), main)
-    add_ellipsoid(collection, root, f"{spec.character_id}_pelvis", (0, 0, 0.73), (0.205, 0.12, 0.125), secondary)
-    add_ellipsoid(collection, root, f"{spec.character_id}_coat_tail", (0, 0.025, 0.58), (0.225, 0.075, 0.13), secondary)
+    add_ellipsoid(collection, root, f"{spec.character_id}_ribcage", (0, 0, 1.18), profile["ribcage"], main)
+    add_ellipsoid(collection, root, f"{spec.character_id}_abdomen", (0, -0.005, 0.93), profile["abdomen"], main)
+    add_ellipsoid(collection, root, f"{spec.character_id}_pelvis", (0, 0, 0.74), profile["pelvis"], secondary)
+    add_ellipsoid(collection, root, f"{spec.character_id}_coat_tail", (0, 0.025, 0.58), profile["coat_tail"], secondary)
     add_head_detail(collection, root, spec)
     add_tailored_costume(collection, root, spec, main, secondary, metal, leather, cloth_dark)
     add_body_landmarks(collection, root, spec, main, secondary, metal)
 
-    shoulder_scale = 1.22 if spec.prop == "shield" else 1.0
+    shoulder_scale = profile["shoulder_scale"]
     add_ellipsoid(collection, root, f"{spec.character_id}_left_shoulder", (-0.255 * shoulder_scale, 0, 1.35), (0.075, 0.064, 0.06), metal)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_shoulder", (0.255 * shoulder_scale, 0, 1.35), (0.075, 0.064, 0.06), metal)
 
@@ -230,25 +293,29 @@ def add_face(collection, root, spec: CharacterSpec) -> None:
         return
     add_ellipsoid(collection, root, f"{spec.character_id}_left_ear", (-0.128, -0.006, 1.715), (0.022, 0.012, 0.043), skin)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_ear", (0.128, -0.006, 1.715), (0.022, 0.012, 0.043), skin)
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_eye_socket", (-0.04, -0.101, 1.755), (0.034, 0.01, 0.022), skin_shadow)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_eye_socket", (0.04, -0.101, 1.755), (0.034, 0.01, 0.022), skin_shadow)
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_eye", (-0.04, -0.105, 1.755), (0.018, 0.008, 0.012), eye)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_eye", (0.04, -0.105, 1.755), (0.018, 0.008, 0.012), eye)
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_pupil", (-0.04, -0.112, 1.755), (0.006, 0.003, 0.006), black)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_pupil", (0.04, -0.112, 1.755), (0.006, 0.003, 0.006), black)
-    add_box(collection, root, f"{spec.character_id}_left_upper_eyelid", (-0.04, -0.114, 1.768), (0.028, 0.004, 0.005), skin_shadow, rotation=(0, 0, math.radians(-5)))
-    add_box(collection, root, f"{spec.character_id}_right_upper_eyelid", (0.04, -0.114, 1.768), (0.028, 0.004, 0.005), skin_shadow, rotation=(0, 0, math.radians(5)))
-    add_box(collection, root, f"{spec.character_id}_left_brow_hair", (-0.041, -0.116, 1.789), (0.034, 0.005, 0.006), hair, rotation=(0, 0, math.radians(-8)))
-    add_box(collection, root, f"{spec.character_id}_right_brow_hair", (0.041, -0.116, 1.789), (0.034, 0.005, 0.006), hair, rotation=(0, 0, math.radians(8)))
-    add_ellipsoid(collection, root, f"{spec.character_id}_nose_bridge", (0, -0.116, 1.722), (0.018, 0.012, 0.041), skin_shadow)
-    add_ellipsoid(collection, root, f"{spec.character_id}_nose_tip", (0, -0.128, 1.696), (0.023, 0.013, 0.018), skin)
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_cheek", (-0.052, -0.114, 1.693), (0.034, 0.008, 0.024), skin_shadow)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek", (0.052, -0.114, 1.693), (0.034, 0.008, 0.024), skin_shadow)
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_cheek_highlight", (-0.06, -0.126, 1.706), (0.021, 0.005, 0.013), skin_highlight)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek_highlight", (0.06, -0.126, 1.706), (0.021, 0.005, 0.013), skin_highlight)
-    add_ellipsoid(collection, root, f"{spec.character_id}_upper_lip", (0, -0.126, 1.655), (0.042, 0.006, 0.006), lip)
-    add_ellipsoid(collection, root, f"{spec.character_id}_lower_lip", (0, -0.125, 1.642), (0.037, 0.006, 0.008), lip)
-    add_ellipsoid(collection, root, f"{spec.character_id}_chin_plane", (0, -0.108, 1.615), (0.052, 0.012, 0.022), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_eye_socket", (-0.038, -0.101, 1.758), (0.029, 0.008, 0.017), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_eye_socket", (0.038, -0.101, 1.758), (0.029, 0.008, 0.017), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_eye", (-0.038, -0.109, 1.758), (0.013, 0.0045, 0.008), eye)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_eye", (0.038, -0.109, 1.758), (0.013, 0.0045, 0.008), eye)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_pupil", (-0.038, -0.113, 1.758), (0.0045, 0.002, 0.0045), black)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_pupil", (0.038, -0.113, 1.758), (0.0045, 0.002, 0.0045), black)
+    add_box(collection, root, f"{spec.character_id}_left_upper_eyelid", (-0.038, -0.116, 1.767), (0.025, 0.0035, 0.0045), skin_shadow, rotation=(0, 0, math.radians(-5)))
+    add_box(collection, root, f"{spec.character_id}_right_upper_eyelid", (0.038, -0.116, 1.767), (0.025, 0.0035, 0.0045), skin_shadow, rotation=(0, 0, math.radians(5)))
+    add_box(collection, root, f"{spec.character_id}_left_lower_eyelid", (-0.038, -0.115, 1.749), (0.021, 0.003, 0.0035), skin_highlight, rotation=(0, 0, math.radians(4)))
+    add_box(collection, root, f"{spec.character_id}_right_lower_eyelid", (0.038, -0.115, 1.749), (0.021, 0.003, 0.0035), skin_highlight, rotation=(0, 0, math.radians(-4)))
+    add_box(collection, root, f"{spec.character_id}_left_brow_hair", (-0.041, -0.116, 1.789), (0.031, 0.004, 0.005), hair, rotation=(0, 0, math.radians(-8)))
+    add_box(collection, root, f"{spec.character_id}_right_brow_hair", (0.041, -0.116, 1.789), (0.031, 0.004, 0.005), hair, rotation=(0, 0, math.radians(8)))
+    add_ellipsoid(collection, root, f"{spec.character_id}_nose_bridge", (0, -0.116, 1.724), (0.014, 0.01, 0.038), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_nose_tip", (0, -0.128, 1.698), (0.019, 0.011, 0.014), skin)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_nostril", (-0.012, -0.137, 1.692), (0.005, 0.002, 0.0035), black)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_nostril", (0.012, -0.137, 1.692), (0.005, 0.002, 0.0035), black)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_cheek_plane", (-0.054, -0.116, 1.693), (0.022, 0.004, 0.014), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek_plane", (0.054, -0.116, 1.693), (0.022, 0.004, 0.014), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_cheek_highlight", (-0.062, -0.128, 1.707), (0.014, 0.003, 0.008), skin_highlight)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek_highlight", (0.062, -0.128, 1.707), (0.014, 0.003, 0.008), skin_highlight)
+    add_ellipsoid(collection, root, f"{spec.character_id}_upper_lip", (0, -0.126, 1.655), (0.034, 0.0045, 0.0045), lip)
+    add_ellipsoid(collection, root, f"{spec.character_id}_lower_lip", (0, -0.125, 1.642), (0.03, 0.0045, 0.006), lip)
+    add_ellipsoid(collection, root, f"{spec.character_id}_chin_plane", (0, -0.108, 1.615), (0.045, 0.009, 0.018), skin_shadow)
 
 
 def add_head_detail(collection, root, spec: CharacterSpec) -> None:
@@ -301,10 +368,16 @@ def add_tailored_costume(collection, root, spec: CharacterSpec, main, secondary,
     add_box(collection, root, f"{spec.character_id}_front_placket", (0, -0.145, 1.12), (0.045, 0.018, 0.31), secondary)
     add_box(collection, root, f"{spec.character_id}_left_lapel", (-0.075, -0.15, 1.21), (0.045, 0.016, 0.22), main, rotation=(0, 0, math.radians(-12)))
     add_box(collection, root, f"{spec.character_id}_right_lapel", (0.075, -0.15, 1.21), (0.045, 0.016, 0.22), main, rotation=(0, 0, math.radians(12)))
+    add_box(collection, root, f"{spec.character_id}_left_outer_coat_panel", (-0.145, -0.132, 1.08), (0.035, 0.014, 0.42), cloth_dark, rotation=(0, 0, math.radians(-4)))
+    add_box(collection, root, f"{spec.character_id}_right_outer_coat_panel", (0.145, -0.132, 1.08), (0.035, 0.014, 0.42), cloth_dark, rotation=(0, 0, math.radians(4)))
+    add_box(collection, root, f"{spec.character_id}_left_shoulder_seam", (-0.158, -0.148, 1.355), (0.07, 0.006, 0.008), cloth_dark, rotation=(0, 0, math.radians(-15)))
+    add_box(collection, root, f"{spec.character_id}_right_shoulder_seam", (0.158, -0.148, 1.355), (0.07, 0.006, 0.008), cloth_dark, rotation=(0, 0, math.radians(15)))
     add_box(collection, root, f"{spec.character_id}_waist_belt", (0, -0.145, 0.88), (0.25, 0.024, 0.035), leather)
     add_box(collection, root, f"{spec.character_id}_belt_buckle", (0, -0.172, 0.885), (0.043, 0.012, 0.043), metal)
     add_box(collection, root, f"{spec.character_id}_left_hem_panel", (-0.08, -0.12, 0.66), (0.06, 0.016, 0.18), secondary, rotation=(0, 0, math.radians(-5)))
     add_box(collection, root, f"{spec.character_id}_right_hem_panel", (0.08, -0.12, 0.66), (0.06, 0.016, 0.18), secondary, rotation=(0, 0, math.radians(5)))
+    add_box(collection, root, f"{spec.character_id}_lower_coat_left_edge", (-0.155, -0.122, 0.7), (0.012, 0.008, 0.18), cloth_dark, rotation=(0, 0, math.radians(-8)))
+    add_box(collection, root, f"{spec.character_id}_lower_coat_right_edge", (0.155, -0.122, 0.7), (0.012, 0.008, 0.18), cloth_dark, rotation=(0, 0, math.radians(8)))
     add_stitches(collection, root, spec, main)
 
     if spec.prop == "shield":
@@ -470,6 +543,7 @@ def render_character_views(spec: CharacterSpec, roots: dict[str, bpy.types.Objec
         ("turnaround-front", 0, 58, (0, -4.25, 1.28), (0, 0, 0.96)),
         ("turnaround-side", math.radians(90), 58, (0, -4.25, 1.28), (0, 0, 0.96)),
         ("turnaround-three-quarter", math.radians(-38), 58, (0, -4.25, 1.28), (0, 0, 0.96)),
+        ("table-scale", math.radians(-26), 72, (0, -5.2, 2.25), (0, 0, 0.82)),
     ]
     camera = bpy.context.scene.camera
     for name, angle, lens, camera_location, target in views:
@@ -485,14 +559,21 @@ def render_character_views(spec: CharacterSpec, roots: dict[str, bpy.types.Objec
     set_all_visible(roots)
 
 
-def write_report(scene_path: Path) -> None:
+def write_report(scene_path: Path, roots: dict[str, bpy.types.Object]) -> None:
     rows = []
+    review_rows = []
     for spec in CHARACTERS:
         out_dir = ASSET_ROOT / spec.character_id
+        vertex_count, face_count = mesh_metrics(roots[spec.character_id])
+        budget_state = "通过" if face_count <= 35000 else "超出"
         rows.append(
             f"| `{spec.character_id}` | {spec.name} | {spec.role} | {spec.silhouette} | "
-            f"`{out_dir.relative_to(PROJECT_ROOT)}/{spec.character_id}.glb` | "
-            f"`{out_dir.relative_to(PROJECT_ROOT)}/portrait.png` |"
+            f"`{repo_path(out_dir)}/{spec.character_id}.glb` | "
+            f"`{repo_path(out_dir)}/portrait.png` |"
+        )
+        review_rows.append(
+            f"| `{spec.character_id}` | {spec.name} | {vertex_count} | {face_count} | {budget_state} | "
+            f"`{repo_path(out_dir)}/table-scale.png` |"
         )
 
     report = f"""# BING 角色 Blender 初模报告
@@ -503,9 +584,9 @@ def write_report(scene_path: Path) -> None:
 
 ## 输出
 
-- Blender 源场景：`{scene_path.relative_to(PROJECT_ROOT)}`
+- Blender 源场景：`{repo_path(scene_path)}`
 - 每个角色导出 `.glb`
-- 每个角色导出 `portrait.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`
+- 每个角色导出 `portrait.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`、`table-scale.png`
 
 | id | 中文名 | 定位 | 剪影方向 | GLB | 头像 |
 | --- | --- | --- | --- | --- | --- |
@@ -518,7 +599,7 @@ def write_report(scene_path: Path) -> None:
 ## P0
 
 - 继续细化脸部、手部、服装褶皱和材质粗糙度，否则仍会显得偏原型。
-- 为每个角色补 LOD 统计和移动端头像可读性截图。
+- 为每个角色补 LOD1 和移动端头像可读性截图。
 
 ## P1
 
@@ -531,10 +612,57 @@ def write_report(scene_path: Path) -> None:
 - 建立每个角色的材质板和服装局部参考。
 """
     (ARTIFACT_ROOT / "bing-character-blockouts-report.md").write_text(report, encoding="utf-8")
+    review = f"""# BING 角色资产审计
+
+日期：2026-06-13
+
+本审计由 `tools/blender/create-bing-character-blockouts.py` 通过 Blender MCP 生成。当前目标是把默认玩家角色推进到“接近真人比例的半写实游戏角色”，不是最终真人级高模。
+
+## 当前产物
+
+- 源场景：`{repo_path(scene_path)}`
+- 每角色：`.glb`、头像、正面、侧面、3/4、桌面距离 QA 图
+- 预算：当前 LOD0 目标不超过 35k faces；LOD1 尚未生成
+
+| id | 中文名 | vertices | faces | LOD0 预算 | 桌面距离 QA |
+| --- | --- | ---: | ---: | --- | --- |
+{chr(10).join(review_rows)}
+
+## 美术判断
+
+- 已完成：统一 7-7.5 头身比例、角色体型差异、脸部体块、发型/头饰、服装层次、职业道具、桌面距离渲染。
+- 仍不足：还没有真实高模雕刻、PBR 贴图、布料法线、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
+
+## 下一步 P0
+
+- 为每个角色生成 LOD1，并把移动端头像裁切加入验收。
+- 替换程序几何脸为雕刻面部或外部授权模型基底，减少“几何拼装感”。
+- 为皮肤、布料、皮革、金属补法线/粗糙度贴图，而不是只靠纯色材质。
+
+## 下一步 P1
+
+- 在 `TableScene3D` 中接入 `.glb`，用桌面距离 QA 图校准相机和灯光。
+- 为攻击、防御、技能、受伤、死亡建立 5 个基础动作剪影。
+"""
+    (DOCS_ROOT / "CHARACTER_ASSET_AUDIT.md").write_text(review, encoding="utf-8")
 
 
 def character_objects(root: bpy.types.Object) -> list[bpy.types.Object]:
     return [obj for obj in bpy.data.objects if obj == root or obj.parent == root]
+
+
+def mesh_metrics(root: bpy.types.Object) -> tuple[int, int]:
+    vertices = 0
+    faces = 0
+    for obj in character_objects(root):
+        if obj.type == "MESH":
+            vertices += len(obj.data.vertices)
+            faces += len(obj.data.polygons)
+    return vertices, faces
+
+
+def repo_path(path: Path) -> str:
+    return path.relative_to(PROJECT_ROOT).as_posix()
 
 
 def set_isolated(character_id: str, roots: dict[str, bpy.types.Object]) -> None:
