@@ -660,23 +660,31 @@ export function App() {
             <source src={HERO_VIDEO_URL} type="video/mp4" />
           </video>
 
-          <nav className="relative z-10 mx-auto flex max-w-7xl flex-row items-center justify-between px-8 py-6">
+          <nav className="hero-nav relative z-10 mx-auto flex max-w-7xl flex-row items-center justify-between px-8 py-6">
             <a
-              className="text-3xl font-normal tracking-tight text-foreground"
+              className="hero-brand"
               href="#hero"
-              style={{ fontFamily: "'Instrument Serif', serif" }}
             >
-              Velorah<sup className="text-xs">®</sup>
+              <span className="hero-brand-symbol">饼</span>
+              <span>
+                <strong>BING Game</strong>
+                <small>同步出招卡牌策略</small>
+              </span>
             </a>
             <div className="hidden items-center gap-8 md:flex">
-              {["Home", "Studio", "About", "Journal", "Reach Us"].map((item) => (
+              {[
+                ["开房", "#journey-console"],
+                ["规则", "#journey-console"],
+                ["角色", "#journey-console"],
+                ["公网联机", "#journey-console"]
+              ].map(([item, href], index) => (
                 <a
                   key={item}
                   className={[
                     "text-sm transition-colors hover:text-foreground",
-                    item === "Home" ? "text-foreground" : "text-muted-foreground"
+                    index === 0 ? "text-foreground" : "text-muted-foreground"
                   ].join(" ")}
-                  href={item === "Home" ? "#hero" : "#journey-console"}
+                  href={href}
                 >
                   {item}
                 </a>
@@ -691,7 +699,7 @@ export function App() {
               }
               variant="glass"
             >
-              Begin Journey
+              进入大厅
             </Button>
           </nav>
 
@@ -702,25 +710,29 @@ export function App() {
             <div className="hero-copy flex flex-1 flex-col items-center justify-center">
               <div className="hero-eyebrow animate-fade-rise">
                 <Sparkles className="h-4 w-4" aria-hidden="true" />
-                Abyss fantasy system online
+                BING / 饼 · 多人实时牌桌
               </div>
               <h1
-                className="animate-fade-rise max-w-7xl text-5xl font-normal leading-[0.95] tracking-[-2.46px] text-foreground sm:text-7xl md:text-8xl"
+                className="animate-fade-rise hero-title max-w-7xl text-5xl font-black leading-[0.95] text-foreground sm:text-7xl md:text-8xl"
                 style={{ fontFamily: "'Instrument Serif', serif" }}
               >
-                Where <em className="not-italic text-muted-foreground">dreams</em> rise{" "}
-                <em className="not-italic text-muted-foreground">through the silence.</em>
+                同时出招，藏住你的饼。
               </h1>
               <p className="animate-fade-rise-delay mt-8 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                We're designing tools for deep thinkers, bold creators, and quiet rebels. Amid the chaos, we build digital spaces for sharp focus and inspired work.
+                创建房间、邀请朋友、同一回合暗中选择行动。吃饼、防御、攻击、反弹和技能会在亮招瞬间一起结算。
               </p>
+              <div className="hero-proof-row animate-fade-rise-delay">
+                <span>2-6 人实时房间</span>
+                <span>Socket.IO 同步</span>
+                <span>3D 桌面与复盘</span>
+              </div>
               <Button
                 className="mt-12 rounded-full px-14 py-5 text-base hover:scale-[1.03]"
                 disabled={busy}
                 onClick={createRoom}
                 variant="glass"
               >
-                Begin Journey
+                立即创建房间
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
@@ -733,7 +745,7 @@ export function App() {
                 <div className="hero-panel-heading">
                   <span>
                     <BadgeCheck className="h-4 w-4" aria-hidden="true" />
-                    玩家通行证
+                    玩家牌桌通行证
                   </span>
                   <strong>{selectedCharacter.archetype}</strong>
                 </div>
