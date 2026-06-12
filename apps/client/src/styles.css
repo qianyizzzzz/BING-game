@@ -300,6 +300,111 @@ select {
   color: #92400e;
 }
 
+.side-panel-stack {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.side-panel-tabs {
+  position: sticky;
+  top: 84px;
+  z-index: 4;
+}
+
+.side-panel-tab-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.side-panel-tab {
+  min-width: 0;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 8px;
+  background: rgba(248, 250, 252, 0.82);
+  padding: 8px 6px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 900;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.side-panel-tab:hover {
+  transform: translateY(-1px);
+}
+
+.side-panel-tab-active {
+  border-color: rgba(15, 118, 110, 0.42);
+  background: rgba(240, 253, 250, 0.92);
+  color: #0f766e;
+}
+
+.side-panel-content {
+  min-width: 0;
+}
+
+.quick-hint-panel h2 {
+  color: #111827;
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.quick-hint-eyebrow {
+  display: block;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.quick-hint-panel p {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.quick-hint-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.quick-hint-grid div {
+  min-width: 0;
+  border: 1px solid rgba(15, 118, 110, 0.14);
+  border-radius: 8px;
+  background: rgba(240, 253, 250, 0.62);
+  padding: 8px 9px;
+}
+
+.quick-hint-grid span,
+.quick-hint-grid strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-hint-grid span {
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.quick-hint-grid strong {
+  margin-top: 2px;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 950;
+}
+
 .btn-primary,
 .btn-secondary,
 .btn-warning,
@@ -3467,12 +3572,34 @@ select {
 .settings-field,
 .stat-chip,
 .action-row,
+.side-panel-tab,
+.quick-hint-grid div,
 .reference-info-block,
 .attribute-row,
 .advice-item {
   border-color: rgba(201, 178, 124, 0.18);
   background: rgba(12, 18, 17, 0.72);
   color: #eadfbe;
+}
+
+.side-panel-tab-active {
+  border-color: rgba(136, 247, 219, 0.48);
+  background: rgba(13, 72, 67, 0.82);
+  color: #b9f6e7;
+}
+
+.quick-hint-panel h2,
+.quick-hint-grid strong {
+  color: #fff7d7;
+}
+
+.quick-hint-eyebrow,
+.quick-hint-grid span {
+  color: #88f7db;
+}
+
+.quick-hint-panel p {
+  color: rgba(248, 237, 210, 0.76);
 }
 
 .lobby-next-step {

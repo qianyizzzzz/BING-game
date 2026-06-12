@@ -40,6 +40,15 @@ interface LocalAccount {
   characterId: string;
 }
 
+type SidePanelTab = "hint" | "log" | "skills" | "rules";
+
+const SIDE_PANEL_TABS: Array<{ id: SidePanelTab; label: string }> = [
+  { id: "hint", label: "提示" },
+  { id: "log", label: "日志" },
+  { id: "skills", label: "技能" },
+  { id: "rules", label: "规则" }
+];
+
 export function App() {
   const [identity, setIdentity] = useState<Identity>(null);
   const [state, setState] = useState<PublicGameState | null>(null);
@@ -50,6 +59,7 @@ export function App() {
   const [roomCopied, setRoomCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sidePanelTab, setSidePanelTab] = useState<SidePanelTab>("hint");
   const [clockNow, setClockNow] = useState(() => Date.now());
   const selectedCharacter = useMemo(
     () => getCharacterById(account.characterId),
@@ -1034,12 +1044,11 @@ export function App() {
             <GameAdvice state={state} />
           </div>
 
-          <div className="space-y-5">
-            <EventLog state={state} />
-            <SkillPanel state={state} />
-            <TutorialPanel />
-            <ReferencePanel />
-          </div>
+          <SidePanel
+            activeTab={sidePanelTab}
+            onTabChange={setSidePanelTab}
+            state={state}
+          />
         </section>
       )}
     </main>
@@ -1268,6 +1277,152 @@ function TestSkillPanel({
       </div>
     </section>
   );
+}
+
+function SidePanel({
+  activeTab,
+  onTabChange,
+  state
+}: {
+  activeTab: SidePanelTab;
+  onTabChange: (tab: SidePanelTab) => void;
+  state: PublicGameState;
+}) {
+  return (
+    <aside className="side-panel-stack">
+      <div className="surface-card side-panel-tabs p-3">
+        <div className="side-panel-tab-list" role="tablist" aria-label="辅助信息">
+          {SIDE_PANEL_TABS.map((tab) => (
+            <button
+              aria-selected={activeTab === tab.id}
+              className={[
+                "side-panel-tab",
+                activeTab === tab.id ? "side-panel-tab-active" : ""
+              ].join(" ")}
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              role="tab"
+              type="button"
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="side-panel-content" role="tabpanel">
+        {activeTab === "hint" ? <QuickHintPanel state={state} /> : null}
+        {activeTab === "log" ? <EventLog state={state} /> : null}
+        {activeTab === "skills" ? <SkillPanel state={state} /> : null}
+        {activeTab === "rules" ? (
+          <div className="space-y-5">
+            <TutorialPanel />
+            <ReferencePanel />
+          </div>
+        ) : null}
+      </div>
+    </aside>
+  );
+}
+
+function QuickHintPanel({ state }: { state: PublicGameState }) {
+  const viewer = state.players.find((player) => player.id === state.viewerPlayerId);
+  const activePlayers = state.players.filter(
+    (player) => player.kind !== "spectator" && player.status === "alive"
+  );
+  const waitingPlayers =
+    state.phase === "action_window"
+      ? activePlayers.filter((player) => !state.actionWindowPassPlayerIds.includes(player.id))
+      : state.phase === "collecting_actions"
+        ? activePlayers.filter((player) => !state.pendingActionPlayerIds.includes(player.id))
+        : [];
+  const hint = quickHintForState(state, viewer?.id);
+
+  return (
+    <section className="surface-card quick-hint-panel p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <span className="quick-hint-eyebrow">当前提示</span>
+          <h2>{hint.title}</h2>
+        </div>
+        <span className="status-pill">{phaseDisplayLabel(state)}</span>
+      </div>
+      <p>{hint.body}</p>
+      <div className="quick-hint-grid">
+        <div>
+          <span>等待</span>
+          <strong>{waitingPlayers.length > 0 ? waitingPlayers.map((player) => player.name).join("、") : "无"}</strong>
+        </div>
+        <div>
+          <span>玩家</span>
+          <strong>{viewer?.name ?? "观战"}</strong>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function quickHintForState(
+  state: PublicGameState,
+  viewerPlayerId: string | undefined
+): { title: string; body: string } {
+  const viewerIsActive =
+    Boolean(viewerPlayerId) &&
+    state.players.some(
+      (player) => player.id === viewerPlayerId && player.kind !== "spectator" && player.status === "alive"
+    );
+
+  if (state.phase === "lobby") {
+    return {
+      title: "准备开局",
+      body: "房主可以加 AI 或分享房号；其他玩家只需要确认名字、角色和技能，等待开局。"
+    };
+  }
+
+  if (state.phase === "finished") {
+    return {
+      title: "对局结束",
+      body: "查看复盘建议、结算日志和胜者状态，再决定是否重新开房或继续调整规则。"
+    };
+  }
+
+  if (state.phase === "action_window") {
+    const alreadyPassed = Boolean(
+      viewerPlayerId && state.actionWindowPassPlayerIds.includes(viewerPlayerId)
+    );
+    return {
+      title: alreadyPassed ? "等待阶段结算" : "处理阶段行动",
+      body: viewerIsActive && !alreadyPassed
+        ? "如果有可用技能，先确认目标和消耗；没有要处理的动作时可以结束本阶段。"
+        : "等待仍在处理阶段行动的玩家，全部完成后会继续结算。"
+    };
+  }
+
+  const alreadySubmitted = Boolean(
+    viewerPlayerId && state.pendingActionPlayerIds.includes(viewerPlayerId)
+  );
+  return {
+    title: alreadySubmitted ? "等待亮招" : "选择本回合行动",
+    body: viewerIsActive && !alreadySubmitted
+      ? "先确认当前选择、目标和消耗，再按提交。第一局不确定时，吃饼 +1 是最稳的开局。"
+      : "等待所有存活玩家提交，本回合行动会同时亮出。"
+  };
+}
+
+function phaseDisplayLabel(state: PublicGameState): string {
+  if (state.phase === "lobby") {
+    return "房间";
+  }
+
+  if (state.phase === "finished") {
+    return "结束";
+  }
+
+  if (state.phase === "action_window") {
+    return state.activeTimingPhase === "revival_action" ? "复活" : "阶段";
+  }
+
+  return "出招";
 }
 
 function SkillPicker({
