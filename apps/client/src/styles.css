@@ -1229,6 +1229,21 @@ select {
   background: #f0fdf4;
 }
 
+.battle-lane-skill {
+  border-color: #c4b5fd;
+  background: #f5f3ff;
+}
+
+.battle-lane-defeat {
+  border-color: #fecaca;
+  background: #fff1f2;
+}
+
+.battle-lane-system {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
 .battle-combatant {
   display: flex;
   min-width: 0;
@@ -1336,7 +1351,10 @@ select {
 .battle-rebound,
 .battle-break,
 .battle-heal,
-.battle-clash {
+.battle-clash,
+.battle-skill,
+.battle-defeat,
+.battle-system {
   position: absolute;
   right: 13%;
   top: 50%;
@@ -1372,6 +1390,20 @@ select {
 .battle-clash {
   right: 46%;
   background: #d97706;
+}
+
+.battle-skill {
+  right: 46%;
+  background: #7c3aed;
+}
+
+.battle-defeat {
+  background: #991b1b;
+}
+
+.battle-system {
+  right: 46%;
+  background: #475569;
 }
 
 .battle-area-rain {
@@ -3270,6 +3302,9 @@ select {
   .battle-break,
   .battle-heal,
   .battle-clash,
+  .battle-skill,
+  .battle-defeat,
+  .battle-system,
   .battle-area-rain i,
   .skill-used-flash,
   .seat-skill-card-flash,
@@ -4544,6 +4579,27 @@ select {
   background:
     radial-gradient(circle at 50% 0%, rgba(136, 247, 219, 0.12), transparent 44%),
     rgba(5, 8, 7, 0.72);
+}
+
+.battle-lane-skill {
+  border-color: rgba(192, 132, 252, 0.36);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(192, 132, 252, 0.14), transparent 44%),
+    rgba(5, 8, 7, 0.72);
+}
+
+.battle-lane-defeat {
+  border-color: rgba(248, 113, 113, 0.38);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(248, 113, 113, 0.16), transparent 44%),
+    rgba(5, 8, 7, 0.74);
+}
+
+.battle-lane-system {
+  border-color: rgba(148, 163, 184, 0.3);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(148, 163, 184, 0.12), transparent 44%),
+    rgba(5, 8, 7, 0.7);
 }
 
 .battle-combatant {
