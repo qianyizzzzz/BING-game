@@ -1,307 +1,305 @@
-# UI Design Review and Implementation Plan
+# UI 设计评审与实施方案
 
-Date: 2026-06-11
+日期：2026-06-13  
+项目：BING / 饼
 
-This note summarizes UI improvement ideas for BING, animation direction for a more game-like feel, and an agent-based playtesting setup with two player agents, one developer/product agent, and one art director agent.
+这份文档汇总 UI 优化方法、动画游戏感方案，以及基于 agent 的测试与评审流程。当前方案包含两个玩家 agent、一个开发商/QA agent、一个美术总监 agent。
 
-## 1. UI Optimization Methods
+## 当前完成状态
 
-### Current Strengths
+| 模块 | 状态 | 说明 |
+| --- | --- | --- |
+| Phase A 文案、品牌、布局 | 已落地 | 中文 README、BING / 饼首屏、牌桌 HUD、行动 dock、移动端 dock 已完成基础优化 |
+| Phase B 回合动画时间线 | 已落地 | `turnTimeline` 覆盖亮招、冲击、防御、反弹、技能、击败、恢复、系统事件，并接入 sound cue 占位 |
+| Phase C Playtest Agents | 已落地 | `npm run test:ui-agents` 可自动启动服务、双玩家跑 3 回合、截图、检查 console、canvas、遮挡、目标预览、沿用上回合 |
+| P1 目标预览 | 已落地 | 选择攻击/技能目标会高亮对应座位 |
+| P1 沿用上回合 | 已落地 | 行动面板提供“沿用上回合”快捷按钮，并做基础合法性提示 |
+| P1 事件日志与动画口径 | 已落地 | 日志显示对应 battle beat 标签，便于 QA 对照动画反馈 |
+| Phase D 生产质感 | 进行中 | 需要继续做角色资产、音效资源、性能 profiling 和可访问性 |
+| Phase E Blender 角色生产 | 待确认 | repo 出现未跟踪角色素材，但来源与完整性需要确认后再接入 |
 
-- The game already has a distinctive 3D table, seat layout, action dock, event log, tutorial, and skill panel.
-- The interface supports real multiplayer states instead of being a static mockup.
-- The public play flow is practical: one local server can host a temporary HTTPS room.
+## 1. UI 优化方法
 
-### Main Problems To Fix First
+### 已有优势
 
-- **Brand mismatch:** the landing page still reads like a generic cinematic site in places. The first screen should clearly say BING / 饼 and immediately show the actual game.
-- **Text encoding risk:** some Chinese strings appear garbled in source/output. Before visual polish, normalize source files to UTF-8 and verify all UI copy in browser.
-- **Too many equal-weight panels:** the table, action dock, command center, log, tutorial, skill panel, and reference panel compete for attention.
-- **Action clarity:** the current action dock is usable, but the player should always know: "What phase is this?", "What can I do now?", "What happens if I press this?"
-- **Mobile stacking:** mobile works, but the action dock and next section compete vertically. The primary action should stay reachable without burying the state summary.
+- 已有 3D 牌桌、座位布局、行动面板、事件日志、教程、技能和规则面板。
+- 多人状态是真实联机流程，不是静态 mockup。
+- 公网试玩路径可行：本地服务可以配合临时公网 tunnel。
+- 现在已有自动化 UI agent，可反复验证关键路径。
 
-### Recommended UI Changes
+### 仍需优先修的问题
 
-1. **Create a stronger game HUD hierarchy**
+- **生产质感还不够完整：** 角色、技能和音效仍需要更统一的美术资产。
+- **信息密度需要持续压缩：** 技能、规则、日志、提示应该按上下文显示，而不是全部抢注意力。
+- **复杂技能的目标/消耗解释仍需增强：** 技能越多，越需要“当前选择 -> 目标 -> 消耗 -> 结果预期”的明确链路。
+- **移动端需要持续截图 QA：** 390px 宽度必须保证文字不溢出、按钮不互相压住。
 
-   Put the phase, countdown, and submitted/pass count into a compact battle HUD attached to the table. Keep it persistent and visually separated from secondary panels.
+### 推荐 UI 方法
 
-2. **Turn the action dock into a console**
+1. **固定游戏 HUD 层级**
 
-   The action panel should have one primary button, one selected action summary, and secondary options. Avoid making all actions look equally important after selection.
+   阶段、倒计时、已提交/未提交、当前行动提示必须在牌桌内持续可见。日志、规则和教程作为辅助层。
 
-3. **Collapse the right rail by context**
+2. **行动面板只保留一个主任务**
 
-   During active decision phases, show only event log + current skill/help snippet. Move full tutorial/reference into tabs or drawers.
+   玩家每一刻只需要知道：我现在选了什么、目标是谁、消耗多少、是否可以提交。
 
-4. **Make seat cards more game-like**
+3. **用目标预览降低误操作**
 
-   Add state rings, small status icons, action readiness badges, and visible "threat/target" feedback. Reduce repeated text where icons can carry meaning.
+   攻击和单体技能选择目标时，目标座位高亮；多目标技能应显示多个目标。
 
-5. **Unify art direction**
+4. **为重复操作提供快捷路径**
 
-   Pick one theme lane and commit to it: "mysterious tabletop ritual", "casual card party", or "competitive arena". The current 3D abyss/HUD language is strong, so lean into that and remove generic landing-page language.
+   高频玩家需要“一键沿用上回合”。非法时不要静默失败，要说明原因。
 
-6. **Define design tokens**
+5. **把右栏变成上下文工具箱**
 
-   Move key colors, elevations, spacing, borders, and animation durations into a small token layer. This makes later polish much easier and prevents each component from inventing its own look.
+   默认显示“提示 / 日志 / 技能 / 规则”tabs；当前决策需要什么，就把哪个 tab 置前。
 
-7. **Add empty, loading, error, and reconnect states**
+6. **设计 token 继续收敛**
 
-   Multiplayer games feel much more solid when connection loss, reconnect, waiting for others, spectator mode, and owner-only actions all have deliberate UI states.
+   颜色、边框、阴影、间距和动效时长应沉淀到视觉规范，避免每个组件独立发明风格。
 
-## 2. Making Animations Feel Like A Real Game
+7. **补齐异常状态**
 
-### Use A Turn Animation Timeline
+   断线、重连、房主操作、观战、等待他人、不可提交原因，都要有明确状态。
 
-Every server-resolved turn should play as a deterministic sequence:
+## 2. 如何把动画做得像真正游戏
 
-1. **Lock-in:** each seat shows submitted/ready feedback.
-2. **Reveal:** action cards flip or slide toward the center.
-3. **Anticipation:** short pause, camera push, table glow, target line appears.
-4. **Impact:** damage/defense/reflect/skill effect fires with hit-stop.
-5. **Aftermath:** HP/cake numbers count, status badges update, defeated players fade or slump.
-6. **Return to neutral:** table breathes back to idle and the next prompt appears.
+### 使用确定性的回合动画时间线
 
-### Add Game Feel Principles
+每次服务端结算都应该播放确定顺序：
 
-- **Hit-stop:** freeze the table for 80-140ms on big impacts.
-- **Camera shake:** use small, brief shakes only for damage, break, or death.
-- **Particles:** crumbs for cake gain/spend, sparks for defense, arcs for reflect, shock rings for skill activation.
-- **Number animation:** HP/cake changes should count rather than instantly jump.
-- **Sound hooks:** even simple UI blips make the game feel much more complete. Add sound events after animation names are stable.
-- **State-based animation, not random animation:** every visual effect should be triggered by an event type from the server log.
-- **Reduced motion mode:** respect `prefers-reduced-motion` and provide calmer alternatives.
+1. **锁定：** 座位显示已提交/等待状态。
+2. **亮招：** 动作卡或动作摘要进入桌面中心。
+3. **预备：** 短暂停顿，桌面发光，目标线/座位高亮出现。
+4. **冲击：** 伤害、防御、反弹、技能触发，有短 hit-stop。
+5. **余波：** HP/饼数字变化，状态 badge 更新，击败角色明显变化。
+6. **回中：** 牌桌回到 idle，下一阶段提示出现。
 
-### Technical Approach
+### Game Feel 原则
 
-- Keep Three.js for the table and camera.
-- Use CSS transitions for small UI states: hover, selected, disabled, ready.
-- Use a timeline helper for turn resolution events. This can be plain TypeScript first; add GSAP or another animation timeline library only if sequencing becomes hard to maintain.
-- Store visual event IDs so the client never replays old effects after reconnect.
-- Add Playwright checks for: desktop view, mobile view, canvas nonblank, action dock visible, no major overlap.
+- Hit-stop: 大冲击冻结 80-140ms。
+- Camera shake: 只用于伤害、破防、死亡，幅度小、时间短。
+- Particles: 吃饼/消耗用碎屑，防御用火花，反弹用弧线，技能用冲击环。
+- Number animation: HP/饼变化要有计数或闪烁，不要瞬间跳变。
+- Sound hooks: 点击、提交、亮招、命中、防御、反弹、治疗、死亡、胜利都要有 cue。
+- State-based animation: 所有效果由事件日志触发，避免随机播放。
+- Reduced motion: 遵守 `prefers-reduced-motion`，关闭大幅镜头和粒子爆发。
 
-## 3. Agent-Based Playtesting Setup
+### 技术路线
 
-Create three agent personas and use them after every UI polish pass.
+- 继续使用 Three.js 承载牌桌和镜头。
+- CSS 负责小状态：hover、selected、disabled、ready、resource changed。
+- `apps/client/src/lib/turnTimeline.ts` 负责把事件映射为 beat、sound cue 和描述。
+- `scripts/turn-timeline-check.ts` 用来防止新增事件没有视觉映射。
+- `scripts/ui-playtest-agents.ts` 用来检查桌面/移动端截图、canvas 非空、遮挡、目标预览和关键动作。
 
-### Player Agent A: First-Time Player
+## 3. Agent 测试与评审设置
 
-Role: someone who has never played BING.
+### 玩家 Agent A：新手玩家
 
-Goals:
+角色：第一次玩 BING / 饼的人。
 
-- Create or join a room without reading external docs.
-- Understand when to submit an action.
-- Explain what happened after one resolved turn.
+目标：
 
-What it should report:
+- 不看外部文档也能创建/加入房间。
+- 知道什么时候提交行动。
+- 能解释第一回合发生了什么。
 
-- Confusing labels.
-- Missing next-step cues.
-- Anything that looks clickable but is not.
-- Moments where the player cannot tell if the game is waiting, loading, or broken.
+需要报告：
 
-### Player Agent B: Competitive Player
+- 迷惑文案。
+- 缺失的下一步提示。
+- 看起来能点但不能点的东西。
+- 不知道是在等待、加载还是坏掉的瞬间。
 
-Role: someone optimizing for speed, clarity, and tactical information.
+### 玩家 Agent B：竞技玩家
 
-Goals:
+角色：追求速度、读局和重复游玩的玩家。
 
-- Submit actions quickly.
-- Track enemy resources and likely intent.
-- Use skills without misclicks.
-- Read the log after a complex turn.
+目标：
 
-What it should report:
+- 快速提交行动。
+- 追踪敌人资源和意图。
+- 使用技能不误点。
+- 复杂结算后能读日志复盘。
 
-- Slow interactions.
-- Hidden or noisy information.
-- Timing pressure problems.
-- Ambiguous iconography.
-- Whether the UI supports fast repeated play.
+需要报告：
 
-### Developer/Product Agent
+- 慢交互。
+- 被隐藏或噪声过多的信息。
+- 倒计时压力问题。
+- 图标歧义。
+- 高频操作是否顺手。
 
-Role: developer, producer, and QA reviewer.
+### 开发商 Agent：制作人 / QA / 技术负责人
 
-Goals:
+目标：
 
-- Verify no console errors.
-- Check responsive layout at desktop and mobile.
-- Check Socket.IO reconnect and room resume.
-- Validate performance during 3D table and effects.
-- Turn player feedback into actionable tasks.
+- 检查 console/page error。
+- 检查桌面和移动端布局。
+- 检查 Socket.IO 重连、房间恢复、公网试玩路径。
+- 检查 3D 牌桌与效果的性能风险。
+- 把玩家反馈转成 P0/P1/P2 修改清单。
 
-What it should report:
+需要报告：
 
-- Bugs with reproduction steps.
-- Performance risks.
-- Accessibility problems.
-- Prioritized issue list with owner, severity, and acceptance criteria.
+- 复现步骤。
+- 性能风险。
+- 可访问性问题。
+- 带优先级和验收标准的问题列表。
 
-### Art Director Agent
+### 美术总监 Agent
 
-Role: visual director for art direction, character assets, skill visuals, animation feel, and screenshot quality.
+目标：
 
-Goals:
+- 保持“深渊遗物牌桌竞技场”的方向。
+- 评审首屏、牌桌、座位、角色、技能视觉、粒子和回合动画。
+- 维护 `workflow/docs/01-visual-bible.md`。
+- 未来接入 Blender 或美术工具时，输出角色规格、turnaround、导出要求和验收报告。
 
-- Keep the game anchored in the "abyss relic tabletop arena" direction.
-- Review the landing page, table, seats, character art, skill cards, particles, and turn animation.
-- When Blender MCP is available, model and optimize each default character/player as a semi-realistic 3D game character.
-- Produce asset specs, turnarounds, model exports, and art review reports.
+需要报告：
 
-What it should report:
+- 3D 牌桌、2D UI、角色、技能视觉是否风格漂移。
+- 哪些 placeholder 必须在公开 demo 前替换。
+- 哪些动画缺少 hit-stop、镜头、粒子或声音。
+- 角色素材的完整性、授权和运行时体积风险。
 
-- Style drift between 3D table, 2D UI, character art, and skill visuals.
-- Placeholder assets that must be replaced before a public demo.
-- Animation beats that lack hit-stop, camera, particles, or sound hooks.
-- Blender MCP status, exported assets, model quality risks, and P0/P1/P2 art fixes.
+## 4. 自动化测试脚本
 
-## Suggested Agent Test Script
+当前脚本：
 
-1. Start production mode:
+```bash
+npm run test:ui-agents
+```
 
-   ```bash
-   npm run build
-   npm run serve
-   ```
+脚本能力：
 
-2. Open two browser contexts.
+- 自动启动本地服务。
+- 打开两个 Playwright browser contexts。
+- 玩家 A 创建房间。
+- 玩家 B 加入房间。
+- 房主开始游戏。
+- 两个玩家连续提交 3 回合。
+- 检查目标预览高亮。
+- 检查“沿用上回合”快捷按钮。
+- 检查 console/page error。
+- 检查 3D canvas 非空。
+- 检查关键 HUD/行动面板是否明显重叠。
+- 生成 Markdown 报告和截图到 `artifacts/playtests/`。
 
-3. Player Agent A creates a room.
+## 5. 修改意见汇总
 
-4. Player Agent B joins the room.
+### P0：让当前 UI 可信
 
-5. Owner adds one AI, starts the game, and both agents submit actions for three turns.
+- 修复主 UI 可见乱码。
+- 首屏明确使用 BING / 饼 品牌。
+- README、试玩说明和应用内文案一致。
+- 新手能开房、加入、开始、提交第一回合。
 
-6. Developer/Product Agent records:
+状态：已基本完成，继续通过 UI agent 回归。
 
-   - screenshots
-   - console errors
-   - failed clicks
-   - layout overlap
-   - unclear copy
-   - animation/event mismatch
+### P1：提高决策清晰度
 
-7. Generate a markdown report in `artifacts/playtests/`.
+- 行动 dock 围绕一个当前选择和一个主提交按钮。
+- 增加持久阶段/倒计时 HUD。
+- 明确“等待其他玩家”和“你已提交”。
+- 增加目标预览。
+- 增加沿用上回合。
+- 事件日志显示对应动画 beat。
 
-## Modification Opinion Summary
+状态：已完成核心项，后续继续覆盖复杂技能。
 
-### Priority 0: Make The Current UI Trustworthy
+### P2：让牌桌更像活的游戏
 
-- Fix any garbled Chinese copy in the client and replay pages.
-- Make the first screen use BING / 饼 branding.
-- Ensure the README, public play docs, and in-app labels say the same thing.
+- 继续丰富 turn reveal timeline。
+- 增加更多座位状态：idle、ready、targeted、damaged、defeated。
+- HP/饼数值变化继续打磨。
+- 接入真正音效包。
+- 做性能 profiling。
 
-### Priority 1: Improve Decision Clarity
+状态：进行中。
 
-- Redesign the action dock around one selected action and one primary submit button.
-- Add a persistent phase/countdown HUD.
-- Make "waiting for others" and "you have submitted" unmistakable.
+### P3：长期 polish
 
-### Priority 2: Make The Table Feel Alive
+- 替换 placeholder 角色和技能视觉。
+- 完成音效资源。
+- 做可访问性 pass：对比度、键盘流、reduced motion、focus state。
+- 增加视觉回归对比。
 
-- Add turn reveal timeline.
-- Add seat idle/ready/target/damaged/defeated states.
-- Add HP/cake number transitions.
-- Add event-specific particles and short camera beats.
+状态：待推进。
 
-### Priority 3: Improve Long-Term Polish
+## 6. 实施阶段
 
-- Replace placeholder SVG character art with final visual direction.
-- Add sound hooks.
-- Add accessibility pass: contrast, keyboard flow, reduced motion, focus states.
-- Add Playwright visual QA for desktop and mobile.
+### Phase A：文案、品牌、布局
 
-## Proposed Implementation Phases
+验收：
 
-### Phase A: Copy, Branding, And Layout
+- 新玩家无需外部说明即可创建房间并提交第一次行动。
+- 主 UI 没有可见乱码。
+- 390px 移动端和 1280px 桌面端没有主要布局重叠。
 
-Deliverables:
+状态：已完成基础验收。
 
-- UTF-8 copy audit.
-- BING-branded landing page.
-- Cleaner table HUD and action dock hierarchy.
-- Mobile dock behavior pass.
+### Phase B：回合时间线
 
-Acceptance criteria:
+验收：
 
-- A new player can create a room and submit a first action without external explanation.
-- No visible mojibake in the main UI.
-- No major layout overlap at 390px mobile width and 1280px desktop width.
+- 主要事件都有视觉 beat。
+- 重连不会重播旧效果。
+- `prefers-reduced-motion` 禁用大型晃动和粒子爆发。
 
-### Phase B: Turn Timeline
+状态：已完成基础映射，reduced motion 仍需继续人工验证。
 
-Deliverables:
+### Phase C：Playtest Agents
 
-- Client-side event timeline mapper.
-- Reveal, impact, reflect, defense, skill, defeat, and recovery beats.
-- Basic sound event placeholders.
+验收：
 
-Acceptance criteria:
+- 脚本能创建房间、加入、开始、提交行动、截图。
+- 报告包含玩家 agent 反馈和开发商 agent bug list。
 
-- Every major event in the log has a matching visual beat.
-- Reconnect does not replay old effects.
-- `prefers-reduced-motion` disables large camera shakes and particle bursts.
+状态：已完成，并补充了 canvas、遮挡、目标预览、沿用上回合检查。
 
-### Phase C: Playtest Agents
+### Phase D：Production Feel
 
-Deliverables:
+交付物：
 
-- `scripts/ui-playtest-agents.ts` or Playwright equivalent.
-- Two player browser contexts plus one reporter.
-- Markdown report output.
+- 最终 art direction pass。
+- 更好的角色/技能资产。
+- 音效包集成。
+- 3D 牌桌和效果 burst 的性能 profiling。
 
-Acceptance criteria:
+验收：
 
-- Script can create a room, join, start, submit actions, and capture screenshots.
-- Report includes player-agent feedback and developer-agent bug list.
+- 普通笔记本 active table scene 接近稳定 60fps。
+- 移动端仍然可读可玩。
+- 每回合前、中、后都感觉连贯。
 
-### Phase D: Production Feel
+状态：进行中。
 
-Deliverables:
+### Phase E：角色资产生产
 
-- Final art direction pass.
-- Better character/skill assets.
-- Sound pack integration.
-- Performance profiling for 3D table and effect bursts.
+交付物：
 
-Acceptance criteria:
+- 美术总监 agent 合同与资产规格。
+- 每个默认角色的源文件、运行时导出、头像和 turnaround。
+- 角色资产 review report。
 
-- Stable 60fps target on a normal laptop for the active table scene.
-- Mobile remains readable and playable.
-- The game feels coherent before, during, and after each turn.
+验收：
 
-### Phase E: Blender Character Production
+- `apps/client/src/lib/characters.ts` 中每个角色都有对应 portrait 和运行时资产。
+- 桌面距离、座位卡、移动端头像都能识别。
+- 角色轮廓、材质和关键道具有明显差异。
+- 未使用未授权的可识别真人肖像。
 
-Deliverables:
+状态：待确认。当前未跟踪素材目录需要先确认来源、授权、完整性，再决定是否接入。
 
-- `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md` as the art-director agent contract.
-- Blender MCP connected to the workspace.
-- Semi-realistic 3D models for the default 6-character roster.
-- `.blend` source files, `.glb` runtime exports, portrait crops, and front/side/three-quarter turnarounds.
-- Per-character art review reports under `artifacts/art/`.
+## 7. README 参考方向
 
-Acceptance criteria:
+README 已按中文游戏 repo 习惯整理：
 
-- Every character in `apps/client/src/lib/characters.ts` has a matching exported model and portrait.
-- Characters read clearly at table distance, seat-card size, and mobile avatar size.
-- Models use distinct silhouettes, material palettes, and role props.
-- LOD0 stays under 35k triangles and LOD1 under 12k triangles unless explicitly approved.
-- No model uses an unauthorized recognizable real-person likeness.
-
-## README Inspiration Notes
-
-The README structure was shaped after common game repository patterns:
-
-- Game repos often open with a concise identity line, badges, and immediate build/run instructions.
-- Larger games separate installation, building, downloads, and support docs clearly.
-- Demo-heavy repositories highlight screenshots or browser demos near the top so readers can understand the experience quickly.
-
-References used while shaping the README:
-
-- Mindustry: https://github.com/Anuken/Mindustry
-- Endless Sky: https://github.com/endless-sky/endless-sky
-- OpenRA: https://github.com/OpenRA/OpenRA
-- Godot demo projects: https://github.com/godotengine/godot-demo-projects
+- 顶部先说明游戏身份。
+- 快速给出运行、构建、试玩命令。
+- 链接 UI 设计方案、架构、AI 训练、子智能体评审。
+- 后续如果有稳定截图或 GIF，应放到 README 靠前位置。
