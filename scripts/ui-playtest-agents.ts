@@ -47,8 +47,10 @@ const failedActions: string[] = [];
 const runNotes: string[] = [];
 const visualChecks: string[] = [];
 const visualIssues: string[] = [];
+const screenshots: string[] = [];
 let roomId = "";
 let serverProcess: ChildProcess | undefined;
+let fatalError: unknown;
 
 if (config.autoServe) {
   serverProcess = await startServer(config.url);
@@ -73,14 +75,14 @@ try {
     await fillPlayerName(playerB, "竞技玩家");
     await fillRoomId(playerB, roomId);
     await clickByTestId(playerB, "join-room");
-    await playerB.getByTestId("room-code").waitFor({ timeout: 15_000 });
+    await waitForRoomLobby(playerB, "加入房间");
     await screenshot(playerB, "02-player-b-joined.png");
     competitor.observations.push("成功加入房间，检查加入路径是否足够快。");
 
     await ensureGameCanStart(playerA);
     await clickByTestId(playerA, "start-game");
-    await playerA.waitForSelector(".table-action-dock", { timeout: 15_000 });
-    await playerB.waitForSelector(".table-action-dock", { timeout: 15_000 });
+    await waitForActionDock(playerA);
+    await waitForActionDock(playerB);
     producer.observations.push("房主能从大厅进入战斗桌面，行动 dock 已出现。");
 
     for (let turn = 1; turn <= 3; turn += 1) {
@@ -106,6 +108,13 @@ try {
     await collectHeuristicFeedback(playerA, firstTimer, "新手玩家");
     await collectHeuristicFeedback(playerB, competitor, "竞技玩家");
     collectProducerFeedback();
+  } catch (error) {
+    fatalError = error;
+    const message = errorMessage(error);
+    failedActions.push(`UI playtest 流程异常：${message}`);
+    producer.issues.push(`自动化流程中断：${message}`);
+    await screenshot(playerA, "99-player-a-error.png").catch(() => undefined);
+    await screenshot(playerB, "99-player-b-error.png").catch(() => undefined);
   } finally {
     await browser.close();
   }
@@ -116,6 +125,10 @@ try {
 const reportPath = path.join(runDir, "report.md");
 fs.writeFileSync(reportPath, renderReport(), "utf-8");
 console.log(`UI playtest agent report written to ${reportPath}`);
+
+if (fatalError) {
+  throw fatalError;
+}
 
 async function newAgentPage(browser: Browser, name: string): Promise<Page> {
   const context = await browser.newContext({
@@ -233,6 +246,12 @@ async function fillPlayerName(page: Page, name: string): Promise<void> {
 async function fillRoomId(page: Page, value: string): Promise<void> {
   const roomInput = page.getByTestId("join-room-input").first();
   await roomInput.fill(value);
+  if (!(await waitForInputValue(roomInput, value, 5_000))) {
+    throw new Error(`房号输入框没有稳定写入：${value}`);
+  }
+  if (!(await waitForEnabled(page.getByTestId("join-room").first(), 10_000))) {
+    throw new Error(`加入按钮没有变为可用：${value}`);
+  }
 }
 
 async function clickByTestId(page: Page, testId: string): Promise<void> {
@@ -260,6 +279,32 @@ async function ensureGameCanStart(page: Page): Promise<void> {
     const label = await startButton.innerText().catch(() => "开始");
     throw new Error(`开始按钮仍不可用：${label}`);
   }
+}
+
+async function waitForActionDock(page: Page): Promise<void> {
+  await page.locator(".table-action-dock").first().waitFor({ state: "visible", timeout: 20_000 });
+  await page.getByTestId("submit-action").first().waitFor({ state: "attached", timeout: 20_000 });
+  await page.waitForTimeout(250);
+}
+
+async function waitForRoomLobby(page: Page, actionLabel: string): Promise<void> {
+  const roomCode = page.getByTestId("room-code").first();
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 20_000) {
+    if (await roomCode.isVisible().catch(() => false)) {
+      return;
+    }
+
+    const message = await readStatusMessage(page);
+    if (message && /失败|不存在|无法|连接服务器失败|请求失败/.test(message)) {
+      throw new Error(`${actionLabel}失败：${message}`);
+    }
+
+    await page.waitForTimeout(250);
+  }
+
+  const message = await readStatusMessage(page);
+  throw new Error(`${actionLabel}后未进入房间${message ? `：${message}` : ""}`);
 }
 
 async function readRoomId(page: Page): Promise<string> {
@@ -338,8 +383,38 @@ async function waitForEnabled(locator: Locator, timeoutMs: number): Promise<bool
   return false;
 }
 
+async function waitForInputValue(locator: Locator, expected: string, timeoutMs: number): Promise<boolean> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      if ((await locator.inputValue()).trim() === expected) {
+        return true;
+      }
+    } catch {
+      // Retry until React has flushed the controlled input state.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  return false;
+}
+
 async function screenshot(page: Page, fileName: string): Promise<void> {
   await page.screenshot({ path: path.join(runDir, fileName), fullPage: false });
+  if (!screenshots.includes(fileName)) {
+    screenshots.push(fileName);
+  }
+}
+
+async function readStatusMessage(page: Page): Promise<string> {
+  const message = page.locator("p").filter({ hasText: /失败|不存在|无法|连接服务器失败|请求失败/ }).first();
+  if (!(await message.isVisible().catch(() => false))) {
+    return "";
+  }
+  return (await message.innerText()).trim();
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 async function collectHeuristicFeedback(page: Page, agent: AgentLog, label: string): Promise<void> {
@@ -705,10 +780,7 @@ function renderReport(): string {
     "",
     "## Screenshots",
     "",
-    "- `01-player-a-landing.png`",
-    "- `02-player-b-joined.png`",
-    "- `03-player-a-after-turns.png`",
-    "- `04-player-b-after-turns.png`",
+    ...(screenshots.length > 0 ? screenshots.map((item) => `- \`${item}\``) : ["- 无"]),
     ""
   ].join("\n");
 }
