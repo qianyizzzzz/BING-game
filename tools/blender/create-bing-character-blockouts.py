@@ -126,8 +126,8 @@ def clear_scene() -> None:
 
 def configure_scene() -> None:
     scene = bpy.context.scene
-    scene.render.resolution_x = 512
-    scene.render.resolution_y = 512
+    scene.render.resolution_x = 768
+    scene.render.resolution_y = 768
     scene.render.film_transparent = True
     scene.view_settings.view_transform = "Filmic"
     scene.view_settings.look = "Medium High Contrast"
@@ -143,7 +143,9 @@ def build_materials() -> dict[str, bpy.types.Material]:
     return {
         "skin": mat("skin_warm_semireal", "#d8a27f", roughness=0.72),
         "skin_shadow": mat("skin_shadow", "#8f5d48", roughness=0.8),
+        "skin_highlight": mat("skin_soft_highlight", "#f0c2a4", roughness=0.68),
         "cloth_dark": mat("deep_abyss_cloth", "#171b18", roughness=0.88),
+        "cloth_thread": mat("raised_cloth_thread", "#f0e4c8", roughness=0.96),
         "leather": mat("worn_dark_leather", "#342017", roughness=0.84),
         "linen": mat("aged_linen", "#d8c8aa", roughness=0.9),
         "hair": mat("dark_hair", "#17100d", roughness=0.82),
@@ -168,34 +170,41 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     metal = mat(f"{spec.character_id}_aged_metal", spec.metal, roughness=0.38, metallic=0.45)
     emissive = mat(f"{spec.character_id}_relic_glow", spec.main, roughness=0.22, emission=0.65)
 
-    # 7.4-head semi-realistic proportion blockout.
-    add_ellipsoid(collection, root, f"{spec.character_id}_head", (0, 0, 1.72), (0.14, 0.115, 0.18), skin)
-    add_ellipsoid(collection, root, f"{spec.character_id}_neck", (0, 0, 1.49), (0.07, 0.055, 0.09), skin_shadow)
-    add_ellipsoid(collection, root, f"{spec.character_id}_ribcage", (0, 0, 1.16), (0.25, 0.14, 0.36), main)
-    add_ellipsoid(collection, root, f"{spec.character_id}_pelvis", (0, 0, 0.82), (0.22, 0.13, 0.16), secondary)
-    add_ellipsoid(collection, root, f"{spec.character_id}_coat_tail", (0, 0.025, 0.66), (0.27, 0.08, 0.18), secondary)
+    # 7.5-head semi-realistic proportion blockout: narrower torso, longer limbs, smaller head.
+    add_ellipsoid(collection, root, f"{spec.character_id}_head", (0, -0.006, 1.76), (0.126, 0.105, 0.168), skin)
+    add_ellipsoid(collection, root, f"{spec.character_id}_jaw_plane", (0, -0.02, 1.645), (0.094, 0.077, 0.058), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_neck", (0, 0, 1.51), (0.058, 0.048, 0.095), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_ribcage", (0, 0, 1.17), (0.215, 0.12, 0.34), main)
+    add_ellipsoid(collection, root, f"{spec.character_id}_abdomen", (0, -0.005, 0.92), (0.175, 0.105, 0.205), main)
+    add_ellipsoid(collection, root, f"{spec.character_id}_pelvis", (0, 0, 0.73), (0.205, 0.12, 0.125), secondary)
+    add_ellipsoid(collection, root, f"{spec.character_id}_coat_tail", (0, 0.025, 0.58), (0.225, 0.075, 0.13), secondary)
     add_head_detail(collection, root, spec)
     add_tailored_costume(collection, root, spec, main, secondary, metal, leather, cloth_dark)
+    add_body_landmarks(collection, root, spec, main, secondary, metal)
 
     shoulder_scale = 1.22 if spec.prop == "shield" else 1.0
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_shoulder", (-0.27 * shoulder_scale, 0, 1.34), (0.09, 0.075, 0.07), metal)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_shoulder", (0.27 * shoulder_scale, 0, 1.34), (0.09, 0.075, 0.07), metal)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_shoulder", (-0.255 * shoulder_scale, 0, 1.35), (0.075, 0.064, 0.06), metal)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_shoulder", (0.255 * shoulder_scale, 0, 1.35), (0.075, 0.064, 0.06), metal)
 
-    limb(collection, root, f"{spec.character_id}_left_upper_arm", (-0.29, 0, 1.26), (-0.39, 0.02, 1.02), 0.04, main)
-    limb(collection, root, f"{spec.character_id}_left_forearm", (-0.39, 0.02, 1.02), (-0.34, -0.02, 0.78), 0.035, leather)
-    limb(collection, root, f"{spec.character_id}_right_upper_arm", (0.29, 0, 1.26), (0.39, 0.02, 1.02), 0.04, main)
-    limb(collection, root, f"{spec.character_id}_right_forearm", (0.39, 0.02, 1.02), (0.34, -0.02, 0.78), 0.035, leather)
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_hand", (-0.34, -0.025, 0.74), (0.047, 0.035, 0.055), skin)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_hand", (0.34, -0.025, 0.74), (0.047, 0.035, 0.055), skin)
+    limb(collection, root, f"{spec.character_id}_left_upper_arm", (-0.275, 0, 1.27), (-0.365, 0.02, 1.02), 0.034, main)
+    limb(collection, root, f"{spec.character_id}_left_forearm", (-0.365, 0.02, 1.02), (-0.325, -0.02, 0.775), 0.03, leather)
+    limb(collection, root, f"{spec.character_id}_right_upper_arm", (0.275, 0, 1.27), (0.365, 0.02, 1.02), 0.034, main)
+    limb(collection, root, f"{spec.character_id}_right_forearm", (0.365, 0.02, 1.02), (0.325, -0.02, 0.775), 0.03, leather)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_elbow", (-0.365, 0.015, 1.02), (0.04, 0.034, 0.034), leather)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_elbow", (0.365, 0.015, 1.02), (0.04, 0.034, 0.034), leather)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_hand", (-0.325, -0.025, 0.735), (0.042, 0.03, 0.052), skin)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_hand", (0.325, -0.025, 0.735), (0.042, 0.03, 0.052), skin)
     add_fingers(collection, root, spec, -1, skin)
     add_fingers(collection, root, spec, 1, skin)
 
-    limb(collection, root, f"{spec.character_id}_left_thigh", (-0.11, 0, 0.72), (-0.14, 0.015, 0.38), 0.055, secondary)
-    limb(collection, root, f"{spec.character_id}_left_shin", (-0.14, 0.015, 0.38), (-0.13, -0.01, 0.06), 0.045, leather)
-    limb(collection, root, f"{spec.character_id}_right_thigh", (0.11, 0, 0.72), (0.14, 0.015, 0.38), 0.055, secondary)
-    limb(collection, root, f"{spec.character_id}_right_shin", (0.14, 0.015, 0.38), (0.13, -0.01, 0.06), 0.045, leather)
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_boot", (-0.13, -0.035, 0.02), (0.075, 0.115, 0.035), leather)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_boot", (0.13, -0.035, 0.02), (0.075, 0.115, 0.035), leather)
+    limb(collection, root, f"{spec.character_id}_left_thigh", (-0.095, 0, 0.68), (-0.135, 0.015, 0.37), 0.047, secondary)
+    limb(collection, root, f"{spec.character_id}_left_shin", (-0.135, 0.015, 0.37), (-0.125, -0.01, 0.05), 0.038, leather)
+    limb(collection, root, f"{spec.character_id}_right_thigh", (0.095, 0, 0.68), (0.135, 0.015, 0.37), 0.047, secondary)
+    limb(collection, root, f"{spec.character_id}_right_shin", (0.135, 0.015, 0.37), (0.125, -0.01, 0.05), 0.038, leather)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_knee", (-0.135, -0.012, 0.37), (0.052, 0.024, 0.04), secondary)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_knee", (0.135, -0.012, 0.37), (0.052, 0.024, 0.04), secondary)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_boot", (-0.125, -0.045, 0.01), (0.065, 0.105, 0.032), leather)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_boot", (0.125, -0.045, 0.01), (0.065, 0.105, 0.032), leather)
 
     add_face(collection, root, spec)
     add_prop(collection, root, spec, metal, emissive, leather)
@@ -207,8 +216,10 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
 def add_face(collection, root, spec: CharacterSpec) -> None:
     eye = bpy.data.materials["soft_eye_glass"]
     black = bpy.data.materials["ink_line"]
+    hair = bpy.data.materials["dark_hair"]
     skin = bpy.data.materials["skin_warm_semireal"]
     skin_shadow = bpy.data.materials["skin_shadow"]
+    skin_highlight = bpy.data.materials["skin_soft_highlight"]
     lip = bpy.data.materials["muted_lip"]
     if spec.prop == "mask":
         mask_mat = bpy.data.materials[f"{spec.character_id}_aged_metal"]
@@ -225,14 +236,19 @@ def add_face(collection, root, spec: CharacterSpec) -> None:
     add_ellipsoid(collection, root, f"{spec.character_id}_right_eye", (0.04, -0.105, 1.755), (0.018, 0.008, 0.012), eye)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_pupil", (-0.04, -0.112, 1.755), (0.006, 0.003, 0.006), black)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_pupil", (0.04, -0.112, 1.755), (0.006, 0.003, 0.006), black)
+    add_box(collection, root, f"{spec.character_id}_left_upper_eyelid", (-0.04, -0.114, 1.768), (0.028, 0.004, 0.005), skin_shadow, rotation=(0, 0, math.radians(-5)))
+    add_box(collection, root, f"{spec.character_id}_right_upper_eyelid", (0.04, -0.114, 1.768), (0.028, 0.004, 0.005), skin_shadow, rotation=(0, 0, math.radians(5)))
+    add_box(collection, root, f"{spec.character_id}_left_brow_hair", (-0.041, -0.116, 1.789), (0.034, 0.005, 0.006), hair, rotation=(0, 0, math.radians(-8)))
+    add_box(collection, root, f"{spec.character_id}_right_brow_hair", (0.041, -0.116, 1.789), (0.034, 0.005, 0.006), hair, rotation=(0, 0, math.radians(8)))
     add_ellipsoid(collection, root, f"{spec.character_id}_nose_bridge", (0, -0.116, 1.722), (0.018, 0.012, 0.041), skin_shadow)
     add_ellipsoid(collection, root, f"{spec.character_id}_nose_tip", (0, -0.128, 1.696), (0.023, 0.013, 0.018), skin)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_cheek", (-0.052, -0.114, 1.693), (0.034, 0.008, 0.024), skin_shadow)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek", (0.052, -0.114, 1.693), (0.034, 0.008, 0.024), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_cheek_highlight", (-0.06, -0.126, 1.706), (0.021, 0.005, 0.013), skin_highlight)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek_highlight", (0.06, -0.126, 1.706), (0.021, 0.005, 0.013), skin_highlight)
     add_ellipsoid(collection, root, f"{spec.character_id}_upper_lip", (0, -0.126, 1.655), (0.042, 0.006, 0.006), lip)
     add_ellipsoid(collection, root, f"{spec.character_id}_lower_lip", (0, -0.125, 1.642), (0.037, 0.006, 0.008), lip)
     add_ellipsoid(collection, root, f"{spec.character_id}_chin_plane", (0, -0.108, 1.615), (0.052, 0.012, 0.022), skin_shadow)
-    add_ellipsoid(collection, root, f"{spec.character_id}_brow_shadow", (0, -0.108, 1.782), (0.092, 0.01, 0.012), black)
 
 
 def add_head_detail(collection, root, spec: CharacterSpec) -> None:
@@ -256,6 +272,16 @@ def add_head_detail(collection, root, spec: CharacterSpec) -> None:
     add_ellipsoid(collection, root, f"{spec.character_id}_back_hair_mass", (0, 0.09, 1.7), (0.12, 0.045, 0.14), hair)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_sideburn", (-0.102, -0.044, 1.71), (0.018, 0.018, 0.075), hair)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_sideburn", (0.102, -0.044, 1.71), (0.018, 0.018, 0.075), hair)
+    for index, x in enumerate([-0.056, -0.025, 0.01, 0.044]):
+        add_box(
+            collection,
+            root,
+            f"{spec.character_id}_front_hair_lock_{index}",
+            (x, -0.095, 1.858 - index * 0.006),
+            (0.016, 0.012, 0.064),
+            hair,
+            rotation=(0, 0, math.radians(-14 + index * 9)),
+        )
 
     if spec.prop == "jade":
         add_torus(collection, root, f"{spec.character_id}_jade_hair_ring", (0, -0.015, 1.88), (math.pi / 2, 0, 0), 0.105, 0.006, emissive)
@@ -301,6 +327,33 @@ def add_tailored_costume(collection, root, spec: CharacterSpec, main, secondary,
         add_torus(collection, root, f"{spec.character_id}_chest_scope_ring", (0, -0.19, 1.15), (math.pi / 2, 0, 0), 0.07, 0.006, emissive)
 
 
+def add_body_landmarks(collection, root, spec: CharacterSpec, main, secondary, metal) -> None:
+    thread = bpy.data.materials["raised_cloth_thread"]
+    leather = bpy.data.materials["worn_dark_leather"]
+    shadow = bpy.data.materials["deep_abyss_cloth"]
+
+    add_box(collection, root, f"{spec.character_id}_left_clavicle", (-0.075, -0.153, 1.395), (0.065, 0.007, 0.008), thread, rotation=(0, 0, math.radians(-12)))
+    add_box(collection, root, f"{spec.character_id}_right_clavicle", (0.075, -0.153, 1.395), (0.065, 0.007, 0.008), thread, rotation=(0, 0, math.radians(12)))
+    add_box(collection, root, f"{spec.character_id}_left_rib_shadow", (-0.175, -0.143, 1.13), (0.012, 0.006, 0.25), shadow)
+    add_box(collection, root, f"{spec.character_id}_right_rib_shadow", (0.175, -0.143, 1.13), (0.012, 0.006, 0.25), shadow)
+    add_box(collection, root, f"{spec.character_id}_left_hip_shadow", (-0.152, -0.136, 0.78), (0.012, 0.006, 0.12), shadow, rotation=(0, 0, math.radians(-10)))
+    add_box(collection, root, f"{spec.character_id}_right_hip_shadow", (0.152, -0.136, 0.78), (0.012, 0.006, 0.12), shadow, rotation=(0, 0, math.radians(10)))
+
+    for index, z in enumerate([1.3, 1.205, 1.11, 1.015]):
+        width = 0.11 + index * 0.015
+        add_box(collection, root, f"{spec.character_id}_cloth_fold_left_{index}", (-width, -0.166, z), (0.006, 0.005, 0.045), thread, rotation=(0, 0, math.radians(-4)))
+        add_box(collection, root, f"{spec.character_id}_cloth_fold_right_{index}", (width, -0.166, z), (0.006, 0.005, 0.045), thread, rotation=(0, 0, math.radians(4)))
+
+    if spec.prop == "shield":
+        add_box(collection, root, f"{spec.character_id}_shield_arm_strap", (-0.365, -0.045, 0.86), (0.018, 0.012, 0.11), leather)
+        add_box(collection, root, f"{spec.character_id}_pauldron_trim_left", (-0.31, -0.02, 1.35), (0.055, 0.012, 0.012), metal)
+        add_box(collection, root, f"{spec.character_id}_pauldron_trim_right", (0.31, -0.02, 1.35), (0.055, 0.012, 0.012), metal)
+    elif spec.prop == "blade":
+        add_box(collection, root, f"{spec.character_id}_sword_hand_wrap", (0.39, -0.07, 0.86), (0.03, 0.012, 0.07), leather, rotation=(0, 0, math.radians(12)))
+    elif spec.prop == "vial":
+        add_box(collection, root, f"{spec.character_id}_satchel_strap", (0.11, -0.165, 1.05), (0.025, 0.012, 0.42), leather, rotation=(0, 0, math.radians(-24)))
+
+
 def add_stitches(collection, root, spec: CharacterSpec, material) -> None:
     for index in range(6):
         z = 1.34 - index * 0.075
@@ -309,7 +362,7 @@ def add_stitches(collection, root, spec: CharacterSpec, material) -> None:
 
 
 def add_fingers(collection, root, spec: CharacterSpec, side: int, skin) -> None:
-    hand_x = 0.34 * side
+    hand_x = 0.325 * side
     for index, offset in enumerate([-0.026, -0.008, 0.01, 0.028]):
         length = 0.06 - abs(index - 1.5) * 0.006
         start = (hand_x + offset * side, -0.055, 0.715)
@@ -370,10 +423,10 @@ def add_camera_and_lights() -> None:
     rim.data.energy = 170
     rim.data.color = (0.55, 0.95, 0.86)
 
-    bpy.ops.object.camera_add(location=(0, -3.1, 1.25), rotation=(math.radians(75), 0, 0))
+    bpy.ops.object.camera_add(location=(0, -4.2, 1.28), rotation=(math.radians(75), 0, 0))
     camera = bpy.context.object
     camera.name = "portrait_camera"
-    camera.data.lens = 70
+    camera.data.lens = 58
     bpy.context.scene.camera = camera
 
 
@@ -413,10 +466,10 @@ def render_character_views(spec: CharacterSpec, roots: dict[str, bpy.types.Objec
     root.location = (0, 0, 0)
 
     views = [
-        ("portrait", 0, 70, (0, -3.05, 1.22), (0, 0, 0.98)),
-        ("turnaround-front", 0, 70, (0, -3.35, 1.25), (0, 0, 0.95)),
-        ("turnaround-side", math.radians(90), 70, (0, -3.35, 1.25), (0, 0, 0.95)),
-        ("turnaround-three-quarter", math.radians(-38), 70, (0, -3.35, 1.25), (0, 0, 0.95)),
+        ("portrait", 0, 58, (0, -4.1, 1.26), (0, 0, 0.97)),
+        ("turnaround-front", 0, 58, (0, -4.25, 1.28), (0, 0, 0.96)),
+        ("turnaround-side", math.radians(90), 58, (0, -4.25, 1.28), (0, 0, 0.96)),
+        ("turnaround-three-quarter", math.radians(-38), 58, (0, -4.25, 1.28), (0, 0, 0.96)),
     ]
     camera = bpy.context.scene.camera
     for name, angle, lens, camera_location, target in views:
