@@ -8,6 +8,7 @@
 
 - 源场景：`apps/client/public/assets/characters/source/bing-character-blockouts.blend`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
+- 动作 QA：每角色 `idle / attack / defend / skill / hit` 五张动作剪影图
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、服装层次和职业道具
 - 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
 - PBR 贴图目录：`apps/client/public/assets/characters/materials/pbr`，当前 `84` 张 PNG
@@ -25,8 +26,8 @@
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染、材质近景 QA 和可追踪 PBR 贴图文件。
-- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、骨骼绑定和可播放动画；真人质感仍需外部雕刻/贴图阶段继续推进。
 
 ## 下一步 P0
 
@@ -36,4 +37,4 @@
 ## 下一步 P1
 
 - 在 `TableScene3D` 中接入 `.glb`，用桌面距离 QA 图校准相机和灯光。
-- 为攻击、防御、技能、受伤、死亡建立 5 个基础动作剪影。
+- 将当前动作剪影升级为骨骼绑定动画，并补死亡/倒地可播放动作。

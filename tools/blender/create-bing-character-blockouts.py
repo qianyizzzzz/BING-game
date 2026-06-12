@@ -17,6 +17,13 @@ PBR_TEXTURE_SIZE = 256
 LOD0_FACE_BUDGET = 35_000
 LOD1_FACE_BUDGET = 12_000
 LOD1_DECIMATE_RATIO = 0.08
+ACTION_POSES = (
+    ("idle", "待机"),
+    ("attack", "攻击"),
+    ("defend", "防御"),
+    ("skill", "技能"),
+    ("hit", "受击"),
+)
 
 
 @dataclass(frozen=True)
@@ -117,6 +124,7 @@ def main() -> None:
     for spec in CHARACTERS:
         lod1_metrics[spec.character_id] = export_character(spec, roots)
         render_character_views(spec, roots)
+        render_action_pose_views(spec, roots)
     render_material_qa_board()
 
     scene_path = ASSET_ROOT / "source" / "bing-character-blockouts.blend"
@@ -857,6 +865,114 @@ def render_character_views(spec: CharacterSpec, roots: dict[str, bpy.types.Objec
     set_all_visible(roots)
 
 
+def render_action_pose_views(spec: CharacterSpec, roots: dict[str, bpy.types.Object]) -> None:
+    root = roots[spec.character_id]
+    out_dir = ASSET_ROOT / spec.character_id
+    out_dir.mkdir(parents=True, exist_ok=True)
+    set_isolated(spec.character_id, roots)
+    objects = character_objects(root)
+    snapshot = capture_transforms(objects)
+    scene = bpy.context.scene
+    original_resolution = (scene.render.resolution_x, scene.render.resolution_y)
+    scene.render.resolution_x = 512
+    scene.render.resolution_y = 512
+    camera = scene.camera
+
+    for pose_id, _label in ACTION_POSES:
+        restore_transforms(snapshot)
+        root.location = (0, 0, 0)
+        root.rotation_euler = (0, 0, 0)
+        apply_action_pose(root, spec, pose_id)
+        camera.location = (0, -4.55, 1.32)
+        camera.data.lens = 70
+        look_at(camera, mathutils.Vector((0, 0, 1.02)))
+        scene.render.filepath = str(out_dir / f"action-{pose_id}.png")
+        bpy.ops.render.render(write_still=True)
+
+    restore_transforms(snapshot)
+    scene.render.resolution_x, scene.render.resolution_y = original_resolution
+    set_all_visible(roots)
+
+
+def apply_action_pose(root: bpy.types.Object, spec: CharacterSpec, pose_id: str) -> None:
+    if pose_id == "idle":
+        root.rotation_euler.z = math.radians(-4)
+        return
+
+    if pose_id == "attack":
+        leading_side = -1 if spec.prop == "shield" else 1
+        side_name = "right" if leading_side > 0 else "left"
+        root.rotation_euler.z = math.radians(-10 * leading_side)
+        nudge_pose_parts(root, [f"{side_name}_upper_arm", f"{side_name}_forearm"], location=(0.014 * leading_side, -0.052, 0.04), rotation=(math.radians(-6), 0, math.radians(-10 * leading_side)))
+        nudge_pose_parts(root, [f"{side_name}_hand", f"{side_name}_finger", f"{side_name}_thumb", f"{side_name}_knuckle", f"{side_name}_nail"], location=(0.024 * leading_side, -0.065, 0.052), rotation=(math.radians(-7), 0, math.radians(-9 * leading_side)))
+        nudge_pose_parts(root, prop_pose_tokens(spec), location=(0.025 * leading_side, -0.055, 0.045), rotation=(math.radians(-4), 0, math.radians(-6 * leading_side)))
+        return
+
+    if pose_id == "defend":
+        root.rotation_euler.z = math.radians(5)
+        for side in [-1, 1]:
+            side_name = "right" if side > 0 else "left"
+            nudge_pose_parts(root, [f"{side_name}_upper_arm", f"{side_name}_forearm"], location=(0.028 * side, -0.055, 0.04), rotation=(math.radians(5), 0, math.radians(11 * side)))
+            nudge_pose_parts(root, [f"{side_name}_hand", f"{side_name}_finger", f"{side_name}_thumb", f"{side_name}_knuckle", f"{side_name}_nail"], location=(0.036 * side, -0.075, 0.045), rotation=(math.radians(5), 0, math.radians(8 * side)))
+        nudge_pose_parts(root, ["round_shield", "shield_ring", "shield_arm_strap"], location=(0.02, -0.12, 0.13), rotation=(math.radians(8), 0, math.radians(-8)))
+        return
+
+    if pose_id == "skill":
+        root.scale.z *= 1.02
+        for side in [-1, 1]:
+            side_name = "right" if side > 0 else "left"
+            nudge_pose_parts(root, [f"{side_name}_upper_arm", f"{side_name}_forearm"], location=(0.018 * side, -0.035, 0.075), rotation=(math.radians(-12), 0, math.radians(12 * side)))
+            nudge_pose_parts(root, [f"{side_name}_hand", f"{side_name}_finger", f"{side_name}_thumb", f"{side_name}_knuckle", f"{side_name}_nail"], location=(0.024 * side, -0.052, 0.09), rotation=(math.radians(-14), 0, math.radians(10 * side)))
+        nudge_pose_parts(root, prop_pose_tokens(spec) + ["relic", "glow", "jade", "vial", "sensor"], location=(0, -0.018, 0.035), rotation=(math.radians(-3), 0, 0))
+        return
+
+    if pose_id == "hit":
+        root.rotation_euler.z = math.radians(12)
+        root.location.x = 0.035
+        for side in [-1, 1]:
+            side_name = "right" if side > 0 else "left"
+            nudge_pose_parts(root, [f"{side_name}_forearm", f"{side_name}_hand", f"{side_name}_finger", f"{side_name}_thumb", f"{side_name}_knuckle", f"{side_name}_nail"], location=(0.014 * side, 0.018, -0.04), rotation=(math.radians(10), 0, math.radians(6 * side)))
+
+
+def prop_pose_tokens(spec: CharacterSpec) -> list[str]:
+    return {
+        "shield": ["round_shield", "shield_ring", "shield_arm_strap"],
+        "jade": ["jade_charm", "jade_hair_ring", "long_scarf"],
+        "blade": ["violet_blade", "blade_gem", "sword_hand_wrap"],
+        "pan": ["iron_pan", "pan_handle", "cake_relic"],
+        "vial": ["red_vial", "medic_satchel", "satchel_strap"],
+        "mask": ["observer_orbit", "sensor_core", "chest_scope"],
+    }.get(spec.prop, [])
+
+
+def nudge_pose_parts(
+    root: bpy.types.Object,
+    tokens: list[str],
+    location: tuple[float, float, float] = (0.0, 0.0, 0.0),
+    rotation: tuple[float, float, float] = (0.0, 0.0, 0.0),
+) -> None:
+    for obj in character_objects(root):
+        if obj == root or not any(token in obj.name for token in tokens):
+            continue
+        obj.location.x += location[0]
+        obj.location.y += location[1]
+        obj.location.z += location[2]
+        obj.rotation_euler.x += rotation[0]
+        obj.rotation_euler.y += rotation[1]
+        obj.rotation_euler.z += rotation[2]
+
+
+def capture_transforms(objects: list[bpy.types.Object]) -> dict[bpy.types.Object, tuple[mathutils.Vector, mathutils.Euler, mathutils.Vector]]:
+    return {obj: (obj.location.copy(), obj.rotation_euler.copy(), obj.scale.copy()) for obj in objects}
+
+
+def restore_transforms(snapshot: dict[bpy.types.Object, tuple[mathutils.Vector, mathutils.Euler, mathutils.Vector]]) -> None:
+    for obj, (location, rotation, scale) in snapshot.items():
+        obj.location = location.copy()
+        obj.rotation_euler = rotation.copy()
+        obj.scale = scale.copy()
+
+
 def render_material_qa_board() -> None:
     out_dir = ASSET_ROOT / "materials"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -930,6 +1046,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - Blender 源场景：`{repo_path(scene_path)}`
 - 每个角色导出 LOD0 `.glb` 和 LOD1 `-lod1.glb`
 - 每个角色导出 `portrait.png`、`mobile-avatar.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`、`table-scale.png`
+- 每个角色导出动作剪影 QA：`action-idle.png`、`action-attack.png`、`action-defend.png`、`action-skill.png`、`action-hit.png`
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、职业道具和服装层次
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
 - 材质近景 QA：`{repo_path(ASSET_ROOT / "materials" / "material-qa.png")}`
@@ -954,7 +1071,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## P2
 
-- 为攻击、防御、技能、受伤、死亡补角色动作剪影。
+- 将当前动作剪影升级为骨骼绑定动画，并补死亡/倒地可播放动作。
 - 建立每个角色的材质板和服装局部参考。
 """
     (ARTIFACT_ROOT / "bing-character-blockouts-report.md").write_text(report, encoding="utf-8")
@@ -968,6 +1085,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 - 源场景：`{repo_path(scene_path)}`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
+- 动作 QA：每角色 `idle / attack / defend / skill / hit` 五张动作剪影图
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、服装层次和职业道具
 - 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
@@ -980,8 +1098,8 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染、材质近景 QA 和可追踪 PBR 贴图文件。
-- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、骨骼绑定和可播放动画；真人质感仍需外部雕刻/贴图阶段继续推进。
 
 ## 下一步 P0
 
@@ -991,7 +1109,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 ## 下一步 P1
 
 - 在 `TableScene3D` 中接入 `.glb`，用桌面距离 QA 图校准相机和灯光。
-- 为攻击、防御、技能、受伤、死亡建立 5 个基础动作剪影。
+- 将当前动作剪影升级为骨骼绑定动画，并补死亡/倒地可播放动作。
 """
     (DOCS_ROOT / "CHARACTER_ASSET_AUDIT.md").write_text(review, encoding="utf-8")
 

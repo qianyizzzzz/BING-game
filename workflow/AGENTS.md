@@ -60,8 +60,9 @@ Required art-director workflow:
 4. For each character, create a role brief before touching Blender.
 5. Use Blender MCP to create or edit the model, materials, lights, cameras, and exports.
 6. Check anatomy quality: continuous face surface, eye sockets, nose bridge, mouth, ears, thumbs, knuckles, and nails; avoid toy-like parts stuck onto a sphere.
-7. Check material quality: skin pores, cloth weave, leather grain, metal wear, non-plastic roughness, and exported PBR PNG maps.
-8. Render front, side, three-quarter, table-scale, portrait-crop, mobile-avatar, and material close-up QA images.
-9. Export `.blend`, LOD0/LOD1 `.glb`, portrait, mobile-avatar, turnaround images, table-scale images, PBR PNG maps, material QA image, and `docs/CHARACTER_ASSET_AUDIT.md`.
+7. Check action silhouettes: idle, attack, defend, skill, and hit must read clearly before moving to rigged animation.
+8. Check material quality: skin pores, cloth weave, leather grain, metal wear, non-plastic roughness, and exported PBR PNG maps.
+9. Render front, side, three-quarter, table-scale, portrait-crop, mobile-avatar, action-pose, and material close-up QA images.
+10. Export `.blend`, LOD0/LOD1 `.glb`, portrait, mobile-avatar, turnaround images, table-scale images, action pose images, PBR PNG maps, material QA image, and `docs/CHARACTER_ASSET_AUDIT.md`.
 
 If Blender MCP is unavailable, report the missing tool and continue only with briefs, asset lists, Blender Python drafts, and acceptance criteria. Do not claim that modeling was completed.
