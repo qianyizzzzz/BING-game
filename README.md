@@ -40,7 +40,7 @@
 - 比赛记录与复盘：服务端保存对局，支持复盘页面、文本报告和训练样本导出。
 - 公网联机脚本：通过 Cloudflare Tunnel 临时生成 HTTPS 地址，让不同网络的玩家直接加入。
 - Playtest agents：自动开房、双玩家出招、截图、检查 canvas、遮挡、目标预览和沿用上回合。
-- 本地角色资产：6 个默认角色已有 Blender blockout、GLB、portrait 和 turnaround 初版。
+- 本地角色资产：6 个默认角色已有 Blender blockout、LOD0/LOD1 GLB、portrait、mobile-avatar、turnaround、table-scale 和材质审计。
 
 ## 截图
 
@@ -147,6 +147,7 @@ workflow/          任务模板、评审模板、制作流程文档
 - [UI 设计方案](docs/UI_DESIGN_PLAN.md)
 - [子智能体 UI 评审](docs/SUBAGENT_UI_REVIEW.md)
 - [美术总监 Blender 方案](docs/SUBAGENT_ART_DIRECTOR_BLENDER.md)
+- [角色资产审计](docs/CHARACTER_ASSET_AUDIT.md)
 - [提示词 + Goal 组合写法](workflow/prompts/prompt-goal-combos.md)
 - [Game Pillars](workflow/docs/00-game-pillars.md)
 - [Visual Bible](workflow/docs/01-visual-bible.md)
