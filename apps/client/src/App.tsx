@@ -5,6 +5,7 @@ import {
   ACTION_PROMPT_SECONDS,
   ACTION_WINDOW_SECONDS,
   GameConfig,
+  MIN_PLAYERS,
   PublicGameState,
   RoomIdentity,
   SkillAction,
@@ -149,6 +150,27 @@ export function App() {
   );
   const submittedCount = state?.pendingActionPlayerIds.length ?? 0;
   const passCount = state?.actionWindowPassPlayerIds.length ?? 0;
+  const missingStartPlayers = state?.phase === "lobby"
+    ? Math.max(0, MIN_PLAYERS - seatedCount)
+    : 0;
+  const startDisabledReason =
+    state?.phase !== "lobby"
+      ? ""
+      : !isOwner
+        ? `等待房主 ${ownerName} 开始游戏`
+        : busy
+          ? "正在处理，请稍候"
+          : missingStartPlayers > 0
+            ? `还差 ${missingStartPlayers} 名玩家。可以邀请朋友，或点击“加 AI”立即练习。`
+            : "";
+  const lobbyHint =
+    state?.phase !== "lobby"
+      ? ""
+      : isOwner
+        ? missingStartPlayers > 0
+          ? `下一步：加 ${missingStartPlayers} 名 AI 或分享房号，凑齐 ${MIN_PLAYERS} 人后开始。`
+          : "下一步：确认设置后点击“开始”，进入第一回合。"
+        : `你已在房间中，等待房主 ${ownerName} 调整设置并开始游戏。`;
   const activeDeadline =
     state?.phase === "action_window"
       ? state.actionWindowDeadlineAt
@@ -913,6 +935,11 @@ export function App() {
                       当前玩家：{viewer.name}
                     </p>
                   ) : null}
+                  {lobbyHint ? (
+                    <p className="lobby-next-step mt-3">
+                      {lobbyHint}
+                    </p>
+                  ) : null}
                 </div>
                 {state.phase === "lobby" ? (
                   <div className="flex flex-wrap gap-2">
@@ -936,27 +963,41 @@ export function App() {
                         设置
                       </button>
                     ) : null}
-                    <button
-                      className="btn-warning"
-                      disabled={busy}
-                      onClick={addAi}
-                      type="button"
-                    >
-                      <Bot className="h-4 w-4" aria-hidden="true" />
-                      加 AI
-                    </button>
-                    <button
-                      className="btn-primary"
-                      disabled={busy || state.players.length < 2 || !isOwner}
-                      onClick={startGame}
-                      type="button"
-                    >
-                      <Play className="h-4 w-4" aria-hidden="true" />
-                      开始
-                    </button>
+                    {isOwner ? (
+                      <>
+                        <button
+                          className="btn-warning"
+                          disabled={busy}
+                          onClick={addAi}
+                          type="button"
+                        >
+                          <Bot className="h-4 w-4" aria-hidden="true" />
+                          加 AI
+                        </button>
+                        <button
+                          className="btn-primary"
+                          disabled={busy || missingStartPlayers > 0}
+                          onClick={startGame}
+                          title={startDisabledReason || "开始游戏"}
+                          type="button"
+                        >
+                          <Play className="h-4 w-4" aria-hidden="true" />
+                          开始
+                        </button>
+                      </>
+                    ) : (
+                      <span className="status-pill border-amber-200 bg-amber-50 text-amber-800">
+                        等待房主开始
+                      </span>
+                    )}
                   </div>
                 ) : null}
               </div>
+              {startDisabledReason ? (
+                <p className="lobby-start-reason mt-3">
+                  {startDisabledReason}
+                </p>
+              ) : null}
               {message ? (
                 <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                   {message}

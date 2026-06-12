@@ -277,6 +277,29 @@ select {
   font-weight: 800;
 }
 
+.lobby-next-step,
+.lobby-start-reason {
+  max-width: 660px;
+  border: 1px solid rgba(15, 118, 110, 0.2);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(20, 184, 166, 0.09), rgba(245, 158, 11, 0.08)),
+    rgba(240, 253, 250, 0.7);
+  padding: 10px 12px;
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.lobby-start-reason {
+  border-color: rgba(245, 158, 11, 0.34);
+  background:
+    linear-gradient(90deg, rgba(245, 158, 11, 0.13), rgba(20, 184, 166, 0.08)),
+    rgba(255, 251, 235, 0.78);
+  color: #92400e;
+}
+
 .btn-primary,
 .btn-secondary,
 .btn-warning,
@@ -3438,6 +3461,8 @@ select {
 
 .poker-table-stats span,
 .room-code,
+.lobby-next-step,
+.lobby-start-reason,
 .status-metric,
 .settings-field,
 .stat-chip,
@@ -3448,6 +3473,21 @@ select {
   border-color: rgba(201, 178, 124, 0.18);
   background: rgba(12, 18, 17, 0.72);
   color: #eadfbe;
+}
+
+.lobby-next-step {
+  background:
+    radial-gradient(circle at 0% 50%, rgba(136, 247, 219, 0.12), transparent 42%),
+    rgba(5, 8, 7, 0.58);
+  color: #f8edd2;
+}
+
+.lobby-start-reason {
+  border-color: rgba(245, 158, 11, 0.34);
+  background:
+    radial-gradient(circle at 0% 50%, rgba(245, 158, 11, 0.14), transparent 42%),
+    rgba(5, 8, 7, 0.58);
+  color: #fbbf24;
 }
 
 .poker-table-board {
