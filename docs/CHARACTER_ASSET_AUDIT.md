@@ -8,6 +8,7 @@
 
 - 源场景：`apps/client/public/assets/characters/source/bing-character-blockouts.blend`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
+- 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、服装层次和职业道具
 - 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
 - PBR 贴图目录：`apps/client/public/assets/characters/materials/pbr`，当前 `84` 张 PNG
 - 材质近景 QA：`apps/client/public/assets/characters/materials/material-qa.png`
@@ -15,16 +16,16 @@
 
 | id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
 | --- | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- |
-| `ember-guardian` | 烛火守卫 | 22868 | 23598 | 通过 | 2307 | 3838 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
-| `jade-trickster` | 青玉术士 | 23326 | 24092 | 通过 | 2323 | 3896 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
-| `violet-duelist` | 紫曦剑客 | 21778 | 22460 | 通过 | 2205 | 3654 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
-| `solar-chef` | 日冕饼师 | 21738 | 22430 | 通过 | 2165 | 3624 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
-| `crimson-mender` | 绯红医师 | 22702 | 23464 | 通过 | 2288 | 3806 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
-| `iron-oracle` | 铁面观察者 | 14246 | 14432 | 通过 | 1494 | 2418 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
+| `ember-guardian` | 烛火守卫 | 20859 | 21698 | 通过 | 2419 | 3687 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
+| `jade-trickster` | 青玉术士 | 21101 | 21968 | 通过 | 2418 | 3711 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
+| `violet-duelist` | 紫曦剑客 | 20229 | 21034 | 通过 | 2354 | 3577 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
+| `solar-chef` | 日冕饼师 | 20189 | 21004 | 通过 | 2314 | 3547 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
+| `crimson-mender` | 绯红医师 | 20733 | 21596 | 通过 | 2404 | 3663 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
+| `iron-oracle` | 铁面观察者 | 11521 | 11748 | 通过 | 1487 | 2191 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、脸部体块、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染、材质近景 QA 和可追踪 PBR 贴图文件。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染、材质近景 QA 和可追踪 PBR 贴图文件。
 - 仍不足：还没有真实高模雕刻、手工/烘焙贴图、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
 
 ## 下一步 P0

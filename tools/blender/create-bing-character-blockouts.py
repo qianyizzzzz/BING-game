@@ -231,6 +231,7 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
 
     skin = bpy.data.materials["skin_warm_semireal"]
     skin_shadow = bpy.data.materials["skin_shadow"]
+    skin_highlight = bpy.data.materials["skin_soft_highlight"]
     cloth_dark = bpy.data.materials["deep_abyss_cloth"]
     leather = bpy.data.materials["worn_dark_leather"]
     main = mat(f"{spec.character_id}_main_cloth", spec.main, roughness=0.74, detail="cloth")
@@ -266,6 +267,8 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     add_ellipsoid(collection, root, f"{spec.character_id}_right_hand", (0.325, -0.025, 0.735), (0.042, 0.03, 0.052), skin)
     add_fingers(collection, root, spec, -1, skin)
     add_fingers(collection, root, spec, 1, skin)
+    add_hand_anatomy(collection, root, spec, -1, skin, skin_shadow, skin_highlight)
+    add_hand_anatomy(collection, root, spec, 1, skin, skin_shadow, skin_highlight)
 
     limb(collection, root, f"{spec.character_id}_left_thigh", (-0.095, 0, 0.68), (-0.135, 0.015, 0.37), 0.047, secondary)
     limb(collection, root, f"{spec.character_id}_left_shin", (-0.135, 0.015, 0.37), (-0.125, -0.01, 0.05), 0.038, leather)
@@ -293,13 +296,17 @@ def add_face(collection, root, spec: CharacterSpec) -> None:
     lip = bpy.data.materials["muted_lip"]
     if spec.prop == "mask":
         mask_mat = bpy.data.materials[f"{spec.character_id}_aged_metal"]
+        add_sculpted_face_mesh(collection, root, spec, mask_mat, is_mask=True)
         add_ellipsoid(collection, root, f"{spec.character_id}_iron_mask", (0, -0.092, 1.735), (0.112, 0.018, 0.125), mask_mat)
         add_ellipsoid(collection, root, f"{spec.character_id}_left_lens", (-0.045, -0.111, 1.75), (0.022, 0.007, 0.016), eye)
         add_ellipsoid(collection, root, f"{spec.character_id}_right_lens", (0.045, -0.111, 1.75), (0.022, 0.007, 0.016), eye)
         add_box(collection, root, f"{spec.character_id}_mask_mouth_slit", (0, -0.116, 1.665), (0.062, 0.006, 0.006), black)
         return
+    add_sculpted_face_mesh(collection, root, spec, skin)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_ear", (-0.128, -0.006, 1.715), (0.022, 0.012, 0.043), skin)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_ear", (0.128, -0.006, 1.715), (0.022, 0.012, 0.043), skin)
+    add_ear_anatomy(collection, root, spec, -1, skin_shadow, skin_highlight)
+    add_ear_anatomy(collection, root, spec, 1, skin_shadow, skin_highlight)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_eye_socket", (-0.038, -0.101, 1.758), (0.029, 0.008, 0.017), skin_shadow)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_eye_socket", (0.038, -0.101, 1.758), (0.029, 0.008, 0.017), skin_shadow)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_eye", (-0.038, -0.109, 1.758), (0.013, 0.0045, 0.008), eye)
@@ -316,13 +323,163 @@ def add_face(collection, root, spec: CharacterSpec) -> None:
     add_ellipsoid(collection, root, f"{spec.character_id}_nose_tip", (0, -0.128, 1.698), (0.019, 0.011, 0.014), skin)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_nostril", (-0.012, -0.137, 1.692), (0.005, 0.002, 0.0035), black)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_nostril", (0.012, -0.137, 1.692), (0.005, 0.002, 0.0035), black)
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_cheek_plane", (-0.054, -0.116, 1.693), (0.022, 0.004, 0.014), skin_shadow)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek_plane", (0.054, -0.116, 1.693), (0.022, 0.004, 0.014), skin_shadow)
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_cheek_highlight", (-0.062, -0.128, 1.707), (0.014, 0.003, 0.008), skin_highlight)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek_highlight", (0.062, -0.128, 1.707), (0.014, 0.003, 0.008), skin_highlight)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_cheek_plane", (-0.052, -0.118, 1.693), (0.016, 0.003, 0.012), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek_plane", (0.052, -0.118, 1.693), (0.016, 0.003, 0.012), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_cheek_highlight", (-0.058, -0.125, 1.707), (0.0055, 0.0018, 0.0035), skin_highlight)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek_highlight", (0.058, -0.125, 1.707), (0.0055, 0.0018, 0.0035), skin_highlight)
     add_ellipsoid(collection, root, f"{spec.character_id}_upper_lip", (0, -0.126, 1.655), (0.034, 0.0045, 0.0045), lip)
     add_ellipsoid(collection, root, f"{spec.character_id}_lower_lip", (0, -0.125, 1.642), (0.03, 0.0045, 0.006), lip)
     add_ellipsoid(collection, root, f"{spec.character_id}_chin_plane", (0, -0.108, 1.615), (0.045, 0.009, 0.018), skin_shadow)
+    add_face_micro_landmarks(collection, root, spec, skin_shadow, skin_highlight, lip)
+
+
+def add_sculpted_face_mesh(
+    collection,
+    root,
+    spec: CharacterSpec,
+    material: bpy.types.Material,
+    is_mask: bool = False,
+) -> bpy.types.Object:
+    columns = 17
+    rows = 23
+    width = 0.086 if not is_mask else 0.108
+    height = 0.125 if not is_mask else 0.128
+    center_z = 1.702 if not is_mask else 1.735
+    base_y = -0.113 if not is_mask else -0.121
+    feature_strength = 0.52 if not is_mask else 0.42
+
+    vertices = []
+    coords = []
+    for row in range(rows):
+        v = -1.0 + (2.0 * row / (rows - 1))
+        taper = 0.58 + 0.42 * (1.0 - abs(v) ** 1.55)
+        if v < -0.45:
+            taper *= 0.86 + (v + 1.0) * 0.18
+        if v > 0.62:
+            taper *= 0.92
+        row_width = width * taper
+        for column in range(columns):
+            u = -1.0 + (2.0 * column / (columns - 1))
+            x = u * row_width
+            z = center_z + v * height
+            convex = 0.0065 * (1.0 - u * u) * max(0.0, 1.0 - abs(v) ** 1.7)
+            nose_bridge = 0.012 * gaussian(u, 0.0, 0.18) * gaussian(v, 0.22, 0.28)
+            nose_tip = 0.013 * gaussian(u, 0.0, 0.2) * gaussian(v, -0.08, 0.14)
+            cheek = 0.01 * gaussian(abs(u), 0.58, 0.2) * gaussian(v, -0.08, 0.26)
+            brow = 0.006 * gaussian(abs(u), 0.36, 0.2) * gaussian(v, 0.48, 0.13)
+            mouth_mound = 0.004 * gaussian(u, 0.0, 0.42) * gaussian(v, -0.42, 0.12)
+            chin = 0.007 * gaussian(u, 0.0, 0.36) * gaussian(v, -0.72, 0.16)
+            eye_hollow = 0.006 * gaussian(abs(u), 0.38, 0.14) * gaussian(v, 0.36, 0.11)
+            y = base_y - (convex + nose_bridge + nose_tip + cheek + brow + mouth_mound + chin) * feature_strength
+            y += eye_hollow * (0.75 if not is_mask else 0.35)
+            vertices.append((x, y, z))
+            coords.append((u, v))
+
+    faces = []
+    for row in range(rows - 1):
+        for column in range(columns - 1):
+            a = row * columns + column
+            center_u = sum(coords[index][0] for index in (a, a + 1, a + columns + 1, a + columns)) * 0.25
+            center_v = sum(coords[index][1] for index in (a, a + 1, a + columns + 1, a + columns)) * 0.25
+            eye_opening = abs(abs(center_u) - 0.38) < 0.22 and 0.2 < center_v < 0.58
+            mouth_opening = abs(center_u) < 0.44 and -0.56 < center_v < -0.28
+            if not is_mask and (eye_opening or mouth_opening):
+                continue
+            faces.append((a, a + 1, a + columns + 1, a + columns))
+
+    mesh = bpy.data.meshes.new(f"{spec.character_id}_{'mask' if is_mask else 'face'}_sculpt_mesh")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+
+    obj = bpy.data.objects.new(f"{spec.character_id}_{'mask' if is_mask else 'face'}_sculpt_surface", mesh)
+    obj.data.materials.append(material)
+    collection.objects.link(obj)
+    obj.parent = root
+    shade_smooth(obj)
+    subdivision = obj.modifiers.new(name=f"{obj.name}_soft_subdivision", type="SUBSURF")
+    subdivision.levels = 1
+    subdivision.render_levels = 1
+    obj.modifiers.new(name=f"{obj.name}_weighted_normals", type="WEIGHTED_NORMAL")
+    return obj
+
+
+def add_face_micro_landmarks(collection, root, spec: CharacterSpec, skin_shadow, skin_highlight, lip) -> None:
+    for side in [-1, 1]:
+        label = "right" if side > 0 else "left"
+        add_ellipsoid(
+            collection,
+            root,
+            f"{spec.character_id}_{label}_under_eye_trough",
+            (0.041 * side, -0.133, 1.738),
+            (0.024, 0.003, 0.0045),
+            skin_shadow,
+        )
+        add_ellipsoid(
+            collection,
+            root,
+            f"{spec.character_id}_{label}_tear_duct",
+            (0.021 * side, -0.134, 1.757),
+            (0.005, 0.0025, 0.004),
+            skin_highlight,
+        )
+        limb(
+            collection,
+            root,
+            f"{spec.character_id}_{label}_nasolabial_fold",
+            (0.024 * side, -0.139, 1.684),
+            (0.048 * side, -0.132, 1.638),
+            0.0018,
+            skin_shadow,
+        )
+        add_ellipsoid(
+            collection,
+            root,
+            f"{spec.character_id}_{label}_mouth_corner",
+            (0.037 * side, -0.133, 1.648),
+            (0.0055, 0.0025, 0.0045),
+            lip,
+        )
+        add_ellipsoid(
+            collection,
+            root,
+            f"{spec.character_id}_{label}_masseter_plane",
+            (0.079 * side, -0.121, 1.655),
+            (0.01, 0.0024, 0.018),
+            skin_shadow,
+        )
+    add_ellipsoid(collection, root, f"{spec.character_id}_philtrum_shadow", (0, -0.137, 1.671), (0.006, 0.002, 0.014), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_chin_highlight", (0, -0.128, 1.612), (0.018, 0.0018, 0.0035), skin_highlight)
+
+
+def add_ear_anatomy(collection, root, spec: CharacterSpec, side: int, skin_shadow, skin_highlight) -> None:
+    label = "right" if side > 0 else "left"
+    x = 0.13 * side
+    add_torus(
+        collection,
+        root,
+        f"{spec.character_id}_{label}_ear_helix",
+        (x, -0.01, 1.715),
+        (0, math.pi / 2, 0),
+        0.023,
+        0.0028,
+        skin_shadow,
+    )
+    add_ellipsoid(
+        collection,
+        root,
+        f"{spec.character_id}_{label}_ear_inner_bowl",
+        (x, -0.016, 1.713),
+        (0.006, 0.005, 0.021),
+        skin_shadow,
+    )
+    add_ellipsoid(
+        collection,
+        root,
+        f"{spec.character_id}_{label}_ear_lobe_highlight",
+        (x, -0.016, 1.676),
+        (0.007, 0.004, 0.009),
+        skin_highlight,
+    )
 
 
 def add_head_detail(collection, root, spec: CharacterSpec) -> None:
@@ -448,6 +605,57 @@ def add_fingers(collection, root, spec: CharacterSpec, side: int, skin) -> None:
         start = (hand_x + offset * side, -0.055, 0.715)
         end = (hand_x + offset * side, -0.082, 0.715 - length)
         limb(collection, root, f"{spec.character_id}_{'right' if side > 0 else 'left'}_finger_{index}", start, end, 0.0075, skin)
+
+
+def add_hand_anatomy(collection, root, spec: CharacterSpec, side: int, skin, skin_shadow, skin_highlight) -> None:
+    label = "right" if side > 0 else "left"
+    hand_x = 0.325 * side
+    limb(
+        collection,
+        root,
+        f"{spec.character_id}_{label}_thumb",
+        (hand_x + 0.036 * side, -0.043, 0.746),
+        (hand_x + 0.074 * side, -0.078, 0.708),
+        0.009,
+        skin,
+    )
+    add_ellipsoid(
+        collection,
+        root,
+        f"{spec.character_id}_{label}_thumb_pad",
+        (hand_x + 0.047 * side, -0.063, 0.724),
+        (0.013, 0.007, 0.017),
+        skin_shadow,
+    )
+    add_box(
+        collection,
+        root,
+        f"{spec.character_id}_{label}_palm_life_line",
+        (hand_x + 0.01 * side, -0.061, 0.726),
+        (0.004, 0.003, 0.032),
+        skin_shadow,
+        rotation=(0, 0, math.radians(16 * side)),
+    )
+    for index, offset in enumerate([-0.026, -0.008, 0.01, 0.028]):
+        length = 0.06 - abs(index - 1.5) * 0.006
+        x = hand_x + offset * side
+        nail_z = 0.715 - length - 0.004
+        add_ellipsoid(
+            collection,
+            root,
+            f"{spec.character_id}_{label}_knuckle_{index}",
+            (x, -0.062, 0.704),
+            (0.008, 0.004, 0.006),
+            skin_shadow,
+        )
+        add_box(
+            collection,
+            root,
+            f"{spec.character_id}_{label}_finger_nail_{index}",
+            (x, -0.088, nail_z),
+            (0.0055, 0.0024, 0.006),
+            skin_highlight,
+        )
 
 
 def add_prop(collection, root, spec: CharacterSpec, metal, emissive, leather) -> None:
@@ -715,13 +923,14 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 日期：2026-06-13
 
-本轮通过 BlenderMCP socket 执行 `tools/blender/create-bing-character-blockouts.py`，为默认 6 个角色生成第一版半写实比例 blockout。
+本轮通过 BlenderMCP socket 执行 `tools/blender/create-bing-character-blockouts.py`，为默认 6 个角色生成半写实比例与解剖优化资产。
 
 ## 输出
 
 - Blender 源场景：`{repo_path(scene_path)}`
 - 每个角色导出 LOD0 `.glb` 和 LOD1 `-lod1.glb`
 - 每个角色导出 `portrait.png`、`mobile-avatar.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`、`table-scale.png`
+- 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、职业道具和服装层次
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
 - 材质近景 QA：`{repo_path(ASSET_ROOT / "materials" / "material-qa.png")}`
 
@@ -731,11 +940,11 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## 美术判断
 
-当前资产是“可读性 blockout”，不是最终真人级模型。它解决的是头身比例、职业剪影、主色、关键道具和导出链路；后续还需要高模/雕刻/贴图/绑定/动画。
+当前资产是“半写实游戏角色初模”，不是最终真人级模型。它解决的是头身比例、连续脸部体块、手部可读性、职业剪影、主色、关键道具和导出链路；后续还需要高模/雕刻/贴图/绑定/动画。
 
 ## P0
 
-- 继续细化脸部、手部、服装褶皱和材质粗糙度，否则仍会显得偏原型。
+- 用高模或授权基底替换当前程序化脸部表面，继续减少“拼装感”。
 - 用移动端头像裁切检查脸部、职业道具和剪影是否还可读。
 
 ## P1
@@ -759,6 +968,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 - 源场景：`{repo_path(scene_path)}`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
+- 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、服装层次和职业道具
 - 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
 - 材质近景 QA：`{repo_path(ASSET_ROOT / "materials" / "material-qa.png")}`
@@ -770,7 +980,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、脸部体块、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染、材质近景 QA 和可追踪 PBR 贴图文件。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染、材质近景 QA 和可追踪 PBR 贴图文件。
 - 仍不足：还没有真实高模雕刻、手工/烘焙贴图、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
 
 ## 下一步 P0
@@ -820,7 +1030,7 @@ def set_all_visible(roots: dict[str, bpy.types.Object]) -> None:
 
 
 def add_ellipsoid(collection, root, name, location, scale, material) -> bpy.types.Object:
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, location=location)
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=12, location=location)
     obj = bpy.context.object
     obj.name = name
     obj.scale = scale
@@ -836,7 +1046,7 @@ def limb(collection, root, name, start, end, radius, material) -> bpy.types.Obje
     end_v = mathutils.Vector(end)
     midpoint = (start_v + end_v) * 0.5
     direction = end_v - start_v
-    bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=radius, depth=direction.length, location=midpoint)
+    bpy.ops.mesh.primitive_cylinder_add(vertices=18, radius=radius, depth=direction.length, location=midpoint)
     obj = bpy.context.object
     obj.name = name
     obj.rotation_euler = direction.to_track_quat("Z", "Y").to_euler()
@@ -851,8 +1061,8 @@ def add_torus(collection, root, name, location, rotation, major_radius, minor_ra
     bpy.ops.mesh.primitive_torus_add(
         major_radius=major_radius,
         minor_radius=minor_radius,
-        major_segments=64,
-        minor_segments=10,
+        major_segments=48,
+        minor_segments=8,
         location=location,
         rotation=rotation,
     )
@@ -1050,6 +1260,13 @@ def material_grain(detail: str, u: float, v: float) -> float:
 
 def safe_asset_name(value: str) -> str:
     return "".join(ch.lower() if ch.isalnum() else "-" for ch in value).strip("-")
+
+
+def gaussian(value: float, center: float, width: float) -> float:
+    if width <= 0:
+        return 0.0
+    normalized = (value - center) / width
+    return math.exp(-(normalized * normalized))
 
 
 def clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
