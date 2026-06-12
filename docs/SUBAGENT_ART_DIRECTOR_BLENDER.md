@@ -2,7 +2,7 @@
 
 日期：2026-06-13
 
-本文定义“美术总监 Agent”在接入 Blender MCP 后的工作方式。当前环境尚未暴露 Blender MCP 工具，`blender` 命令也不在 PATH；在工具接通前，本 Agent 只能做评审、资产规格、建模计划和验收清单，不能声称已经完成真实建模。
+本文定义“美术总监 Agent”在接入 Blender MCP 后的工作方式。当前本机已经下载便携版 Blender 4.5.0，并安装了 `ahujasid/blender-mcp` add-on 与 `uvx blender-mcp` server；但 Codex 当前会话的工具列表仍需要刷新/重开后，才会出现正式 Blender MCP 工具。在正式工具暴露前，可以通过本地 BlenderMCP socket 做建模初稿，但不能声称已完成最终真人级建模。
 
 ## Agent 目标
 
@@ -43,6 +43,18 @@
 ```text
 Blender MCP 未连接，无法执行建模。可继续输出角色 brief、资产清单、Blender Python 草案和验收标准。
 ```
+
+## 当前本机安装状态
+
+- Blender：`tools/blender/blender-4.5.0-windows-x64/blender.exe`
+- 便携配置：`tools/blender/blender-4.5.0-windows-x64/portable/`
+- Blender MCP add-on：`tools/blender/blender-mcp/addon.py`
+- MCP server：`uvx blender-mcp`
+- Socket：`localhost:9876`
+- 初模脚本：`tools/blender/create-bing-character-blockouts.py`
+- 第一版输出：`apps/client/public/assets/characters/`
+
+注意：`tools/blender/.gitignore` 会忽略 Blender 大文件、官方 zip 和第三方 `addon.py`，避免误提交。
 
 ## 默认角色建模范围
 

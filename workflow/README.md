@@ -142,14 +142,15 @@ figma-desktop -> http://127.0.0.1:3845/mcp
 
 ## Blender MCP 使用方式
 
-Blender 建模任务需要先确认本机会话里已经暴露 Blender MCP。当前项目约定：
+Blender 建模任务需要先确认本机会话里已经暴露 Blender MCP。当前项目本机已准备：
 
-1. Blender 已安装并可启动。
-2. Blender MCP 插件或服务器已启用。
-3. Codex 会话能看到 Blender MCP 工具。
-4. 建模前读取 `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`。
+1. Blender 便携版：`tools/blender/blender-4.5.0-windows-x64/blender.exe`。
+2. Blender MCP add-on：`tools/blender/blender-mcp/addon.py`。
+3. MCP server：`uvx blender-mcp`。
+4. Socket 默认端口：`localhost:9876`。
+5. 建模前读取 `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`。
 
-如果 MCP 不可用，Agent 只能输出 brief、资产清单、Blender Python 草案和验收标准，不能声称完成建模。
+如果 Codex 工具栏还看不到 Blender MCP，先重启/刷新 MCP 客户端。Agent 可以使用本地 BlenderMCP socket 做初稿，但不能声称完成最终真人级模型。
 
 常用请求：
 

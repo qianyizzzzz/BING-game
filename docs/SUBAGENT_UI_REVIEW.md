@@ -140,9 +140,11 @@
 
 当前环境状态：
 
-- 未发现可调用的 Blender MCP 工具。
-- `blender` 命令不在 PATH。
-- 因此当前只能沉淀 Agent 规范、资产目录、建模流程和验收标准，不能声称已完成真实建模。
+- 已下载便携版 Blender 4.5.0 到 `tools/blender/blender-4.5.0-windows-x64/`。
+- 已下载并安装 BlenderMCP add-on，Blender socket `localhost:9876` 已通过 `get_scene_info` 验证。
+- 已通过 `uvx blender-mcp` 安装/验证 MCP server 包。
+- 当前 Codex 会话仍未暴露正式 Blender MCP 工具；需要刷新 MCP 配置或重开会话后才能在工具栏中直接调用。
+- 已通过 BlenderMCP socket 生成第一版 6 角色 blockout，产物在 `apps/client/public/assets/characters/`，报告在 `artifacts/art/bing-character-blockouts-report.md`。
 
 建模验收：
 
