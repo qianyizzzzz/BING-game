@@ -18,6 +18,7 @@
     "build": "npm run build -w @bing/shared && npm run build -w @bing/server && npm run build -w @bing/client",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test:rules": "tsx scripts/rule-regression-check.ts",
+    "test:turn-timeline": "tsx scripts/turn-timeline-check.ts",
     "test:ui-agents": "tsx scripts/ui-playtest-agents.ts",
     "import:skills": "python scripts/import-skills.py",
     "training:export": "node scripts/export-training-data.mjs",
