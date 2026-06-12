@@ -94,6 +94,31 @@ export function buildBattleSteps(events: GameEvent[], state: PublicGameState): B
     .slice(0, MAX_BATTLE_STEPS);
 }
 
+export function battleBeatForEvent(event: GameEvent, state: PublicGameState): BattleBeat | undefined {
+  return buildBattleStep(event, state)?.beat;
+}
+
+export function battleBeatLabel(beat: BattleBeat): string {
+  switch (beat) {
+    case "reveal":
+      return "亮招";
+    case "impact":
+      return "冲击";
+    case "defense":
+      return "防御";
+    case "reflect":
+      return "反弹";
+    case "skill":
+      return "技能";
+    case "defeat":
+      return "击败";
+    case "recovery":
+      return "恢复";
+    case "system":
+      return "系统";
+  }
+}
+
 function buildBattleStep(event: GameEvent, state: PublicGameState): BattleStep | null {
   if (event.type === "damage") {
     const attackName = event.attackName ?? "攻击";

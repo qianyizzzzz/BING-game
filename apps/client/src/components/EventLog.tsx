@@ -1,6 +1,7 @@
 import { ScrollText } from "lucide-react";
 import { PublicGameState } from "@bing/shared";
 import { formatEvent } from "../lib/format";
+import { battleBeatForEvent, battleBeatLabel } from "../lib/turnTimeline";
 
 interface EventLogProps {
   state: PublicGameState;
@@ -31,17 +32,32 @@ export function EventLog({ state }: EventLogProps) {
         {events.length === 0 ? (
           <p className="text-sm text-gray-500">暂无事件</p>
         ) : (
-          events.map((event) => (
-            <div
-              key={event.id}
-              className={["event-card", eventTone(event.type)].join(" ")}
-            >
-              <span className="mr-2 font-bold text-gray-400">
-                R{event.roundNumber}/T{event.turnNumber}
-              </span>
-              {formatEvent(event, state)}
-            </div>
-          ))
+          events.map((event) => {
+            const beat = battleBeatForEvent(event, state);
+            return (
+              <div
+                key={event.id}
+                className={["event-card", eventTone(event.type)].join(" ")}
+              >
+                <div className="flex items-start gap-2">
+                  <span className="shrink-0 font-bold text-gray-400">
+                    R{event.roundNumber}/T{event.turnNumber}
+                  </span>
+                  <span className="min-w-0 flex-1">{formatEvent(event, state)}</span>
+                  <span
+                    className={[
+                      "shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-bold",
+                      beat
+                        ? "border-teal-200 bg-teal-50 text-teal-800"
+                        : "border-gray-200 bg-gray-50 text-gray-500"
+                    ].join(" ")}
+                  >
+                    {beat ? battleBeatLabel(beat) : "记录"}
+                  </span>
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
     </aside>
