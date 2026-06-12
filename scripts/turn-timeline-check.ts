@@ -12,6 +12,7 @@ import {
   type BattleSoundCue,
   type BattleStepKind
 } from "../apps/client/src/lib/turnTimeline";
+import { getBattleCueProfile } from "../apps/client/src/lib/battleAudio";
 
 const now = Date.now();
 
@@ -273,6 +274,7 @@ for (const item of cases) {
   assert.equal(step.kind, item.expected.kind, `${item.name} kind`);
   assert.equal(step.beat, item.expected.beat, `${item.name} beat`);
   assert.equal(step.soundCue, item.expected.soundCue, `${item.name} sound cue`);
+  assert.ok(getBattleCueProfile(step.soundCue).durationMs > 0, `${item.name} registered cue`);
   assert.ok(step.label.length > 0, `${item.name} label`);
   assert.ok(step.description.length > 0, `${item.name} description`);
 }

@@ -5,6 +5,7 @@ import {
   getActionPlanLabel
 } from "@bing/shared";
 import { formatDamage, playerName } from "../lib/format";
+import { playBattleCue } from "../lib/battleAudio";
 import {
   MAX_REPLAY_AGE_MS,
   STEP_DURATION_MS,
@@ -39,6 +40,7 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
 
     setActiveRevealId(broadcast.reveal.id);
     setActiveStepIndex(0);
+    playBattleCue("turn-reveal");
     const stepCount = Math.max(1, battleSteps.length);
     const totalDuration = stepCount * STEP_DURATION_MS + 900;
     const interval = window.setInterval(() => {
@@ -51,11 +53,20 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
     };
   }, [battleSteps.length, broadcast, state.turnResolutionStarted]);
 
+  const visibleStep = battleSteps[activeStepIndex];
+
+  useEffect(() => {
+    if (!broadcast || !visibleStep || activeRevealId !== broadcast.reveal.id) {
+      return;
+    }
+
+    playBattleCue(visibleStep.soundCue);
+  }, [activeRevealId, activeStepIndex, broadcast?.reveal.id, visibleStep]);
+
   if (state.turnResolutionStarted || !broadcast || activeRevealId !== broadcast.reveal.id) {
     return null;
   }
 
-  const visibleStep = battleSteps[activeStepIndex];
   const totalDuration = Math.max(1, battleSteps.length) * STEP_DURATION_MS + 900;
 
   return (
