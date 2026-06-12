@@ -1237,6 +1237,7 @@ export function ActionPanel({
             ) : null}
             <button
               className="btn-primary justify-center py-3"
+              data-testid="enter-action-window"
               disabled={submitting || viewer?.status !== "alive"}
               onClick={onEnterActionWindow}
               type="button"
@@ -1246,6 +1247,7 @@ export function ActionPanel({
             </button>
             <button
               className="btn-secondary justify-center py-3"
+              data-testid="pass-action-window"
               disabled={submitting || viewer?.status !== "alive" || alreadyPassed}
               onClick={onPassActionWindow}
               type="button"
@@ -1254,6 +1256,7 @@ export function ActionPanel({
             </button>
             <button
               className="btn-secondary justify-center py-3 sm:col-span-2"
+              data-testid="skip-to-next-action"
               disabled={submitting || viewer?.status !== "alive" || alreadyPassed}
               onClick={onSkipToNextAction}
               type="button"
@@ -1778,6 +1781,7 @@ export function ActionPanel({
             )}
             <button
               className="btn-secondary w-full justify-center py-3"
+              data-testid="pass-action-window"
               disabled={submitting || alreadyPassed}
               onClick={onPassActionWindow}
               type="button"
@@ -1786,6 +1790,7 @@ export function ActionPanel({
             </button>
             <button
               className="btn-secondary w-full justify-center py-3"
+              data-testid="skip-to-next-action"
               disabled={submitting || alreadyPassed}
               onClick={onSkipToNextAction}
               type="button"

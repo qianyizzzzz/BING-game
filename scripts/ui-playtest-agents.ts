@@ -88,14 +88,28 @@ try {
     for (let turn = 1; turn <= 3; turn += 1) {
       if (turn === 2) {
         await submitRepeatTurn(playerA, turn, firstTimer);
+      } else if (turn === 3) {
+        await submitAttackTurn(playerA, turn, firstTimer);
       } else {
         await submitCakeTurn(playerA, turn, firstTimer);
       }
-      await submitCakeTurn(playerB, turn, competitor);
+      if (turn === 3) {
+        await submitAttackTurn(playerB, turn, competitor);
+      } else {
+        await submitCakeTurn(playerB, turn, competitor);
+      }
       await playerA.waitForTimeout(900);
       if (turn === 1) {
         await collectTargetPreviewCheck(playerA, firstTimer, "新手玩家");
         await collectTargetPreviewCheck(playerB, competitor, "竞技玩家");
+      }
+      if (turn === 3) {
+        const skippedWindows = await resolveActionWindows([playerA, playerB]);
+        if (skippedWindows > 0) {
+          producer.observations.push(`第三回合攻击后自动跳过 ${skippedWindows} 个响应窗口以触发表现层结算。`);
+        }
+        await collectBattlePresentationCueCheck(playerA, firstTimer, "新手玩家");
+        await collectBattlePresentationCueCheck(playerB, competitor, "竞技玩家");
       }
       await playerA.waitForTimeout(700);
     }
@@ -307,6 +321,71 @@ async function waitForRoomLobby(page: Page, actionLabel: string): Promise<void> 
   throw new Error(`${actionLabel}后未进入房间${message ? `：${message}` : ""}`);
 }
 
+async function resolveActionWindows(pages: Page[]): Promise<number> {
+  const hasActionWindow = await waitForAnyActionWindowControl(pages, 3_000);
+  if (!hasActionWindow) {
+    return 0;
+  }
+
+  let clicked = 0;
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 12_000) {
+    if (await pages[0]!.locator(".battle-stage-panel").first().isVisible().catch(() => false)) {
+      break;
+    }
+
+    let clickedThisPass = false;
+    for (const page of pages) {
+      if (await clickActionWindowControl(page)) {
+        clicked += 1;
+        clickedThisPass = true;
+        await page.waitForTimeout(350);
+      }
+    }
+
+    if (!clickedThisPass) {
+      await pages[0]!.waitForTimeout(400);
+    }
+  }
+
+  return clicked;
+}
+
+async function waitForAnyActionWindowControl(pages: Page[], timeoutMs: number): Promise<boolean> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    if (await pages[0]!.locator(".battle-stage-panel").first().isVisible().catch(() => false)) {
+      return false;
+    }
+    for (const page of pages) {
+      if (
+        (await page.getByTestId("skip-to-next-action").first().isVisible().catch(() => false)) ||
+        (await page.getByTestId("pass-action-window").first().isVisible().catch(() => false))
+      ) {
+        return true;
+      }
+    }
+    await pages[0]!.waitForTimeout(250);
+  }
+  return false;
+}
+
+async function clickActionWindowControl(page: Page): Promise<boolean> {
+  for (const testId of ["skip-to-next-action", "pass-action-window"]) {
+    const control = page.getByTestId(testId).first();
+    if (!(await control.isVisible().catch(() => false))) {
+      continue;
+    }
+    if (!(await waitForEnabled(control, 1_000))) {
+      continue;
+    }
+    await activate(control, 2_000);
+    return true;
+  }
+
+  return false;
+}
+
 async function readRoomId(page: Page): Promise<string> {
   await page.getByTestId("room-code").waitFor({ timeout: 15_000 });
   return (await page.getByTestId("room-code").first().innerText()).trim();
@@ -330,6 +409,28 @@ async function submitCakeTurn(page: Page, turn: number, agent: AgentLog): Promis
     agent.observations.push(`第 ${turn} 回合完成“吃饼”提交。`);
   } catch (error) {
     const message = `第 ${turn} 回合提交失败：${String(error)}`;
+    failedActions.push(message);
+    agent.issues.push(message);
+  }
+}
+
+async function submitAttackTurn(page: Page, turn: number, agent: AgentLog): Promise<void> {
+  try {
+    await page.locator(".table-action-dock").first().waitFor({ state: "visible", timeout: 20_000 });
+    await activate(page.getByTestId("action-mode-attack").first(), 20_000);
+
+    const submit = page.getByTestId("submit-action").first();
+    if (!(await waitForEnabled(submit, 20_000))) {
+      const label = await submit.innerText().catch(() => "未知按钮");
+      const message = `第 ${turn} 回合攻击提交按钮不可用：${label}`;
+      failedActions.push(message);
+      agent.issues.push(message);
+      return;
+    }
+    await activate(submit, 20_000);
+    agent.observations.push(`第 ${turn} 回合完成“攻击”提交。`);
+  } catch (error) {
+    const message = `第 ${turn} 回合攻击提交失败：${String(error)}`;
     failedActions.push(message);
     agent.issues.push(message);
   }
@@ -472,6 +573,43 @@ async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: str
     agent.observations.push(message);
   } catch (error) {
     const message = `${label}: 目标预览高亮检查失败：${String(error)}`;
+    visualIssues.push(message);
+    agent.issues.push(message);
+  }
+}
+
+async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, label: string): Promise<void> {
+  try {
+    await page.waitForFunction(
+      () => {
+        const element = document.querySelector('[data-testid="battle-presentation-cues"]');
+        if (!(element instanceof HTMLElement)) {
+          return false;
+        }
+        const cueCount = Number(element.dataset.cueCount ?? "0");
+        return cueCount > 0 && Boolean(element.dataset.firstBeat) && element.dataset.firstVfx !== "none";
+      },
+      undefined,
+      { timeout: 12_000 }
+    );
+    const cue = await page.getByTestId("battle-presentation-cues").first().evaluate((element) => ({
+      beat: element.getAttribute("data-first-beat") ?? "",
+      camera: element.getAttribute("data-first-camera-cue") ?? "",
+      cueCount: element.getAttribute("data-cue-count") ?? "",
+      hitStopMs: element.getAttribute("data-first-hit-stop-ms") ?? "",
+      targetIds: element.getAttribute("data-first-target-ids") ?? "",
+      vfx: element.getAttribute("data-first-vfx") ?? ""
+    }));
+
+    if (!cue.beat || !cue.vfx || cue.vfx === "none") {
+      throw new Error(`表现 cue 不完整：${JSON.stringify(cue)}`);
+    }
+
+    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue（count=${cue.cueCount}, camera=${cue.camera}, hitStop=${cue.hitStopMs}ms, targets=${cue.targetIds || "无"}）。`;
+    visualChecks.push(message);
+    agent.observations.push(message);
+  } catch (error) {
+    const message = `${label}: 结算动画表现 cue 检查失败：${String(error)}`;
     visualIssues.push(message);
     agent.issues.push(message);
   }

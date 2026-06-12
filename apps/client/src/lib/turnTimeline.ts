@@ -66,7 +66,7 @@ interface PlayerRef {
 }
 
 export const STEP_DURATION_MS = 900;
-export const MAX_REPLAY_AGE_MS = 3500;
+export const MAX_REPLAY_AGE_MS = 12_000;
 export const MAX_BATTLE_STEPS = 6;
 
 const AREA_ATTACK_NAMES = new Set(["万箭齐发", "南蛮入侵"]);

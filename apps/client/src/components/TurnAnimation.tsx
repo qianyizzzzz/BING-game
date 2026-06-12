@@ -63,6 +63,7 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
 
   const visibleStep = battleSteps[activeStepIndex];
   const visibleCue = presentationCues[activeStepIndex];
+  const firstCue = presentationCues[0];
 
   useEffect(() => {
     if (!broadcast || !visibleStep || activeRevealId !== broadcast.reveal.id) {
@@ -72,24 +73,44 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
     playBattleCue(visibleCue?.sfx ?? visibleStep.soundCue);
   }, [activeRevealId, activeStepIndex, broadcast?.reveal.id, visibleCue, visibleStep]);
 
-  if (state.turnResolutionStarted || !broadcast || activeRevealId !== broadcast.reveal.id) {
+  if (!broadcast) {
     return null;
+  }
+
+  const cueMetadata = (
+    <div
+      aria-hidden="true"
+      className="sr-only"
+      data-testid="battle-presentation-cues"
+      data-cue-count={presentationCues.length}
+      data-first-beat={firstCue?.beat ?? ""}
+      data-first-camera-cue={firstCue?.camera ?? "none"}
+      data-first-hit-stop-ms={firstCue?.hitStopMs ?? 0}
+      data-first-target-ids={firstCue?.targetIds.join(",") ?? ""}
+      data-first-vfx={firstCue?.vfx ?? "none"}
+    />
+  );
+
+  if (state.turnResolutionStarted || activeRevealId !== broadcast.reveal.id) {
+    return cueMetadata;
   }
 
   const totalDuration = Math.max(1, battleSteps.length) * STEP_DURATION_MS + 900;
 
   return (
-    <div className="battle-stage-overlay pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-3 py-5">
-      <div
-        className="battle-stage-panel battle-stage-floating w-full max-w-4xl rounded-lg border border-teal-200 bg-white/95 p-4 shadow-2xl"
-        data-battle-reveal-id={broadcast.reveal.id}
-        data-beat="reveal"
-        data-active-beat={visibleCue?.beat ?? "reveal"}
-        data-active-vfx={visibleCue?.vfx ?? "none"}
-        data-active-camera-cue={visibleCue?.camera ?? "none"}
-        data-sound-cue="turn-reveal"
-        style={{ animationDuration: `${totalDuration}ms` }}
-      >
+    <>
+      {cueMetadata}
+      <div className="battle-stage-overlay pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-3 py-5">
+        <div
+          className="battle-stage-panel battle-stage-floating w-full max-w-4xl rounded-lg border border-teal-200 bg-white/95 p-4 shadow-2xl"
+          data-battle-reveal-id={broadcast.reveal.id}
+          data-beat="reveal"
+          data-active-beat={visibleCue?.beat ?? "reveal"}
+          data-active-vfx={visibleCue?.vfx ?? "none"}
+          data-active-camera-cue={visibleCue?.camera ?? "none"}
+          data-sound-cue="turn-reveal"
+          style={{ animationDuration: `${totalDuration}ms` }}
+        >
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-medium text-gray-500">
@@ -122,8 +143,9 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
             <BattleLane key={visibleStep.id} cue={visibleCue} index={0} step={visibleStep} />
           )}
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
