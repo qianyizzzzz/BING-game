@@ -644,7 +644,7 @@ export function App() {
           </div>
           {identity && state ? (
             <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="room-code">
+              <span className="room-code" data-testid="room-code">
                 {identity.roomId}
               </span>
               <button
@@ -760,6 +760,7 @@ export function App() {
               </div>
               <Button
                 className="mt-12 rounded-full px-14 py-5 text-base hover:scale-[1.03]"
+                data-testid="create-room-hero"
                 disabled={busy}
                 onClick={createRoom}
                 variant="glass"
@@ -785,6 +786,7 @@ export function App() {
                   玩家名
                   <input
                     className="soft-input mt-2 w-full"
+                    data-testid="player-name-input"
                     maxLength={16}
                     onChange={(event) => updateAccountName(event.target.value)}
                     value={playerName}
@@ -821,6 +823,7 @@ export function App() {
                 <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
                   <button
                     className="btn-primary justify-center py-3"
+                    data-testid="create-room"
                     disabled={busy}
                     onClick={createRoom}
                     type="button"
@@ -831,12 +834,14 @@ export function App() {
                   <div className="hero-join-row">
                     <input
                       className="soft-input min-w-0 flex-1"
+                      data-testid="join-room-input"
                       onChange={(event) => setRoomToJoin(event.target.value)}
                       placeholder="房号"
                       value={roomToJoin}
                     />
                     <button
                       className="btn-secondary px-4 disabled:text-gray-400"
+                      data-testid="join-room"
                       disabled={busy || !roomToJoin.trim()}
                       onClick={joinRoom}
                       type="button"
@@ -845,6 +850,7 @@ export function App() {
                     </button>
                     <button
                       className="btn-secondary px-4 disabled:text-gray-400"
+                      data-testid="spectate-room"
                       disabled={busy || !roomToJoin.trim()}
                       onClick={spectateRoom}
                       type="button"
@@ -977,6 +983,7 @@ export function App() {
                       <>
                         <button
                           className="btn-warning"
+                          data-testid="add-ai"
                           disabled={busy}
                           onClick={addAi}
                           type="button"
@@ -986,6 +993,7 @@ export function App() {
                         </button>
                         <button
                           className="btn-primary"
+                          data-testid="start-game"
                           disabled={busy || missingStartPlayers > 0}
                           onClick={startGame}
                           title={startDisabledReason || "开始游戏"}

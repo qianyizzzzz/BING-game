@@ -1889,12 +1889,14 @@ export function ActionPanel({
             icon={<Cookie className="h-4 w-4" aria-hidden="true" />}
             label="吃饼"
             onClick={() => setMode("gain_cake")}
+            testId="action-mode-gain-cake"
           />
           <ModeButton
             active={mode === "defense"}
             icon={<Shield className="h-4 w-4" aria-hidden="true" />}
             label="防御"
             onClick={() => setMode("defense")}
+            testId="action-mode-defense"
           />
           <ModeButton
             active={mode === "attack"}
@@ -1902,6 +1904,7 @@ export function ActionPanel({
             icon={<Swords className="h-4 w-4" aria-hidden="true" />}
             label="攻击"
             onClick={() => setMode("attack")}
+            testId="action-mode-attack"
           />
           <ModeButton
             active={mode === "skill"}
@@ -1909,6 +1912,7 @@ export function ActionPanel({
             icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}
             label="技能"
             onClick={() => setMode("skill")}
+            testId="action-mode-skill"
           />
         </div>
 
@@ -2292,6 +2296,7 @@ export function ActionPanel({
 
         <button
           className="btn-primary action-submit-button w-full justify-center py-3 disabled:cursor-not-allowed disabled:bg-gray-300"
+          data-testid="submit-action"
           disabled={!canAct || submitting || actionInvalid}
           type="submit"
         >
@@ -2650,6 +2655,7 @@ interface ModeButtonProps {
   icon: ReactNode;
   label: string;
   onClick: () => void;
+  testId?: string;
 }
 
 function summarizeActionSelection({
@@ -2720,7 +2726,7 @@ function getPlayerName(state: PublicGameState, playerId: string): string {
   return state.players.find((player) => player.id === playerId)?.name ?? "";
 }
 
-function ModeButton({ active, disabled, icon, label, onClick }: ModeButtonProps) {
+function ModeButton({ active, disabled, icon, label, onClick, testId }: ModeButtonProps) {
   return (
     <button
       className={[
@@ -2728,6 +2734,7 @@ function ModeButton({ active, disabled, icon, label, onClick }: ModeButtonProps)
         active ? "mode-button-active" : "",
         disabled ? "cursor-not-allowed opacity-45" : ""
       ].join(" ")}
+      data-testid={testId}
       disabled={disabled}
       onClick={onClick}
       type="button"

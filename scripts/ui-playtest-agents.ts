@@ -54,20 +54,20 @@ try {
   firstTimer.observations.push("首屏已加载，用于检查品牌、创建房间入口和角色选择是否清楚。");
 
   await fillPlayerName(playerA, "新手玩家");
-  await clickByText(playerA, "创建房间");
+  await clickByTestId(playerA, "create-room");
   roomId = await readRoomId(playerA);
   firstTimer.observations.push(`成功创建房间：${roomId || "未读取到房号"}`);
 
   await playerB.goto(config.url, { waitUntil: "networkidle" });
   await fillPlayerName(playerB, "竞技玩家");
   await fillRoomId(playerB, roomId);
-  await clickByText(playerB, "加入");
+  await clickByTestId(playerB, "join-room");
   await playerB.waitForSelector(".poker-table-shell", { timeout: 15_000 });
   await screenshot(playerB, "02-player-b-joined.png");
   competitor.observations.push("成功加入房间，检查加入路径是否足够快。");
 
-  await optionalClick(playerA, "加 AI");
-  await clickByText(playerA, "开始");
+  await optionalClickByTestId(playerA, "add-ai");
+  await clickByTestId(playerA, "start-game");
   await playerA.waitForSelector(".table-action-dock", { timeout: 15_000 });
   await playerB.waitForSelector(".table-action-dock", { timeout: 15_000 });
   producer.observations.push("房主能从大厅进入战斗桌面，行动 dock 已出现。");
@@ -110,37 +110,37 @@ async function newAgentPage(name: string): Promise<Page> {
 }
 
 async function fillPlayerName(page: Page, name: string): Promise<void> {
-  const input = page.locator("input").first();
+  const input = page.getByTestId("player-name-input").first();
   await input.fill(name);
 }
 
 async function fillRoomId(page: Page, value: string): Promise<void> {
-  const roomInput = page.getByPlaceholder("房号").first();
+  const roomInput = page.getByTestId("join-room-input").first();
   await roomInput.fill(value);
 }
 
-async function clickByText(page: Page, text: string): Promise<void> {
-  const target = page.getByRole("button", { name: new RegExp(text) }).first();
+async function clickByTestId(page: Page, testId: string): Promise<void> {
+  const target = page.getByTestId(testId).first();
   await target.click({ timeout: 10_000 });
 }
 
-async function optionalClick(page: Page, text: string): Promise<void> {
+async function optionalClickByTestId(page: Page, testId: string): Promise<void> {
   try {
-    await clickByText(page, text);
+    await clickByTestId(page, testId);
   } catch (error) {
-    failedActions.push(`可选动作未完成：${text} (${String(error)})`);
+    failedActions.push(`可选动作未完成：${testId} (${String(error)})`);
   }
 }
 
 async function readRoomId(page: Page): Promise<string> {
-  await page.waitForSelector(".room-code", { timeout: 15_000 });
-  return (await page.locator(".room-code").first().innerText()).trim();
+  await page.getByTestId("room-code").waitFor({ timeout: 15_000 });
+  return (await page.getByTestId("room-code").first().innerText()).trim();
 }
 
 async function submitCakeTurn(page: Page, turn: number, agent: AgentLog): Promise<void> {
   try {
-    await page.getByRole("button", { name: /^饼$/ }).first().click({ timeout: 10_000 });
-    await page.getByRole("button", { name: /提交/ }).first().click({ timeout: 10_000 });
+    await page.getByTestId("action-mode-gain-cake").first().click({ timeout: 10_000 });
+    await page.getByTestId("submit-action").first().click({ timeout: 10_000 });
     agent.observations.push(`第 ${turn} 回合完成“吃饼”提交。`);
   } catch (error) {
     const message = `第 ${turn} 回合提交失败：${String(error)}`;
