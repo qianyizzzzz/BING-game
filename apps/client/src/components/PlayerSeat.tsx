@@ -1,4 +1,4 @@
-import { CSSProperties } from "react";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Cookie, HeartPulse, Skull, Sparkles, Timer, X } from "lucide-react";
 import { DEFEAT_LEVEL_LABELS, INITIAL_HP, PlayerState, PublicGameState, getSkill } from "@bing/shared";
 import { CharacterAvatar } from "./CharacterAvatar";
@@ -130,12 +130,12 @@ export function PlayerSeat({
         <div className="seat-resource">
           <HeartPulse className="h-3.5 w-3.5" aria-hidden="true" />
           <span>生命</span>
-          <strong>{player.hp}</strong>
+          <ResourceValue value={player.hp} />
         </div>
         <div className="seat-resource">
           <Cookie className="h-3.5 w-3.5" aria-hidden="true" />
           <span>饼</span>
-          <strong>{cakeText}</strong>
+          <ResourceValue displayValue={cakeText} value={player.cakes < 0 ? undefined : player.cakes} />
         </div>
         <div className="seat-resource">
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
@@ -197,6 +197,50 @@ export function PlayerSeat({
         </div>
       ) : null}
     </article>
+  );
+}
+
+function ResourceValue({
+  displayValue,
+  value
+}: {
+  displayValue?: string;
+  value: number | undefined;
+}) {
+  const previousValueRef = useRef(value);
+  const [delta, setDelta] = useState(0);
+
+  useEffect(() => {
+    if (value === undefined || previousValueRef.current === undefined) {
+      previousValueRef.current = value;
+      setDelta(0);
+      return;
+    }
+
+    const nextDelta = value - previousValueRef.current;
+    previousValueRef.current = value;
+    if (nextDelta === 0) {
+      return;
+    }
+
+    setDelta(nextDelta);
+    const timer = window.setTimeout(() => setDelta(0), 900);
+    return () => window.clearTimeout(timer);
+  }, [value]);
+
+  return (
+    <strong
+      className={[
+        "seat-resource-value",
+        delta > 0 ? "seat-resource-value-up" : "",
+        delta < 0 ? "seat-resource-value-down" : ""
+      ].join(" ")}
+    >
+      {displayValue ?? value ?? "?"}
+      {delta !== 0 ? (
+        <em>{delta > 0 ? `+${delta}` : delta}</em>
+      ) : null}
+    </strong>
   );
 }
 
