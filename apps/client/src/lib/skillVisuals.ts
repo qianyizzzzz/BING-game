@@ -27,8 +27,8 @@ const AFFINITY_VISUALS: Record<SkillAffinity, SkillVisualProfile> = {
     border: "#e76f2f",
     glow: "rgba(255, 118, 54, 0.52)",
     ink: "#ffd5a1",
-    label: "Pyre Relic",
-    sigil: "PYR",
+    label: "焰印遗物",
+    sigil: "焰",
     surface: "rgba(77, 30, 18, 0.92)"
   },
   frost: {
@@ -36,8 +36,8 @@ const AFFINITY_VISUALS: Record<SkillAffinity, SkillVisualProfile> = {
     border: "#7dd3fc",
     glow: "rgba(125, 211, 252, 0.48)",
     ink: "#d8f5ff",
-    label: "Frost Relic",
-    sigil: "FRS",
+    label: "霜印遗物",
+    sigil: "霜",
     surface: "rgba(16, 47, 62, 0.92)"
   },
   storm: {
@@ -45,8 +45,8 @@ const AFFINITY_VISUALS: Record<SkillAffinity, SkillVisualProfile> = {
     border: "#facc15",
     glow: "rgba(250, 204, 21, 0.45)",
     ink: "#fff2a7",
-    label: "Storm Relic",
-    sigil: "VLT",
+    label: "雷印遗物",
+    sigil: "雷",
     surface: "rgba(63, 49, 17, 0.92)"
   },
   venom: {
@@ -54,8 +54,8 @@ const AFFINITY_VISUALS: Record<SkillAffinity, SkillVisualProfile> = {
     border: "#84cc16",
     glow: "rgba(132, 204, 22, 0.42)",
     ink: "#d9f99d",
-    label: "Venom Relic",
-    sigil: "TOX",
+    label: "蚀印遗物",
+    sigil: "蚀",
     surface: "rgba(31, 57, 26, 0.92)"
   },
   ward: {
@@ -63,8 +63,8 @@ const AFFINITY_VISUALS: Record<SkillAffinity, SkillVisualProfile> = {
     border: "#93c5fd",
     glow: "rgba(147, 197, 253, 0.42)",
     ink: "#dbeafe",
-    label: "Ward Relic",
-    sigil: "AEX",
+    label: "盾印遗物",
+    sigil: "盾",
     surface: "rgba(21, 44, 71, 0.92)"
   },
   vital: {
@@ -72,8 +72,8 @@ const AFFINITY_VISUALS: Record<SkillAffinity, SkillVisualProfile> = {
     border: "#fb7185",
     glow: "rgba(251, 113, 133, 0.44)",
     ink: "#ffe4e6",
-    label: "Life Relic",
-    sigil: "VIT",
+    label: "命印遗物",
+    sigil: "命",
     surface: "rgba(70, 28, 45, 0.92)"
   },
   void: {
@@ -81,8 +81,8 @@ const AFFINITY_VISUALS: Record<SkillAffinity, SkillVisualProfile> = {
     border: "#c084fc",
     glow: "rgba(192, 132, 252, 0.45)",
     ink: "#f3e8ff",
-    label: "Void Relic",
-    sigil: "UMB",
+    label: "虚印遗物",
+    sigil: "虚",
     surface: "rgba(42, 32, 64, 0.94)"
   },
   relic: {
@@ -90,8 +90,8 @@ const AFFINITY_VISUALS: Record<SkillAffinity, SkillVisualProfile> = {
     border: "#c9b27c",
     glow: "rgba(201, 178, 124, 0.42)",
     ink: "#f8edd2",
-    label: "Abyss Relic",
-    sigil: "ARC",
+    label: "渊印遗物",
+    sigil: "遗",
     surface: "rgba(52, 45, 32, 0.94)"
   }
 };
