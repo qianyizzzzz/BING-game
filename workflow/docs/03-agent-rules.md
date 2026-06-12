@@ -11,6 +11,7 @@
 | Production plan | `docs/02-roadmap.md` |
 | Task scope | `tasks/TASK-XXX.md` |
 | Visual layout | Figma frame |
+| Character 3D source | Blender `.blend` files |
 | Implementation | Codebase |
 
 ## Role Split
@@ -42,6 +43,14 @@
 - Defines layout, component states, color, typography, and spacing
 - Stores UI variants for small screens and controller focus
 
+### Blender / Art Director Agent
+
+- Owns 3D character modeling, material polish, turnarounds, and game-readability checks.
+- Uses Blender MCP when available.
+- Follows `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md` and `workflow/docs/01-visual-bible.md`.
+- Reports missing Blender MCP instead of pretending that model work has been completed.
+- Exports `.blend`, `.glb`, portrait crops, and art review reports for each approved character task.
+
 ## Ownership Rules
 
 - One agent should own one task at a time.
@@ -67,6 +76,7 @@ Do not start implementation if:
 - The target behavior is unclear.
 - The task has no acceptance criteria.
 - The Figma source is missing for a visual task.
+- Blender MCP is missing for a task that requires actual Blender scene edits or model export.
 - The allowed file scope is unclear for risky systems.
 
 ## Review Rules

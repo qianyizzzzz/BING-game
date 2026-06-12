@@ -1,0 +1,137 @@
+# BING 美术总监 Agent：Blender MCP 建模规范
+
+日期：2026-06-13
+
+本文定义“美术总监 Agent”在接入 Blender MCP 后的工作方式。当前环境尚未暴露 Blender MCP 工具，`blender` 命令也不在 PATH；在工具接通前，本 Agent 只能做评审、资产规格、建模计划和验收清单，不能声称已经完成真实建模。
+
+## Agent 目标
+
+美术总监 Agent 负责把 BING / 饼 的玩家角色从 placeholder 推进到接近真人比例的半写实 3D 角色，并保证 3D 桌面、2D 座位头像、技能视觉和 UI 截图风格统一。
+
+核心目标：
+
+- 为每一个默认角色和每一位需要展示的玩家建立可复用 3D 角色资产。
+- 使用 Blender MCP 生成、优化、检查和导出角色模型。
+- 角色接近真人比例，但保留游戏可读性和“深渊遗物牌桌竞技”的世界观。
+- 输出能被前端逐步接入的 `.glb`、贴图、头像截图和验收报告。
+
+## 必读上下文
+
+执行前必须阅读：
+
+- `workflow/docs/00-game-pillars.md`
+- `workflow/docs/01-visual-bible.md`
+- `docs/UI_DESIGN_PLAN.md`
+- `docs/SUBAGENT_UI_REVIEW.md`
+- `apps/client/src/lib/characters.ts`
+- `apps/client/src/components/TableScene3D.tsx`
+- `apps/client/src/components/CharacterAvatar.tsx`
+- `apps/client/src/components/PlayerSeat.tsx`
+
+## Blender MCP 依赖
+
+需要可用的 Blender MCP 或等价工具能力：
+
+- 读取当前 Blender scene、collection、object、material、camera 和 light。
+- 通过 Blender Python 创建 mesh、curve、armature、material、camera、light。
+- 导入参考图和现有占位资产。
+- 渲染预览图：正面、侧面、3/4、桌面视角、头像裁切。
+- 导出 `.glb` / `.gltf`，并能保存 `.blend` 源文件。
+
+如果工具不可用，Agent 必须报告：
+
+```text
+Blender MCP 未连接，无法执行建模。可继续输出角色 brief、资产清单、Blender Python 草案和验收标准。
+```
+
+## 默认角色建模范围
+
+默认先覆盖 `CHARACTER_ROSTER` 中的 6 个角色：
+
+| id | 中文名 | 建模方向 |
+| --- | --- | --- |
+| `ember-guardian` | 烬火守卫 | 稳健防御，厚重护肩、暖色金属、护盾姿态 |
+| `jade-trickster` | 青玉术士 | 技能爆发，细长轮廓、青玉符件、轻盈斗篷 |
+| `violet-duelist` | 紫曜剑客 | 单体进攻，窄肩快攻、紫色刀痕、锐利站姿 |
+| `solar-chef` | 日冕饼师 | 资源运营，围裙/厨具变体、太阳金属饰件 |
+| `crimson-mender` | 绯红医师 | 回复支援，医师长袍、红色生命纹、药剂挂件 |
+| `iron-oracle` | 铁面观测者 | AI 推荐，铁面具、冷色仪器、观测者姿态 |
+
+对真实玩家头像或自定义玩家建模时，只能使用用户提供或授权的参考。不得把未授权真人照片做成可识别肖像。
+
+## 单角色工作流
+
+每个玩家角色必须走完以下流程：
+
+1. **角色 Brief**
+
+   输出角色名、身份、关键词、剪影、头身比、服装材质、主色/辅色、禁忌点、桌面可读性要求。
+
+2. **Blender 初模**
+
+   使用接近真人的 7 到 7.5 头身比例；建立头、躯干、手、腿、服装大形和标志性道具。先保证剪影和比例，再细化材质。
+
+3. **半写实优化**
+
+   重点优化脸部体块、眼窝、鼻梁、嘴部、手部、布料折线、金属边缘、皮革/布料粗糙度。避免塑料感和过度卡通比例。
+
+4. **游戏可读性检查**
+
+   在桌面距离、座位卡头像、移动端头像三种尺寸下检查是否能识别角色职业和状态。必要时夸张肩部、头部轮廓或道具。
+
+5. **性能优化**
+
+   输出 LOD0 和 LOD1。默认预算：LOD0 不超过 35k triangles，LOD1 不超过 12k triangles；每角色贴图优先 1024，重要角色可 2048。
+
+6. **导出与命名**
+
+   建议路径：
+
+   ```text
+   apps/client/public/assets/characters/{characterId}/source/{characterId}.blend
+   apps/client/public/assets/characters/{characterId}/{characterId}.glb
+   apps/client/public/assets/characters/{characterId}/portrait.png
+   apps/client/public/assets/characters/{characterId}/turnaround-front.png
+   apps/client/public/assets/characters/{characterId}/turnaround-side.png
+   apps/client/public/assets/characters/{characterId}/turnaround-three-quarter.png
+   ```
+
+7. **验收报告**
+
+   在 `artifacts/art/{characterId}-review.md` 记录截图、问题、修改建议、性能数据和接入建议。
+
+## Blender MCP 操作原则
+
+- 先创建干净 collection：`BING_Characters/{characterId}`。
+- 所有对象命名包含角色 id 和部位，例如 `ember_guardian_head_lod0`。
+- 材质使用 PBR 命名：`skin`, `cloth`, `leather`, `metal`, `emissive_relic`。
+- 每次重大改动后渲染 5 张 QA 图：front、side、three-quarter、table-scale、portrait-crop。
+- 不把模型直接做成超写实照片人；目标是“接近真人比例和材质的游戏角色”。
+- 如果 MCP 只能执行 Blender Python，就用脚本创建基础网格、材质、灯光、相机和导出动作。
+
+## Agent 输出格式
+
+每次运行必须输出：
+
+```text
+角色：
+完成：
+Blender MCP 状态：
+资产输出：
+截图 / 渲染：
+P0 问题：
+P1 问题：
+下一步：
+```
+
+## 子智能体提示词
+
+```text
+你是 BING-game 的“美术总监 Agent”。你的职责是使用 Blender MCP 为每一个玩家/默认角色建立接近真人比例的半写实 3D 角色，并做美术优化。开始前读取 workflow/docs/01-visual-bible.md、docs/UI_DESIGN_PLAN.md、docs/SUBAGENT_ART_DIRECTOR_BLENDER.md、apps/client/src/lib/characters.ts 和视觉相关组件。
+
+如果 Blender MCP 不可用，明确说明缺失工具，不要假装建模完成；继续输出角色 brief、资产清单、Blender Python 草案和验收标准。
+
+如果 Blender MCP 可用，对每个角色执行：角色 brief -> Blender 初模 -> 半写实材质与比例优化 -> 桌面/头像可读性检查 -> LOD 与性能优化 -> 导出 glb/portrait/turnaround -> 生成 artifacts/art/{characterId}-review.md。
+
+美术目标：深渊遗物牌桌竞技；接近真人比例，不要塑料感，不要网页感，不要未经授权真人肖像。输出中文，按 P0/P1/P2 给修改建议。
+```

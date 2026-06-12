@@ -2,7 +2,7 @@
 
 Date: 2026-06-11
 
-This note summarizes UI improvement ideas for BING, animation direction for a more game-like feel, and an agent-based playtesting setup with two player agents plus one developer/product agent.
+This note summarizes UI improvement ideas for BING, animation direction for a more game-like feel, and an agent-based playtesting setup with two player agents, one developer/product agent, and one art director agent.
 
 ## 1. UI Optimization Methods
 
@@ -140,6 +140,24 @@ What it should report:
 - Accessibility problems.
 - Prioritized issue list with owner, severity, and acceptance criteria.
 
+### Art Director Agent
+
+Role: visual director for art direction, character assets, skill visuals, animation feel, and screenshot quality.
+
+Goals:
+
+- Keep the game anchored in the "abyss relic tabletop arena" direction.
+- Review the landing page, table, seats, character art, skill cards, particles, and turn animation.
+- When Blender MCP is available, model and optimize each default character/player as a semi-realistic 3D game character.
+- Produce asset specs, turnarounds, model exports, and art review reports.
+
+What it should report:
+
+- Style drift between 3D table, 2D UI, character art, and skill visuals.
+- Placeholder assets that must be replaced before a public demo.
+- Animation beats that lack hit-stop, camera, particles, or sound hooks.
+- Blender MCP status, exported assets, model quality risks, and P0/P1/P2 art fixes.
+
 ## Suggested Agent Test Script
 
 1. Start production mode:
@@ -254,6 +272,24 @@ Acceptance criteria:
 - Stable 60fps target on a normal laptop for the active table scene.
 - Mobile remains readable and playable.
 - The game feels coherent before, during, and after each turn.
+
+### Phase E: Blender Character Production
+
+Deliverables:
+
+- `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md` as the art-director agent contract.
+- Blender MCP connected to the workspace.
+- Semi-realistic 3D models for the default 6-character roster.
+- `.blend` source files, `.glb` runtime exports, portrait crops, and front/side/three-quarter turnarounds.
+- Per-character art review reports under `artifacts/art/`.
+
+Acceptance criteria:
+
+- Every character in `apps/client/src/lib/characters.ts` has a matching exported model and portrait.
+- Characters read clearly at table distance, seat-card size, and mobile avatar size.
+- Models use distinct silhouettes, material palettes, and role props.
+- LOD0 stays under 35k triangles and LOD1 under 12k triangles unless explicitly approved.
+- No model uses an unauthorized recognizable real-person likeness.
 
 ## README Inspiration Notes
 

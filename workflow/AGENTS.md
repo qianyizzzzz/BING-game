@@ -47,3 +47,19 @@ figma-desktop -> http://127.0.0.1:3845/mcp
 ```
 
 Figma Desktop must be open with Desktop MCP server enabled.
+
+## Blender MCP
+
+Use Blender MCP for character modeling tasks only when the tool is actually available in the session.
+
+Required art-director workflow:
+
+1. Read `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`.
+2. Read `workflow/docs/01-visual-bible.md`.
+3. Read `apps/client/src/lib/characters.ts`.
+4. For each character, create a role brief before touching Blender.
+5. Use Blender MCP to create or edit the model, materials, lights, cameras, and exports.
+6. Render front, side, three-quarter, table-scale, and portrait-crop QA images.
+7. Export `.blend`, `.glb`, portrait, turnaround images, and an `artifacts/art/` review report.
+
+If Blender MCP is unavailable, report the missing tool and continue only with briefs, asset lists, Blender Python drafts, and acceptance criteria. Do not claim that modeling was completed.

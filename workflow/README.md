@@ -36,6 +36,7 @@ workflow/
 - `docs/01-visual-bible.md`：定义视觉、UI、颜色、字体、动效和禁忌风格。
 - `docs/02-roadmap.md`：从原型、垂直切片、Demo 到 Steam 上架的路线图。
 - `docs/03-agent-rules.md`：规定 Codex、Claude、Figma 的分工和协作边界。
+- `../docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`：美术总监 Agent 使用 Blender MCP 建模、优化和验收角色资产的规范。
 - `docs/04-steam-checklist.md`：记录面向 Steam 上架需要补齐的事项。
 - `tasks/TASK-template.md`：所有功能任务都从这个模板复制。
 - `reviews/REVIEW-template.md`：Claude 或人工审查时使用。
@@ -112,6 +113,18 @@ Figma 任务至少应该包含：
 - 小屏幕布局
 - 组件命名
 
+### Blender / 美术总监 Agent
+
+负责角色 3D 建模、材质优化、turnaround、头像裁切和资产验收。目标是把默认角色和玩家形象从 placeholder 推进到接近真人比例的半写实游戏角色。
+
+适合给美术总监 Agent 的任务：
+
+```text
+请读取 docs/SUBAGENT_ART_DIRECTOR_BLENDER.md 和 workflow/docs/01-visual-bible.md，
+使用 Blender MCP 为 ember-guardian 建立半写实 3D 角色模型。
+完成后导出 .blend、.glb、头像、三视图，并生成 artifacts/art/ember-guardian-review.md。
+```
+
 ## Figma MCP 使用方式
 
 本机已经建议使用本地 Figma MCP：
@@ -126,6 +139,17 @@ figma-desktop -> http://127.0.0.1:3845/mcp
 2. 已进入 Dev Mode。
 3. Desktop MCP server 已启用。
 4. Codex 或 Claude 使用新会话加载 MCP。
+
+## Blender MCP 使用方式
+
+Blender 建模任务需要先确认本机会话里已经暴露 Blender MCP。当前项目约定：
+
+1. Blender 已安装并可启动。
+2. Blender MCP 插件或服务器已启用。
+3. Codex 会话能看到 Blender MCP 工具。
+4. 建模前读取 `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`。
+
+如果 MCP 不可用，Agent 只能输出 brief、资产清单、Blender Python 草案和验收标准，不能声称完成建模。
 
 常用请求：
 
