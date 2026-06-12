@@ -48,6 +48,8 @@ const runNotes: string[] = [];
 const visualChecks: string[] = [];
 const visualIssues: string[] = [];
 const screenshots: string[] = [];
+const pageNames = new WeakMap<Page, string>();
+const glbResponses = new Map<string, Set<string>>();
 let roomId = "";
 let serverProcess: ChildProcess | undefined;
 let fatalError: unknown;
@@ -150,6 +152,8 @@ async function newAgentPage(browser: Browser, name: string): Promise<Page> {
     isMobile: name !== "competitor"
   });
   const page = await context.newPage();
+  pageNames.set(page, name);
+  glbResponses.set(name, new Set());
   page.on("console", (message) => {
     if (message.type() === "error") {
       consoleErrors.push(`[${name}] ${message.text()}`);
@@ -157,6 +161,14 @@ async function newAgentPage(browser: Browser, name: string): Promise<Page> {
   });
   page.on("pageerror", (error) => {
     consoleErrors.push(`[${name}] ${error.message}`);
+  });
+  page.on("response", (response) => {
+    const url = response.url();
+    if (!url.endsWith(".glb") || response.status() >= 400) {
+      return;
+    }
+    const modelName = path.basename(new URL(url).pathname);
+    glbResponses.get(name)?.add(modelName);
   });
   return page;
 }
@@ -500,7 +512,25 @@ async function waitForInputValue(locator: Locator, expected: string, timeoutMs: 
 }
 
 async function screenshot(page: Page, fileName: string): Promise<void> {
-  await page.screenshot({ path: path.join(runDir, fileName), fullPage: false });
+  const screenshotPath = path.join(runDir, fileName);
+  try {
+    await page.screenshot({
+      path: screenshotPath,
+      fullPage: false,
+      timeout: 60_000,
+      animations: "disabled",
+      caret: "hide"
+    });
+  } catch {
+    await page.waitForTimeout(750);
+    await page.screenshot({
+      path: screenshotPath,
+      fullPage: false,
+      timeout: 90_000,
+      animations: "disabled",
+      caret: "hide"
+    });
+  }
   if (!screenshots.includes(fileName)) {
     screenshots.push(fileName);
   }
@@ -543,6 +573,17 @@ async function collectVisualHealth(page: Page, agent: AgentLog, label: string): 
     agent.observations.push(message);
   } else {
     const message = `${label}: 3D 牌桌 canvas 异常（${canvasHealth.message}）。`;
+    visualIssues.push(message);
+    agent.issues.push(message);
+  }
+
+  const modelHealth = await inspectCharacterModelLoads(page);
+  if (modelHealth.ok) {
+    const message = `${label}: 3D 牌桌已加载角色 GLB（${modelHealth.message}）。`;
+    visualChecks.push(message);
+    agent.observations.push(message);
+  } else {
+    const message = `${label}: 3D 牌桌未检测到角色 GLB 加载（${modelHealth.message}）。`;
     visualIssues.push(message);
     agent.issues.push(message);
   }
@@ -613,6 +654,24 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     visualIssues.push(message);
     agent.issues.push(message);
   }
+}
+
+async function inspectCharacterModelLoads(page: Page): Promise<{ ok: boolean; message: string }> {
+  const pageName = pageNames.get(page);
+  const models = pageName ? glbResponses.get(pageName) : undefined;
+  const startedAt = Date.now();
+  while (models && models.size === 0 && Date.now() - startedAt < 10_000) {
+    await page.waitForTimeout(250);
+  }
+
+  if (!models || models.size === 0) {
+    return { ok: false, message: "10s 内没有成功的 .glb 响应" };
+  }
+
+  return {
+    ok: true,
+    message: Array.from(models).sort().join(", ")
+  };
 }
 
 async function inspectCanvas(page: Page): Promise<{ ok: boolean; message: string }> {

@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { PlayerId, PublicGameState } from "@bing/shared";
+import type { CharacterProfile } from "../lib/characters";
+import { getCharacterByAvatarUrl, getCharacterBySeatIndex } from "../lib/characters";
 import { SeatPosition } from "./PlayerSeat";
 
 interface TableScene3DProps {
@@ -17,6 +20,8 @@ const CHARACTER_COLORS = [
   "#3aa7d8",
   "#c9a24f"
 ];
+const MODEL_TARGET_HEIGHT = 0.92;
+const MODEL_TABLETOP_Y = 0.54;
 
 type OrganicSection = {
   offsetX?: number;
@@ -37,7 +42,7 @@ export function TableScene3D({
     () =>
       players
         .map((player) => (
-          `${player.id}:${player.status}:${player.id === viewerPlayerId ? "self" : "other"}`
+          `${player.id}:${player.status}:${player.avatarUrl ?? ""}:${player.id === viewerPlayerId ? "self" : "other"}`
         ))
         .join("|"),
     [players, viewerPlayerId]
@@ -96,14 +101,18 @@ export function TableScene3D({
     const firstPersonRig = createFirstPersonRig();
     camera.add(firstPersonRig);
 
+    const loader = new GLTFLoader();
+    let disposed = false;
+
     players.forEach((player, index) => {
       const seat = seatPositions[player.id];
       if (!seat || player.id === viewerPlayerId) {
         return;
       }
 
+      const profile = getCharacterByAvatarUrl(player.avatarUrl) ?? getCharacterBySeatIndex(index);
       const character = createCharacterMesh({
-        color: CHARACTER_COLORS[index % CHARACTER_COLORS.length]!,
+        color: profile.accent ?? CHARACTER_COLORS[index % CHARACTER_COLORS.length]!,
         isDead: player.status === "dead",
         name: player.name
       });
@@ -112,6 +121,23 @@ export function TableScene3D({
       character.position.set(position.x + inward.x * 0.86, 0.05, position.z + inward.z * 0.86);
       character.lookAt(0, 0.46, 0);
       scene.add(character);
+
+      loadCharacterAsset(loader, profile, player.status === "dead", player.name)
+        .then((asset) => {
+          if (disposed) {
+            disposeObjectTree(asset);
+            return;
+          }
+          asset.position.copy(character.position);
+          asset.position.y = MODEL_TABLETOP_Y;
+          asset.quaternion.copy(character.quaternion);
+          scene.remove(character);
+          disposeObjectTree(character);
+          scene.add(asset);
+        })
+        .catch(() => {
+          // Keep the procedural fallback when a public GLB cannot be loaded.
+        });
     });
 
     const startedAt = performance.now();
@@ -185,6 +211,7 @@ export function TableScene3D({
     render();
 
     return () => {
+      disposed = true;
       observer.disconnect();
       window.cancelAnimationFrame(frameId);
       container.removeChild(renderer.domElement);
@@ -1816,18 +1843,110 @@ function withAlpha(hex: string, alpha: number): string {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
+async function loadCharacterAsset(
+  loader: GLTFLoader,
+  profile: CharacterProfile,
+  isDead: boolean,
+  name: string
+): Promise<THREE.Group> {
+  const gltf = await loader.loadAsync(profile.lod1ModelUrl);
+  return prepareLoadedCharacter(gltf.scene.clone(true), profile, isDead, name);
+}
+
+function prepareLoadedCharacter(
+  model: THREE.Object3D,
+  profile: CharacterProfile,
+  isDead: boolean,
+  name: string
+): THREE.Group {
+  const wrapper = new THREE.Group();
+  wrapper.name = `${name} ${profile.id} asset`;
+  wrapper.userData.kind = "character";
+  wrapper.userData.phase = stablePhase(`${name}:${profile.id}`);
+  wrapper.add(model);
+
+  model.traverse((object) => {
+    const mesh = object as THREE.Mesh;
+    if (!mesh.isMesh) {
+      return;
+    }
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    if (Array.isArray(mesh.material)) {
+      mesh.material = mesh.material.map((material) => cloneLoadedMaterial(material, isDead));
+    } else {
+      mesh.material = cloneLoadedMaterial(mesh.material, isDead);
+    }
+  });
+
+  const box = new THREE.Box3().setFromObject(model);
+  const size = new THREE.Vector3();
+  box.getSize(size);
+  const scale = MODEL_TARGET_HEIGHT / Math.max(size.y, 0.001);
+  model.scale.multiplyScalar(scale);
+
+  const normalizedBox = new THREE.Box3().setFromObject(model);
+  const center = new THREE.Vector3();
+  normalizedBox.getCenter(center);
+  model.position.x -= center.x;
+  model.position.y -= normalizedBox.min.y;
+  model.position.z -= center.z;
+  return wrapper;
+}
+
+function cloneLoadedMaterial(material: THREE.Material, isDead: boolean): THREE.Material {
+  const cloned = material.clone();
+  if (!isDead) {
+    return cloned;
+  }
+
+  const deadTint = new THREE.Color("#8b96a8");
+  const maybeColored = cloned as THREE.Material & {
+    color?: THREE.Color;
+    emissive?: THREE.Color;
+  };
+  maybeColored.color?.lerp(deadTint, 0.58);
+  maybeColored.emissive?.multiplyScalar(0.2);
+  return cloned;
+}
+
+function disposeObjectTree(root: THREE.Object3D): void {
+  root.traverse((object) => {
+    const mesh = object as THREE.Mesh;
+    mesh.geometry?.dispose();
+    const material = mesh.material;
+    if (Array.isArray(material)) {
+      material.forEach(disposeMaterial);
+    } else {
+      disposeMaterial(material);
+    }
+  });
+}
+
 function disposeMaterial(material: THREE.Material | undefined): void {
   if (!material) {
     return;
   }
   const texturedMaterial = material as THREE.Material & {
     bumpMap?: THREE.Texture | null;
+    emissiveMap?: THREE.Texture | null;
     map?: THREE.Texture | null;
+    metalnessMap?: THREE.Texture | null;
+    normalMap?: THREE.Texture | null;
+    roughnessMap?: THREE.Texture | null;
   };
-  texturedMaterial.map?.dispose();
-  if (texturedMaterial.bumpMap && texturedMaterial.bumpMap !== texturedMaterial.map) {
-    texturedMaterial.bumpMap.dispose();
-  }
+  [
+    texturedMaterial.map,
+    texturedMaterial.bumpMap,
+    texturedMaterial.normalMap,
+    texturedMaterial.roughnessMap,
+    texturedMaterial.metalnessMap,
+    texturedMaterial.emissiveMap
+  ].forEach((texture, index, textures) => {
+    if (texture && textures.indexOf(texture) === index) {
+      texture.dispose();
+    }
+  });
   material.dispose();
 }
 
