@@ -1,6 +1,11 @@
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Compass, Crown, Gauge, RadioTower, UsersRound } from "lucide-react";
-import { PlayerId, PublicGameState } from "@bing/shared";
+import {
+  ACTION_PROMPT_SECONDS,
+  ACTION_WINDOW_SECONDS,
+  PlayerId,
+  PublicGameState
+} from "@bing/shared";
 import { buildSeatFeedbackMap, buildTableEffects } from "../lib/tableFeedback";
 import { PlayerSeat, SeatPosition } from "./PlayerSeat";
 import { SkillEffectLayer } from "./SkillEffectLayer";
@@ -41,7 +46,40 @@ export function PokerTableGame({
   const seatedPlayers = state.players.filter((player) => player.kind !== "spectator");
   const spectators = state.players.filter((player) => player.kind === "spectator");
   const owner = state.players.find((player) => player.id === state.ownerId);
+  const viewer = state.players.find((player) => player.id === viewerPlayerId);
   const hasImpactEffect = effects.some((effect) => effect.type === "damage");
+  const [clockNow, setClockNow] = useState(() => Date.now());
+  const activeDeadline =
+    state.phase === "action_window"
+      ? state.actionWindowDeadlineAt
+      : state.phase === "collecting_actions"
+        ? state.turnDeadlineAt
+        : undefined;
+  const deadlineSeconds =
+    activeDeadline ? Math.max(0, Math.ceil((activeDeadline - clockNow) / 1000)) : null;
+  const deadlineTotalSeconds =
+    state.phase === "action_window"
+      ? state.actionWindowMode === "prompt"
+        ? ACTION_PROMPT_SECONDS
+        : ACTION_WINDOW_SECONDS
+      : Math.max(1, state.config.turnTimeLimitSeconds);
+  const deadlineProgress =
+    deadlineSeconds === null
+      ? 0
+      : Math.max(0, Math.min(100, (deadlineSeconds / deadlineTotalSeconds) * 100));
+  const viewerNeedsAction =
+    Boolean(viewer) &&
+    viewer?.kind !== "spectator" &&
+    viewer?.status === "alive" &&
+    ((state.phase === "collecting_actions" &&
+      !state.pendingActionPlayerIds.includes(viewer.id)) ||
+      (state.phase === "action_window" &&
+        !state.actionWindowPassPlayerIds.includes(viewer.id)));
+  const progressLabel =
+    state.phase === "action_window"
+      ? `${state.actionWindowPassPlayerIds.length}/${activePlayers.length} 已结束`
+      : `${state.pendingActionPlayerIds.length}/${activePlayers.length} 已出招`;
+  const tablePrompt = getTablePrompt(state, Boolean(viewerNeedsAction));
   const depthMeters = 720 + state.roundNumber * 180 + state.roundTurnNumber * 14;
   const layerLabel = `LAYER ${String(Math.min(9, Math.max(1, state.roundNumber))).padStart(2, "0")}`;
   const signalLabel = effects.length > 0
@@ -51,6 +89,15 @@ export function PokerTableGame({
       : state.phase === "action_window"
         ? "RIFT"
         : "CALM";
+
+  useEffect(() => {
+    if (!activeDeadline) {
+      return;
+    }
+
+    const timer = window.setInterval(() => setClockNow(Date.now()), 250);
+    return () => window.clearInterval(timer);
+  }, [activeDeadline]);
 
   return (
     <section className="poker-table-shell">
@@ -108,6 +155,38 @@ export function PokerTableGame({
           </div>
         </div>
 
+        <div className="battle-status-hud" aria-live="polite">
+          <div className="battle-status-main">
+            <span>{phaseLabel(state)}</span>
+            <strong>
+              第 {state.roundNumber} 轮 · 第 {state.roundTurnNumber} 回合
+            </strong>
+          </div>
+          <div className="battle-status-grid">
+            <div>
+              <span>桌面进度</span>
+              <strong>{progressLabel}</strong>
+            </div>
+            <div>
+              <span>倒计时</span>
+              <strong>{deadlineSeconds === null ? "--" : `${deadlineSeconds}s`}</strong>
+            </div>
+          </div>
+          <div
+            className={[
+              "battle-status-prompt",
+              viewerNeedsAction ? "battle-status-prompt-active" : ""
+            ].join(" ")}
+          >
+            {tablePrompt}
+          </div>
+          {deadlineSeconds !== null ? (
+            <div className="battle-status-timer">
+              <span style={{ width: `${deadlineProgress}%` }} />
+            </div>
+          ) : null}
+        </div>
+
         <SkillEffectLayer effects={effects} seatPositions={seatPositions} />
         {actionPanel ? <div className="table-action-dock">{actionPanel}</div> : null}
 
@@ -155,6 +234,44 @@ export function PokerTableGame({
       </div>
     </section>
   );
+}
+
+function phaseLabel(state: PublicGameState): string {
+  if (state.phase === "lobby") {
+    return "房间准备";
+  }
+
+  if (state.phase === "finished") {
+    return "对局结束";
+  }
+
+  if (state.phase === "action_window") {
+    return state.activeTimingPhase === "revival_action" ? "复活窗口" : "阶段行动";
+  }
+
+  return "同时行动";
+}
+
+function getTablePrompt(state: PublicGameState, viewerNeedsAction: boolean): string {
+  if (state.phase === "lobby") {
+    return "等待房主开始，玩家可以调整角色和技能。";
+  }
+
+  if (state.phase === "finished") {
+    return "对局已结束，可以查看复盘报告。";
+  }
+
+  if (viewerNeedsAction) {
+    return state.phase === "action_window"
+      ? "轮到你处理阶段行动。"
+      : "请选择本回合行动并提交。";
+  }
+
+  if (state.phase === "action_window") {
+    return "你已结束阶段行动，等待其他玩家。";
+  }
+
+  return "你已提交，等待所有玩家亮招。";
 }
 
 function orderPlayersForViewer(
