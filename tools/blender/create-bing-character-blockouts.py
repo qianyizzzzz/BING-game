@@ -12,6 +12,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ASSET_ROOT = PROJECT_ROOT / "apps" / "client" / "public" / "assets" / "characters"
 ARTIFACT_ROOT = PROJECT_ROOT / "artifacts" / "art"
 DOCS_ROOT = PROJECT_ROOT / "docs"
+LOD0_FACE_BUDGET = 35_000
+LOD1_FACE_BUDGET = 12_000
+LOD1_DECIMATE_RATIO = 0.08
 
 
 @dataclass(frozen=True)
@@ -108,13 +111,14 @@ def main() -> None:
     ARTIFACT_ROOT.mkdir(parents=True, exist_ok=True)
     (ASSET_ROOT / "source").mkdir(parents=True, exist_ok=True)
 
+    lod1_metrics: dict[str, tuple[int, int]] = {}
     for spec in CHARACTERS:
-        export_character(spec, roots)
+        lod1_metrics[spec.character_id] = export_character(spec, roots)
         render_character_views(spec, roots)
 
     scene_path = ASSET_ROOT / "source" / "bing-character-blockouts.blend"
     bpy.ops.wm.save_as_mainfile(filepath=str(scene_path))
-    write_report(scene_path, roots)
+    write_report(scene_path, roots, lod1_metrics)
     print(f"BING_CHARACTER_BLOCKOUTS_DONE={scene_path}")
 
 
@@ -503,7 +507,7 @@ def add_camera_and_lights() -> None:
     bpy.context.scene.camera = camera
 
 
-def export_character(spec: CharacterSpec, roots: dict[str, bpy.types.Object]) -> None:
+def export_character(spec: CharacterSpec, roots: dict[str, bpy.types.Object]) -> tuple[int, int]:
     root = roots[spec.character_id]
     original_location = root.location.copy()
     original_rotation = root.rotation_euler.copy()
@@ -523,10 +527,60 @@ def export_character(spec: CharacterSpec, roots: dict[str, bpy.types.Object]) ->
         use_selection=True,
         export_apply=True,
     )
+    lod1_metrics = export_lod1_character(spec, root, out_dir)
 
     root.location = original_location
     root.rotation_euler = original_rotation
     set_all_visible(roots)
+    return lod1_metrics
+
+
+def export_lod1_character(spec: CharacterSpec, root: bpy.types.Object, out_dir: Path) -> tuple[int, int]:
+    lod_collection = bpy.data.collections.new(f"BING_{spec.character_id}_lod1_export")
+    bpy.context.scene.collection.children.link(lod_collection)
+    lod_root = bpy.data.objects.new(f"{spec.character_id}_lod1_root", None)
+    lod_collection.objects.link(lod_root)
+
+    duplicates: list[bpy.types.Object] = [lod_root]
+    for obj in character_objects(root):
+        if obj == root or obj.type != "MESH":
+            continue
+        duplicate = obj.copy()
+        duplicate.data = obj.data.copy()
+        duplicate.name = f"{obj.name}_lod1"
+        duplicate.parent = lod_root
+        duplicate.matrix_world = obj.matrix_world.copy()
+        lod_collection.objects.link(duplicate)
+        duplicates.append(duplicate)
+        if len(duplicate.data.polygons) > 12:
+            decimate = duplicate.modifiers.new(name=f"{duplicate.name}_decimate", type="DECIMATE")
+            decimate.ratio = LOD1_DECIMATE_RATIO
+            if hasattr(decimate, "use_collapse_triangulate"):
+                decimate.use_collapse_triangulate = True
+            bpy.ops.object.select_all(action="DESELECT")
+            duplicate.select_set(True)
+            bpy.context.view_layer.objects.active = duplicate
+            bpy.ops.object.modifier_apply(modifier=decimate.name)
+
+    vertices, faces = mesh_metrics(lod_root)
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in duplicates:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = lod_root
+    bpy.ops.export_scene.gltf(
+        filepath=str(out_dir / f"{spec.character_id}-lod1.glb"),
+        export_format="GLB",
+        use_selection=True,
+        export_apply=True,
+    )
+
+    for obj in list(duplicates):
+        mesh = obj.data if obj.type == "MESH" else None
+        bpy.data.objects.remove(obj, do_unlink=True)
+        if mesh and mesh.users == 0:
+            bpy.data.meshes.remove(mesh)
+    bpy.data.collections.remove(lod_collection)
+    return vertices, faces
 
 
 def render_character_views(spec: CharacterSpec, roots: dict[str, bpy.types.Object]) -> None:
@@ -539,7 +593,8 @@ def render_character_views(spec: CharacterSpec, roots: dict[str, bpy.types.Objec
     root.location = (0, 0, 0)
 
     views = [
-        ("portrait", 0, 58, (0, -4.1, 1.26), (0, 0, 0.97)),
+        ("portrait", 0, 86, (0, -2.25, 1.54), (0, 0, 1.49)),
+        ("mobile-avatar", 0, 82, (0, -2.55, 1.52), (0, 0, 1.48)),
         ("turnaround-front", 0, 58, (0, -4.25, 1.28), (0, 0, 0.96)),
         ("turnaround-side", math.radians(90), 58, (0, -4.25, 1.28), (0, 0, 0.96)),
         ("turnaround-three-quarter", math.radians(-38), 58, (0, -4.25, 1.28), (0, 0, 0.96)),
@@ -559,21 +614,25 @@ def render_character_views(spec: CharacterSpec, roots: dict[str, bpy.types.Objec
     set_all_visible(roots)
 
 
-def write_report(scene_path: Path, roots: dict[str, bpy.types.Object]) -> None:
+def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metrics: dict[str, tuple[int, int]]) -> None:
     rows = []
     review_rows = []
     for spec in CHARACTERS:
         out_dir = ASSET_ROOT / spec.character_id
         vertex_count, face_count = mesh_metrics(roots[spec.character_id])
-        budget_state = "通过" if face_count <= 35000 else "超出"
+        lod1_vertices, lod1_faces = lod1_metrics[spec.character_id]
+        lod0_budget_state = "通过" if face_count <= LOD0_FACE_BUDGET else "超出"
+        lod1_budget_state = "通过" if lod1_faces <= LOD1_FACE_BUDGET else "超出"
         rows.append(
             f"| `{spec.character_id}` | {spec.name} | {spec.role} | {spec.silhouette} | "
             f"`{repo_path(out_dir)}/{spec.character_id}.glb` | "
+            f"`{repo_path(out_dir)}/{spec.character_id}-lod1.glb` | "
             f"`{repo_path(out_dir)}/portrait.png` |"
         )
         review_rows.append(
-            f"| `{spec.character_id}` | {spec.name} | {vertex_count} | {face_count} | {budget_state} | "
-            f"`{repo_path(out_dir)}/table-scale.png` |"
+            f"| `{spec.character_id}` | {spec.name} | {vertex_count} | {face_count} | {lod0_budget_state} | "
+            f"{lod1_vertices} | {lod1_faces} | {lod1_budget_state} | "
+            f"`{repo_path(out_dir)}/mobile-avatar.png` | `{repo_path(out_dir)}/table-scale.png` |"
         )
 
     report = f"""# BING 角色 Blender 初模报告
@@ -585,11 +644,11 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object]) -> None:
 ## 输出
 
 - Blender 源场景：`{repo_path(scene_path)}`
-- 每个角色导出 `.glb`
-- 每个角色导出 `portrait.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`、`table-scale.png`
+- 每个角色导出 LOD0 `.glb` 和 LOD1 `-lod1.glb`
+- 每个角色导出 `portrait.png`、`mobile-avatar.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`、`table-scale.png`
 
-| id | 中文名 | 定位 | 剪影方向 | GLB | 头像 |
-| --- | --- | --- | --- | --- | --- |
+| id | 中文名 | 定位 | 剪影方向 | LOD0 GLB | LOD1 GLB | 头像 |
+| --- | --- | --- | --- | --- | --- | --- |
 {chr(10).join(rows)}
 
 ## 美术判断
@@ -599,7 +658,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object]) -> None:
 ## P0
 
 - 继续细化脸部、手部、服装褶皱和材质粗糙度，否则仍会显得偏原型。
-- 为每个角色补 LOD1 和移动端头像可读性截图。
+- 用移动端头像裁切检查脸部、职业道具和剪影是否还可读。
 
 ## P1
 
@@ -621,21 +680,20 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object]) -> None:
 ## 当前产物
 
 - 源场景：`{repo_path(scene_path)}`
-- 每角色：`.glb`、头像、正面、侧面、3/4、桌面距离 QA 图
-- 预算：当前 LOD0 目标不超过 35k faces；LOD1 尚未生成
+- 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
+- 预算：LOD0 不超过 {LOD0_FACE_BUDGET} faces；LOD1 不超过 {LOD1_FACE_BUDGET} faces
 
-| id | 中文名 | vertices | faces | LOD0 预算 | 桌面距离 QA |
-| --- | --- | ---: | ---: | --- | --- |
+| id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
+| --- | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- |
 {chr(10).join(review_rows)}
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、脸部体块、发型/头饰、服装层次、职业道具、桌面距离渲染。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、脸部体块、发型/头饰、服装层次、职业道具、LOD1、移动端头像和桌面距离渲染。
 - 仍不足：还没有真实高模雕刻、PBR 贴图、布料法线、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
 
 ## 下一步 P0
 
-- 为每个角色生成 LOD1，并把移动端头像裁切加入验收。
 - 替换程序几何脸为雕刻面部或外部授权模型基底，减少“几何拼装感”。
 - 为皮肤、布料、皮革、金属补法线/粗糙度贴图，而不是只靠纯色材质。
 
