@@ -146,17 +146,17 @@ def configure_scene() -> None:
 
 def build_materials() -> dict[str, bpy.types.Material]:
     return {
-        "skin": mat("skin_warm_semireal", "#d8a27f", roughness=0.72),
-        "skin_shadow": mat("skin_shadow", "#8f5d48", roughness=0.8),
-        "skin_highlight": mat("skin_soft_highlight", "#f0c2a4", roughness=0.68),
-        "cloth_dark": mat("deep_abyss_cloth", "#171b18", roughness=0.88),
-        "cloth_thread": mat("raised_cloth_thread", "#f0e4c8", roughness=0.96),
-        "leather": mat("worn_dark_leather", "#342017", roughness=0.84),
-        "linen": mat("aged_linen", "#d8c8aa", roughness=0.9),
-        "hair": mat("dark_hair", "#17100d", roughness=0.82),
-        "eye": mat("soft_eye_glass", "#f4efe2", roughness=0.28),
-        "black": mat("ink_line", "#0b0d0d", roughness=0.7),
-        "lip": mat("muted_lip", "#8a4a40", roughness=0.74),
+        "skin": mat("skin_warm_semireal", "#d8a27f", roughness=0.72, detail="skin"),
+        "skin_shadow": mat("skin_shadow", "#8f5d48", roughness=0.8, detail="skin"),
+        "skin_highlight": mat("skin_soft_highlight", "#f0c2a4", roughness=0.68, detail="skin"),
+        "cloth_dark": mat("deep_abyss_cloth", "#171b18", roughness=0.88, detail="cloth"),
+        "cloth_thread": mat("raised_cloth_thread", "#f0e4c8", roughness=0.96, detail="cloth"),
+        "leather": mat("worn_dark_leather", "#342017", roughness=0.84, detail="leather"),
+        "linen": mat("aged_linen", "#d8c8aa", roughness=0.9, detail="cloth"),
+        "hair": mat("dark_hair", "#17100d", roughness=0.82, detail="hair"),
+        "eye": mat("soft_eye_glass", "#f4efe2", roughness=0.28, detail="polished"),
+        "black": mat("ink_line", "#0b0d0d", roughness=0.7, detail="matte"),
+        "lip": mat("muted_lip", "#8a4a40", roughness=0.74, detail="skin"),
     }
 
 
@@ -230,10 +230,10 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     skin_shadow = bpy.data.materials["skin_shadow"]
     cloth_dark = bpy.data.materials["deep_abyss_cloth"]
     leather = bpy.data.materials["worn_dark_leather"]
-    main = mat(f"{spec.character_id}_main_cloth", spec.main, roughness=0.74)
-    secondary = mat(f"{spec.character_id}_secondary_cloth", spec.secondary, roughness=0.82)
-    metal = mat(f"{spec.character_id}_aged_metal", spec.metal, roughness=0.38, metallic=0.45)
-    emissive = mat(f"{spec.character_id}_relic_glow", spec.main, roughness=0.22, emission=0.65)
+    main = mat(f"{spec.character_id}_main_cloth", spec.main, roughness=0.74, detail="cloth")
+    secondary = mat(f"{spec.character_id}_secondary_cloth", spec.secondary, roughness=0.82, detail="cloth")
+    metal = mat(f"{spec.character_id}_aged_metal", spec.metal, roughness=0.38, metallic=0.45, detail="metal")
+    emissive = mat(f"{spec.character_id}_relic_glow", spec.main, roughness=0.22, emission=0.65, detail="emissive")
 
     profile = character_profile(spec)
 
@@ -681,6 +681,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 - 源场景：`{repo_path(scene_path)}`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
+- 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump 和 roughness variation 节点
 - 预算：LOD0 不超过 {LOD0_FACE_BUDGET} faces；LOD1 不超过 {LOD1_FACE_BUDGET} faces
 
 | id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
@@ -689,13 +690,13 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、脸部体块、发型/头饰、服装层次、职业道具、LOD1、移动端头像和桌面距离渲染。
-- 仍不足：还没有真实高模雕刻、PBR 贴图、布料法线、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、脸部体块、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染和程序化 PBR 材质细节。
+- 仍不足：还没有真实高模雕刻、烘焙贴图、绑定和角色动作；真人质感仍需外部雕刻/贴图阶段继续推进。
 
 ## 下一步 P0
 
 - 替换程序几何脸为雕刻面部或外部授权模型基底，减少“几何拼装感”。
-- 为皮肤、布料、皮革、金属补法线/粗糙度贴图，而不是只靠纯色材质。
+- 为皮肤、布料、皮革、金属补烘焙法线/粗糙度贴图，而不是只靠程序化节点。
 
 ## 下一步 P1
 
@@ -807,9 +808,17 @@ def link_to_collection(obj: bpy.types.Object, collection: bpy.types.Collection) 
             current.objects.unlink(obj)
 
 
-def mat(name: str, hex_color: str, roughness: float, metallic: float = 0.0, emission: float = 0.0) -> bpy.types.Material:
+def mat(
+    name: str,
+    hex_color: str,
+    roughness: float,
+    metallic: float = 0.0,
+    emission: float = 0.0,
+    detail: str = "matte",
+) -> bpy.types.Material:
     material = bpy.data.materials.new(name)
     material.use_nodes = True
+    material["bing_material_detail"] = detail
     bsdf = material.node_tree.nodes.get("Principled BSDF")
     color = hex_to_rgba(hex_color)
     if bsdf:
@@ -819,7 +828,50 @@ def mat(name: str, hex_color: str, roughness: float, metallic: float = 0.0, emis
         if emission > 0:
             bsdf.inputs["Emission Color"].default_value = color
             bsdf.inputs["Emission Strength"].default_value = emission
+        add_material_microdetail(material, bsdf, detail, roughness)
     return material
+
+
+def add_material_microdetail(material: bpy.types.Material, bsdf: bpy.types.Node, detail: str, roughness: float) -> None:
+    if detail in {"matte", "emissive"}:
+        return
+
+    settings = {
+        "skin": {"scale": 92.0, "detail": 13.0, "roughness": 0.62, "strength": 0.018, "distance": 0.024},
+        "cloth": {"scale": 34.0, "detail": 9.0, "roughness": 0.72, "strength": 0.038, "distance": 0.035},
+        "leather": {"scale": 58.0, "detail": 11.0, "roughness": 0.78, "strength": 0.032, "distance": 0.028},
+        "metal": {"scale": 118.0, "detail": 16.0, "roughness": 0.55, "strength": 0.014, "distance": 0.018},
+        "hair": {"scale": 44.0, "detail": 8.0, "roughness": 0.66, "strength": 0.025, "distance": 0.022},
+        "polished": {"scale": 24.0, "detail": 6.0, "roughness": 0.4, "strength": 0.006, "distance": 0.01},
+    }.get(detail)
+    if not settings:
+        return
+
+    nodes = material.node_tree.nodes
+    links = material.node_tree.links
+    noise = nodes.new(type="ShaderNodeTexNoise")
+    noise.name = f"{material.name}_micro_noise"
+    noise.inputs["Scale"].default_value = settings["scale"]
+    noise.inputs["Detail"].default_value = settings["detail"]
+    noise.inputs["Roughness"].default_value = settings["roughness"]
+
+    bump = nodes.new(type="ShaderNodeBump")
+    bump.name = f"{material.name}_micro_bump"
+    bump.inputs["Strength"].default_value = settings["strength"]
+    bump.inputs["Distance"].default_value = settings["distance"]
+    links.new(noise.outputs["Fac"], bump.inputs["Height"])
+    if "Normal" in bsdf.inputs:
+        links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
+
+    ramp = nodes.new(type="ShaderNodeValToRGB")
+    ramp.name = f"{material.name}_roughness_variation"
+    ramp.color_ramp.elements[0].position = 0.22
+    ramp.color_ramp.elements[0].color = (max(roughness - 0.18, 0.12),) * 3 + (1.0,)
+    ramp.color_ramp.elements[1].position = 1.0
+    ramp.color_ramp.elements[1].color = (min(roughness + 0.08, 1.0),) * 3 + (1.0,)
+    links.new(noise.outputs["Fac"], ramp.inputs["Fac"])
+    if "Roughness" in bsdf.inputs:
+        links.new(ramp.outputs["Color"], bsdf.inputs["Roughness"])
 
 
 def hex_to_rgba(value: str) -> tuple[float, float, float, float]:
