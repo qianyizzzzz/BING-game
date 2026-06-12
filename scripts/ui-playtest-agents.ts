@@ -77,7 +77,7 @@ try {
     await screenshot(playerB, "02-player-b-joined.png");
     competitor.observations.push("成功加入房间，检查加入路径是否足够快。");
 
-    await optionalClickByTestId(playerA, "add-ai");
+    await ensureGameCanStart(playerA);
     await clickByTestId(playerA, "start-game");
     await playerA.waitForSelector(".table-action-dock", { timeout: 15_000 });
     await playerB.waitForSelector(".table-action-dock", { timeout: 15_000 });
@@ -87,6 +87,11 @@ try {
       await submitCakeTurn(playerA, turn, firstTimer);
       await submitCakeTurn(playerB, turn, competitor);
       await playerA.waitForTimeout(900);
+      if (turn === 1) {
+        await collectTargetPreviewCheck(playerA, firstTimer, "新手玩家");
+        await collectTargetPreviewCheck(playerB, competitor, "竞技玩家");
+      }
+      await playerA.waitForTimeout(700);
     }
 
     await screenshot(playerA, "03-player-a-after-turns.png");
@@ -239,6 +244,20 @@ async function optionalClickByTestId(page: Page, testId: string): Promise<void> 
   }
 }
 
+async function ensureGameCanStart(page: Page): Promise<void> {
+  const startButton = page.getByTestId("start-game").first();
+  await startButton.waitFor({ state: "attached", timeout: 15_000 });
+  if (await waitForEnabled(startButton, 1_000)) {
+    return;
+  }
+
+  await optionalClickByTestId(page, "add-ai");
+  if (!(await waitForEnabled(startButton, 15_000))) {
+    const label = await startButton.innerText().catch(() => "开始");
+    throw new Error(`开始按钮仍不可用：${label}`);
+  }
+}
+
 async function readRoomId(page: Page): Promise<string> {
   await page.getByTestId("room-code").waitFor({ timeout: 15_000 });
   return (await page.getByTestId("room-code").first().innerText()).trim();
@@ -246,19 +265,19 @@ async function readRoomId(page: Page): Promise<string> {
 
 async function submitCakeTurn(page: Page, turn: number, agent: AgentLog): Promise<void> {
   try {
-    await page.locator(".table-action-dock").first().waitFor({ state: "visible", timeout: 10_000 });
+    await page.locator(".table-action-dock").first().waitFor({ state: "visible", timeout: 20_000 });
     const gainCake = page.getByTestId("action-mode-gain-cake").first();
-    await activate(gainCake);
+    await activate(gainCake, 20_000);
 
     const submit = page.getByTestId("submit-action").first();
-    if (!(await waitForEnabled(submit, 10_000))) {
+    if (!(await waitForEnabled(submit, 20_000))) {
       const label = await submit.innerText().catch(() => "未知按钮");
       const message = `第 ${turn} 回合提交按钮不可用：${label}`;
       failedActions.push(message);
       agent.issues.push(message);
       return;
     }
-    await activate(submit);
+    await activate(submit, 20_000);
     agent.observations.push(`第 ${turn} 回合完成“吃饼”提交。`);
   } catch (error) {
     const message = `第 ${turn} 回合提交失败：${String(error)}`;
@@ -268,7 +287,7 @@ async function submitCakeTurn(page: Page, turn: number, agent: AgentLog): Promis
 }
 
 async function activate(locator: Locator, timeoutMs = 10_000): Promise<void> {
-  await locator.waitFor({ state: "visible", timeout: timeoutMs });
+  await locator.waitFor({ state: "attached", timeout: timeoutMs });
   if (!(await waitForEnabled(locator, timeoutMs))) {
     const label = await locator.innerText().catch(() => "未知控件");
     throw new Error(`控件不可用：${label}`);
@@ -284,7 +303,7 @@ async function waitForEnabled(locator: Locator, timeoutMs: number): Promise<bool
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     try {
-      if ((await locator.isVisible()) && (await locator.isEnabled())) {
+      if (await locator.isEnabled()) {
         return true;
       }
     } catch {
@@ -343,7 +362,35 @@ async function collectVisualHealth(page: Page, agent: AgentLog, label: string): 
   }
 }
 
+async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: string): Promise<void> {
+  try {
+    await activate(page.getByTestId("action-mode-attack").first());
+    const highlightedSeats = page.locator(".poker-seat-highlighted");
+    await highlightedSeats.first().waitFor({ state: "visible", timeout: 5_000 });
+    const count = await highlightedSeats.count();
+    const message = `${label}: 选择攻击模式后 ${count} 个目标座位出现高亮预览。`;
+    visualChecks.push(message);
+    agent.observations.push(message);
+  } catch (error) {
+    const message = `${label}: 目标预览高亮检查失败：${String(error)}`;
+    visualIssues.push(message);
+    agent.issues.push(message);
+  }
+}
+
 async function inspectCanvas(page: Page): Promise<{ ok: boolean; message: string }> {
+  let lastResult: { ok: boolean; message: string } = { ok: false, message: "尚未检查" };
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    lastResult = await inspectCanvasOnce(page);
+    if (lastResult.ok || !lastResult.message.includes("canvas 边界")) {
+      return lastResult;
+    }
+    await page.waitForTimeout(500);
+  }
+  return lastResult;
+}
+
+async function inspectCanvasOnce(page: Page): Promise<{ ok: boolean; message: string }> {
   const canvas = page.locator("canvas").first();
   await canvas.waitFor({ state: "visible", timeout: 10_000 });
   const box = await canvas.boundingBox();

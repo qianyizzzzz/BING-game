@@ -40,6 +40,7 @@ interface ActionPanelProps {
   onPassActionWindow: () => void;
   onSkipToNextAction: () => void;
   onGuessSkill: (targetPlayerId: string, targetSkillId: SkillId) => void;
+  onPreviewTargets?: (targetIds: string[]) => void;
   onSubmitWindowSkill: (action: SkillAction) => void;
 }
 
@@ -161,6 +162,7 @@ export function ActionPanel({
   onPassActionWindow,
   onSkipToNextAction,
   onGuessSkill,
+  onPreviewTargets,
   onSubmitWindowSkill
 }: ActionPanelProps) {
   const viewer = useMemo(
@@ -715,6 +717,48 @@ export function ActionPanel({
   });
   const selectedActionCost =
     mode === "attack" ? attackCost : mode === "skill" ? skillCost : mode === "defense" && defense === "rebound" ? 1 : 0;
+  const previewTargetIds = useMemo(() => {
+    if (!canAct) {
+      return [];
+    }
+
+    const ids = new Set<string>();
+    const addTarget = (id: string | undefined) => {
+      if (id) {
+        ids.add(id);
+      }
+    };
+
+    if (mode === "attack") {
+      attackRows.forEach((row) => rowTargetIds(row).forEach(addTarget));
+    } else if (mode === "skill") {
+      if (selectedSkillPlay?.targetMode === "all") {
+        enemies
+          .filter((enemy) => enemy.id !== viewer?.id)
+          .forEach((enemy) => addTarget(enemy.id));
+      } else {
+        addTarget(skillTargetId);
+        skillExtraTargetIds.forEach(addTarget);
+      }
+    } else if (mode === "defense" && defense === "rebound" && !viewerHasScatterRebound) {
+      addTarget(targetId);
+    }
+
+    return Array.from(ids);
+  }, [
+    attackRows,
+    canAct,
+    defense,
+    enemies,
+    mode,
+    selectedSkillPlay?.targetMode,
+    skillExtraTargetIds,
+    skillTargetId,
+    targetId,
+    viewer?.id,
+    viewerHasScatterRebound
+  ]);
+  const previewTargetKey = previewTargetIds.join("|");
   const submitLabel =
     mode === "gain_cake"
       ? "提交：吃饼 +1"
@@ -806,6 +850,14 @@ export function ActionPanel({
     windowSkillExtraTargetId,
     windowSkillTargetId
   ]);
+
+  useEffect(() => {
+    onPreviewTargets?.(previewTargetKey ? previewTargetKey.split("|") : []);
+  }, [onPreviewTargets, previewTargetKey]);
+
+  useEffect(() => {
+    return () => onPreviewTargets?.([]);
+  }, [onPreviewTargets]);
 
   useEffect(() => {
     if (!selectedSkill && nonAttackSkills[0]) {

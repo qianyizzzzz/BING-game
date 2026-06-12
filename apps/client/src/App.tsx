@@ -61,6 +61,7 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sidePanelTab, setSidePanelTab] = useState<SidePanelTab>("hint");
   const [clockNow, setClockNow] = useState(() => Date.now());
+  const [previewPlayerIds, setPreviewPlayerIds] = useState<string[]>([]);
   const selectedCharacter = useMemo(
     () => getCharacterById(account.characterId),
     [account.characterId]
@@ -192,22 +193,25 @@ export function App() {
       ? Math.max(0, Math.ceil((activeDeadline - clockNow) / 1000))
       : null;
   const highlightedPlayerIds = useMemo(() => {
+    const ids = new Set<string>(previewPlayerIds);
     if (!state) {
-      return new Set<string>();
+      return ids;
     }
 
-    return new Set(
-      state.eventLog
-        .slice(-8)
-        .flatMap((event) => {
-          if (event.type === "damage") {
-            return [event.targetId];
-          }
+    state.eventLog.slice(-8).forEach((event) => {
+      if (event.type === "damage") {
+        ids.add(event.targetId);
+      }
+    });
 
-          return [];
-        })
-    );
-  }, [state]);
+    return ids;
+  }, [previewPlayerIds, state]);
+
+  useEffect(() => {
+    if (!state || state.phase === "lobby" || state.phase === "finished") {
+      setPreviewPlayerIds([]);
+    }
+  }, [identity?.roomId, state?.phase]);
 
   function createRoom() {
     setBusy(true);
@@ -886,6 +890,7 @@ export function App() {
                       onSkipToNextAction={skipToNextAction}
                       onSubmit={submitAction}
                       onGuessSkill={guessSkill}
+                      onPreviewTargets={setPreviewPlayerIds}
                       onSubmitWindowSkill={submitWindowSkill}
                       state={state}
                       submitting={busy}
