@@ -717,7 +717,7 @@ export function ActionPanel({
     mode === "attack" ? attackCost : mode === "skill" ? skillCost : mode === "defense" && defense === "rebound" ? 1 : 0;
   const submitLabel =
     mode === "gain_cake"
-      ? "提交：吃饼"
+      ? "提交：吃饼 +1"
       : mode === "defense"
         ? "提交：防御"
         : mode === "attack"
@@ -1887,7 +1887,7 @@ export function ActionPanel({
           <ModeButton
             active={mode === "gain_cake"}
             icon={<Cookie className="h-4 w-4" aria-hidden="true" />}
-            label="饼"
+            label="吃饼"
             onClick={() => setMode("gain_cake")}
           />
           <ModeButton
