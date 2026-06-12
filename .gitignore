@@ -13,6 +13,8 @@ artifacts/
 *.tsbuildinfo
 __pycache__/
 *.py[cod]
+*.blend1
+*.blend2
 
 .DS_Store
 Thumbs.db

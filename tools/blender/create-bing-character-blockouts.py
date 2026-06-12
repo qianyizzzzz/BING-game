@@ -145,8 +145,11 @@ def build_materials() -> dict[str, bpy.types.Material]:
         "skin_shadow": mat("skin_shadow", "#8f5d48", roughness=0.8),
         "cloth_dark": mat("deep_abyss_cloth", "#171b18", roughness=0.88),
         "leather": mat("worn_dark_leather", "#342017", roughness=0.84),
+        "linen": mat("aged_linen", "#d8c8aa", roughness=0.9),
+        "hair": mat("dark_hair", "#17100d", roughness=0.82),
         "eye": mat("soft_eye_glass", "#f4efe2", roughness=0.28),
         "black": mat("ink_line", "#0b0d0d", roughness=0.7),
+        "lip": mat("muted_lip", "#8a4a40", roughness=0.74),
     }
 
 
@@ -171,6 +174,8 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     add_ellipsoid(collection, root, f"{spec.character_id}_ribcage", (0, 0, 1.16), (0.25, 0.14, 0.36), main)
     add_ellipsoid(collection, root, f"{spec.character_id}_pelvis", (0, 0, 0.82), (0.22, 0.13, 0.16), secondary)
     add_ellipsoid(collection, root, f"{spec.character_id}_coat_tail", (0, 0.025, 0.66), (0.27, 0.08, 0.18), secondary)
+    add_head_detail(collection, root, spec)
+    add_tailored_costume(collection, root, spec, main, secondary, metal, leather, cloth_dark)
 
     shoulder_scale = 1.22 if spec.prop == "shield" else 1.0
     add_ellipsoid(collection, root, f"{spec.character_id}_left_shoulder", (-0.27 * shoulder_scale, 0, 1.34), (0.09, 0.075, 0.07), metal)
@@ -182,6 +187,8 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     limb(collection, root, f"{spec.character_id}_right_forearm", (0.39, 0.02, 1.02), (0.34, -0.02, 0.78), 0.035, leather)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_hand", (-0.34, -0.025, 0.74), (0.047, 0.035, 0.055), skin)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_hand", (0.34, -0.025, 0.74), (0.047, 0.035, 0.055), skin)
+    add_fingers(collection, root, spec, -1, skin)
+    add_fingers(collection, root, spec, 1, skin)
 
     limb(collection, root, f"{spec.character_id}_left_thigh", (-0.11, 0, 0.72), (-0.14, 0.015, 0.38), 0.055, secondary)
     limb(collection, root, f"{spec.character_id}_left_shin", (-0.14, 0.015, 0.38), (-0.13, -0.01, 0.06), 0.045, leather)
@@ -200,16 +207,114 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
 def add_face(collection, root, spec: CharacterSpec) -> None:
     eye = bpy.data.materials["soft_eye_glass"]
     black = bpy.data.materials["ink_line"]
+    skin = bpy.data.materials["skin_warm_semireal"]
+    skin_shadow = bpy.data.materials["skin_shadow"]
+    lip = bpy.data.materials["muted_lip"]
     if spec.prop == "mask":
         mask_mat = bpy.data.materials[f"{spec.character_id}_aged_metal"]
         add_ellipsoid(collection, root, f"{spec.character_id}_iron_mask", (0, -0.092, 1.735), (0.112, 0.018, 0.125), mask_mat)
         add_ellipsoid(collection, root, f"{spec.character_id}_left_lens", (-0.045, -0.111, 1.75), (0.022, 0.007, 0.016), eye)
         add_ellipsoid(collection, root, f"{spec.character_id}_right_lens", (0.045, -0.111, 1.75), (0.022, 0.007, 0.016), eye)
+        add_box(collection, root, f"{spec.character_id}_mask_mouth_slit", (0, -0.116, 1.665), (0.062, 0.006, 0.006), black)
         return
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_ear", (-0.128, -0.006, 1.715), (0.022, 0.012, 0.043), skin)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_ear", (0.128, -0.006, 1.715), (0.022, 0.012, 0.043), skin)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_eye_socket", (-0.04, -0.101, 1.755), (0.034, 0.01, 0.022), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_eye_socket", (0.04, -0.101, 1.755), (0.034, 0.01, 0.022), skin_shadow)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_eye", (-0.04, -0.105, 1.755), (0.018, 0.008, 0.012), eye)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_eye", (0.04, -0.105, 1.755), (0.018, 0.008, 0.012), eye)
-    add_ellipsoid(collection, root, f"{spec.character_id}_nose_bridge", (0, -0.116, 1.722), (0.018, 0.012, 0.035), bpy.data.materials["skin_shadow"])
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_pupil", (-0.04, -0.112, 1.755), (0.006, 0.003, 0.006), black)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_pupil", (0.04, -0.112, 1.755), (0.006, 0.003, 0.006), black)
+    add_ellipsoid(collection, root, f"{spec.character_id}_nose_bridge", (0, -0.116, 1.722), (0.018, 0.012, 0.041), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_nose_tip", (0, -0.128, 1.696), (0.023, 0.013, 0.018), skin)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_cheek", (-0.052, -0.114, 1.693), (0.034, 0.008, 0.024), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek", (0.052, -0.114, 1.693), (0.034, 0.008, 0.024), skin_shadow)
+    add_ellipsoid(collection, root, f"{spec.character_id}_upper_lip", (0, -0.126, 1.655), (0.042, 0.006, 0.006), lip)
+    add_ellipsoid(collection, root, f"{spec.character_id}_lower_lip", (0, -0.125, 1.642), (0.037, 0.006, 0.008), lip)
+    add_ellipsoid(collection, root, f"{spec.character_id}_chin_plane", (0, -0.108, 1.615), (0.052, 0.012, 0.022), skin_shadow)
     add_ellipsoid(collection, root, f"{spec.character_id}_brow_shadow", (0, -0.108, 1.782), (0.092, 0.01, 0.012), black)
+
+
+def add_head_detail(collection, root, spec: CharacterSpec) -> None:
+    hair = bpy.data.materials["dark_hair"]
+    linen = bpy.data.materials["aged_linen"]
+    metal = bpy.data.materials[f"{spec.character_id}_aged_metal"]
+    emissive = bpy.data.materials[f"{spec.character_id}_relic_glow"]
+
+    if spec.prop == "pan":
+        add_ellipsoid(collection, root, f"{spec.character_id}_chef_cap", (0, -0.005, 1.91), (0.16, 0.12, 0.055), linen)
+        add_ellipsoid(collection, root, f"{spec.character_id}_chef_cap_puff", (-0.055, -0.01, 1.955), (0.065, 0.052, 0.045), linen)
+        add_ellipsoid(collection, root, f"{spec.character_id}_chef_cap_puff_b", (0.055, -0.01, 1.955), (0.065, 0.052, 0.045), linen)
+        return
+
+    if spec.prop == "mask":
+        add_ellipsoid(collection, root, f"{spec.character_id}_hood_back", (0, 0.03, 1.74), (0.16, 0.095, 0.19), bpy.data.materials["deep_abyss_cloth"])
+        add_ellipsoid(collection, root, f"{spec.character_id}_iron_brow_plate", (0, -0.105, 1.815), (0.118, 0.018, 0.028), metal)
+        return
+
+    add_ellipsoid(collection, root, f"{spec.character_id}_hair_cap", (0, 0.012, 1.84), (0.147, 0.105, 0.066), hair)
+    add_ellipsoid(collection, root, f"{spec.character_id}_back_hair_mass", (0, 0.09, 1.7), (0.12, 0.045, 0.14), hair)
+    add_ellipsoid(collection, root, f"{spec.character_id}_left_sideburn", (-0.102, -0.044, 1.71), (0.018, 0.018, 0.075), hair)
+    add_ellipsoid(collection, root, f"{spec.character_id}_right_sideburn", (0.102, -0.044, 1.71), (0.018, 0.018, 0.075), hair)
+
+    if spec.prop == "jade":
+        add_torus(collection, root, f"{spec.character_id}_jade_hair_ring", (0, -0.015, 1.88), (math.pi / 2, 0, 0), 0.105, 0.006, emissive)
+    elif spec.prop == "blade":
+        add_box(collection, root, f"{spec.character_id}_violet_hair_streak", (0.046, -0.094, 1.86), (0.018, 0.012, 0.072), emissive, rotation=(0.0, 0.0, math.radians(-18)))
+    elif spec.prop == "vial":
+        add_ellipsoid(collection, root, f"{spec.character_id}_mender_headband", (0, -0.063, 1.825), (0.13, 0.014, 0.022), emissive)
+    elif spec.prop == "shield":
+        add_ellipsoid(collection, root, f"{spec.character_id}_guardian_brow_guard", (0, -0.098, 1.81), (0.112, 0.014, 0.024), metal)
+
+
+def add_tailored_costume(collection, root, spec: CharacterSpec, main, secondary, metal, leather, cloth_dark) -> None:
+    linen = bpy.data.materials["aged_linen"]
+    emissive = bpy.data.materials[f"{spec.character_id}_relic_glow"]
+
+    add_torus(collection, root, f"{spec.character_id}_raised_collar", (0, -0.01, 1.43), (math.pi / 2, 0, 0), 0.17, 0.015, cloth_dark)
+    add_box(collection, root, f"{spec.character_id}_front_placket", (0, -0.145, 1.12), (0.045, 0.018, 0.31), secondary)
+    add_box(collection, root, f"{spec.character_id}_left_lapel", (-0.075, -0.15, 1.21), (0.045, 0.016, 0.22), main, rotation=(0, 0, math.radians(-12)))
+    add_box(collection, root, f"{spec.character_id}_right_lapel", (0.075, -0.15, 1.21), (0.045, 0.016, 0.22), main, rotation=(0, 0, math.radians(12)))
+    add_box(collection, root, f"{spec.character_id}_waist_belt", (0, -0.145, 0.88), (0.25, 0.024, 0.035), leather)
+    add_box(collection, root, f"{spec.character_id}_belt_buckle", (0, -0.172, 0.885), (0.043, 0.012, 0.043), metal)
+    add_box(collection, root, f"{spec.character_id}_left_hem_panel", (-0.08, -0.12, 0.66), (0.06, 0.016, 0.18), secondary, rotation=(0, 0, math.radians(-5)))
+    add_box(collection, root, f"{spec.character_id}_right_hem_panel", (0.08, -0.12, 0.66), (0.06, 0.016, 0.18), secondary, rotation=(0, 0, math.radians(5)))
+    add_stitches(collection, root, spec, main)
+
+    if spec.prop == "shield":
+        add_box(collection, root, f"{spec.character_id}_chest_armor_plate", (0, -0.168, 1.18), (0.16, 0.018, 0.13), metal)
+        add_box(collection, root, f"{spec.character_id}_armor_glyph", (0, -0.185, 1.18), (0.018, 0.006, 0.09), emissive)
+    elif spec.prop == "jade":
+        add_box(collection, root, f"{spec.character_id}_long_scarf_left", (-0.13, -0.165, 1.05), (0.034, 0.014, 0.42), emissive, rotation=(0, 0, math.radians(-6)))
+        add_box(collection, root, f"{spec.character_id}_long_scarf_right", (0.13, -0.165, 1.05), (0.034, 0.014, 0.42), emissive, rotation=(0, 0, math.radians(6)))
+    elif spec.prop == "blade":
+        add_box(collection, root, f"{spec.character_id}_duelist_cross_sash", (-0.03, -0.17, 1.11), (0.035, 0.016, 0.37), emissive, rotation=(0, 0, math.radians(-28)))
+    elif spec.prop == "pan":
+        add_box(collection, root, f"{spec.character_id}_apron_panel", (0, -0.176, 1.0), (0.18, 0.018, 0.39), linen)
+        add_box(collection, root, f"{spec.character_id}_apron_tie", (0, -0.188, 0.9), (0.22, 0.01, 0.018), leather)
+    elif spec.prop == "vial":
+        add_box(collection, root, f"{spec.character_id}_doctor_coat_panel", (0, -0.174, 1.03), (0.2, 0.016, 0.47), linen)
+        add_box(collection, root, f"{spec.character_id}_life_mark_vertical", (0, -0.19, 1.13), (0.018, 0.006, 0.12), emissive)
+        add_box(collection, root, f"{spec.character_id}_life_mark_horizontal", (0, -0.192, 1.13), (0.08, 0.006, 0.018), emissive)
+    elif spec.prop == "mask":
+        add_box(collection, root, f"{spec.character_id}_oracle_instrument_panel", (0, -0.17, 1.15), (0.17, 0.018, 0.17), metal)
+        add_torus(collection, root, f"{spec.character_id}_chest_scope_ring", (0, -0.19, 1.15), (math.pi / 2, 0, 0), 0.07, 0.006, emissive)
+
+
+def add_stitches(collection, root, spec: CharacterSpec, material) -> None:
+    for index in range(6):
+        z = 1.34 - index * 0.075
+        add_box(collection, root, f"{spec.character_id}_left_seam_{index}", (-0.142, -0.157, z), (0.008, 0.006, 0.027), material, rotation=(0, 0, math.radians(-18)))
+        add_box(collection, root, f"{spec.character_id}_right_seam_{index}", (0.142, -0.157, z), (0.008, 0.006, 0.027), material, rotation=(0, 0, math.radians(18)))
+
+
+def add_fingers(collection, root, spec: CharacterSpec, side: int, skin) -> None:
+    hand_x = 0.34 * side
+    for index, offset in enumerate([-0.026, -0.008, 0.01, 0.028]):
+        length = 0.06 - abs(index - 1.5) * 0.006
+        start = (hand_x + offset * side, -0.055, 0.715)
+        end = (hand_x + offset * side, -0.082, 0.715 - length)
+        limb(collection, root, f"{spec.character_id}_{'right' if side > 0 else 'left'}_finger_{index}", start, end, 0.0075, skin)
 
 
 def add_prop(collection, root, spec: CharacterSpec, metal, emissive, leather) -> None:
@@ -435,6 +540,21 @@ def add_torus(collection, root, name, location, rotation, major_radius, minor_ra
     obj.name = name
     obj.data.materials.append(material)
     shade_smooth(obj)
+    link_to_collection(obj, collection)
+    obj.parent = root
+    return obj
+
+
+def add_box(collection, root, name, location, scale, material, rotation=(0.0, 0.0, 0.0)) -> bpy.types.Object:
+    bpy.ops.mesh.primitive_cube_add(size=1, location=location, rotation=rotation)
+    obj = bpy.context.object
+    obj.name = name
+    obj.scale = scale
+    obj.data.materials.append(material)
+    bevel = obj.modifiers.new(name=f"{name}_soft_bevel", type="BEVEL")
+    bevel.width = min(scale) * 0.35
+    bevel.segments = 2
+    obj.modifiers.new(name=f"{name}_weighted_normals", type="WEIGHTED_NORMAL")
     link_to_collection(obj, collection)
     obj.parent = root
     return obj
