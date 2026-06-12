@@ -61,8 +61,9 @@ Required art-director workflow:
 5. Use Blender MCP to create or edit the model, materials, lights, cameras, and exports.
 6. Check anatomy quality: continuous face surface, eye sockets, nose bridge, mouth, ears, thumbs, knuckles, and nails; avoid toy-like parts stuck onto a sphere.
 7. Check action silhouettes: idle, attack, defend, skill, and hit must read clearly before moving to rigged animation.
-8. Check material quality: skin pores, cloth weave, leather grain, metal wear, non-plastic roughness, and exported PBR PNG maps.
-9. Render front, side, three-quarter, table-scale, portrait-crop, mobile-avatar, action-pose, and material close-up QA images.
-10. Export `.blend`, LOD0/LOD1 `.glb`, portrait, mobile-avatar, turnaround images, table-scale images, action pose images, PBR PNG maps, material QA image, and `docs/CHARACTER_ASSET_AUDIT.md`.
+8. Check rig readiness: guide armature must cover spine, head, arms, hands, legs, and feet, with `rig-guide.png` for visual QA before weight painting.
+9. Check material quality: skin pores, cloth weave, leather grain, metal wear, non-plastic roughness, and exported PBR PNG maps.
+10. Render front, side, three-quarter, table-scale, portrait-crop, mobile-avatar, action-pose, rig-guide, and material close-up QA images.
+11. Export `.blend`, LOD0/LOD1 `.glb`, portrait, mobile-avatar, turnaround images, table-scale images, action pose images, rig-guide images, PBR PNG maps, material QA image, and `docs/CHARACTER_ASSET_AUDIT.md`.
 
 If Blender MCP is unavailable, report the missing tool and continue only with briefs, asset lists, Blender Python drafts, and acceptance criteria. Do not claim that modeling was completed.

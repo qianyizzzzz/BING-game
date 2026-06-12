@@ -24,6 +24,25 @@ ACTION_POSES = (
     ("skill", "技能"),
     ("hit", "受击"),
 )
+RIG_BONES = (
+    ("hips", None, (0.0, 0.0, 0.72), (0.0, 0.0, 0.91)),
+    ("spine", "hips", (0.0, 0.0, 0.91), (0.0, 0.0, 1.2)),
+    ("chest", "spine", (0.0, 0.0, 1.2), (0.0, 0.0, 1.43)),
+    ("neck", "chest", (0.0, 0.0, 1.43), (0.0, 0.0, 1.58)),
+    ("head", "neck", (0.0, 0.0, 1.58), (0.0, 0.0, 1.88)),
+    ("upper_arm.L", "chest", (-0.18, 0.0, 1.34), (-0.35, 0.0, 1.04)),
+    ("forearm.L", "upper_arm.L", (-0.35, 0.0, 1.04), (-0.32, -0.02, 0.78)),
+    ("hand.L", "forearm.L", (-0.32, -0.02, 0.78), (-0.32, -0.06, 0.69)),
+    ("upper_arm.R", "chest", (0.18, 0.0, 1.34), (0.35, 0.0, 1.04)),
+    ("forearm.R", "upper_arm.R", (0.35, 0.0, 1.04), (0.32, -0.02, 0.78)),
+    ("hand.R", "forearm.R", (0.32, -0.02, 0.78), (0.32, -0.06, 0.69)),
+    ("thigh.L", "hips", (-0.09, 0.0, 0.69), (-0.14, 0.01, 0.38)),
+    ("shin.L", "thigh.L", (-0.14, 0.01, 0.38), (-0.12, -0.01, 0.08)),
+    ("foot.L", "shin.L", (-0.12, -0.01, 0.08), (-0.12, -0.09, 0.0)),
+    ("thigh.R", "hips", (0.09, 0.0, 0.69), (0.14, 0.01, 0.38)),
+    ("shin.R", "thigh.R", (0.14, 0.01, 0.38), (0.12, -0.01, 0.08)),
+    ("foot.R", "shin.R", (0.12, -0.01, 0.08), (0.12, -0.09, 0.0)),
+)
 
 
 @dataclass(frozen=True)
@@ -125,6 +144,7 @@ def main() -> None:
         lod1_metrics[spec.character_id] = export_character(spec, roots)
         render_character_views(spec, roots)
         render_action_pose_views(spec, roots)
+        render_rig_guide_view(spec, roots)
     render_material_qa_board()
 
     scene_path = ASSET_ROOT / "source" / "bing-character-blockouts.blend"
@@ -290,6 +310,7 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     add_face(collection, root, spec)
     add_prop(collection, root, spec, metal, emissive, leather)
     add_base(collection, root, spec, emissive)
+    add_armature_rig(collection, root, spec)
 
     return root
 
@@ -698,6 +719,43 @@ def add_base(collection, root, spec: CharacterSpec, emissive) -> None:
     base.parent = root
 
 
+def add_armature_rig(collection, root, spec: CharacterSpec) -> bpy.types.Object:
+    existing = bpy.data.objects.get(f"{spec.character_id}_guide_armature")
+    if existing:
+        bpy.data.objects.remove(existing, do_unlink=True)
+
+    rig_data = bpy.data.armatures.new(f"{spec.character_id}_guide_armature_data")
+    rig = bpy.data.objects.new(f"{spec.character_id}_guide_armature", rig_data)
+    collection.objects.link(rig)
+    rig.parent = root
+    rig.show_in_front = True
+    rig.hide_render = True
+    rig["bing_rig_status"] = "guide_armature_no_weights"
+    rig["bing_rig_bones"] = len(RIG_BONES)
+
+    bpy.ops.object.select_all(action="DESELECT")
+    rig.select_set(True)
+    bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.mode_set(mode="EDIT")
+    default_bone = rig_data.edit_bones[0] if rig_data.edit_bones else None
+    if default_bone:
+        rig_data.edit_bones.remove(default_bone)
+
+    bones = {}
+    for bone_name, parent_name, head, tail in RIG_BONES:
+        bone = rig_data.edit_bones.new(bone_name)
+        bone.head = head
+        bone.tail = tail
+        bone.roll = 0
+        bones[bone_name] = bone
+        if parent_name:
+            bone.parent = bones[parent_name]
+            bone.use_connect = False
+
+    bpy.ops.object.mode_set(mode="OBJECT")
+    return rig
+
+
 def add_gallery_floor() -> None:
     floor_mat = mat("matte_abyss_floor", "#101512", roughness=0.92)
     bpy.ops.mesh.primitive_plane_add(size=14, location=(0, 0, -0.055))
@@ -894,6 +952,48 @@ def render_action_pose_views(spec: CharacterSpec, roots: dict[str, bpy.types.Obj
     set_all_visible(roots)
 
 
+def render_rig_guide_view(spec: CharacterSpec, roots: dict[str, bpy.types.Object]) -> None:
+    root = roots[spec.character_id]
+    collection = root.users_collection[0]
+    out_dir = ASSET_ROOT / spec.character_id
+    out_dir.mkdir(parents=True, exist_ok=True)
+    set_isolated(spec.character_id, roots)
+    snapshot = capture_transforms(character_objects(root))
+    scene = bpy.context.scene
+    original_resolution = (scene.render.resolution_x, scene.render.resolution_y)
+    scene.render.resolution_x = 512
+    scene.render.resolution_y = 512
+    root.location = (0, 0, 0)
+    root.rotation_euler = (0, 0, 0)
+
+    material = bpy.data.materials.get("rig_guide_cyan") or mat("rig_guide_cyan", "#74d8ff", roughness=0.35, emission=0.5, detail="emissive")
+    overlays: list[bpy.types.Object] = []
+    for bone_name, _parent_name, head, tail in RIG_BONES:
+        overlays.append(limb(collection, root, f"{spec.character_id}_rig_overlay_{bone_name}", rig_overlay_point(head), rig_overlay_point(tail), 0.0085, material))
+        overlays.append(add_ellipsoid(collection, root, f"{spec.character_id}_rig_joint_{bone_name}", rig_overlay_point(head), (0.016, 0.016, 0.016), material))
+    overlays.append(add_ellipsoid(collection, root, f"{spec.character_id}_rig_joint_head_tip", rig_overlay_point(RIG_BONES[4][3]), (0.017, 0.017, 0.017), material))
+
+    camera = scene.camera
+    camera.location = (0, -4.65, 1.18)
+    camera.data.lens = 64
+    look_at(camera, mathutils.Vector((0, 0, 0.95)))
+    scene.render.filepath = str(out_dir / "rig-guide.png")
+    bpy.ops.render.render(write_still=True)
+
+    for obj in overlays:
+        mesh = obj.data if obj.type == "MESH" else None
+        bpy.data.objects.remove(obj, do_unlink=True)
+        if mesh and mesh.users == 0:
+            bpy.data.meshes.remove(mesh)
+    restore_transforms(snapshot)
+    scene.render.resolution_x, scene.render.resolution_y = original_resolution
+    set_all_visible(roots)
+
+
+def rig_overlay_point(point: tuple[float, float, float]) -> tuple[float, float, float]:
+    return (point[0], point[1] - 0.13, point[2])
+
+
 def apply_action_pose(root: bpy.types.Object, spec: CharacterSpec, pose_id: str) -> None:
     if pose_id == "idle":
         root.rotation_euler.z = math.radians(-4)
@@ -1047,6 +1147,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - 每个角色导出 LOD0 `.glb` 和 LOD1 `-lod1.glb`
 - 每个角色导出 `portrait.png`、`mobile-avatar.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`、`table-scale.png`
 - 每个角色导出动作剪影 QA：`action-idle.png`、`action-attack.png`、`action-defend.png`、`action-skill.png`、`action-hit.png`
+- 每个角色建立 `{len(RIG_BONES)}` 根骨骼的 guide armature，并导出 `rig-guide.png`
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、职业道具和服装层次
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
 - 材质近景 QA：`{repo_path(ASSET_ROOT / "materials" / "material-qa.png")}`
@@ -1079,13 +1180,14 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 日期：2026-06-13
 
-本审计由 `tools/blender/create-bing-character-blockouts.py` 通过 Blender MCP 生成。当前目标是把默认玩家角色推进到“接近真人比例的半写实游戏角色”，不是最终真人级高模。
+本审计由 `tools/blender/create-bing-character-blockouts.py` 通过 Blender MCP / Blender Python 生成。当前目标是把默认玩家角色推进到“接近真人比例的半写实游戏角色”，不是最终真人级高模。
 
 ## 当前产物
 
 - 源场景：`{repo_path(scene_path)}`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
 - 动作 QA：每角色 `idle / attack / defend / skill / hit` 五张动作剪影图
+- 绑定准备：每角色 `{len(RIG_BONES)}` 根骨骼 guide armature 与 `rig-guide.png`
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、服装层次和职业道具
 - 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
@@ -1098,8 +1200,8 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
-- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、骨骼绑定和可播放动画；真人质感仍需外部雕刻/贴图阶段继续推进。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、权重蒙皮和可播放动画；真人质感仍需外部雕刻/贴图阶段继续推进。
 
 ## 下一步 P0
 
@@ -1109,7 +1211,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 ## 下一步 P1
 
 - 在 `TableScene3D` 中接入 `.glb`，用桌面距离 QA 图校准相机和灯光。
-- 将当前动作剪影升级为骨骼绑定动画，并补死亡/倒地可播放动作。
+- 给 guide armature 补权重蒙皮，把当前动作剪影升级为可播放动画，并补死亡/倒地动作。
 """
     (DOCS_ROOT / "CHARACTER_ASSET_AUDIT.md").write_text(review, encoding="utf-8")
 
