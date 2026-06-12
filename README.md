@@ -37,6 +37,8 @@
 - React 游戏客户端：3D 牌桌、玩家座位、技能特效、行动面板、结算日志、新手教程和复盘入口。
 - 比赛记录与复盘：服务端保存对局，支持复盘页面、文本报告和训练样本导出。
 - 公网联机脚本：通过 Cloudflare Tunnel 临时生成 HTTPS 地址，让不同网络的玩家直接加入。
+- Playtest agents：自动开房、双玩家出招、截图、检查 canvas、遮挡、目标预览和沿用上回合。
+- 本地角色资产：6 个默认角色已有 Blender blockout、GLB、portrait 和 turnaround 初版。
 
 ## 截图
 
@@ -92,6 +94,8 @@ npm run serve
 | `npm run public` | 构建、启动服务并打开临时公网隧道。 |
 | `npm run typecheck` | 对所有 workspace 运行 TypeScript 检查。 |
 | `npm run test:rules` | 运行规则回归测试。 |
+| `npm run test:turn-timeline` | 检查事件日志到动画 beat 的映射。 |
+| `npm run test:ui-agents` | 启动双玩家 UI agent，生成截图和 Markdown 报告。 |
 | `npm run import:skills` | 从技能表导入技能数据。 |
 | `npm run training:export` | 导出比赛训练数据。 |
 | `npm run training:selfplay` | 运行自博弈训练脚本。 |
@@ -106,6 +110,7 @@ packages/
   shared/          共享规则、动作、技能、socket 类型、状态机
 docs/              架构、部署、公网联机、AI 训练、UI 设计方案
 scripts/           技能导入、公网隧道、规则检查、训练工具
+tools/             Blender/MCP 辅助脚本，本地大文件已忽略
 workflow/          任务模板、评审模板、制作流程文档
 ```
 
@@ -125,7 +130,8 @@ workflow/          任务模板、评审模板、制作流程文档
 - 当前玩家是否需要操作必须一眼可见。
 - 服务端每个关键事件都应对应一个明确的视觉动画节拍。
 - 3D 桌面要有沉浸感，但不能牺牲卡牌和状态信息的可读性。
-- 引入两个玩家 agent 和一个开发商/QA agent，持续生成测试反馈和修改清单。
+- 引入两个玩家 agent、一个开发商/QA agent、一个美术总监 agent，持续生成测试反馈和修改清单。
+- 角色资产遵循 `workflow/docs/01-visual-bible.md`，先以 blockout 验证轮廓，再推进半写实细化。
 
 完整方案见 [docs/UI_DESIGN_PLAN.md](docs/UI_DESIGN_PLAN.md)。
 
@@ -137,6 +143,10 @@ workflow/          任务模板、评审模板、制作流程文档
 - [异网联机](docs/remote-play.md)
 - [AI 训练](docs/AI_TRAINING.md)
 - [UI 设计方案](docs/UI_DESIGN_PLAN.md)
+- [子智能体 UI 评审](docs/SUBAGENT_UI_REVIEW.md)
+- [美术总监 Blender 方案](docs/SUBAGENT_ART_DIRECTOR_BLENDER.md)
+- [Game Pillars](workflow/docs/00-game-pillars.md)
+- [Visual Bible](workflow/docs/01-visual-bible.md)
 
 ## 许可证
 
