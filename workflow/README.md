@@ -28,6 +28,7 @@ workflow/
     codex-implement.md
     claude-review.md
     figma-design.md
+    prompt-goal-combos.md
 ```
 
 ## 每个文件的作用
@@ -42,6 +43,7 @@ workflow/
 - `reviews/REVIEW-template.md`：Claude 或人工审查时使用。
 - `playtests/PLAYTEST-template.md`：每次试玩记录反馈。
 - `prompts/`：给 Codex、Claude、Figma 使用的标准提示词。
+- `prompts/prompt-goal-combos.md`：把目标、上下文、验收标准和 commit 规则组合成稳定提示词的中文模板。
 - `AGENTS.md`：给 Codex 的项目规则参考。
 - `CLAUDE.md`：给 Claude 的项目规则参考。
 

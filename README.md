@@ -11,6 +11,8 @@
   ·
   <a href="docs/UI_DESIGN_PLAN.md">UI 设计方案</a>
   ·
+  <a href="workflow/prompts/prompt-goal-combos.md">提示词 + Goal</a>
+  ·
   <a href="docs/ARCHITECTURE.md">架构说明</a>
   ·
   <a href="docs/AI_TRAINING.md">AI 训练</a>
@@ -145,6 +147,7 @@ workflow/          任务模板、评审模板、制作流程文档
 - [UI 设计方案](docs/UI_DESIGN_PLAN.md)
 - [子智能体 UI 评审](docs/SUBAGENT_UI_REVIEW.md)
 - [美术总监 Blender 方案](docs/SUBAGENT_ART_DIRECTOR_BLENDER.md)
+- [提示词 + Goal 组合写法](workflow/prompts/prompt-goal-combos.md)
 - [Game Pillars](workflow/docs/00-game-pillars.md)
 - [Visual Bible](workflow/docs/01-visual-bible.md)
 
