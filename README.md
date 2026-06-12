@@ -1,19 +1,19 @@
 # BING Game / 饼
 
 <p align="center">
-  <strong>A simultaneous-action multiplayer card strategy game with bluffing, resource tension, skills, replays, and a 3D table interface.</strong>
+  <strong>一款同步出招、资源博弈、技能连锁、支持复盘与 3D 牌桌的多人卡牌策略游戏。</strong>
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick Start</a>
+  <a href="#快速开始">快速开始</a>
   ·
-  <a href="#public-play">Public Play</a>
+  <a href="#公网联机">公网联机</a>
   ·
-  <a href="docs/UI_DESIGN_PLAN.md">UI Design Plan</a>
+  <a href="docs/UI_DESIGN_PLAN.md">UI 设计方案</a>
   ·
-  <a href="docs/ARCHITECTURE.md">Architecture</a>
+  <a href="docs/ARCHITECTURE.md">架构说明</a>
   ·
-  <a href="docs/AI_TRAINING.md">AI Training</a>
+  <a href="docs/AI_TRAINING.md">AI 训练</a>
 </p>
 
 <p align="center">
@@ -24,55 +24,55 @@
   <img alt="Three.js" src="https://img.shields.io/badge/Three.js-0.184-111111?style=flat-square&logo=threedotjs&logoColor=white">
 </p>
 
-![BING desktop battle table](docs/screenshots/table-desktop.png)
+![BING 桌面端战斗牌桌](docs/screenshots/table-desktop.png)
 
-## What Is BING?
+## 项目简介
 
-`饼` is an original turn-based card strategy game built around simultaneous decisions. Every player submits an action at the same time, then the server reveals and resolves the round: eating cakes, defending, attacking, reflecting, breaking counters, using skills, and surviving the table.
+`饼` 是一个原创回合制卡牌策略游戏。它的核心不是轮流操作，而是所有玩家在同一回合暗中提交行动，然后由服务端统一亮招并结算：吃饼、防御、攻击、反弹、破弹、释放技能，最后看谁能在牌桌上活下来。
 
-The project currently includes:
+当前项目已经包含：
 
-- Real-time rooms with Socket.IO: create room, join room, spectate, ready up, submit actions, and broadcast resolved state.
-- A shared TypeScript rules package used by both client and server.
-- A React game client with a 3D table, player seats, skill effects, action dock, event log, tutorial, and replay links.
-- Match recording, replay pages, training sample export, and self-play scripts for future AI iteration.
-- A public play helper using Cloudflare Tunnel so remote players can join from any network.
+- Socket.IO 实时房间：创建房间、加入房间、观战、准备、提交行动、广播结算结果。
+- 前后端共用的 TypeScript 规则包：动作、攻击、技能、状态机和 socket 类型保持一致。
+- React 游戏客户端：3D 牌桌、玩家座位、技能特效、行动面板、结算日志、新手教程和复盘入口。
+- 比赛记录与复盘：服务端保存对局，支持复盘页面、文本报告和训练样本导出。
+- 公网联机脚本：通过 Cloudflare Tunnel 临时生成 HTTPS 地址，让不同网络的玩家直接加入。
 
-## Screenshots
+## 截图
 
 <p align="center">
-  <img alt="BING mobile battle table" src="docs/screenshots/table-mobile.png" width="320">
+  <img alt="BING 移动端战斗牌桌" src="docs/screenshots/table-mobile.png" width="320">
 </p>
 
-## Quick Start
+## 快速开始
 
 ```bash
 npm install
 npm run dev
 ```
 
-Local development URLs:
+本地开发地址：
 
-- Client: [http://localhost:5173](http://localhost:5173)
-- Server: [http://localhost:3001](http://localhost:3001)
+- 前端：[http://localhost:5173](http://localhost:5173)
+- 后端：[http://localhost:3001](http://localhost:3001)
 
-## Public Play
+## 公网联机
 
-For a temporary public multiplayer link:
+如果要临时开一个公网多人房间：
 
 ```bash
 npm run public
 ```
 
-This builds the app, starts the production server on `3001`, and exposes it through a temporary Cloudflare Tunnel URL. Keep the terminal open while players are connected.
+这个命令会构建项目、启动生产服务，并用 Cloudflare Tunnel 把本机 `3001` 端口暴露为一个临时 HTTPS 地址。游玩期间请保持终端窗口打开。
 
-If you already built the app:
+如果已经构建过，可以跳过构建：
 
 ```bash
 npm run public:no-build
 ```
 
-For long-running deployment, build and serve the production app behind HTTPS:
+长期部署建议使用云服务器或平台服务：
 
 ```bash
 npm install
@@ -80,64 +80,64 @@ npm run build
 npm run serve
 ```
 
-See [docs/PUBLIC_PLAY.md](docs/PUBLIC_PLAY.md) and [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for more detail.
+更多说明见 [docs/PUBLIC_PLAY.md](docs/PUBLIC_PLAY.md) 和 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
 
-## Core Commands
+## 常用命令
 
-| Command | Purpose |
+| 命令 | 用途 |
 | --- | --- |
-| `npm run dev` | Start client and server in development mode. |
-| `npm run build` | Build shared rules, server, and client. |
-| `npm run serve` | Start the production server. |
-| `npm run public` | Build, serve, and open a temporary public tunnel. |
-| `npm run typecheck` | Run TypeScript checks across workspaces. |
-| `npm run test:rules` | Run rule regression checks. |
-| `npm run import:skills` | Import skills from the spreadsheet source. |
-| `npm run training:export` | Export match data for training. |
-| `npm run training:selfplay` | Run self-play training simulations. |
+| `npm run dev` | 同时启动前端和后端开发服务。 |
+| `npm run build` | 构建 shared、server 和 client。 |
+| `npm run serve` | 启动生产模式服务。 |
+| `npm run public` | 构建、启动服务并打开临时公网隧道。 |
+| `npm run typecheck` | 对所有 workspace 运行 TypeScript 检查。 |
+| `npm run test:rules` | 运行规则回归测试。 |
+| `npm run import:skills` | 从技能表导入技能数据。 |
+| `npm run training:export` | 导出比赛训练数据。 |
+| `npm run training:selfplay` | 运行自博弈训练脚本。 |
 
-## Project Structure
+## 项目结构
 
 ```text
 apps/
-  client/          React, Vite, Tailwind, Three.js game UI
-  server/          Express, Socket.IO, room state, replay endpoints
+  client/          React、Vite、Tailwind、Three.js 游戏界面
+  server/          Express、Socket.IO、房间状态、复盘接口
 packages/
-  shared/          Shared rules, actions, skills, socket types, state machine
-docs/              Architecture, deployment, public play, AI training, UI plan
-scripts/           Skill import, public play tunnel, rule checks, training tools
-workflow/          Planning templates, review templates, production notes
+  shared/          共享规则、动作、技能、socket 类型、状态机
+docs/              架构、部署、公网联机、AI 训练、UI 设计方案
+scripts/           技能导入、公网隧道、规则检查、训练工具
+workflow/          任务模板、评审模板、制作流程文档
 ```
 
-## Gameplay Loop
+## 核心玩法流程
 
-1. Create or join a room.
-2. Pick a character/avatar and configure room settings.
-3. Each player submits one hidden action for the turn.
-4. The server reveals and resolves all actions together.
-5. The table plays feedback: action reveal, damage, defense, reflect, skill effects, death, and round transitions.
-6. The match can be replayed and exported as structured training data.
+1. 创建或加入房间。
+2. 选择角色/头像，并由房主配置房间规则。
+3. 每位玩家在同一回合提交一个隐藏行动。
+4. 服务端统一亮招并结算所有行动。
+5. 牌桌播放反馈：亮招、伤害、防御、反弹、技能、死亡和轮次变化。
+6. 对局结束后可以查看复盘，并导出结构化训练数据。
 
-## Design Direction
+## 设计方向
 
-The current UI already has a strong foundation: a 3D tabletop, seat cards, an action dock, and a right-side information rail. The next step is to make the interface feel less like a prototype and more like a shipped game:
+当前 UI 已经有 3D 桌面、玩家座位、行动面板和右侧信息栏。下一步目标是把它从“可玩的原型”推进到“像正式游戏一样清楚、有反馈、有节奏”的体验：
 
-- Make the active player decision unmistakable.
-- Make every server event map to one visible animation beat.
-- Keep the 3D table cinematic, but preserve readable card/state information.
-- Add agent-based playtesting for first-time players, competitive players, and a developer/product reviewer.
+- 当前玩家是否需要操作必须一眼可见。
+- 服务端每个关键事件都应对应一个明确的视觉动画节拍。
+- 3D 桌面要有沉浸感，但不能牺牲卡牌和状态信息的可读性。
+- 引入两个玩家 agent 和一个开发商/QA agent，持续生成测试反馈和修改清单。
 
-Read the full proposal in [docs/UI_DESIGN_PLAN.md](docs/UI_DESIGN_PLAN.md).
+完整方案见 [docs/UI_DESIGN_PLAN.md](docs/UI_DESIGN_PLAN.md)。
 
-## Documentation
+## 文档入口
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Deployment](docs/DEPLOYMENT.md)
-- [Public play](docs/PUBLIC_PLAY.md)
-- [Remote play](docs/remote-play.md)
-- [AI training](docs/AI_TRAINING.md)
-- [UI design plan](docs/UI_DESIGN_PLAN.md)
+- [架构说明](docs/ARCHITECTURE.md)
+- [部署说明](docs/DEPLOYMENT.md)
+- [公网联机](docs/PUBLIC_PLAY.md)
+- [异网联机](docs/remote-play.md)
+- [AI 训练](docs/AI_TRAINING.md)
+- [UI 设计方案](docs/UI_DESIGN_PLAN.md)
 
-## License
+## 许可证
 
-Private project. Add a license before publishing or accepting external contributions.
+当前为私有项目。公开发布或接受外部贡献前，请先补充许可证。
