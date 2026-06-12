@@ -33,6 +33,7 @@ import {
 } from "@bing/shared";
 
 interface ActionPanelProps {
+  lastActionSubmission?: ActionSubmission | null;
   state: PublicGameState;
   submitting: boolean;
   onSubmit: (action: ActionSubmission) => void;
@@ -155,6 +156,7 @@ function formatAttackPower(power: number): string {
 }
 
 export function ActionPanel({
+  lastActionSubmission,
   state,
   submitting,
   onSubmit,
@@ -772,6 +774,13 @@ export function ActionPanel({
     : actionInvalid
       ? "需要补全选择"
       : "可以提交";
+  const repeatActionError = getRepeatActionError({
+    canAct,
+    lastActionSubmission,
+    state,
+    viewerId: viewer?.id
+  });
+  const canRepeatAction = Boolean(lastActionSubmission && !repeatActionError && !submitting);
 
   useEffect(() => {
     if (enemies[0] && !enemies.some((enemy) => enemy.id === targetId)) {
@@ -2347,6 +2356,22 @@ export function ActionPanel({
         </div>
 
         <button
+          className="btn-secondary w-full justify-center disabled:cursor-not-allowed disabled:opacity-50"
+          data-testid="repeat-last-action"
+          disabled={!canRepeatAction}
+          onClick={() => {
+            if (lastActionSubmission && canRepeatAction) {
+              onSubmit(lastActionSubmission);
+            }
+          }}
+          title={repeatActionError || "沿用上回合"}
+          type="button"
+        >
+          <FastForward className="h-4 w-4" aria-hidden="true" />
+          沿用上回合
+        </button>
+
+        <button
           className="btn-primary action-submit-button w-full justify-center py-3 disabled:cursor-not-allowed disabled:bg-gray-300"
           data-testid="submit-action"
           disabled={!canAct || submitting || actionInvalid}
@@ -2599,6 +2624,98 @@ function rowTargetIds(row: AttackRow): string[] {
   }
 
   return row.targetId ? [row.targetId] : [];
+}
+
+interface RepeatActionValidationInput {
+  canAct: boolean;
+  lastActionSubmission?: ActionSubmission | null | undefined;
+  state: PublicGameState;
+  viewerId?: string | undefined;
+}
+
+function getRepeatActionError({
+  canAct,
+  lastActionSubmission,
+  state,
+  viewerId
+}: RepeatActionValidationInput): string | undefined {
+  if (!lastActionSubmission) {
+    return "暂无上回合行动";
+  }
+  if (!canAct) {
+    return "当前不能提交行动";
+  }
+
+  const viewer = state.players.find((player) => player.id === viewerId);
+  if (!viewer) {
+    return "未找到当前玩家";
+  }
+
+  const actions = actionSubmissionToActions(lastActionSubmission);
+  if (actions.length === 0) {
+    return "上回合行动为空";
+  }
+  if (
+    state.config.firstTurnNoAttack &&
+    state.roundTurnNumber === 1 &&
+    actions.some((action) => isAttackLikeAction(action))
+  ) {
+    return "第一回合不能沿用攻击行动";
+  }
+
+  const aliveIds = new Set(
+    state.players.filter((player) => player.status === "alive").map((player) => player.id)
+  );
+  const missingTarget = actions
+    .flatMap(repeatActionTargetIds)
+    .find((targetId) => !aliveIds.has(targetId));
+  if (missingTarget) {
+    return "上回合目标已不可用";
+  }
+
+  const missingSkill = actions.find(
+    (action) => action.type === "skill" && !viewer.skills.includes(action.skillId)
+  );
+  if (missingSkill) {
+    return "上回合技能已不可用";
+  }
+
+  const cost = actions.reduce((sum, action) => sum + repeatActionCost(action), 0);
+  if (cost > viewer.cakes) {
+    return `饼不足，需要 ${cost} 饼`;
+  }
+
+  return undefined;
+}
+
+function actionSubmissionToActions(submission: ActionSubmission): PlayerAction[] {
+  return "actions" in submission ? submission.actions : [submission];
+}
+
+function repeatActionTargetIds(action: PlayerAction): string[] {
+  const targetId = "targetId" in action ? action.targetId : undefined;
+  const targetIds = "targetIds" in action ? action.targetIds ?? [] : [];
+  return Array.from(
+    new Set(
+      [targetId, ...targetIds].filter(
+        (targetId): targetId is string => Boolean(targetId)
+      )
+    )
+  );
+}
+
+function repeatActionCost(action: PlayerAction): number {
+  if (action.type === "attack") {
+    return getStackedAttackStats(BASE_ATTACKS[action.attackId], action.stacks).cost;
+  }
+  if (action.type === "skill") {
+    const play = getSkillPlay(action.skillId);
+    return (play?.cost ?? 0) * Math.max(0, action.stacks - (action.freeStacks ?? 0));
+  }
+  if (action.type === "defense" && action.defense === "rebound") {
+    return 1;
+  }
+  return 0;
 }
 
 function isMultiTargetAttackSkill(skillId: SkillId): boolean {

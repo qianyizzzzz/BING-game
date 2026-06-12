@@ -62,6 +62,7 @@ export function App() {
   const [sidePanelTab, setSidePanelTab] = useState<SidePanelTab>("hint");
   const [clockNow, setClockNow] = useState(() => Date.now());
   const [previewPlayerIds, setPreviewPlayerIds] = useState<string[]>([]);
+  const [lastActionSubmission, setLastActionSubmission] = useState<ActionSubmission | null>(null);
   const selectedCharacter = useMemo(
     () => getCharacterById(account.characterId),
     [account.characterId]
@@ -212,6 +213,10 @@ export function App() {
       setPreviewPlayerIds([]);
     }
   }, [identity?.roomId, state?.phase]);
+
+  useEffect(() => {
+    setLastActionSubmission(null);
+  }, [identity?.roomId]);
 
   function createRoom() {
     setBusy(true);
@@ -389,6 +394,9 @@ export function App() {
       },
       (response) => {
         setBusy(false);
+        if (response.ok && response.data) {
+          setLastActionSubmission(cloneActionSubmission(action));
+        }
         handleStateResponse(response);
       }
     );
@@ -885,6 +893,7 @@ export function App() {
                 actionPanel={
                   state.phase !== "finished" && viewer?.kind !== "spectator" ? (
                     <ActionPanel
+                      lastActionSubmission={lastActionSubmission}
                       onEnterActionWindow={enterActionWindow}
                       onPassActionWindow={passActionWindow}
                       onSkipToNextAction={skipToNextAction}
@@ -1177,6 +1186,10 @@ function persistAccount(account: LocalAccount): void {
   }
 
   window.localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(account));
+}
+
+function cloneActionSubmission(action: ActionSubmission): ActionSubmission {
+  return JSON.parse(JSON.stringify(action)) as ActionSubmission;
 }
 
 function buildRoomPayload(playerName: string, account: LocalAccount) {

@@ -84,7 +84,11 @@ try {
     producer.observations.push("房主能从大厅进入战斗桌面，行动 dock 已出现。");
 
     for (let turn = 1; turn <= 3; turn += 1) {
-      await submitCakeTurn(playerA, turn, firstTimer);
+      if (turn === 2) {
+        await submitRepeatTurn(playerA, turn, firstTimer);
+      } else {
+        await submitCakeTurn(playerA, turn, firstTimer);
+      }
       await submitCakeTurn(playerB, turn, competitor);
       await playerA.waitForTimeout(900);
       if (turn === 1) {
@@ -281,6 +285,26 @@ async function submitCakeTurn(page: Page, turn: number, agent: AgentLog): Promis
     agent.observations.push(`第 ${turn} 回合完成“吃饼”提交。`);
   } catch (error) {
     const message = `第 ${turn} 回合提交失败：${String(error)}`;
+    failedActions.push(message);
+    agent.issues.push(message);
+  }
+}
+
+async function submitRepeatTurn(page: Page, turn: number, agent: AgentLog): Promise<void> {
+  try {
+    await page.locator(".table-action-dock").first().waitFor({ state: "visible", timeout: 20_000 });
+    const repeatButton = page.getByTestId("repeat-last-action").first();
+    if (!(await waitForEnabled(repeatButton, 20_000))) {
+      const label = await repeatButton.innerText().catch(() => "沿用上回合");
+      const message = `第 ${turn} 回合沿用上回合不可用：${label}`;
+      failedActions.push(message);
+      agent.issues.push(message);
+      return;
+    }
+    await activate(repeatButton, 20_000);
+    agent.observations.push(`第 ${turn} 回合通过“沿用上回合”提交。`);
+  } catch (error) {
+    const message = `第 ${turn} 回合沿用上回合失败：${String(error)}`;
     failedActions.push(message);
     agent.issues.push(message);
   }
