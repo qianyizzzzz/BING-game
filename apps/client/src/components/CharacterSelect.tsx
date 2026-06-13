@@ -24,7 +24,7 @@ export function CharacterSelect({
   }, [selectedCharacterId]);
 
   return (
-    <section className="character-select-panel">
+    <section className="character-select-panel" data-testid="character-select">
       <div className="character-select-preview">
         <div
           className="character-select-portrait"
@@ -35,7 +35,11 @@ export function CharacterSelect({
             } as CSSProperties
           }
         >
-          <img alt={`${draft.name} 预览`} src={draft.avatarUrl} />
+          <img
+            alt={`${draft.name} 预览`}
+            data-testid="character-preview-image"
+            src={draft.avatarUrl}
+          />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-xs font-black text-teal-700">
@@ -51,6 +55,7 @@ export function CharacterSelect({
           </p>
           <button
             className="btn-primary mt-3"
+            data-testid="confirm-character"
             onClick={() => onConfirm(draft)}
             type="button"
           >
@@ -70,6 +75,7 @@ export function CharacterSelect({
               draft.id === character.id ? "character-option-active" : ""
             ].join(" ")}
             onClick={() => setDraftId(character.id)}
+            data-testid={`character-option-${character.id}`}
             style={
               {
                 "--character-accent": character.accent,

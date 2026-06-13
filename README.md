@@ -98,6 +98,7 @@ npm run serve
 | `npm run test:ci` | 运行 typecheck、角色资产审计、规则回归和 turn timeline 检查。 |
 | `npm run verify` | 构建项目并运行核心检查与 UI agents。 |
 | `npm run test:assets` | 检查 6 个角色的头像、GLB 和动作剪影资源。 |
+| `npm run test:character-browser` | 逐个创建角色房间，用真实浏览器验证 LOD1 GLB 加载和 3D canvas。 |
 | `npm run test:rules` | 运行规则回归测试。 |
 | `npm run test:turn-timeline` | 检查事件日志到动画 beat 的映射。 |
 | `npm run test:ui-agents` | 启动双玩家 UI agent，生成截图和 Markdown 报告。 |
@@ -109,6 +110,7 @@ npm run serve
 
 - 桌面端已接入 LOD1 GLB 角色展示；加载失败时会回退到程序化 3D 角色。
 - 6 个默认角色已具备 `idle / attack / defend / skill / hit / down` 动作剪影 QA 图。
+- 逐角色浏览器验收已覆盖 6 个默认角色的选择、房间状态、LOD1 GLB 请求和 3D canvas 采样。
 - UI agent 已覆盖双玩家 3 回合 happy path，并检查 canvas、GLB 加载、目标预览、遮挡、console error 和失败动作。
 - 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、权重蒙皮和可播放运行时动画。
 - 下一阶段重点是 BattleDirector、移动端行动区、结算白话反馈、6 角色 runtime 验收和更完整的平衡测试。
