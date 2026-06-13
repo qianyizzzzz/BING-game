@@ -38,20 +38,31 @@ http://localhost:3001
 
 ## 临时公网测试
 
-可以用 ngrok 或 Cloudflare Tunnel 把本机 `3001` 暂时映射成 HTTPS 公网地址：
+推荐直接使用项目内置的 Cloudflare Tunnel 脚本：
 
 ```bash
-npm run build
-npm run serve
+npm run public
 ```
 
-另开一个终端：
+这个命令会先构建项目，再启动生产服务，并把本机 `3001` 暴露成临时 HTTPS 地址。终端里出现类似下面的地址后，把它发给其他玩家：
+
+```text
+https://example-name.trycloudflare.com
+```
+
+如果刚刚已经构建过，可以跳过构建：
 
 ```bash
-ngrok http 3001
+npm run public:no-build
 ```
 
-把 ngrok 给出的 `https://...` 链接发给别人即可。
+如果你已经手动启动了 `npm run serve`，也可以只开公网隧道：
+
+```bash
+npm run public:tunnel
+```
+
+更多临时公网联机说明见 [PUBLIC_PLAY.md](PUBLIC_PLAY.md)。
 
 ## 正式公网部署
 
