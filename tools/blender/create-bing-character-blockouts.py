@@ -134,11 +134,14 @@ CHARACTERS = [
 def main() -> None:
     animation_pass_only = "--bing-animation-pass" in sys.argv
     action_pose_only = "--bing-action-poses-only" in sys.argv
+    face_detail_only = "--bing-face-detail-only" in sys.argv
     export_only = "--bing-export-only" in sys.argv
+    save_scene_only = "--bing-save-scene-only" in sys.argv
+    metrics_only = "--bing-metrics-only" in sys.argv
     action_pose_filter = selected_action_pose_ids()
     character_filter = selected_character_ids()
     active_characters = [spec for spec in CHARACTERS if character_filter is None or spec.character_id in character_filter]
-    print(f"BING_GENERATION_MODE={'action-poses-only' if action_pose_only else 'export-only' if export_only else 'animation-pass' if animation_pass_only else 'full'}", flush=True)
+    print(f"BING_GENERATION_MODE={'metrics-only' if metrics_only else 'save-scene-only' if save_scene_only else 'face-detail-only' if face_detail_only else 'action-poses-only' if action_pose_only else 'export-only' if export_only else 'animation-pass' if animation_pass_only else 'full'}", flush=True)
     clear_scene()
     configure_scene()
     materials = build_materials()
@@ -151,12 +154,25 @@ def main() -> None:
         roots[spec.character_id] = root
         print(f"BING_CHARACTER_BUILD_DONE={spec.character_id}", flush=True)
 
+    if metrics_only:
+        for spec in active_characters:
+            vertex_count, face_count = mesh_metrics(roots[spec.character_id])
+            print(f"BING_CHARACTER_METRICS={spec.character_id}:vertices={vertex_count}:faces={face_count}", flush=True)
+        return
+
     add_gallery_floor()
     add_camera_and_lights()
 
     ASSET_ROOT.mkdir(parents=True, exist_ok=True)
     ARTIFACT_ROOT.mkdir(parents=True, exist_ok=True)
     (ASSET_ROOT / "source").mkdir(parents=True, exist_ok=True)
+
+    if save_scene_only:
+        scene_path = ASSET_ROOT / "source" / "bing-character-blockouts.blend"
+        print("BING_SAVE_SCENE_START", flush=True)
+        bpy.ops.wm.save_as_mainfile(filepath=str(scene_path))
+        print(f"BING_SAVE_SCENE_ONLY_DONE={scene_path}", flush=True)
+        return
 
     if action_pose_only:
         for spec in active_characters:
@@ -165,6 +181,14 @@ def main() -> None:
             print(f"BING_ACTION_RENDER_DONE={spec.character_id}", flush=True)
         selected = ",".join(sorted(action_pose_filter)) if action_pose_filter else "all"
         print(f"BING_ACTION_POSE_ONLY_DONE={selected}", flush=True)
+        return
+
+    if face_detail_only:
+        for spec in active_characters:
+            print(f"BING_FACE_DETAIL_RENDER_START={spec.character_id}", flush=True)
+            render_face_detail_view(spec, roots)
+            print(f"BING_FACE_DETAIL_RENDER_DONE={spec.character_id}", flush=True)
+        print(f"BING_FACE_DETAIL_ONLY_DONE={','.join(spec.character_id for spec in active_characters)}", flush=True)
         return
 
     lod1_metrics: dict[str, tuple[int, int]] = {}
@@ -418,6 +442,7 @@ def add_face(collection, root, spec: CharacterSpec) -> None:
         add_ellipsoid(collection, root, f"{spec.character_id}_left_lens", (-0.045, -0.111, 1.75), (0.022, 0.007, 0.016), eye)
         add_ellipsoid(collection, root, f"{spec.character_id}_right_lens", (0.045, -0.111, 1.75), (0.022, 0.007, 0.016), eye)
         add_box(collection, root, f"{spec.character_id}_mask_mouth_slit", (0, -0.116, 1.665), (0.062, 0.006, 0.006), black)
+        add_mask_realism_details(collection, root, spec, mask_mat, eye, black)
         return
     add_sculpted_face_mesh(collection, root, spec, skin)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_ear", (-0.128, -0.006, 1.715), (0.022, 0.012, 0.043), skin)
@@ -448,6 +473,7 @@ def add_face(collection, root, spec: CharacterSpec) -> None:
     add_ellipsoid(collection, root, f"{spec.character_id}_lower_lip", (0, -0.125, 1.642), (0.03, 0.0045, 0.006), lip)
     add_ellipsoid(collection, root, f"{spec.character_id}_chin_plane", (0, -0.108, 1.615), (0.045, 0.009, 0.018), skin_shadow)
     add_face_micro_landmarks(collection, root, spec, skin_shadow, skin_highlight, lip)
+    add_face_realism_details(collection, root, spec, skin_shadow, skin_highlight, lip, eye, black)
 
 
 def add_sculpted_face_mesh(
@@ -566,6 +592,63 @@ def add_face_micro_landmarks(collection, root, spec: CharacterSpec, skin_shadow,
         )
     add_ellipsoid(collection, root, f"{spec.character_id}_philtrum_shadow", (0, -0.137, 1.671), (0.006, 0.002, 0.014), skin_shadow)
     add_ellipsoid(collection, root, f"{spec.character_id}_chin_highlight", (0, -0.128, 1.612), (0.018, 0.0018, 0.0035), skin_highlight)
+
+
+def add_face_realism_details(collection, root, spec: CharacterSpec, skin_shadow, skin_highlight, lip, eye, black) -> None:
+    pore_mat = bpy.data.materials.get("skin_pore_soft") or mat("skin_pore_soft", "#9d6655", roughness=0.9, detail="skin")
+    catchlight = bpy.data.materials.get("eye_wet_catchlight") or mat("eye_wet_catchlight", "#f8fff2", roughness=0.14, emission=0.12, detail="polished")
+    tear_mat = bpy.data.materials.get("tearline_wet_edge") or mat("tearline_wet_edge", "#f3d7c3", roughness=0.34, detail="polished")
+    warmth = {
+        "shield": 0.0,
+        "jade": -0.006,
+        "blade": 0.004,
+        "pan": 0.007,
+        "vial": 0.002,
+        "mask": 0.0,
+    }.get(spec.prop, 0.0)
+
+    for side in [-1, 1]:
+        label = "right" if side > 0 else "left"
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_cornea_catchlight", (0.034 * side, -0.1175, 1.764), (0.0048, 0.0012, 0.0032), catchlight)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_tearline_wet_edge", (0.038 * side, -0.1195, 1.747), (0.022, 0.0012, 0.0022), tear_mat)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_lower_lid_volume", (0.039 * side, -0.128, 1.742), (0.023, 0.002, 0.004), skin_shadow)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_upper_lid_volume", (0.04 * side, -0.127, 1.773), (0.027, 0.002, 0.004), skin_shadow)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_sclera_shadow", (0.049 * side, -0.116, 1.756), (0.006, 0.001, 0.006), black)
+
+    pore_points = [
+        (-0.055, 1.707, 0.0),
+        (-0.043, 1.697, 0.003),
+        (-0.062, 1.683, -0.002),
+        (-0.031, 1.688, 0.002),
+        (0.055, 1.707, 0.001),
+        (0.043, 1.697, -0.002),
+        (0.062, 1.683, 0.002),
+        (0.031, 1.688, -0.001),
+        (-0.018, 1.716, 0.0),
+        (0.018, 1.716, 0.0),
+        (-0.014, 1.675, 0.002),
+        (0.014, 1.675, -0.002),
+    ]
+    for index, (x, z, jitter) in enumerate(pore_points):
+        size = 0.0025 + (index % 3) * 0.00055
+        y = -0.139 - abs(x) * 0.01 + jitter * 0.002 + warmth * 0.02
+        add_ellipsoid(collection, root, f"{spec.character_id}_skin_pore_{index:02d}", (x, y, z + warmth), (size, 0.0009, size * 0.72), pore_mat)
+
+    add_ellipsoid(collection, root, f"{spec.character_id}_lip_center_shadow", (0, -0.132, 1.649), (0.027, 0.0011, 0.0025), lip)
+    add_ellipsoid(collection, root, f"{spec.character_id}_nose_oil_highlight", (0, -0.139, 1.705), (0.008, 0.001, 0.012), skin_highlight)
+    add_ellipsoid(collection, root, f"{spec.character_id}_forehead_soft_highlight", (0, -0.124, 1.795), (0.03, 0.001, 0.008), skin_highlight)
+
+
+def add_mask_realism_details(collection, root, spec: CharacterSpec, mask_mat, eye, black) -> None:
+    catchlight = bpy.data.materials.get("eye_wet_catchlight") or mat("eye_wet_catchlight", "#f8fff2", roughness=0.14, emission=0.12, detail="polished")
+    edge_wear = bpy.data.materials.get("mask_edge_wear") or mat("mask_edge_wear", "#cbd4dc", roughness=0.42, metallic=0.25, detail="metal")
+    for side in [-1, 1]:
+        label = "right" if side > 0 else "left"
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_lens_catchlight", (0.039 * side, -0.116, 1.758), (0.005, 0.001, 0.0035), catchlight)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_mask_eye_recess", (0.045 * side, -0.118, 1.748), (0.03, 0.0015, 0.021), black)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_mask_worn_edge", (0.082 * side, -0.125, 1.711), (0.004, 0.001, 0.052), edge_wear)
+    add_ellipsoid(collection, root, f"{spec.character_id}_mask_brow_worn_edge", (0, -0.126, 1.794), (0.06, 0.001, 0.004), edge_wear)
+    add_ellipsoid(collection, root, f"{spec.character_id}_mask_nose_ridge_wear", (0, -0.132, 1.715), (0.006, 0.001, 0.045), edge_wear)
 
 
 def add_ear_anatomy(collection, root, spec: CharacterSpec, side: int, skin_shadow, skin_highlight) -> None:
@@ -841,7 +924,7 @@ def add_armature_rig(collection, root, spec: CharacterSpec) -> bpy.types.Object:
             bone.use_connect = False
 
     bpy.ops.object.mode_set(mode="OBJECT")
-    if "--bing-action-poses-only" not in sys.argv:
+    if "--bing-action-poses-only" not in sys.argv and "--bing-face-detail-only" not in sys.argv and "--bing-save-scene-only" not in sys.argv and "--bing-metrics-only" not in sys.argv:
         add_rig_animation_clips(rig, spec)
     return rig
 
@@ -1135,6 +1218,41 @@ def render_character_views(spec: CharacterSpec, roots: dict[str, bpy.types.Objec
     set_all_visible(roots)
 
 
+def render_face_detail_view(spec: CharacterSpec, roots: dict[str, bpy.types.Object]) -> None:
+    root = roots[spec.character_id]
+    out_dir = ASSET_ROOT / spec.character_id
+    out_dir.mkdir(parents=True, exist_ok=True)
+    set_isolated(spec.character_id, roots)
+    snapshot = capture_transforms(character_objects(root))
+    scene = bpy.context.scene
+    original_resolution = (scene.render.resolution_x, scene.render.resolution_y)
+    original_engine = scene.render.engine
+    shading = scene.display.shading
+    original_color_type = shading.color_type
+    original_light = shading.light
+    scene.render.resolution_x = 640
+    scene.render.resolution_y = 640
+    scene.render.engine = "BLENDER_WORKBENCH"
+    shading.color_type = "MATERIAL"
+    shading.light = "STUDIO"
+    root.location = (0, 0, 0)
+    root.rotation_euler = (0, 0, 0)
+
+    camera = scene.camera
+    camera.location = (0, -1.28, 1.72)
+    camera.data.lens = 118
+    look_at(camera, mathutils.Vector((0, -0.118, 1.715)))
+    scene.render.filepath = str(out_dir / "face-detail.png")
+    bpy.ops.render.render(write_still=True)
+
+    restore_transforms(snapshot)
+    scene.render.engine = original_engine
+    shading.color_type = original_color_type
+    shading.light = original_light
+    scene.render.resolution_x, scene.render.resolution_y = original_resolution
+    set_all_visible(roots)
+
+
 def render_action_pose_views(
     spec: CharacterSpec,
     roots: dict[str, bpy.types.Object],
@@ -1401,6 +1519,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、职业道具和服装层次
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
 - 材质近景 QA：`{repo_path(ASSET_ROOT / "materials" / "material-qa.png")}`
+- 面部近景 QA：每角色导出 `face-detail.png`，用于检查眼球湿润高光、皮肤毛孔/小斑点、唇部阴影和面具磨损。
 
 | id | 中文名 | 定位 | 剪影方向 | LOD0 GLB | LOD1 GLB | 头像 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1442,6 +1561,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
 - 材质近景 QA：`{repo_path(ASSET_ROOT / "materials" / "material-qa.png")}`
+- 面部近景 QA：每角色导出 `face-detail.png`，用于检查眼球湿润高光、皮肤毛孔/小斑点、唇部阴影和面具磨损。
 - 预算：LOD0 不超过 {LOD0_FACE_BUDGET} faces；LOD1 不超过 {LOD1_FACE_BUDGET} faces
 
 | id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
@@ -1581,6 +1701,7 @@ def mat(
     material["bing_material_detail"] = detail
     bsdf = material.node_tree.nodes.get("Principled BSDF")
     color = hex_to_rgba(hex_color)
+    material.diffuse_color = color
     if bsdf:
         bsdf.inputs["Base Color"].default_value = color
         bsdf.inputs["Roughness"].default_value = roughness

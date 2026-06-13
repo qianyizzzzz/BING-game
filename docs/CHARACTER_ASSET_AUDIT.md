@@ -12,23 +12,29 @@
 - 绑定准备：每角色 `17` 根骨骼 guide armature 与 `rig-guide.png`；脚本内已有预览关键帧 clips，但尚未做权重蒙皮
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、服装层次和职业道具
 - 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
-- PBR 贴图目录：`apps/client/public/assets/characters/materials/pbr`，当前 `84` 张 PNG
+- PBR 贴图目录：`apps/client/public/assets/characters/materials/pbr`，当前 `96` 张 PNG
 - 材质近景 QA：`apps/client/public/assets/characters/materials/material-qa.png`
+- 面部近景 QA：每角色 `face-detail.png`，用于检查眼球湿润高光、皮肤毛孔/小斑点、唇部阴影和面具磨损。
 - 预算：LOD0 不超过 35000 faces；LOD1 不超过 12000 faces
 
 | id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
 | --- | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- |
-| `ember-guardian` | 烛火守卫 | 20859 | 21698 | 通过 | 2419 | 3687 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
-| `jade-trickster` | 青玉术士 | 21101 | 21968 | 通过 | 2418 | 3711 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
-| `violet-duelist` | 紫曦剑客 | 20229 | 21034 | 通过 | 2354 | 3577 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
-| `solar-chef` | 日冕饼师 | 20189 | 21004 | 通过 | 2314 | 3547 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
-| `crimson-mender` | 绯红医师 | 20733 | 21596 | 通过 | 2404 | 3663 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
-| `iron-oracle` | 铁面观察者 | 11521 | 11748 | 通过 | 1487 | 2191 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
+| `ember-guardian` | 烛火守卫 | 27509 | 28898 | 通过 | 11038 | 11265 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
+| `jade-trickster` | 青玉术士 | 27751 | 29168 | 通过 | 10764 | 10983 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
+| `violet-duelist` | 紫曦剑客 | 26879 | 28234 | 通过 | 10732 | 10951 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
+| `solar-chef` | 日冕饼师 | 26839 | 28204 | 通过 | 10120 | 10411 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
+| `crimson-mender` | 绯红医师 | 27383 | 28796 | 通过 | 10842 | 11139 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
+| `iron-oracle` | 铁面观察者 | 13649 | 14052 | 通过 | 7834 | 7729 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、预览动画 clips、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、眼球湿润高光、皮肤毛孔/小斑点、唇部阴影、面部近景 QA、发型/头饰、服装层次、职业道具、guide armature、预览动画 clips、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
 - 仍不足：还没有真实高模雕刻、手工/烘焙贴图、权重蒙皮和可播放蒙皮动画；当前 GLB 用于展示，运行时还不能播 `idle / attack / defend / skill / hit / down` 动作。
+
+## 运行时验收
+
+- 静态资产审计：`npm run test:assets`
+- 浏览器逐角色验收：`npm run test:character-browser`，创建角色房间并用观战视角验证 LOD1 GLB 请求和 3D canvas 采样。
 
 ## 下一步 P0
 
