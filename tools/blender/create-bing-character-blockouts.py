@@ -1517,6 +1517,7 @@ def render_skinning_preview_views(
         root.rotation_euler = (0, 0, 0)
         apply_rig_preview_pose(rig, spec, pose_id)
         bpy.context.view_layer.update()
+        baked_meshes, hidden_originals = add_baked_skinning_preview_meshes(root, spec, pose_id)
         overlays = add_pose_rig_overlays(root, rig, spec, pose_id)
         if pose_id == "down":
             camera.location = (2.05, -3.35, 1.02)
@@ -1529,6 +1530,8 @@ def render_skinning_preview_views(
         scene.render.filepath = str(out_dir / f"skin-preview-{pose_id}.png")
         bpy.ops.render.render(write_still=True)
         remove_objects(overlays)
+        remove_objects(baked_meshes)
+        restore_visibility(hidden_originals)
         print(f"BING_SKINNING_PREVIEW_POSE_RENDER_DONE={spec.character_id}:{pose_id}", flush=True)
 
     reset_rig_pose(rig)
@@ -1566,6 +1569,38 @@ def add_pose_rig_overlays(
         overlays.append(limb(collection, root, f"{spec.character_id}_{pose_id}_skin_pose_bone_{bone_name}", head, tail, 0.0065, material))
         overlays.append(add_ellipsoid(collection, root, f"{spec.character_id}_{pose_id}_skin_pose_joint_{bone_name}", head, (0.012, 0.012, 0.012), material))
     return overlays
+
+
+def add_baked_skinning_preview_meshes(
+    root: bpy.types.Object,
+    spec: CharacterSpec,
+    pose_id: str,
+) -> tuple[list[bpy.types.Object], list[tuple[bpy.types.Object, bool, bool]]]:
+    collection = root.users_collection[0]
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    baked: list[bpy.types.Object] = []
+    hidden_originals: list[tuple[bpy.types.Object, bool, bool]] = []
+    for obj in character_objects(root):
+        if obj.type != "MESH" or obj.get("bing_skinning") != "rigid_first_pass":
+            continue
+        hidden_originals.append((obj, obj.hide_viewport, obj.hide_render))
+        obj.hide_viewport = True
+        obj.hide_render = True
+        evaluated = obj.evaluated_get(depsgraph)
+        mesh = bpy.data.meshes.new_from_object(evaluated, depsgraph=depsgraph)
+        mesh.name = f"{obj.name}_{pose_id}_baked_skin_preview_mesh"
+        preview = bpy.data.objects.new(f"{obj.name}_{pose_id}_baked_skin_preview", mesh)
+        preview.matrix_world = obj.matrix_world.copy()
+        preview["bing_skinning_preview_bake"] = pose_id
+        collection.objects.link(preview)
+        baked.append(preview)
+    return baked, hidden_originals
+
+
+def restore_visibility(states: list[tuple[bpy.types.Object, bool, bool]]) -> None:
+    for obj, hide_viewport, hide_render in states:
+        obj.hide_viewport = hide_viewport
+        obj.hide_render = hide_render
 
 
 def remove_objects(objects: list[bpy.types.Object]) -> None:
