@@ -16,6 +16,7 @@
 | P1 沿用上回合 | 已落地 | 行动面板提供“沿用上回合”快捷按钮，并做基础合法性提示 |
 | P1 事件日志与动画口径 | 已落地 | 日志显示对应 battle beat 标签，便于 QA 对照动画反馈 |
 | P1 BattleDirector 初版 | 已落地 | `battleDirector` 统一 active cue、camera cue、hit-stop、VFX metadata，并驱动 3D 桌面轻量镜头脉冲 |
+| P1 新手结算摘要 | 已落地 | 桌面 readout 增加“动作 / 目标 / 结果”摘要，系统步骤时仍保留本轮真实动作目标；`test:ui-agents` 检查摘要目标绑定和遮挡 |
 | Phase D 生产质感 | 进行中 | 需要继续做角色资产、音效资源、性能 profiling 和可访问性 |
 | Phase E Blender 角色生产 | 进行中 | 已有角色 blockout、LOD0/LOD1 skinned/animated GLB、PBR、动作剪影、face-detail 和浏览器加载验收；仍需最终高模、精细权重、手工/烘焙贴图和精修动画 |
 
@@ -29,6 +30,15 @@
 | 竞技玩家 | 已有目标高亮和沿用上回合，但快速读局还缺历史压缩、资源趋势和动画加速。 | 做竞技读局层：上一招、资源 delta、目标线、威胁提示、快速复用/改目标；有 target 的 cue 必须映射座位或目标线。 |
 | 开发商 / QA | 基础 CI 已有，但浏览器检查和复杂技能链仍未覆盖到 CI。 | 扩展 UI agent 场景，捕捉动画中帧，检查 `data-beat`、目标线、资源 delta、impact shake；把浏览器检查放入可选/夜间 workflow。 |
 | 美术总监 | 当前角色是合格 WIP/blockout，LOD0/LOD1 已有 first-pass blended skin 和同名预览 clips。 | 补来源声明、精细权重绘制、精修动作、LOD 运行时切换和压缩策略。 |
+
+## 2026-06-13 晚间子智能体追加评审
+
+| 视角 | P0 / P1 发现 | 已处理 / 下一步 |
+| --- | --- | --- |
+| 新手玩家 Agent | 首屏主 CTA 直接建房可能跳过昵称/角色选择；移动端必须保留“现在该干什么”；结算后需要白话因果摘要。 | 已落地结算摘要和 UI agent 门禁；下一步把首屏 CTA 改成滚到创建区/确认角色，并做移动端固定下一步提示。 |
+| 竞技玩家 Agent | 移动端行动 dock 像长表单；按钮字号与触控高度偏紧；提交后缺少锁定/亮招节拍；复杂技能目标感不足。 | 下一步做底部主指令条：当前选择、目标、消耗、提交固定可见，高级参数进二级抽屉。 |
+| 开发商 Agent | 当前适合受控公网试玩，不适合正式公开发布；浏览器 CI、发布清单、环境变量、Node 版本、安全白名单、备份和许可证仍缺。 | 下一步新增 `docs/RELEASE_CHECKLIST.md`，统一 `.env.example` 和 Node 版本口径。 |
+| 美术总监 Agent | 角色运行时偏小、剪影差异不足、LOD1 未运行时切换、placeholder 仍会进入公开战斗画面。 | 下一步做运行时 LOD 选择、角色尺寸/遮挡验收、placeholder 网络请求清理。 |
 
 ## 1. UI 优化方法
 
@@ -104,7 +114,7 @@
 - 继续使用 Three.js 承载牌桌和镜头。
 - CSS 负责小状态：hover、selected、disabled、ready、resource changed。
 - `apps/client/src/lib/turnTimeline.ts` 负责把事件映射为 beat、sound cue 和描述。
-- `battlePresentation` / `BattleDirector` 数据层从 `GameEvent` 生成 `beat`、来源、目标、时间、强度、VFX、SFX 和相机 cue，已供 `TurnAnimation`、`PlayerSeat` 和 `TableScene3D` 共用；下一步接 `SkillEffectLayer`、音效资源和新手摘要。
+- `battlePresentation` / `BattleDirector` 数据层从 `GameEvent` 生成 `beat`、来源、目标、时间、强度、VFX、SFX 和相机 cue，已供 `TurnAnimation`、`PlayerSeat`、`TableScene3D` 和新手结算摘要共用；下一步接 `SkillEffectLayer`、音效资源和移动端主指令条。
 - `scripts/turn-timeline-check.ts` 用来防止新增事件没有视觉映射。
 - `scripts/ui-playtest-agents.ts` 用来检查桌面/移动端截图、canvas 非空、遮挡、目标预览、结算 cue 目标座位映射和关键动作。
 - 下一步新增 `competitive-readability-check`：构造固定 4 人局，覆盖普通攻击、防御、反弹、群攻、变伤和复活窗口，并断言 source/target、HP/饼 delta、battle cue、座位 role 和中文摘要齐全。
@@ -202,6 +212,7 @@ npm run test:ui-agents
 - 检查 3D canvas 非空。
 - 检查关键 HUD/行动面板是否明显重叠。
 - 生成 Markdown 报告和截图到 `artifacts/playtests/`。
+- 检查新手结算摘要的动作、目标数量、目标 ID、step count 和 BattleDirector cue 是否一致。
 
 ## 5. 修改意见汇总
 

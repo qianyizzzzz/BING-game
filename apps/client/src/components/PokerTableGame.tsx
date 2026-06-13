@@ -49,6 +49,21 @@ export function PokerTableGame({
   const readoutStep = director.visibleStep ?? director.battleSteps[0];
   const readoutCue = director.visibleCue ?? director.firstCue;
   const readoutTargetIds = readoutCue?.targetIds ?? [];
+  const summaryStepIndex = (() => {
+    if (readoutStep && readoutStep.kind !== "system") {
+      return director.activeStepIndex;
+    }
+
+    const concreteIndex = director.battleSteps.findIndex((step) => step.kind !== "system");
+    if (concreteIndex >= 0) {
+      return concreteIndex;
+    }
+
+    return Math.max(0, director.activeStepIndex);
+  })();
+  const summaryStep = director.battleSteps[summaryStepIndex] ?? readoutStep;
+  const summaryCue = director.presentationCues[summaryStepIndex] ?? readoutCue;
+  const summaryTargetIds = summaryCue?.targetIds ?? [];
   const readoutProgress =
     director.isPlaying && director.battleSteps.length > 0
       ? `结算 ${director.activeStepIndex + 1}/${director.battleSteps.length}`
@@ -59,6 +74,14 @@ export function PokerTableGame({
     typeof readoutStep?.amount === "number"
       ? `${readoutStep.kind === "heal" ? "治疗" : "伤害"} ${formatDamage(readoutStep.amount)}`
       : "";
+  const summaryAmountLabel =
+    typeof summaryStep?.amount === "number"
+      ? `${summaryStep.kind === "heal" ? "治疗" : "伤害"} ${formatDamage(summaryStep.amount)}`
+      : "";
+  const readoutSummaryAction = summaryStep?.label ?? "等待亮招";
+  const readoutSummaryTarget = summaryStep?.targetName ?? "所有玩家";
+  const readoutSummaryResult =
+    summaryAmountLabel || summaryStep?.description || "等待所有玩家提交行动。";
   const seatedPlayers = state.players.filter((player) => player.kind !== "spectator");
   const activePlayers = seatedPlayers.filter((player) => player.status === "alive");
   const spectators = state.players.filter((player) => player.kind === "spectator");
@@ -278,6 +301,30 @@ export function PokerTableGame({
                 <span aria-hidden="true">→</span>
                 <b>{readoutStep.targetName}</b>
               </div>
+              <div
+                className="battle-turn-summary"
+                data-testid="battle-turn-summary"
+                data-action-label={readoutSummaryAction}
+                data-amount={summaryStep?.amount ?? ""}
+                data-kind={summaryStep?.kind ?? "idle"}
+                data-source-id={summaryCue?.sourceId ?? ""}
+                data-step-count={director.battleSteps.length}
+                data-target-ids={summaryTargetIds.join(",")}
+                data-target-count={summaryTargetIds.length}
+              >
+                <div>
+                  <span>动作</span>
+                  <strong>{readoutSummaryAction}</strong>
+                </div>
+                <div>
+                  <span>目标</span>
+                  <strong>{readoutSummaryTarget}</strong>
+                </div>
+                <div>
+                  <span>结果</span>
+                  <strong>{readoutSummaryResult}</strong>
+                </div>
+              </div>
               <p>{readoutStep.description}</p>
             </>
           ) : (
@@ -287,6 +334,30 @@ export function PokerTableGame({
                 <b>桌面</b>
                 <span aria-hidden="true">→</span>
                 <b>等待</b>
+              </div>
+              <div
+                className="battle-turn-summary battle-turn-summary-idle"
+                data-testid="battle-turn-summary"
+                data-action-label={readoutSummaryAction}
+                data-amount=""
+                data-kind="idle"
+                data-source-id=""
+                data-step-count={director.battleSteps.length}
+                data-target-ids=""
+                data-target-count="0"
+              >
+                <div>
+                  <span>动作</span>
+                  <strong>{readoutSummaryAction}</strong>
+                </div>
+                <div>
+                  <span>目标</span>
+                  <strong>{readoutSummaryTarget}</strong>
+                </div>
+                <div>
+                  <span>结果</span>
+                  <strong>{readoutSummaryResult}</strong>
+                </div>
               </div>
               <p>等待所有玩家亮招。</p>
             </>

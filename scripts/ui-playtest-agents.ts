@@ -724,9 +724,22 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       targetIds: element.getAttribute("data-target-ids") ?? "",
       text: element.textContent?.trim() ?? ""
     }));
+    const summary = await page.getByTestId("battle-turn-summary").first().evaluate((element) => ({
+      actionLabel: element.getAttribute("data-action-label") ?? "",
+      amount: element.getAttribute("data-amount") ?? "",
+      kind: element.getAttribute("data-kind") ?? "",
+      sourceId: element.getAttribute("data-source-id") ?? "",
+      stepCount: element.getAttribute("data-step-count") ?? "",
+      targetCount: element.getAttribute("data-target-count") ?? "",
+      targetIds: element.getAttribute("data-target-ids") ?? "",
+      text: element.textContent?.trim() ?? ""
+    }));
 
     if (readout.text.length < 8) {
       throw new Error(`Battle readout 不完整：${JSON.stringify(readout)}`);
+    }
+    if (summary.text.length < 8 || !summary.actionLabel || !summary.kind) {
+      throw new Error(`新手结算摘要不完整：${JSON.stringify(summary)}`);
     }
 
     await page.waitForFunction(
@@ -794,8 +807,18 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     if (!readout.kind || readout.kind === "idle" || Number(readout.stepCount) <= 0 || readout.text.length < 8) {
       throw new Error(`Battle readout 不完整：${JSON.stringify(readout)}`);
     }
+    if (summary.kind === "idle" || Number(summary.stepCount) <= 0 || summary.text.length < 8) {
+      throw new Error(`新手结算摘要未绑定真实结算：${JSON.stringify(summary)}`);
+    }
+    if (readout.kind !== "system" && readout.kind !== summary.kind) {
+      throw new Error(`新手结算摘要与 Battle readout 不一致：${JSON.stringify({ readout, summary })}`);
+    }
+    if (readout.stepCount !== summary.stepCount) {
+      throw new Error(`新手结算摘要与 Battle readout 步数不一致：${JSON.stringify({ readout, summary })}`);
+    }
     const cueTargetIds = splitDataIds(cue.targetIds);
     const activeTargetIds = splitDataIds(director.targetIds);
+    const summaryTargetIds = splitDataIds(summary.targetIds);
     const seatPlayerIds = splitDataIds(director.seatPlayerIds);
     const cueTargetSeatCount = Number(cue.targetSeatCount);
     const pokerTableCueTargetSeatCount = cueTargetIds.filter((targetId) => seatPlayerIds.includes(targetId)).length;
@@ -812,8 +835,14 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     if (director.targetIds && directorTargetSeatCount === 0) {
       throw new Error(`BattleDirector 有目标但没有座位高亮：${JSON.stringify(director)}`);
     }
+    if (cueTargetIds.length > 0 && summaryTargetIds.length === 0) {
+      throw new Error(`新手结算摘要缺少目标绑定：${JSON.stringify({ cue, summary })}`);
+    }
+    if (summaryTargetIds.length > 0 && Number(summary.targetCount) !== summaryTargetIds.length) {
+      throw new Error(`新手结算摘要目标计数不一致：${JSON.stringify(summary)}`);
+    }
 
-    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, cueTargets=${cueTargetIds.length}, cueTargetSeats=${cueTargetSeatCount}, pokerTableCueTargetSeats=${pokerTableCueTargetSeatCount}, cueTargetDomSeats=${cueTargetDomSeatCount}, activeTargets=${activeTargetIds.length}, mappedActiveTargets=${mappedTargetSeatCount}, highlightedTargets=${directorTargetSeatCount}, seats=${directorSeatCount}）。`;
+    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}，新手摘要=${summary.kind}/${summary.actionLabel}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, cueTargets=${cueTargetIds.length}, cueTargetSeats=${cueTargetSeatCount}, pokerTableCueTargetSeats=${pokerTableCueTargetSeatCount}, cueTargetDomSeats=${cueTargetDomSeatCount}, activeTargets=${activeTargetIds.length}, summaryTargets=${summaryTargetIds.length}, mappedActiveTargets=${mappedTargetSeatCount}, highlightedTargets=${directorTargetSeatCount}, seats=${directorSeatCount}）。`;
     visualChecks.push(message);
     agent.observations.push(message);
   } catch (error) {

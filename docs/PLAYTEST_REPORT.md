@@ -1,13 +1,13 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-13  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T12-33-40-021Z/report.md`  
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T14-55-00-293Z/report.md`
 最新逐角色浏览器验收：`artifacts/playtests/character-runtime-2026-06-13T08-57-15-348Z/report.md`
 
 ## 结论
 
-当前版本的双玩家 happy path 可以跑通：创建房间、加入房间、开始游戏、吃饼、沿用上回合、攻击、目标预览、BattleDirector cue、3D canvas、GLB 加载、遮挡检查和 console 检查均通过。  
-但这还不是“新玩家一眼就懂、竞技玩家愿意反复玩”的状态。下一阶段重点应该放在：新手结算摘要、竞技读局层、复杂技能中帧验证、运行时角色动画和平衡数据。
+当前版本的双玩家 happy path 可以跑通：创建房间、加入房间、开始游戏、吃饼、沿用上回合、攻击、目标预览、BattleDirector cue、3D canvas、GLB 加载、遮挡检查、console 检查和新手结算摘要门禁均通过。
+但这还不是“新玩家一眼就懂、竞技玩家愿意反复玩”的状态。下一阶段重点应该放在：移动端主指令条、竞技读局层、复杂技能中帧验证、运行时角色 LOD/可读性和平衡数据。
 
 ## 2026-06-13 午间子智能体复审
 
@@ -15,6 +15,13 @@
 - 竞技玩家 Agent：读局层还缺上一招、HP/饼 delta、目标线、威胁阈值和动画加速；有 target 的 cue 必须映射到座位或目标线。
 - 开发商/QA Agent：GitHub Actions 已补基础 CI，但浏览器检查仍未进 CI；应继续扩展多人、断线重连、技能窗口和 release 体积预算。
 - 美术总监 Agent：LOD0/LOD1 已有 first-pass blended skin、同名预览 clips 和 `skin-preview-*` QA，足够 WIP 管线验收；下一步是精修权重、动作过渡和 LOD 运行时切换。
+
+## 2026-06-13 晚间子智能体复审
+
+- 新手玩家 Agent：首屏主 CTA 直接建房仍可能跳过昵称/角色选择；移动端不能隐藏“现在该干什么”；本轮已把“动作 / 目标 / 结果”的新手结算摘要落到桌面，并由 UI agent 检查目标绑定。
+- 竞技玩家 Agent：行动 dock 在移动端仍像滚动表单，下一步应做固定底部主指令条；按钮字号和触控高度需要回到 13-14px / 44px 以上；复杂技能需要目标线、资源 delta 和更强锁定/亮招节拍。
+- 开发商 Agent：当前适合受控公网试玩，不适合正式公开发布；下一批工程项是浏览器夜间 CI、发布清单、环境变量样例、Node 版本统一、安全白名单、数据备份和许可证/资产权属。
+- 美术总监 Agent：角色 GLB 管线已打通，但运行时角色仍偏小、剪影差异不足；下一批美术项是角色可读性、职业剪影、LOD 运行时策略、placeholder 清理和材质应用 QA。
 
 ## 玩家 Agent A：新手可用性
 
@@ -62,6 +69,7 @@
 - `npm run test:ui-agents` 最近一次通过，无 console error、无 failed action、无视觉 QA 告警。
 - 双端 canvas 正常渲染，并检测到运行时 LOD0 animated GLB 成功加载。
 - UI agent 已覆盖目标预览、沿用上回合、遮挡检查、结算 cue、cue target 到座位的映射。
+- UI agent 已覆盖新手结算摘要：当 readout 已播放到系统步骤时，摘要仍要保留本轮真实动作、目标绑定和目标座位映射。
 - `npm run test:character-browser` 已逐个验证 6 个角色：期望 GLB 与观察 GLB 一致，canvas 非空，console/page error 为无。
 
 缺口：
