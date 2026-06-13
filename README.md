@@ -97,7 +97,7 @@ npm run serve
 | `npm run typecheck` | 对所有 workspace 运行 TypeScript 检查。 |
 | `npm run test:ci` | 运行 typecheck、角色资产审计、规则回归和 turn timeline 检查。 |
 | `npm run verify` | 构建项目并运行核心检查与 UI agents。 |
-| `npm run test:assets` | 检查 6 个角色的头像、GLB 和动作剪影资源。 |
+| `npm run test:assets` | 检查 6 个角色的 GLB、头像、QA 图和 PBR 贴图资源。 |
 | `npm run test:character-browser` | 逐个创建角色房间，用真实浏览器验证 LOD1 GLB 加载和 3D canvas。 |
 | `npm run test:rules` | 运行规则回归测试。 |
 | `npm run test:turn-timeline` | 检查事件日志到动画 beat 的映射。 |
