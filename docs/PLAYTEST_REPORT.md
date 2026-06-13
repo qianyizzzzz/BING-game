@@ -1,13 +1,13 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-13  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T16-00-17-370Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T16-59-57-110Z/report.md`
 最新逐角色浏览器验收：`artifacts/playtests/character-runtime-2026-06-13T15-11-32-893Z/report.md`
 
 ## 结论
 
-当前版本的双玩家 happy path 可以跑通：首屏 CTA 准备流程、创建房间、加入房间、开始游戏、吃饼、沿用上回合、攻击、目标预览、行动 HUD 下一步提示、BattleDirector cue、3D canvas、GLB 加载、移动端 LOD1/桌面 LOD0 分流、placeholder 网络请求检查、遮挡检查、console 检查和新手结算摘要门禁均通过。
-但这还不是“新玩家一眼就懂、竞技玩家愿意反复玩”的状态。下一阶段重点应该放在：移动端提交按钮固定可见、竞技读局层、复杂技能中帧验证、运行时角色 LOD/可读性和平衡数据。
+当前版本的双玩家 happy path 可以跑通：首屏 CTA 准备流程、创建房间、加入房间、开始游戏、吃饼、沿用上回合、攻击、目标预览、行动 HUD 下一步提示、底部命令区固定可见、BattleDirector cue、3D canvas、GLB 加载、移动端 LOD1/桌面 LOD0 分流、placeholder 网络请求检查、遮挡检查、console 检查和新手结算摘要门禁均通过。
+但这还不是“新玩家一眼就懂、竞技玩家愿意反复玩”的状态。下一阶段重点应该放在：竞技读局层、复杂技能中帧验证、运行时角色 LOD/可读性、技能参数抽屉和平衡数据。
 
 ## 2026-06-13 午间子智能体复审
 
@@ -70,6 +70,7 @@
 - 双端 canvas 正常渲染，并检测到运行时 LOD0 animated GLB 成功加载。
 - UI agent 已覆盖目标预览、沿用上回合、遮挡检查、结算 cue、cue target 到座位的映射。
 - UI agent 已覆盖行动 HUD：攻击模式下必须显示下一步、目标数、目标 id 和可提交状态。
+- UI agent 已覆盖底部命令区：移动端和桌面端提交按钮保持可见，触控高度不低于 44px。
 - UI agent 已覆盖新手结算摘要：当 readout 已播放到系统步骤时，摘要仍要保留本轮真实动作、目标绑定和目标座位映射。
 - UI agent 已覆盖运行时 LOD 分流：390px 移动端加载 `*-lod1.glb`，1280px 桌面端加载 LOD0 `*.glb`。
 - UI agent 已覆盖公开战斗画面 Network 检查：不应再请求 `/assets/placeholders/`。
@@ -115,3 +116,4 @@ UI 优化方法：
 - 房间准备阶段 HUD 改为“房间准备 · 等待开始”，避免显示回合数造成误解。
 - `scripts/ui-playtest-agents.ts` 增加 lobby 文案回归检查，并把第三回合流程稳定为“新手攻击、竞技玩家吃饼承压”。
 - 行动面板顶部新增“下一步 / 目标 / 状态”HUD，明确是否可提交和不可提交原因；UI agent 会检查目标数、目标 id 和 ready 状态。
+- 行动面板底部新增 portal HUD 命令区，“沿用上回合 / 提交”固定在视窗内；UI agent 会检查按钮可见性和 44px 触控高度。

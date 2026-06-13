@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Compass, Crown, Gauge, RadioTower, UsersRound } from "lucide-react";
 import {
   ACTION_PROMPT_SECONDS,
@@ -161,45 +162,48 @@ export function PokerTableGame({
     return () => window.clearInterval(timer);
   }, [activeDeadline]);
 
-  return (
-    <section className="poker-table-shell">
-      <div className="poker-table-toolbar">
-        <div className="poker-table-phase">
-          {state.phase === "lobby"
-            ? "房间准备"
-            : state.phase === "finished"
-              ? "对局结束"
-              : state.phase === "action_window"
-                ? "阶段行动"
-                : "同时行动"}
-        </div>
-        <div className="poker-table-stats">
-          <span>
-            <Crown className="h-4 w-4" aria-hidden="true" />
-            {owner?.name ?? "房主"}
-          </span>
-          <span>
-            <UsersRound className="h-4 w-4" aria-hidden="true" />
-            {activePlayers.length}/{seatedPlayers.length}
-          </span>
-        </div>
-      </div>
+  const actionDock = actionPanel ? <div className="table-action-dock">{actionPanel}</div> : null;
 
-      <div
-        className={[
-          "poker-table-board",
-          hasImpactEffect ? "poker-table-board-impact" : "",
-          director.isPlaying ? "poker-table-board-directed" : "",
-          activeDirectorCue?.hitStopMs ? "poker-table-board-hit-stop" : ""
-        ].join(" ")}
-        data-director-active={director.isPlaying ? "true" : "false"}
-        data-director-beat={director.activeBeat}
-        data-director-camera-cue={director.activeCameraCue}
-        data-director-hit-stop-ms={director.activeHitStopMs}
-        data-director-intensity={director.activeIntensity}
-        data-director-target-ids={director.activeTargetIds.join(",")}
-        data-director-vfx={director.activeVfx}
-      >
+  return (
+    <>
+      <section className="poker-table-shell">
+        <div className="poker-table-toolbar">
+          <div className="poker-table-phase">
+            {state.phase === "lobby"
+              ? "房间准备"
+              : state.phase === "finished"
+                ? "对局结束"
+                : state.phase === "action_window"
+                  ? "阶段行动"
+                  : "同时行动"}
+          </div>
+          <div className="poker-table-stats">
+            <span>
+              <Crown className="h-4 w-4" aria-hidden="true" />
+              {owner?.name ?? "房主"}
+            </span>
+            <span>
+              <UsersRound className="h-4 w-4" aria-hidden="true" />
+              {activePlayers.length}/{seatedPlayers.length}
+            </span>
+          </div>
+        </div>
+
+        <div
+          className={[
+            "poker-table-board",
+            hasImpactEffect ? "poker-table-board-impact" : "",
+            director.isPlaying ? "poker-table-board-directed" : "",
+            activeDirectorCue?.hitStopMs ? "poker-table-board-hit-stop" : ""
+          ].join(" ")}
+          data-director-active={director.isPlaying ? "true" : "false"}
+          data-director-beat={director.activeBeat}
+          data-director-camera-cue={director.activeCameraCue}
+          data-director-hit-stop-ms={director.activeHitStopMs}
+          data-director-intensity={director.activeIntensity}
+          data-director-target-ids={director.activeTargetIds.join(",")}
+          data-director-vfx={director.activeVfx}
+        >
         <div
           aria-hidden="true"
           className="sr-only"
@@ -365,7 +369,6 @@ export function PokerTableGame({
         </div>
 
         <SkillEffectLayer effects={effects} seatPositions={seatPositions} />
-        {actionPanel ? <div className="table-action-dock">{actionPanel}</div> : null}
 
         {orderedPlayers.map((player) => {
           const isActiveActor =
@@ -414,6 +417,8 @@ export function PokerTableGame({
         ) : null}
       </div>
     </section>
+    {actionDock ? createPortal(actionDock, document.body) : null}
+    </>
   );
 }
 

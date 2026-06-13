@@ -662,12 +662,25 @@ async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: str
         if (!command.selectedAction || !command.text.includes("下一步") || !command.text.includes("状态")) {
           throw new Error(`行动 HUD 摘要不完整：${JSON.stringify(command)}`);
         }
+        const footer = await readActionCommandFooter(page);
+        if (footer.readyState !== "ready") {
+          throw new Error(`底部命令区未进入可提交状态：${JSON.stringify(footer)}`);
+        }
+        if (footer.submitHeight < 44 || footer.footerHeight < 44) {
+          throw new Error(`底部命令区触控高度不足：${JSON.stringify(footer)}`);
+        }
+        if (!footer.inViewport) {
+          throw new Error(`底部命令区不在视窗内：${JSON.stringify(footer)}`);
+        }
         const message = `${label}: 选择攻击模式后 ${count} 个目标座位出现高亮预览。`;
         visualChecks.push(message);
         agent.observations.push(message);
         const hudMessage = `${label}: 行动 HUD 显示下一步“${command.nextStep}”，目标数 ${command.targetCount}。`;
         visualChecks.push(hudMessage);
         agent.observations.push(hudMessage);
+        const footerMessage = `${label}: 底部命令区保持可见，提交按钮高度 ${Math.round(footer.submitHeight)}px。`;
+        visualChecks.push(footerMessage);
+        agent.observations.push(footerMessage);
         return;
       } catch (error) {
         lastError = error;
@@ -701,6 +714,51 @@ async function readActionCommandStrip(page: Page): Promise<{
     targetIds: element.getAttribute("data-target-ids") ?? "",
     text: element.textContent?.replace(/\s+/g, " ").trim() ?? ""
   }));
+}
+
+async function readActionCommandFooter(page: Page): Promise<{
+  footerHeight: number;
+  inViewport: boolean;
+  readyState: string;
+  rect: {
+    bottom: number;
+    left: number;
+    right: number;
+    top: number;
+  };
+  submitHeight: number;
+  viewport: {
+    height: number;
+    width: number;
+  };
+}> {
+  return page.getByTestId("action-command-footer").first().evaluate((element) => {
+    const footerRect = element.getBoundingClientRect();
+    const submit = element.querySelector('[data-testid="submit-action"]');
+    const submitRect = submit instanceof HTMLElement
+      ? submit.getBoundingClientRect()
+      : new DOMRect();
+    return {
+      footerHeight: footerRect.height,
+      inViewport:
+        footerRect.bottom <= window.innerHeight + 1 &&
+        footerRect.top >= -1 &&
+        footerRect.left >= -1 &&
+        footerRect.right <= window.innerWidth + 1,
+      readyState: element.getAttribute("data-ready-state") ?? "",
+      rect: {
+        bottom: footerRect.bottom,
+        left: footerRect.left,
+        right: footerRect.right,
+        top: footerRect.top
+      },
+      submitHeight: submitRect.height,
+      viewport: {
+        height: window.innerHeight,
+        width: window.innerWidth
+      }
+    };
+  });
 }
 
 async function waitForAttackPreviewReady(page: Page, timeoutMs: number): Promise<void> {

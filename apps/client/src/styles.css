@@ -873,6 +873,31 @@ select {
     rgba(255, 251, 235, 0.74);
 }
 
+.action-command-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.35fr);
+  gap: 8px;
+  margin: 0 -2px -2px;
+  border-top: 1px solid rgba(15, 118, 110, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.94) 26%),
+    rgba(255, 255, 255, 0.94);
+  padding: 10px 2px 2px;
+  backdrop-filter: blur(10px);
+}
+
+.action-command-footer .btn-primary,
+.action-command-footer .btn-secondary {
+  min-height: 44px;
+}
+
+.action-command-footer .btn-secondary {
+  padding-inline: 10px;
+}
+
 .stat-chip {
   padding: 8px 10px;
 }
@@ -2633,13 +2658,17 @@ select {
 }
 
 .table-action-dock {
-  position: absolute;
+  position: fixed;
   right: 16px;
-  bottom: 16px;
+  top: calc(100dvh - min(30dvh, 270px) - 16px);
+  bottom: auto;
   z-index: 9;
   width: min(292px, 29%);
+  height: min(30vh, 270px);
+  height: min(30dvh, 270px);
   max-height: min(30vh, 270px);
-  overflow: auto;
+  max-height: min(30dvh, 270px);
+  overflow: hidden;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   border: 1px solid rgba(20, 184, 166, 0.32);
@@ -2650,9 +2679,15 @@ select {
 }
 
 .table-action-dock .action-board {
+  display: flex;
+  height: 100%;
+  max-height: inherit;
+  min-height: 0;
+  flex-direction: column;
   border: 0;
   padding: 10px !important;
   box-shadow: none;
+  overflow: hidden;
 }
 
 .table-action-dock .action-board > .flex:first-child {
@@ -2678,7 +2713,20 @@ select {
 }
 
 .table-action-dock .action-board form {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
   margin-top: 10px;
+}
+
+.table-action-dock .action-scroll-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 3px;
+  scrollbar-gutter: stable;
 }
 
 .table-action-dock .action-mode-grid {
@@ -2714,9 +2762,6 @@ select {
 }
 
 .table-action-dock .action-submit-button {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
   min-height: 42px;
 }
 
@@ -4626,7 +4671,11 @@ select {
 
 .table-action-dock {
   width: min(360px, 36%);
+  height: min(42vh, 340px);
+  height: min(42dvh, 340px);
+  top: calc(100dvh - min(42dvh, 340px) - 16px);
   max-height: min(42vh, 340px);
+  max-height: min(42dvh, 340px);
 }
 
 .table-action-dock .action-board {
@@ -4701,6 +4750,17 @@ select {
   color: rgba(248, 237, 210, 0.82);
 }
 
+.table-action-dock .action-command-footer {
+  position: relative;
+  bottom: auto;
+  flex: 0 0 auto;
+  margin-bottom: -2px;
+  border-top-color: rgba(136, 247, 219, 0.14);
+  background:
+    linear-gradient(180deg, rgba(5, 8, 7, 0), rgba(5, 8, 7, 0.96) 28%),
+    rgba(5, 8, 7, 0.96);
+}
+
 .table-action-dock .mode-button {
   border-color: rgba(201, 178, 124, 0.22);
   background: rgba(5, 8, 7, 0.62);
@@ -4736,8 +4796,11 @@ select {
   .table-action-dock {
     left: 12px;
     right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
+    top: calc(100dvh - min(46dvh, 360px) - max(12px, env(safe-area-inset-bottom)));
+    bottom: auto;
     width: auto;
+    height: min(46vh, 360px);
+    height: min(46dvh, 360px);
     max-height: min(46vh, 360px);
     max-height: min(46dvh, 360px);
   }
@@ -4787,12 +4850,21 @@ select {
     gap: 6px;
   }
 
-  .table-action-dock .action-submit-button {
+  .table-action-dock .action-command-footer {
     bottom: 0;
-    min-height: 46px;
+    grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.34fr);
+    gap: 7px;
+    margin-right: -4px;
+    margin-left: -4px;
+    padding: 10px 4px 2px;
     box-shadow:
       0 -12px 18px rgba(5, 8, 7, 0.38),
       0 10px 22px rgba(20, 184, 166, 0.2);
+  }
+
+  .table-action-dock .action-command-footer .btn-primary,
+  .table-action-dock .action-command-footer .btn-secondary {
+    min-height: 46px;
   }
 }
 
@@ -4800,6 +4872,9 @@ select {
   .table-action-dock {
     left: 8px;
     right: 8px;
+    top: calc(100dvh - min(44dvh, 330px) - max(8px, env(safe-area-inset-bottom)));
+    height: min(44vh, 330px);
+    height: min(44dvh, 330px);
     max-height: min(44vh, 330px);
     max-height: min(44dvh, 330px);
   }
@@ -4827,6 +4902,10 @@ select {
   .table-action-dock .action-summary-meta span {
     flex: 1 1 112px;
     text-align: center;
+  }
+
+  .table-action-dock .action-command-footer {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -2025,8 +2025,9 @@ export function ActionPanel({
         </div>
       </div>
 
-      <form className="action-form mt-4 space-y-4" onSubmit={submit}>
-        <div className="action-mode-grid grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <form className="action-form mt-4" onSubmit={submit}>
+        <div className="action-scroll-body space-y-4">
+          <div className="action-mode-grid grid grid-cols-2 gap-2 sm:grid-cols-4">
           <ModeButton
             active={mode === "gain_cake"}
             icon={<Cookie className="h-4 w-4" aria-hidden="true" />}
@@ -2057,9 +2058,9 @@ export function ActionPanel({
             onClick={() => setMode("skill")}
             testId="action-mode-skill"
           />
-        </div>
+          </div>
 
-        {mode === "defense" ? (
+          {mode === "defense" ? (
           <div className="grid gap-3 md:grid-cols-2">
             <label className="block text-sm font-medium text-gray-700">
               防御
@@ -2092,9 +2093,9 @@ export function ActionPanel({
               </div>
             ) : null}
           </div>
-        ) : null}
+          ) : null}
 
-        {mode === "attack" ? (
+          {mode === "attack" ? (
           <div className="space-y-3">
             {attackRows.map((row, index) => {
               const stats = rowStats(row);
@@ -2290,9 +2291,9 @@ export function ActionPanel({
               <p className="text-sm text-red-600">群攻招式必须单独使用。</p>
             ) : null}
           </div>
-        ) : null}
+          ) : null}
 
-        {mode === "skill" ? (
+          {mode === "skill" ? (
           <div className="action-row space-y-3">
             {nonAttackSkills.length > 0 ? (
               <>
@@ -2413,15 +2414,15 @@ export function ActionPanel({
               </div>
             )}
           </div>
-        ) : null}
+          ) : null}
 
-        {mode === "gain_cake" ? (
+          {mode === "gain_cake" ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-3 text-sm text-amber-900 shadow-sm">
             本回合获得 1 个饼。若对方使用超核爆，出饼也能作为“饼防”。
           </div>
-        ) : null}
+          ) : null}
 
-        <div
+          <div
           className={[
             "action-summary-panel",
             actionInvalid ? "action-summary-panel-warning" : ""
@@ -2436,37 +2437,44 @@ export function ActionPanel({
             <span>{selectedActionCost > 0 ? `消耗 ${selectedActionCost} 饼` : "无消耗"}</span>
             <span>{previewTargetLabel}</span>
           </div>
+          </div>
         </div>
 
-        <button
-          className="btn-secondary w-full justify-center disabled:cursor-not-allowed disabled:opacity-50"
-          data-testid="repeat-last-action"
-          disabled={!canRepeatAction}
-          onClick={() => {
-            if (lastActionSubmission && canRepeatAction) {
-              onSubmit(lastActionSubmission);
-            }
-          }}
-          title={repeatActionError || "沿用上回合"}
-          type="button"
+        <div
+          className="action-command-footer"
+          data-testid="action-command-footer"
+          data-ready-state={actionReadyState}
         >
-          <FastForward className="h-4 w-4" aria-hidden="true" />
-          沿用上回合
-        </button>
+          <button
+            className="btn-secondary action-repeat-button w-full justify-center disabled:cursor-not-allowed disabled:opacity-50"
+            data-testid="repeat-last-action"
+            disabled={!canRepeatAction}
+            onClick={() => {
+              if (lastActionSubmission && canRepeatAction) {
+                onSubmit(lastActionSubmission);
+              }
+            }}
+            title={repeatActionError || "沿用上回合"}
+            type="button"
+          >
+            <FastForward className="h-4 w-4" aria-hidden="true" />
+            沿用上回合
+          </button>
 
-        <button
-          className="btn-primary action-submit-button w-full justify-center py-3 disabled:cursor-not-allowed disabled:bg-gray-300"
-          data-testid="submit-action"
-          disabled={!canAct || submitting || actionInvalid}
-          type="submit"
-        >
-          {submitting ? (
-            <RotateCcw className="h-4 w-4 animate-spin" aria-hidden="true" />
-          ) : (
-            <Send className="h-4 w-4" aria-hidden="true" />
-          )}
-          {submitLabel}
-        </button>
+          <button
+            className="btn-primary action-submit-button w-full justify-center py-3 disabled:cursor-not-allowed disabled:bg-gray-300"
+            data-testid="submit-action"
+            disabled={!canAct || submitting || actionInvalid}
+            type="submit"
+          >
+            {submitting ? (
+              <RotateCcw className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Send className="h-4 w-4" aria-hidden="true" />
+            )}
+            {submitLabel}
+          </button>
+        </div>
       </form>
     </section>
   );
