@@ -76,7 +76,9 @@ export function PokerTableGame({
       (state.phase === "action_window" &&
         !state.actionWindowPassPlayerIds.includes(viewer.id)));
   const progressLabel =
-    state.phase === "action_window"
+    state.phase === "lobby"
+      ? `${seatedPlayers.length} 人已入座`
+      : state.phase === "action_window"
       ? `${state.actionWindowPassPlayerIds.length}/${activePlayers.length} 已结束`
       : `${state.pendingActionPlayerIds.length}/${activePlayers.length} 已出招`;
   const waitingPlayers =
@@ -171,7 +173,7 @@ export function PokerTableGame({
           <div className="battle-status-main">
             <span>{phaseLabel(state)}</span>
             <strong>
-              第 {state.roundNumber} 轮 · 第 {state.roundTurnNumber} 回合
+              {state.phase === "lobby" ? "等待房主开始" : `第 ${state.roundNumber} 轮 · 第 ${state.roundTurnNumber} 回合`}
             </strong>
           </div>
           <div className="battle-status-grid">

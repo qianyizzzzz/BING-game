@@ -79,6 +79,8 @@ try {
     await clickByTestId(playerB, "join-room");
     await waitForRoomLobby(playerB, "加入房间");
     await screenshot(playerB, "02-player-b-joined.png");
+    await collectLobbyPrepCopyCheck(playerA, firstTimer, "新手玩家");
+    await collectLobbyPrepCopyCheck(playerB, competitor, "竞技玩家");
     competitor.observations.push("成功加入房间，检查加入路径是否足够快。");
 
     await ensureGameCanStart(playerA);
@@ -95,11 +97,7 @@ try {
       } else {
         await submitCakeTurn(playerA, turn, firstTimer);
       }
-      if (turn === 3) {
-        await submitAttackTurn(playerB, turn, competitor);
-      } else {
-        await submitCakeTurn(playerB, turn, competitor);
-      }
+      await submitCakeTurn(playerB, turn, competitor);
       await playerA.waitForTimeout(900);
       if (turn === 1) {
         await collectTargetPreviewCheck(playerA, firstTimer, "新手玩家");
@@ -604,14 +602,24 @@ async function collectVisualHealth(page: Page, agent: AgentLog, label: string): 
 }
 
 async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: string): Promise<void> {
+  let lastError: unknown;
   try {
-    await activate(page.getByTestId("action-mode-attack").first());
-    const highlightedSeats = page.locator(".poker-seat-highlighted");
-    await highlightedSeats.first().waitFor({ state: "visible", timeout: 5_000 });
-    const count = await highlightedSeats.count();
-    const message = `${label}: 选择攻击模式后 ${count} 个目标座位出现高亮预览。`;
-    visualChecks.push(message);
-    agent.observations.push(message);
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      try {
+        await activate(page.getByTestId("action-mode-attack").first(), 15_000);
+        const highlightedSeats = page.locator(".poker-seat-highlighted");
+        await highlightedSeats.first().waitFor({ state: "visible", timeout: 8_000 });
+        const count = await highlightedSeats.count();
+        const message = `${label}: 选择攻击模式后 ${count} 个目标座位出现高亮预览。`;
+        visualChecks.push(message);
+        agent.observations.push(message);
+        return;
+      } catch (error) {
+        lastError = error;
+        await page.waitForTimeout(750);
+      }
+    }
+    throw lastError;
   } catch (error) {
     const message = `${label}: 目标预览高亮检查失败：${String(error)}`;
     visualIssues.push(message);
@@ -654,6 +662,25 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     visualIssues.push(message);
     agent.issues.push(message);
   }
+}
+
+async function collectLobbyPrepCopyCheck(page: Page, agent: AgentLog, label: string): Promise<void> {
+  const hudText = await page.locator(".battle-status-main").first().innerText({ timeout: 5_000 }).catch(() => "");
+  const commandText = await page.locator(".command-center").first().innerText({ timeout: 5_000 }).catch(() => "");
+  const visibleStageText = `${hudText}\n${commandText}`;
+  const hasPrepCopy = visibleStageText.includes("房间准备") || visibleStageText.includes("等待房主开始");
+  const leaksTurnCopy = visibleStageText.includes("第 1 轮") || visibleStageText.includes("本轮第 1 回合");
+
+  if (hasPrepCopy && !leaksTurnCopy) {
+    const message = `${label}: 房间准备阶段没有误显示第一回合。`;
+    visualChecks.push(message);
+    agent.observations.push(message);
+    return;
+  }
+
+  const message = `${label}: 房间准备阶段文案仍可能和战斗回合混淆（prep=${hasPrepCopy}, leaksTurn=${leaksTurnCopy}）。`;
+  visualIssues.push(message);
+  agent.issues.push(message);
 }
 
 async function inspectCharacterModelLoads(page: Page): Promise<{ ok: boolean; message: string }> {

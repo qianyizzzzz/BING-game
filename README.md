@@ -40,7 +40,7 @@
 - 比赛记录与复盘：服务端保存对局，支持复盘页面、文本报告和训练样本导出。
 - 公网联机脚本：通过 Cloudflare Tunnel 临时生成 HTTPS 地址，让不同网络的玩家直接加入。
 - Playtest agents：自动开房、双玩家出招、截图、检查 canvas、遮挡、目标预览和沿用上回合。
-- 本地角色资产：6 个默认角色已有 Blender blockout、LOD0/LOD1 GLB、portrait、mobile-avatar、turnaround、table-scale 和材质审计。
+- 本地角色资产：6 个默认角色已有 Blender blockout、LOD0/LOD1 GLB、portrait、mobile-avatar、turnaround、table-scale、rig-guide、动作剪影和材质审计。
 
 ## 截图
 
@@ -102,6 +102,14 @@ npm run serve
 | `npm run training:export` | 导出比赛训练数据。 |
 | `npm run training:selfplay` | 运行自博弈训练脚本。 |
 
+## 当前进度
+
+- 桌面端已接入 LOD1 GLB 角色展示；加载失败时会回退到程序化 3D 角色。
+- 6 个默认角色已具备 `idle / attack / defend / skill / hit / down` 动作剪影 QA 图。
+- UI agent 已覆盖双玩家 3 回合 happy path，并检查 canvas、GLB 加载、目标预览、遮挡、console error 和失败动作。
+- 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、权重蒙皮和可播放运行时动画。
+- 下一阶段重点是 BattleDirector、移动端行动区、结算白话反馈、6 角色 runtime 验收和更完整的平衡测试。
+
 ## 项目结构
 
 ```text
@@ -145,6 +153,8 @@ workflow/          任务模板、评审模板、制作流程文档
 - [异网联机](docs/remote-play.md)
 - [AI 训练](docs/AI_TRAINING.md)
 - [UI 设计方案](docs/UI_DESIGN_PLAN.md)
+- [Playtest 子智能体报告](docs/PLAYTEST_REPORT.md)
+- [产品计划](docs/PRODUCT_PLAN.md)
 - [子智能体 UI 评审](docs/SUBAGENT_UI_REVIEW.md)
 - [美术总监 Blender 方案](docs/SUBAGENT_ART_DIRECTOR_BLENDER.md)
 - [角色资产审计](docs/CHARACTER_ASSET_AUDIT.md)

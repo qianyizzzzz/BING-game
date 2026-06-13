@@ -134,17 +134,20 @@ CHARACTERS = [
 def main() -> None:
     animation_pass_only = "--bing-animation-pass" in sys.argv
     action_pose_only = "--bing-action-poses-only" in sys.argv
+    export_only = "--bing-export-only" in sys.argv
     action_pose_filter = selected_action_pose_ids()
-    print(f"BING_GENERATION_MODE={'action-poses-only' if action_pose_only else 'animation-pass' if animation_pass_only else 'full'}", flush=True)
+    character_filter = selected_character_ids()
+    active_characters = [spec for spec in CHARACTERS if character_filter is None or spec.character_id in character_filter]
+    print(f"BING_GENERATION_MODE={'action-poses-only' if action_pose_only else 'export-only' if export_only else 'animation-pass' if animation_pass_only else 'full'}", flush=True)
     clear_scene()
     configure_scene()
     materials = build_materials()
     roots: dict[str, bpy.types.Object] = {}
 
-    for index, spec in enumerate(CHARACTERS):
+    for index, spec in enumerate(active_characters):
         print(f"BING_CHARACTER_BUILD_START={spec.character_id}", flush=True)
         root = create_character(spec)
-        root.location.x = (index - (len(CHARACTERS) - 1) / 2) * 2.05
+        root.location.x = (index - (len(active_characters) - 1) / 2) * 2.05
         roots[spec.character_id] = root
         print(f"BING_CHARACTER_BUILD_DONE={spec.character_id}", flush=True)
 
@@ -156,7 +159,7 @@ def main() -> None:
     (ASSET_ROOT / "source").mkdir(parents=True, exist_ok=True)
 
     if action_pose_only:
-        for spec in CHARACTERS:
+        for spec in active_characters:
             print(f"BING_ACTION_RENDER_START={spec.character_id}", flush=True)
             render_action_pose_views(spec, roots, action_pose_filter)
             print(f"BING_ACTION_RENDER_DONE={spec.character_id}", flush=True)
@@ -165,10 +168,12 @@ def main() -> None:
         return
 
     lod1_metrics: dict[str, tuple[int, int]] = {}
-    for spec in CHARACTERS:
+    for spec in active_characters:
         print(f"BING_CHARACTER_EXPORT_START={spec.character_id}", flush=True)
         lod1_metrics[spec.character_id] = export_character(spec, roots)
         print(f"BING_CHARACTER_EXPORT_DONE={spec.character_id}", flush=True)
+        if export_only:
+            continue
         if not animation_pass_only:
             print(f"BING_STATIC_RENDER_START={spec.character_id}", flush=True)
             render_character_views(spec, roots)
@@ -183,6 +188,10 @@ def main() -> None:
         print("BING_MATERIAL_QA_START", flush=True)
         render_material_qa_board()
         print("BING_MATERIAL_QA_DONE", flush=True)
+
+    if export_only and character_filter is not None:
+        print(f"BING_CHARACTER_EXPORT_ONLY_DONE={','.join(spec.character_id for spec in active_characters)}", flush=True)
+        return
 
     scene_path = ASSET_ROOT / "source" / "bing-character-blockouts.blend"
     print("BING_SAVE_SCENE_START", flush=True)
@@ -200,6 +209,19 @@ def selected_action_pose_ids() -> set[str] | None:
         unknown = selected - valid
         if unknown:
             raise ValueError(f"Unknown BING action pose ids: {', '.join(sorted(unknown))}")
+        return selected
+    return None
+
+
+def selected_character_ids() -> set[str] | None:
+    for arg in sys.argv:
+        if not arg.startswith("--bing-characters="):
+            continue
+        selected = {character_id.strip() for character_id in arg.split("=", 1)[1].split(",") if character_id.strip()}
+        valid = {spec.character_id for spec in CHARACTERS}
+        unknown = selected - valid
+        if unknown:
+            raise ValueError(f"Unknown BING character ids: {', '.join(sorted(unknown))}")
         return selected
     return None
 
@@ -336,9 +358,11 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     add_ellipsoid(collection, root, f"{spec.character_id}_abdomen", (0, -0.005, 0.93), profile["abdomen"], main)
     add_ellipsoid(collection, root, f"{spec.character_id}_pelvis", (0, 0, 0.74), profile["pelvis"], secondary)
     add_ellipsoid(collection, root, f"{spec.character_id}_coat_tail", (0, 0.025, 0.58), profile["coat_tail"], secondary)
+    print(f"BING_CHARACTER_BASE_SHAPES_DONE={spec.character_id}", flush=True)
     add_head_detail(collection, root, spec)
     add_tailored_costume(collection, root, spec, main, secondary, metal, leather, cloth_dark)
     add_body_landmarks(collection, root, spec, main, secondary, metal)
+    print(f"BING_CHARACTER_COSTUME_DONE={spec.character_id}", flush=True)
 
     shoulder_scale = profile["shoulder_scale"]
     add_ellipsoid(collection, root, f"{spec.character_id}_left_shoulder", (-0.255 * shoulder_scale, 0, 1.35), (0.075, 0.064, 0.06), metal)
@@ -356,6 +380,7 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     add_fingers(collection, root, spec, 1, skin)
     add_hand_anatomy(collection, root, spec, -1, skin, skin_shadow, skin_highlight)
     add_hand_anatomy(collection, root, spec, 1, skin, skin_shadow, skin_highlight)
+    print(f"BING_CHARACTER_ARMS_HANDS_DONE={spec.character_id}", flush=True)
 
     limb(collection, root, f"{spec.character_id}_left_thigh", (-0.095, 0, 0.68), (-0.135, 0.015, 0.37), 0.047, secondary)
     limb(collection, root, f"{spec.character_id}_left_shin", (-0.135, 0.015, 0.37), (-0.125, -0.01, 0.05), 0.038, leather)
@@ -365,11 +390,15 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     add_ellipsoid(collection, root, f"{spec.character_id}_right_knee", (0.135, -0.012, 0.37), (0.052, 0.024, 0.04), secondary)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_boot", (-0.125, -0.045, 0.01), (0.065, 0.105, 0.032), leather)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_boot", (0.125, -0.045, 0.01), (0.065, 0.105, 0.032), leather)
+    print(f"BING_CHARACTER_LEGS_DONE={spec.character_id}", flush=True)
 
     add_face(collection, root, spec)
+    print(f"BING_CHARACTER_FACE_DONE={spec.character_id}", flush=True)
     add_prop(collection, root, spec, metal, emissive, leather)
     add_base(collection, root, spec, emissive)
+    print(f"BING_CHARACTER_PROP_BASE_DONE={spec.character_id}", flush=True)
     add_armature_rig(collection, root, spec)
+    print(f"BING_CHARACTER_RIG_DONE={spec.character_id}", flush=True)
 
     return root
 
@@ -812,7 +841,8 @@ def add_armature_rig(collection, root, spec: CharacterSpec) -> bpy.types.Object:
             bone.use_connect = False
 
     bpy.ops.object.mode_set(mode="OBJECT")
-    add_rig_animation_clips(rig, spec)
+    if "--bing-action-poses-only" not in sys.argv:
+        add_rig_animation_clips(rig, spec)
     return rig
 
 
@@ -832,6 +862,7 @@ def add_rig_animation_clips(rig: bpy.types.Object, spec: CharacterSpec) -> None:
 
     strip_start = 1
     for clip_id, duration in ANIMATION_CLIPS:
+        print(f"BING_RIG_CLIP_KEY_START={spec.character_id}:{clip_id}", flush=True)
         action = bpy.data.actions.new(f"{spec.character_id}_{clip_id}_rig_preview")
         action.use_fake_user = True
         action["bing_clip_id"] = clip_id
@@ -854,6 +885,7 @@ def add_rig_animation_clips(rig: bpy.types.Object, spec: CharacterSpec) -> None:
         strip.frame_start = strip_start
         strip.frame_end = strip_start + duration
         strip_start += duration + 8
+        print(f"BING_RIG_CLIP_KEY_DONE={spec.character_id}:{clip_id}", flush=True)
 
     rig.animation_data.action = None
     reset_rig_pose(rig)
@@ -1158,8 +1190,11 @@ def render_rig_guide_view(spec: CharacterSpec, roots: dict[str, bpy.types.Object
     snapshot = capture_transforms(character_objects(root))
     scene = bpy.context.scene
     original_resolution = (scene.render.resolution_x, scene.render.resolution_y)
+    original_engine = scene.render.engine
     scene.render.resolution_x = 512
     scene.render.resolution_y = 512
+    if fast_action_render_enabled():
+        scene.render.engine = "BLENDER_WORKBENCH"
     root.location = (0, 0, 0)
     root.rotation_euler = (0, 0, 0)
 
@@ -1183,6 +1218,7 @@ def render_rig_guide_view(spec: CharacterSpec, roots: dict[str, bpy.types.Object
         if mesh and mesh.users == 0:
             bpy.data.meshes.remove(mesh)
     restore_transforms(snapshot)
+    scene.render.engine = original_engine
     scene.render.resolution_x, scene.render.resolution_y = original_resolution
     set_all_visible(roots)
 

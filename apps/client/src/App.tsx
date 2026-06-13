@@ -934,17 +934,25 @@ export function App() {
                           : "正在收招"}
                   </div>
                   <div className="mt-1 text-xl font-bold text-gray-950">
-                    第 {state.roundNumber} 轮 · 本轮第 {state.roundTurnNumber} 回合
+                    {state.phase === "lobby" ? "房间准备 · 等待开始" : `第 ${state.roundNumber} 轮 · 本轮第 ${state.roundTurnNumber} 回合`}
                   </div>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                     <StatusMetric icon={<Crown className="h-4 w-4" />} label="房主" value={ownerName} />
-                    <StatusMetric icon={<UsersRound className="h-4 w-4" />} label="存活" value={`${aliveCount}/${seatedCount}`} />
+                    <StatusMetric
+                      icon={<UsersRound className="h-4 w-4" />}
+                      label={state.phase === "lobby" ? "玩家" : "存活"}
+                      value={state.phase === "lobby" ? `${seatedCount} 人` : `${aliveCount}/${seatedCount}`}
+                    />
                     <StatusMetric
                       icon={<Trophy className="h-4 w-4" />}
-                      label={state.phase === "action_window" ? state.activeTimingPhase === "revival_action" ? "已结束" : "已放弃" : "已出招"}
-                      value={state.phase === "action_window" ? `${passCount}/${aliveCount}` : `${submittedCount}/${aliveCount}`}
+                      label={state.phase === "lobby" ? "准备" : state.phase === "action_window" ? state.activeTimingPhase === "revival_action" ? "已结束" : "已放弃" : "已出招"}
+                      value={state.phase === "lobby" ? `${seatedCount} 人在房间` : state.phase === "action_window" ? `${passCount}/${aliveCount}` : `${submittedCount}/${aliveCount}`}
                     />
-                    <StatusMetric icon={<Timer className="h-4 w-4" />} label="限时" value={deadlineSeconds === null ? "未开启" : `${deadlineSeconds} 秒`} />
+                    <StatusMetric
+                      icon={<Timer className="h-4 w-4" />}
+                      label={state.phase === "lobby" ? "状态" : "限时"}
+                      value={state.phase === "lobby" ? "等待房主" : deadlineSeconds === null ? "未开启" : `${deadlineSeconds} 秒`}
+                    />
                   </div>
                   {deadlineSeconds !== null ? (
                     <CountdownBar
