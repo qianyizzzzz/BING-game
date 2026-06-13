@@ -14,7 +14,10 @@ type GlbInfo = {
   materials: number;
   meshes: number;
   nodes: number;
+  skinnedNodes: number;
+  skins: number;
   scenes: number;
+  weightedMeshPrimitives: number;
 };
 
 const projectRoot = path.resolve(import.meta.dirname, "..");
@@ -120,6 +123,12 @@ function auditGlb(characterId: string, label: string, filePath: string): void {
   }
 
   if (label === "model-lod0") {
+    if (info.skins < 1 || info.skinnedNodes < 1 || info.weightedMeshPrimitives < 1) {
+      warnings.push(
+        `${characterId} ${label}: WIP skinned character GLB incomplete, got skins=${info.skins}, skinnedNodes=${info.skinnedNodes}, weightedMeshPrimitives=${info.weightedMeshPrimitives}`
+      );
+    }
+
     const missingAnimations = expectedAnimationNames.filter(
       (name) =>
         !info.animationNames.some(
@@ -207,14 +216,25 @@ function readGlbInfo(filePath: string): GlbInfo | undefined {
   const animationNames = Array.isArray(gltf.animations)
     ? gltf.animations.map((animation: { name?: unknown }) => String(animation.name ?? ""))
     : [];
+  const meshes = Array.isArray(gltf.meshes) ? gltf.meshes : [];
+  const nodes = Array.isArray(gltf.nodes) ? gltf.nodes : [];
+  const weightedMeshPrimitives = meshes
+    .flatMap((mesh: { primitives?: Array<{ attributes?: Record<string, unknown> }> }) => mesh.primitives ?? [])
+    .filter((primitive: { attributes?: Record<string, unknown> }) => {
+      const attributes = primitive.attributes ?? {};
+      return attributes.JOINTS_0 !== undefined && attributes.WEIGHTS_0 !== undefined;
+    }).length;
   return {
     animations: Array.isArray(gltf.animations) ? gltf.animations.length : 0,
     animationNames,
     images: Array.isArray(gltf.images) ? gltf.images.length : 0,
     materials: Array.isArray(gltf.materials) ? gltf.materials.length : 0,
-    meshes: Array.isArray(gltf.meshes) ? gltf.meshes.length : 0,
-    nodes: Array.isArray(gltf.nodes) ? gltf.nodes.length : 0,
-    scenes: Array.isArray(gltf.scenes) ? gltf.scenes.length : 0
+    meshes: meshes.length,
+    nodes: nodes.length,
+    skinnedNodes: nodes.filter((node: { skin?: unknown }) => node.skin !== undefined).length,
+    skins: Array.isArray(gltf.skins) ? gltf.skins.length : 0,
+    scenes: Array.isArray(gltf.scenes) ? gltf.scenes.length : 0,
+    weightedMeshPrimitives
   };
 }
 
