@@ -26,5 +26,8 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Audit release assets
+        run: npm run test:release-assets:dist
+
       - name: Test
         run: npm run test:ci
