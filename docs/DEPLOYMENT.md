@@ -89,7 +89,8 @@ cp .env.example .env
 - `PORT`：Node/Express 服务端口，默认 `3001`。
 - `PUBLIC_DIR`：生产静态前端目录，默认 `apps/client/dist`。
 - `CLIENT_ORIGIN`：本地开发前端来源，默认 `http://localhost:5173`。
-- `PUBLIC_ORIGINS` / `CLIENT_ORIGINS`：逗号分隔的公网白名单，例如正式域名和临时 tunnel 域名。
+- `PUBLIC_ORIGINS` / `CLIENT_ORIGINS`：逗号分隔的公网白名单，例如正式域名。
+- `ALLOW_TUNNEL_ORIGINS`：只在临时 tunnel 试玩时设为 `true`；正式长期上线保持 `false`，并改用 `PUBLIC_ORIGINS` 白名单。
 - `ACCOUNT_DATA_FILE`：账号数据 JSON 路径；Docker 或云服务器部署时应放在持久化卷/磁盘上。
 - `VITE_SERVER_URL`：客户端构建时使用的服务端地址，本地通常是 `http://localhost:3001`。
 

@@ -38,7 +38,8 @@
 ## 4. 正式公网部署
 
 - 复制 `.env.example` 为 `.env`。
-- 设置 `PUBLIC_ORIGINS` 为正式域名，必要时加入临时 tunnel 域名。
+- 设置 `PUBLIC_ORIGINS` 为正式域名。
+- 保持 `ALLOW_TUNNEL_ORIGINS=false`；只有临时 `npm run public` 试玩才开启 tunnel 自动放行。
 - 设置 `PUBLIC_DIR=apps/client/dist`。
 - 设置 `ACCOUNT_DATA_FILE` 到持久化磁盘路径。
 - 使用 Nginx/Caddy 提供 HTTPS，并反代到 `localhost:3001`。

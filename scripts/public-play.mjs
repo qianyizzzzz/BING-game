@@ -64,6 +64,7 @@ try {
     serverProcess = spawnBackground(npmCommand, ["run", "serve"], {
       env: {
         ...process.env,
+        ALLOW_TUNNEL_ORIGINS: "true",
         PORT: String(port)
       },
       name: "server"

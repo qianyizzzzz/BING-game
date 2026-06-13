@@ -54,7 +54,12 @@ npm run public:no-build
 npm run public:tunnel
 ```
 
-只启动公网隧道，要求你已经手动启动了 `npm run serve`。
+只启动公网隧道，要求你已经手动启动了生产服务。如果服务不是由 `npm run public` 或 `npm run public:no-build` 启动，请先显式允许临时 tunnel 来源：
+
+```powershell
+$env:ALLOW_TUNNEL_ORIGINS="true"
+npm run serve
+```
 
 ## 端口
 
@@ -81,3 +86,4 @@ npm run serve
 ```
 
 然后用 Caddy / Nginx / 平台 HTTPS 入口反向代理到 `3001`。长期部署时需要让 `data/` 持久化，否则账号、比赛记录和训练样本可能丢失。
+正式长期上线建议使用 `PUBLIC_ORIGINS` 写死域名，并保持 `ALLOW_TUNNEL_ORIGINS=false`。

@@ -23,6 +23,7 @@ const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
 const EXTRA_ALLOWED_ORIGINS = parseOriginList(
   process.env.PUBLIC_ORIGINS ?? process.env.CLIENT_ORIGINS ?? ""
 );
+const ALLOW_TUNNEL_ORIGINS = parseBooleanFlag(process.env.ALLOW_TUNNEL_ORIGINS);
 const serverDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultPublicDir = path.resolve(serverDir, "../../client/dist");
 const publicDir = path.resolve(process.env.PUBLIC_DIR ?? defaultPublicDir);
@@ -542,11 +543,15 @@ function isAllowedOrigin(
     callback(
       null,
       (isAppPort && isLocalNetworkHost(url.hostname)) ||
-        (isDefaultWebPort && isKnownTunnelHost(url.hostname))
+        (ALLOW_TUNNEL_ORIGINS && isDefaultWebPort && isKnownTunnelHost(url.hostname))
     );
   } catch {
     callback(null, false);
   }
+}
+
+function parseBooleanFlag(value: string | undefined): boolean {
+  return ["1", "true", "yes", "on"].includes(value?.trim().toLowerCase() ?? "");
 }
 
 function parseOriginList(value: string): string[] {
