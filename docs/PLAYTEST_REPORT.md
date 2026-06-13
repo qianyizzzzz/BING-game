@@ -13,7 +13,7 @@
 - 新手玩家 Agent：前三回合最缺“为什么这样结算”的白话摘要。提交后也要明确“你已提交什么，还差谁，一起亮招”。
 - 竞技玩家 Agent：读局层还缺上一招、HP/饼 delta、目标线、威胁阈值和动画加速；有 target 的 cue 必须映射到座位或目标线。
 - 开发商/QA Agent：GitHub Actions 已补基础 CI，但浏览器检查仍未进 CI；应继续扩展多人、断线重连、技能窗口和 release 体积预算。
-- 美术总监 Agent：LOD0/LOD1 已有 first-pass rigid skin、同名预览 clips 和 `skin-preview-*` QA，足够 WIP 管线验收；下一步是精修权重、动作过渡和 LOD 运行时切换。
+- 美术总监 Agent：LOD0/LOD1 已有 first-pass blended skin、同名预览 clips 和 `skin-preview-*` QA，足够 WIP 管线验收；下一步是精修权重、动作过渡和 LOD 运行时切换。
 
 ## 玩家 Agent A：新手可用性
 

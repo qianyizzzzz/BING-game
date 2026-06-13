@@ -455,7 +455,7 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     add_base(collection, root, spec, emissive)
     print(f"BING_CHARACTER_PROP_BASE_DONE={spec.character_id}", flush=True)
     rig = add_armature_rig(collection, root, spec)
-    add_rigid_skin_weights(root, spec, rig)
+    add_blended_skin_weights(root, spec, rig)
     print(f"BING_CHARACTER_RIG_DONE={spec.character_id}", flush=True)
 
     return root
@@ -1082,7 +1082,7 @@ def add_rig_animation_clips(rig: bpy.types.Object, spec: CharacterSpec) -> None:
     bpy.ops.object.mode_set(mode="OBJECT")
 
 
-def add_rigid_skin_weights(root: bpy.types.Object, spec: CharacterSpec, rig: bpy.types.Object) -> None:
+def add_blended_skin_weights(root: bpy.types.Object, spec: CharacterSpec, rig: bpy.types.Object) -> None:
     weighted_meshes = 0
     weighted_vertices = 0
     skipped_meshes = 0
@@ -1095,10 +1095,17 @@ def add_rigid_skin_weights(root: bpy.types.Object, spec: CharacterSpec, rig: bpy
             continue
 
         clear_vertex_groups(obj)
-        group = obj.vertex_groups.new(name=bone_name)
-        vertex_indices = list(range(len(obj.data.vertices)))
-        if vertex_indices:
-            group.add(vertex_indices, 1.0, "REPLACE")
+        groups: dict[str, bpy.types.VertexGroup] = {}
+        used_bones: set[str] = set()
+        for vertex in obj.data.vertices:
+            world_location = obj.matrix_world @ vertex.co
+            for current_bone, weight in skin_weights_for_vertex(obj, spec, bone_name, world_location):
+                group = groups.get(current_bone)
+                if group is None:
+                    group = obj.vertex_groups.new(name=current_bone)
+                    groups[current_bone] = group
+                group.add([vertex.index], weight, "ADD")
+                used_bones.add(current_bone)
 
         armature = obj.modifiers.get(f"{spec.character_id}_rigid_skin")
         if armature is None:
@@ -1107,19 +1114,20 @@ def add_rigid_skin_weights(root: bpy.types.Object, spec: CharacterSpec, rig: bpy
         armature.use_vertex_groups = True
         armature.show_on_cage = True
 
-        obj["bing_skinning"] = "rigid_first_pass"
+        obj["bing_skinning"] = "blended_first_pass"
         obj["bing_skin_bone"] = bone_name
+        obj["bing_skin_bones"] = ",".join(sorted(used_bones))
         world_matrix = obj.matrix_world.copy()
         obj.parent = rig
         obj.matrix_world = world_matrix
         weighted_meshes += 1
-        weighted_vertices += len(vertex_indices)
+        weighted_vertices += len(obj.data.vertices)
 
-    rig["bing_rig_status"] = "rigid_skin_weights"
-    rig["bing_skinning_status"] = "rigid_first_pass_needs_weight_paint"
+    rig["bing_rig_status"] = "blended_skin_weights"
+    rig["bing_skinning_status"] = "blended_first_pass_needs_weight_paint"
     rig["bing_weighted_meshes"] = weighted_meshes
     rig["bing_weighted_vertices"] = weighted_vertices
-    root["bing_skinning_status"] = "rigid_first_pass_needs_weight_paint"
+    root["bing_skinning_status"] = "blended_first_pass_needs_weight_paint"
     root["bing_weighted_meshes"] = weighted_meshes
     root["bing_weighted_vertices"] = weighted_vertices
     root["bing_static_meshes"] = skipped_meshes
@@ -1132,6 +1140,96 @@ def add_rigid_skin_weights(root: bpy.types.Object, spec: CharacterSpec, rig: bpy
 def clear_vertex_groups(obj: bpy.types.Object) -> None:
     while obj.vertex_groups:
         obj.vertex_groups.remove(obj.vertex_groups[0])
+
+
+def clamp01(value: float) -> float:
+    return max(0.0, min(1.0, value))
+
+
+def normalized_skin_weights(weights: list[tuple[str, float]]) -> list[tuple[str, float]]:
+    merged: dict[str, float] = {}
+    for bone_name, weight in weights:
+        if weight <= 0.001:
+            continue
+        merged[bone_name] = merged.get(bone_name, 0.0) + weight
+    total = sum(merged.values())
+    if total <= 0:
+        return []
+    return [(bone_name, weight / total) for bone_name, weight in merged.items()]
+
+
+def skin_weights_for_vertex(
+    obj: bpy.types.Object,
+    spec: CharacterSpec,
+    base_bone: str,
+    world_location: mathutils.Vector,
+) -> list[tuple[str, float]]:
+    name = obj.name.lower()
+    z = world_location.z
+    side = ".L" if base_bone.endswith(".L") else ".R" if base_bone.endswith(".R") else ".L" if world_location.x < 0 else ".R"
+
+    if any(
+        token in name
+        for token in (
+            "round_shield",
+            "shield_ring",
+            "violet_blade",
+            "blade_gem",
+            "iron_pan",
+            "pan_handle",
+            "red_vial",
+            "medic_satchel",
+            "cake_relic",
+            "observer_orbit",
+            "sensor_core",
+            "jade_charm",
+        )
+    ):
+        return [(base_bone, 1.0)]
+
+    if base_bone == "head":
+        neck_weight = 0.18 * clamp01((1.69 - z) / 0.14)
+        return normalized_skin_weights([("head", 1.0 - neck_weight), ("neck", neck_weight)])
+    if base_bone == "neck":
+        head_weight = 0.35 * clamp01((z - 1.53) / 0.13)
+        chest_weight = 0.22 * clamp01((1.55 - z) / 0.12)
+        return normalized_skin_weights([("neck", 1.0 - head_weight - chest_weight), ("head", head_weight), ("chest", chest_weight)])
+    if base_bone == "chest":
+        spine_weight = 0.30 * clamp01((1.22 - z) / 0.28)
+        neck_weight = 0.12 * clamp01((z - 1.36) / 0.16)
+        return normalized_skin_weights([("chest", 1.0 - spine_weight - neck_weight), ("spine", spine_weight), ("neck", neck_weight)])
+    if base_bone == "spine":
+        hips_weight = 0.32 * clamp01((0.94 - z) / 0.20)
+        chest_weight = 0.34 * clamp01((z - 1.05) / 0.25)
+        return normalized_skin_weights([("spine", 1.0 - hips_weight - chest_weight), ("hips", hips_weight), ("chest", chest_weight)])
+    if base_bone == "hips":
+        if any(token in name for token in ("coat_tail", "robe", "skirt", "coat", "apron", "belt", "waist")):
+            spine_weight = 0.34 * clamp01((z - 0.72) / 0.36)
+            chest_weight = 0.14 * clamp01((z - 1.10) / 0.25)
+            return normalized_skin_weights([("hips", 1.0 - spine_weight - chest_weight), ("spine", spine_weight), ("chest", chest_weight)])
+        return [("hips", 1.0)]
+    if base_bone.startswith("upper_arm"):
+        forearm_weight = 0.28 * clamp01((1.12 - z) / 0.20)
+        chest_weight = 0.14 * clamp01((z - 1.21) / 0.15)
+        return normalized_skin_weights([(f"upper_arm{side}", 1.0 - forearm_weight - chest_weight), (f"forearm{side}", forearm_weight), ("chest", chest_weight)])
+    if base_bone.startswith("forearm"):
+        upper_weight = 0.24 * clamp01((z - 0.96) / 0.22)
+        hand_weight = 0.24 * clamp01((0.84 - z) / 0.16)
+        return normalized_skin_weights([(f"forearm{side}", 1.0 - upper_weight - hand_weight), (f"upper_arm{side}", upper_weight), (f"hand{side}", hand_weight)])
+    if base_bone.startswith("hand"):
+        forearm_weight = 0.10 if any(token in name for token in ("hand", "thumb", "finger", "knuckle", "nail")) else 0.06
+        return normalized_skin_weights([(f"hand{side}", 1.0 - forearm_weight), (f"forearm{side}", forearm_weight)])
+    if base_bone.startswith("thigh"):
+        hips_weight = 0.22 * clamp01((z - 0.57) / 0.16)
+        shin_weight = 0.24 * clamp01((0.45 - z) / 0.16)
+        return normalized_skin_weights([(f"thigh{side}", 1.0 - hips_weight - shin_weight), ("hips", hips_weight), (f"shin{side}", shin_weight)])
+    if base_bone.startswith("shin"):
+        thigh_weight = 0.22 * clamp01((z - 0.35) / 0.14)
+        foot_weight = 0.20 * clamp01((0.14 - z) / 0.12)
+        return normalized_skin_weights([(f"shin{side}", 1.0 - thigh_weight - foot_weight), (f"thigh{side}", thigh_weight), (f"foot{side}", foot_weight)])
+    if base_bone.startswith("foot"):
+        return normalized_skin_weights([(f"foot{side}", 0.92), (f"shin{side}", 0.08)])
+    return [(base_bone, 1.0)]
 
 
 def skin_bone_for_object(obj: bpy.types.Object, spec: CharacterSpec) -> str | None:
@@ -1717,7 +1815,7 @@ def add_baked_skinning_preview_meshes(
     baked: list[bpy.types.Object] = []
     hidden_originals: list[tuple[bpy.types.Object, bool, bool]] = []
     for obj in character_objects(root):
-        if obj.type != "MESH" or obj.get("bing_skinning") != "rigid_first_pass":
+        if obj.type != "MESH" or obj.get("bing_skinning") not in {"rigid_first_pass", "blended_first_pass"}:
             continue
         hidden_originals.append((obj, obj.hide_viewport, obj.hide_render))
         obj.hide_viewport = True
@@ -1921,8 +2019,8 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - 每个角色导出 `portrait.png`、`mobile-avatar.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`、`table-scale.png`
 - 每个角色导出动作剪影 QA：`{pose_ids}`
 - 每个角色建立 `{len(RIG_BONES)}` 根骨骼的 guide armature，并导出 `rig-guide.png`
-- 每个角色写入 first-pass rigid skin weights，LOD0/LOD1 GLB 均已具备 skinned mesh 结构；仍需手工权重绘制与动作精修
-- 每个 guide armature 写入预览动画 clips：`{animation_clip_ids}`；当前为关键帧预览，可驱动 rigid skin 初版
+- 每个角色写入 first-pass blended skin weights，LOD0/LOD1 GLB 均已具备 skinned mesh 结构；仍需手工权重绘制与动作精修
+- 每个 guide armature 写入预览动画 clips：`{animation_clip_ids}`；当前为关键帧预览，可驱动 blended skin 初版
 - 每个角色导出骨骼驱动蒙皮 QA：`skin-preview-attack / skin-preview-skill / skin-preview-hit / skin-preview-down`，琥珀骨架为目标姿态 overlay
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、职业道具和服装层次
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
@@ -1949,7 +2047,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## P2
 
-- 将 first-pass rigid skin weights 升级为精细权重绘制，并继续用 `skin-preview-*` 检查攻击、技能、受击、倒地的剪影和穿插。
+- 将 first-pass blended skin weights 升级为精细权重绘制，并继续用 `skin-preview-*` 检查攻击、技能、受击、倒地的剪影和穿插。
 - 建立每个角色的材质板和服装局部参考。
 """
     (ARTIFACT_ROOT / "bing-character-blockouts-report.md").write_text(report, encoding="utf-8")
@@ -1964,7 +2062,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - 源场景：`{repo_path(scene_path)}`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
 - 动作 QA：每角色 `{pose_ids}` 动作剪影图
-- 绑定准备：每角色 `{len(RIG_BONES)}` 根骨骼 guide armature、`rig-guide.png`、LOD0 first-pass rigid skin weights、`skin-preview-*.png` 与 `{animation_clip_ids}` 预览动画 clips
+- 绑定准备：每角色 `{len(RIG_BONES)}` 根骨骼 guide armature、`rig-guide.png`、LOD0/LOD1 first-pass blended skin weights、`skin-preview-*.png` 与 `{animation_clip_ids}` 预览动画 clips
 - 建模：连续面部 sculpt surface、分层眼睛、睫毛/眉毛、口腔/牙齿、眼袋/法令/耳廓细节、手部拇指/指节/指甲、服装层次和职业道具
 - 材质：皮肤、布料、皮革、金属、头发、虹膜、角膜、牙釉质和牙龈阴影均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
@@ -1978,7 +2076,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、分层眼睛、睫毛/眉毛、口腔/牙齿、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、first-pass rigid skin weights、骨骼驱动蒙皮 QA、LOD0/LOD1 预览动画 clips、预算内高保真 animated LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、分层眼睛、睫毛/眉毛、口腔/牙齿、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、first-pass blended skin weights、骨骼驱动蒙皮 QA、LOD0/LOD1 预览动画 clips、预算内高保真 animated LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
 - 仍不足：还没有真实高模雕刻、手工/烘焙贴图、精细权重绘制和可播放精修动画；当前 LOD0/LOD1 GLB 均为 WIP 预览动作，真人质感也还需要外部雕刻/贴图阶段继续推进。
 
 ## 运行时验收
@@ -1996,7 +2094,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 ## 下一步 P1
 
 - 用桌面距离 QA 图继续校准 `TableScene3D` 的相机、灯光和座位遮挡。
-- 把 first-pass rigid skin weights 升级为精细权重绘制，让当前关键帧预览变成可播放的高质量蒙皮动画；每次改动后先看 `skin-preview-*`，再扩展死亡/倒地后的结算动作。
+- 把 first-pass blended skin weights 升级为精细权重绘制，让当前关键帧预览变成可播放的高质量蒙皮动画；每次改动后先看 `skin-preview-*`，再扩展死亡/倒地后的结算动作。
 """
     (DOCS_ROOT / "CHARACTER_ASSET_AUDIT.md").write_text(review, encoding="utf-8")
 
