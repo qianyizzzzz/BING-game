@@ -16,6 +16,7 @@ DOCS_ROOT = PROJECT_ROOT / "docs"
 PBR_TEXTURE_ROOT = ASSET_ROOT / "materials" / "pbr"
 PBR_TEXTURE_SIZE = 256
 PBR_TEXTURE_VERSION = "semireal-materials-v2"
+PBR_TEXTURE_WRITE_ENABLED = True
 LOD0_FACE_BUDGET = 40_000
 LOD1_FACE_BUDGET = 12_000
 LOD1_DECIMATE_RATIO = 0.15
@@ -134,6 +135,7 @@ CHARACTERS = [
 
 
 def main() -> None:
+    global PBR_TEXTURE_WRITE_ENABLED
     animation_pass_only = "--bing-animation-pass" in sys.argv
     action_pose_only = "--bing-action-poses-only" in sys.argv
     face_detail_only = "--bing-face-detail-only" in sys.argv
@@ -146,6 +148,7 @@ def main() -> None:
     action_pose_filter = selected_action_pose_ids()
     character_filter = selected_character_ids()
     active_characters = [spec for spec in CHARACTERS if character_filter is None or spec.character_id in character_filter]
+    PBR_TEXTURE_WRITE_ENABLED = not metrics_only
     print(f"BING_GENERATION_MODE={'metrics-only' if metrics_only else 'save-scene-only' if save_scene_only else 'face-detail-only' if face_detail_only else 'skinning-preview-only' if skinning_preview_only else 'static-only' if static_view_only else 'rig-guide-only' if rig_guide_only else 'action-poses-only' if action_pose_only else 'export-only' if export_only else 'animation-pass' if animation_pass_only else 'full'}", flush=True)
     clear_scene()
     configure_scene()
@@ -2362,6 +2365,8 @@ def ensure_pbr_texture_pack(
         "normal": out_dir / "normal.png",
         "roughness": out_dir / "roughness.png",
     }
+    if not PBR_TEXTURE_WRITE_ENABLED:
+        return paths
     version_path = out_dir / ".texture-version"
     current_version = version_path.read_text(encoding="utf-8").strip() if version_path.exists() else ""
     needs_write = current_version != PBR_TEXTURE_VERSION or any(not path.exists() for path in paths.values())
