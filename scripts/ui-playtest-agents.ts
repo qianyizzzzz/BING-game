@@ -632,11 +632,22 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     await page.waitForFunction(
       () => {
         const element = document.querySelector('[data-testid="battle-presentation-cues"]');
+        const director = document.querySelector('[data-testid="battle-director-state"]');
         if (!(element instanceof HTMLElement)) {
           return false;
         }
+        if (!(director instanceof HTMLElement)) {
+          return false;
+        }
         const cueCount = Number(element.dataset.cueCount ?? "0");
-        return cueCount > 0 && Boolean(element.dataset.firstBeat) && element.dataset.firstVfx !== "none";
+        const directorCueCount = Number(director.dataset.cueCount ?? "0");
+        return (
+          cueCount > 0 &&
+          directorCueCount > 0 &&
+          Boolean(element.dataset.firstBeat) &&
+          Boolean(director.dataset.activeBeat) &&
+          element.dataset.firstVfx !== "none"
+        );
       },
       undefined,
       { timeout: 12_000 }
@@ -649,12 +660,23 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       targetIds: element.getAttribute("data-first-target-ids") ?? "",
       vfx: element.getAttribute("data-first-vfx") ?? ""
     }));
+    const director = await page.getByTestId("battle-director-state").first().evaluate((element) => ({
+      active: element.getAttribute("data-active") ?? "",
+      beat: element.getAttribute("data-active-beat") ?? "",
+      camera: element.getAttribute("data-active-camera-cue") ?? "",
+      cueCount: element.getAttribute("data-cue-count") ?? "",
+      hitStopMs: element.getAttribute("data-active-hit-stop-ms") ?? "",
+      targetIds: element.getAttribute("data-active-target-ids") ?? ""
+    }));
 
     if (!cue.beat || !cue.vfx || cue.vfx === "none") {
       throw new Error(`表现 cue 不完整：${JSON.stringify(cue)}`);
     }
+    if (!director.beat || director.beat === "idle" || Number(director.cueCount) <= 0) {
+      throw new Error(`BattleDirector cue 不完整：${JSON.stringify(director)}`);
+    }
 
-    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue（count=${cue.cueCount}, camera=${cue.camera}, hitStop=${cue.hitStopMs}ms, targets=${cue.targetIds || "无"}）。`;
+    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, targets=${cue.targetIds || director.targetIds || "无"}）。`;
     visualChecks.push(message);
     agent.observations.push(message);
   } catch (error) {

@@ -6,6 +6,7 @@ import {
   PlayerId,
   PublicGameState
 } from "@bing/shared";
+import { useBattleDirector } from "../lib/battleDirector";
 import { buildSeatFeedbackMap, buildTableEffects } from "../lib/tableFeedback";
 import { PlayerSeat, SeatPosition } from "./PlayerSeat";
 import { SkillEffectLayer } from "./SkillEffectLayer";
@@ -42,6 +43,8 @@ export function PokerTableGame({
   );
   const feedbackMap = useMemo(() => buildSeatFeedbackMap(state), [state]);
   const effects = useMemo(() => buildTableEffects(state), [state]);
+  const director = useBattleDirector(state);
+  const activeDirectorCue = director.activeCue;
   const seatedPlayers = state.players.filter((player) => player.kind !== "spectator");
   const activePlayers = seatedPlayers.filter((player) => player.status === "alive");
   const spectators = state.players.filter((player) => player.kind === "spectator");
@@ -140,10 +143,31 @@ export function PokerTableGame({
       <div
         className={[
           "poker-table-board",
-          hasImpactEffect ? "poker-table-board-impact" : ""
+          hasImpactEffect ? "poker-table-board-impact" : "",
+          director.isPlaying ? "poker-table-board-directed" : "",
+          activeDirectorCue?.hitStopMs ? "poker-table-board-hit-stop" : ""
         ].join(" ")}
+        data-director-active={director.isPlaying ? "true" : "false"}
+        data-director-beat={director.activeBeat}
+        data-director-camera-cue={director.activeCameraCue}
+        data-director-hit-stop-ms={director.activeHitStopMs}
+        data-director-intensity={director.activeIntensity}
+        data-director-target-ids={director.activeTargetIds.join(",")}
+        data-director-vfx={director.activeVfx}
       >
+        <div
+          aria-hidden="true"
+          className="sr-only"
+          data-testid="battle-director-state"
+          data-active={director.isPlaying ? "true" : "false"}
+          data-active-beat={director.activeBeat}
+          data-active-camera-cue={director.activeCameraCue}
+          data-active-hit-stop-ms={director.activeHitStopMs}
+          data-active-target-ids={director.activeTargetIds.join(",")}
+          data-cue-count={director.cueCount}
+        />
         <TableScene3D
+          directorCue={activeDirectorCue}
           players={orderedPlayers}
           seatPositions={seatPositions}
           viewerPlayerId={viewerPlayerId}

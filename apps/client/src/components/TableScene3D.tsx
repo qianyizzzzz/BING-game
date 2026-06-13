@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { PlayerId, PublicGameState } from "@bing/shared";
+import type { BattlePresentationCue } from "../lib/battlePresentation";
 import type { CharacterProfile } from "../lib/characters";
 import { getCharacterByAvatarUrl, getCharacterBySeatIndex } from "../lib/characters";
 import { SeatPosition } from "./PlayerSeat";
 
 interface TableScene3DProps {
+  directorCue?: BattlePresentationCue | undefined;
   players: PublicGameState["players"];
   seatPositions: Record<PlayerId, SeatPosition>;
   viewerPlayerId?: PlayerId | undefined;
@@ -33,11 +35,13 @@ type OrganicSection = {
 };
 
 export function TableScene3D({
+  directorCue,
   players,
   seatPositions,
   viewerPlayerId
 }: TableScene3DProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const directorCueRef = useRef<BattlePresentationCue | undefined>(directorCue);
   const sceneKey = useMemo(
     () =>
       players
@@ -57,6 +61,10 @@ export function TableScene3D({
   );
 
   useEffect(() => {
+    directorCueRef.current = directorCue;
+  }, [directorCue]);
+
+  useEffect(() => {
     const container = containerRef.current;
     if (!container) {
       return;
@@ -67,6 +75,8 @@ export function TableScene3D({
 
     const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
     positionFirstPersonCamera(camera, seatPositions[viewerPlayerId ?? ""]);
+    const baseCameraPosition = camera.position.clone();
+    const baseCameraRotation = camera.rotation.clone();
     scene.add(camera);
 
     const renderer = new THREE.WebGLRenderer({
@@ -157,6 +167,13 @@ export function TableScene3D({
 
     const render = () => {
       const time = (performance.now() - startedAt) / 1000;
+      applyDirectorCameraPulse(
+        camera,
+        baseCameraPosition,
+        baseCameraRotation,
+        directorCueRef.current,
+        time
+      );
       table.rotation.y = Math.sin(time * 0.18) * 0.01;
       lantern.intensity = 2.75 + Math.sin(time * 2.1) * 0.28;
       const breath = Math.sin(time * 1.08);
@@ -234,8 +251,49 @@ export function TableScene3D({
       ref={containerRef}
       aria-hidden="true"
       className="table-scene-3d table-scene-3d-first-person"
+      data-director-beat={directorCue?.beat ?? "idle"}
+      data-director-camera-cue={directorCue?.camera ?? "none"}
+      data-director-hit-stop-ms={directorCue?.hitStopMs ?? 0}
+      data-director-intensity={directorCue?.intensity ?? 0}
     />
   );
+}
+
+function applyDirectorCameraPulse(
+  camera: THREE.PerspectiveCamera,
+  basePosition: THREE.Vector3,
+  baseRotation: THREE.Euler,
+  cue: BattlePresentationCue | undefined,
+  time: number
+): void {
+  camera.position.copy(basePosition);
+  camera.rotation.copy(baseRotation);
+
+  if (!cue || cue.camera === "none") {
+    return;
+  }
+
+  const intensity = THREE.MathUtils.clamp(cue.intensity, 0, 1);
+  const hitStopPush = Math.min(0.08, cue.hitStopMs / 1800) * intensity;
+  if (cue.camera === "shake-light" || cue.camera === "shake-medium") {
+    const shake = cue.camera === "shake-medium" ? 0.044 : 0.026;
+    camera.position.x += Math.sin(time * 66) * shake * intensity;
+    camera.position.y += Math.sin(time * 72 + 0.7) * shake * 0.42 * intensity;
+    camera.position.z -= hitStopPush;
+    return;
+  }
+
+  if (cue.camera === "nudge") {
+    camera.position.x += Math.sin(time * 10) * 0.028 * intensity;
+    camera.position.z -= 0.035 * intensity + hitStopPush;
+    camera.rotation.z += Math.sin(time * 12) * 0.006 * intensity;
+    return;
+  }
+
+  if (cue.camera === "zoom-source" || cue.camera === "zoom-target") {
+    camera.position.z -= (cue.camera === "zoom-target" ? 0.13 : 0.09) * intensity + hitStopPush;
+    camera.position.y += (cue.camera === "zoom-target" ? -0.018 : 0.014) * intensity;
+  }
 }
 
 function positionFirstPersonCamera(

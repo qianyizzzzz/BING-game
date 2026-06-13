@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   PlayerActionPlan,
   PublicGameState,
@@ -6,15 +6,9 @@ import {
 } from "@bing/shared";
 import { formatDamage, playerName } from "../lib/format";
 import { playBattleCue } from "../lib/battleAudio";
+import { type BattlePresentationCue } from "../lib/battlePresentation";
+import { useBattleDirector } from "../lib/battleDirector";
 import {
-  buildBattlePresentation,
-  type BattlePresentationCue
-} from "../lib/battlePresentation";
-import {
-  MAX_REPLAY_AGE_MS,
-  STEP_DURATION_MS,
-  buildBattleSteps,
-  findLatestBroadcast,
   type BattleStep
 } from "../lib/turnTimeline";
 
@@ -23,55 +17,37 @@ interface TurnAnimationProps {
 }
 
 export function TurnAnimation({ state }: TurnAnimationProps) {
-  const playedRevealIds = useRef(new Set<string>());
-  const [activeRevealId, setActiveRevealId] = useState<string | null>(null);
-  const [activeStepIndex, setActiveStepIndex] = useState(0);
-  const broadcast = useMemo(() => findLatestBroadcast(state.eventLog), [state.eventLog]);
-  const battleSteps = useMemo(
-    () => (broadcast ? buildBattleSteps(broadcast.events, state) : []),
-    [broadcast, state]
-  );
-  const presentationCues = useMemo(
-    () => (broadcast ? buildBattlePresentation(broadcast.events, state) : []),
-    [broadcast, state]
-  );
+  const playedRevealAudioIds = useRef(new Set<string>());
+  const director = useBattleDirector(state);
+  const {
+    activeRevealId,
+    activeStepIndex,
+    battleSteps,
+    broadcast,
+    firstCue,
+    isPlaying,
+    presentationCues,
+    totalDurationMs,
+    visibleCue,
+    visibleStep
+  } = director;
 
   useEffect(() => {
-    if (state.turnResolutionStarted || !broadcast || playedRevealIds.current.has(broadcast.reveal.id)) {
+    if (!isPlaying || !broadcast || playedRevealAudioIds.current.has(broadcast.reveal.id)) {
       return;
     }
 
-    playedRevealIds.current.add(broadcast.reveal.id);
-    if (Date.now() - broadcast.reveal.at > MAX_REPLAY_AGE_MS) {
-      return;
-    }
-
-    setActiveRevealId(broadcast.reveal.id);
-    setActiveStepIndex(0);
+    playedRevealAudioIds.current.add(broadcast.reveal.id);
     playBattleCue("turn-reveal");
-    const stepCount = Math.max(1, presentationCues.length);
-    const totalDuration = stepCount * STEP_DURATION_MS + 900;
-    const interval = window.setInterval(() => {
-      setActiveStepIndex((index) => Math.min(index + 1, stepCount - 1));
-    }, STEP_DURATION_MS);
-    const timeout = window.setTimeout(() => setActiveRevealId(null), totalDuration);
-    return () => {
-      window.clearInterval(interval);
-      window.clearTimeout(timeout);
-    };
-  }, [broadcast, presentationCues.length, state.turnResolutionStarted]);
-
-  const visibleStep = battleSteps[activeStepIndex];
-  const visibleCue = presentationCues[activeStepIndex];
-  const firstCue = presentationCues[0];
+  }, [broadcast, isPlaying]);
 
   useEffect(() => {
-    if (!broadcast || !visibleStep || activeRevealId !== broadcast.reveal.id) {
+    if (!isPlaying || !broadcast || !visibleStep || activeRevealId !== broadcast.reveal.id) {
       return;
     }
 
     playBattleCue(visibleCue?.sfx ?? visibleStep.soundCue);
-  }, [activeRevealId, activeStepIndex, broadcast?.reveal.id, visibleCue, visibleStep]);
+  }, [activeRevealId, activeStepIndex, broadcast?.reveal.id, isPlaying, visibleCue, visibleStep]);
 
   if (!broadcast) {
     return null;
@@ -91,11 +67,9 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
     />
   );
 
-  if (state.turnResolutionStarted || activeRevealId !== broadcast.reveal.id) {
+  if (!isPlaying || activeRevealId !== broadcast.reveal.id) {
     return cueMetadata;
   }
-
-  const totalDuration = Math.max(1, battleSteps.length) * STEP_DURATION_MS + 900;
 
   return (
     <>
@@ -109,7 +83,7 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
           data-active-vfx={visibleCue?.vfx ?? "none"}
           data-active-camera-cue={visibleCue?.camera ?? "none"}
           data-sound-cue="turn-reveal"
-          style={{ animationDuration: `${totalDuration}ms` }}
+          style={{ animationDuration: `${totalDurationMs}ms` }}
         >
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>

@@ -13,6 +13,7 @@ import {
   type BattleStepKind
 } from "../apps/client/src/lib/turnTimeline";
 import { buildBattlePresentation } from "../apps/client/src/lib/battlePresentation";
+import { buildBattleDirectorSnapshot } from "../apps/client/src/lib/battleDirector";
 import { getBattleCueProfile } from "../apps/client/src/lib/battleAudio";
 
 const now = Date.now();
@@ -300,6 +301,15 @@ const cappedPresentation = buildBattlePresentation(cases.map((item) => item.even
 assert.equal(cappedPresentation.length, MAX_BATTLE_STEPS);
 assert.equal(cappedPresentation[0]?.startMs, 0);
 assert.ok((cappedPresentation[1]?.startMs ?? 0) > (cappedPresentation[0]?.startMs ?? -1));
+
+const director = buildBattleDirectorSnapshot(cases.map((item) => item.event), state, 1);
+assert.equal(director.cueCount, MAX_BATTLE_STEPS);
+assert.equal(director.activeCue?.id, cappedPresentation[1]?.id);
+assert.equal(director.activeBeat, cappedPresentation[1]?.beat);
+assert.equal(director.activeCameraCue, cappedPresentation[1]?.camera);
+assert.equal(director.activeHitStopMs, cappedPresentation[1]?.hitStopMs);
+assert.deepEqual(director.activeTargetIds, cappedPresentation[1]?.targetIds);
+assert.ok(director.totalDurationMs > cappedPresentation.length * 600);
 
 console.log(`turn timeline check passed: ${cases.length} event mappings and presentation cues covered`);
 

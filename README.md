@@ -111,6 +111,7 @@ npm run serve
 - 桌面端已接入 LOD1 GLB 角色展示；加载失败时会回退到程序化 3D 角色。
 - 6 个默认角色已具备 `idle / attack / defend / skill / hit / down` 动作剪影 QA 图。
 - 逐角色浏览器验收已覆盖 6 个默认角色的选择、房间状态、LOD1 GLB 请求和 3D canvas 采样。
+- 初版 BattleDirector 已统一结算 cue、牌桌 metadata 和 3D 镜头脉冲。
 - UI agent 已覆盖双玩家 3 回合 happy path，并检查 canvas、GLB 加载、目标预览、遮挡、console error 和失败动作。
 - 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、权重蒙皮和可播放运行时动画。
 - 下一阶段重点是 BattleDirector、移动端行动区、结算白话反馈、6 角色 runtime 验收和更完整的平衡测试。

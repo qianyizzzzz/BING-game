@@ -1788,8 +1788,29 @@ select {
   background-size: auto, 34px 34px, 34px 34px;
 }
 
+.poker-table-board::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(255, 255, 255, 0.24), transparent 26%),
+    radial-gradient(ellipse at 50% 52%, rgba(20, 184, 166, 0.18), transparent 52%);
+  opacity: 0;
+}
+
 .poker-table-board-impact {
   animation: table-impact-shake 0.46s ease both;
+}
+
+.poker-table-board[data-director-camera-cue="shake-medium"],
+.poker-table-board[data-director-camera-cue="shake-light"] {
+  animation: table-impact-shake 0.42s ease both;
+}
+
+.poker-table-board-hit-stop::after {
+  animation: battle-director-hit-stop 0.38s ease-out both;
 }
 
 .table-scene-3d {
@@ -3082,6 +3103,21 @@ select {
   }
   72% {
     transform: translateX(2px);
+  }
+}
+
+@keyframes battle-director-hit-stop {
+  0% {
+    opacity: 0;
+    transform: scale(0.994);
+  }
+  28% {
+    opacity: 1;
+    transform: scale(1.006);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.018);
   }
 }
 
