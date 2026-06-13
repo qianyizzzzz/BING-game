@@ -45,6 +45,7 @@ const producer: AgentLog = {
 const consoleErrors: string[] = [];
 const failedActions: string[] = [];
 const runNotes: string[] = [];
+const placeholderRequests: string[] = [];
 const visualChecks: string[] = [];
 const visualIssues: string[] = [];
 const screenshots: string[] = [];
@@ -167,6 +168,9 @@ async function newAgentPage(browser: Browser, name: string): Promise<Page> {
   });
   page.on("response", (response) => {
     const url = response.url();
+    if (url.includes("/assets/placeholders/")) {
+      placeholderRequests.push(`[${name}] ${new URL(url).pathname}`);
+    }
     if (!url.endsWith(".glb") || response.status() >= 400) {
       return;
     }
@@ -1153,6 +1157,14 @@ async function findCriticalOverlaps(page: Page): Promise<string[]> {
 }
 
 function collectProducerFeedback(): void {
+  if (placeholderRequests.length > 0) {
+    const uniqueRequests = Array.from(new Set(placeholderRequests)).sort();
+    const message = `公开战斗画面仍请求 placeholder 资源：${uniqueRequests.join(", ")}`;
+    visualIssues.push(message);
+    producer.issues.push(message);
+  } else {
+    visualChecks.push("Network: 未检测到 /assets/placeholders/ 请求。");
+  }
   if (consoleErrors.length > 0) {
     producer.issues.push(`发现 ${consoleErrors.length} 条 console/page error，需要优先排查。`);
   }

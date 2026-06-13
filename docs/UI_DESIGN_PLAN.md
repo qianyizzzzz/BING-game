@@ -18,6 +18,7 @@
 | P1 BattleDirector 初版 | 已落地 | `battleDirector` 统一 active cue、camera cue、hit-stop、VFX metadata，并驱动 3D 桌面轻量镜头脉冲 |
 | P1 新手结算摘要 | 已落地 | 桌面 readout 增加“动作 / 目标 / 结果”摘要，系统步骤时仍保留本轮真实动作目标；`test:ui-agents` 检查摘要目标绑定和遮挡 |
 | P1 运行时 LOD 分流 | 已落地 | 移动/低性能设备加载 LOD1，桌面加载 LOD0；UI agent 同时检查 390px 移动端和 1280px 桌面端 GLB |
+| P1 placeholder 请求清理 | 已落地 | 牌桌、牌背、弃牌改为 CSS 深渊纹理；UI agent 检查 Network 不出现 `/assets/placeholders/` |
 | Phase D 生产质感 | 进行中 | 需要继续做角色资产、音效资源、性能 profiling 和可访问性 |
 | Phase E Blender 角色生产 | 进行中 | 已有角色 blockout、LOD0/LOD1 skinned/animated GLB、PBR、动作剪影、face-detail 和浏览器加载验收；仍需最终高模、精细权重、手工/烘焙贴图和精修动画 |
 
@@ -39,7 +40,7 @@
 | 新手玩家 Agent | 首屏主 CTA 直接建房可能跳过昵称/角色选择；移动端必须保留“现在该干什么”；结算后需要白话因果摘要。 | 已落地结算摘要和 UI agent 门禁；下一步把首屏 CTA 改成滚到创建区/确认角色，并做移动端固定下一步提示。 |
 | 竞技玩家 Agent | 移动端行动 dock 像长表单；按钮字号与触控高度偏紧；提交后缺少锁定/亮招节拍；复杂技能目标感不足。 | 下一步做底部主指令条：当前选择、目标、消耗、提交固定可见，高级参数进二级抽屉。 |
 | 开发商 Agent | 当前适合受控公网试玩，不适合正式公开发布；浏览器 CI、发布清单、环境变量、Node 版本、安全白名单、备份和许可证仍缺。 | 下一步新增 `docs/RELEASE_CHECKLIST.md`，统一 `.env.example` 和 Node 版本口径。 |
-| 美术总监 Agent | 角色运行时偏小、剪影差异不足、placeholder 仍会进入公开战斗画面。 | 已落地运行时 LOD 选择；下一步做角色尺寸/遮挡验收和 placeholder 网络请求清理。 |
+| 美术总监 Agent | 角色运行时偏小、剪影差异不足。 | 已落地运行时 LOD 选择和 placeholder 网络请求清理；下一步做角色尺寸/遮挡验收。 |
 
 ## 1. UI 优化方法
 

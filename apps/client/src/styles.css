@@ -1769,8 +1769,8 @@ select {
   min-height: clamp(560px, 52vw, 650px);
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(6, 78, 59, 0.18)),
-    url("/assets/placeholders/table/meadow-room.svg");
+    radial-gradient(ellipse at 50% 36%, rgba(136, 247, 219, 0.16), transparent 36%),
+    linear-gradient(180deg, rgba(22, 31, 23, 0.96), rgba(5, 8, 7, 0.98));
   background-position: center;
   background-size: cover;
 }
@@ -1934,7 +1934,11 @@ select {
   inset: 0;
   border: 2px solid rgba(255, 255, 255, 0.88);
   border-radius: 8px;
-  background-image: url("/assets/placeholders/cards/card-back.svg");
+  background:
+    radial-gradient(circle at 50% 38%, rgba(136, 247, 219, 0.22), transparent 24%),
+    linear-gradient(135deg, transparent 0 44%, rgba(248, 237, 210, 0.2) 45% 48%, transparent 49%),
+    linear-gradient(225deg, transparent 0 44%, rgba(201, 178, 124, 0.22) 45% 48%, transparent 49%),
+    linear-gradient(180deg, #21332c, #081311);
   background-position: center;
   background-size: cover;
   box-shadow: 0 12px 18px rgba(15, 23, 42, 0.18);
@@ -1956,7 +1960,10 @@ select {
   position: relative;
   width: 58px;
   height: 78px;
-  background-image: url("/assets/placeholders/cards/discard-top.svg");
+  background:
+    radial-gradient(circle at 34% 30%, rgba(249, 115, 22, 0.26), transparent 24%),
+    linear-gradient(18deg, transparent 0 40%, rgba(248, 237, 210, 0.28) 41% 46%, transparent 47%),
+    linear-gradient(180deg, #4b2f1d, #111816 72%, #050807);
 }
 
 .table-card-board-reveal .discard-card-preview {
