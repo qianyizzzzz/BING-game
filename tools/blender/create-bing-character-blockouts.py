@@ -2249,15 +2249,62 @@ def mat(
     color = hex_to_rgba(hex_color)
     material.diffuse_color = color
     if bsdf:
-        bsdf.inputs["Base Color"].default_value = color
-        bsdf.inputs["Roughness"].default_value = roughness
-        bsdf.inputs["Metallic"].default_value = metallic
+        set_node_input(bsdf, ("Base Color",), color)
+        set_node_input(bsdf, ("Roughness",), roughness)
+        set_node_input(bsdf, ("Metallic",), metallic)
+        tune_principled_material(bsdf, detail, color, roughness, metallic)
         if emission > 0:
-            bsdf.inputs["Emission Color"].default_value = color
-            bsdf.inputs["Emission Strength"].default_value = emission
+            set_node_input(bsdf, ("Emission Color",), color)
+            set_node_input(bsdf, ("Emission Strength",), emission)
         add_material_microdetail(material, bsdf, detail, roughness)
         add_pbr_texture_nodes(material, bsdf, detail, color, roughness)
     return material
+
+
+def set_node_input(node: bpy.types.Node, names: tuple[str, ...], value) -> bool:
+    for name in names:
+        if name not in node.inputs:
+            continue
+        try:
+            node.inputs[name].default_value = value
+            return True
+        except Exception:
+            continue
+    return False
+
+
+def tune_principled_material(
+    bsdf: bpy.types.Node,
+    detail: str,
+    color: tuple[float, float, float, float],
+    roughness: float,
+    metallic: float,
+) -> None:
+    if detail == "skin":
+        set_node_input(bsdf, ("Subsurface Weight", "Subsurface"), 0.24)
+        set_node_input(bsdf, ("Subsurface Radius",), (1.0, 0.42, 0.25))
+        set_node_input(bsdf, ("Subsurface Scale",), 0.045)
+        set_node_input(bsdf, ("Specular IOR Level", "Specular"), 0.46)
+        set_node_input(bsdf, ("Coat Weight", "Clearcoat"), 0.05)
+        set_node_input(bsdf, ("Coat Roughness", "Clearcoat Roughness"), max(roughness - 0.18, 0.34))
+    elif detail == "hair":
+        set_node_input(bsdf, ("Sheen Weight", "Sheen"), 0.32)
+        set_node_input(bsdf, ("Sheen Roughness",), 0.48)
+        set_node_input(bsdf, ("Specular IOR Level", "Specular"), 0.55)
+    elif detail == "cloth":
+        set_node_input(bsdf, ("Sheen Weight", "Sheen"), 0.18)
+        set_node_input(bsdf, ("Sheen Roughness",), 0.72)
+    elif detail == "leather":
+        set_node_input(bsdf, ("Coat Weight", "Clearcoat"), 0.1)
+        set_node_input(bsdf, ("Coat Roughness", "Clearcoat Roughness"), 0.58)
+    elif detail == "metal":
+        set_node_input(bsdf, ("Metallic",), max(metallic, 0.48))
+        set_node_input(bsdf, ("Coat Weight", "Clearcoat"), 0.16)
+        set_node_input(bsdf, ("Coat Roughness", "Clearcoat Roughness"), 0.42)
+    elif detail == "polished":
+        set_node_input(bsdf, ("Transmission Weight", "Transmission"), 0.08)
+        set_node_input(bsdf, ("Coat Weight", "Clearcoat"), 0.28)
+        set_node_input(bsdf, ("Coat Roughness", "Clearcoat Roughness"), 0.1)
 
 
 def add_pbr_texture_nodes(
@@ -2294,7 +2341,7 @@ def add_pbr_texture_nodes(
         normal_node.image.colorspace_settings.name = "Non-Color"
     normal_map = nodes.new(type="ShaderNodeNormalMap")
     normal_map.name = f"{material.name}_normal_map"
-    normal_map.inputs["Strength"].default_value = 0.32 if detail in {"skin", "metal", "polished"} else 0.45
+    normal_map.inputs["Strength"].default_value = {"skin": 0.24, "metal": 0.22, "polished": 0.08, "hair": 0.36}.get(detail, 0.45)
     links.new(normal_node.outputs["Color"], normal_map.inputs["Color"])
     if "Normal" in bsdf.inputs:
         links.new(normal_map.outputs["Normal"], bsdf.inputs["Normal"])
@@ -2315,8 +2362,7 @@ def ensure_pbr_texture_pack(
         "roughness": out_dir / "roughness.png",
     }
     for kind, path in paths.items():
-        if not path.exists():
-            write_pbr_texture(path, kind, detail, color, roughness)
+        write_pbr_texture(path, kind, detail, color, roughness)
     return paths
 
 
@@ -2353,10 +2399,36 @@ def material_sample_rgba(
 ) -> list[float]:
     height_value = material_height(detail, u, v)
     if kind == "albedo":
+        if detail == "skin":
+            pore = material_grain("skin-pore", u * 3.1, v * 2.7)
+            flush = gaussian(v, 0.46, 0.34) * 0.025 + gaussian(u, 0.5, 0.28) * 0.012
+            cool_shadow = material_grain("skin-cool", u + 0.29, v + 0.71) * 0.012
+            tint = 0.9 + height_value * 0.13 + (pore - 0.5) * 0.055
+            return [
+                clamp(color[0] * tint + flush),
+                clamp(color[1] * (tint - 0.012) + flush * 0.34),
+                clamp(color[2] * (tint - 0.02) + cool_shadow),
+                1.0,
+            ]
+        if detail == "hair":
+            strand = math.sin((u * 56.0 + material_grain("hair-strand", v, u) * 0.65) * math.tau) * 0.5 + 0.5
+            tint = 0.72 + height_value * 0.2 + strand * 0.08
+            return [clamp(color[0] * tint), clamp(color[1] * tint), clamp(color[2] * (tint + 0.025)), 1.0]
+        if detail == "metal":
+            edge_wear = 0.05 * (gaussian(u, 0.0, 0.08) + gaussian(u, 1.0, 0.08) + gaussian(v, 0.0, 0.08) + gaussian(v, 1.0, 0.08))
+            tint = 0.82 + height_value * 0.16 + edge_wear
+            return [clamp(color[0] * tint + edge_wear), clamp(color[1] * tint + edge_wear), clamp(color[2] * tint + edge_wear), 1.0]
         tint = 0.86 + height_value * 0.22 + material_grain(detail, u + 0.37, v + 0.19) * 0.04
         return [clamp(color[0] * tint), clamp(color[1] * tint), clamp(color[2] * tint), 1.0]
     if kind == "roughness":
-        variation = material_grain(detail, u + 0.13, v + 0.41) * 0.16 + (height_value - 0.5) * 0.12
+        if detail == "skin":
+            t_zone = gaussian(u, 0.5, 0.22) * gaussian(v, 0.58, 0.36)
+            variation = material_grain("skin-roughness", u + 0.13, v + 0.41) * 0.13 + (height_value - 0.5) * 0.08 - t_zone * 0.16
+        elif detail == "metal":
+            scratches = material_grain("metal-roughness", u * 2.5, v * 0.8) * 0.18
+            variation = scratches + (height_value - 0.5) * 0.16
+        else:
+            variation = material_grain(detail, u + 0.13, v + 0.41) * 0.16 + (height_value - 0.5) * 0.12
         value = clamp(roughness + variation)
         return [value, value, value, 1.0]
 
@@ -2370,6 +2442,11 @@ def material_sample_rgba(
 
 def material_height(detail: str, u: float, v: float) -> float:
     base = material_grain(detail, u, v)
+    if detail == "skin":
+        pores = material_grain("skin-pores", u * 5.5, v * 5.0)
+        fine = material_grain("skin-fine", u * 17.0, v * 15.0)
+        shallow_wrinkle = (math.sin((u * 8.0 + v * 2.1) * math.tau) * 0.5 + 0.5) * gaussian(v, 0.55, 0.38)
+        return clamp(base * 0.25 + pores * 0.34 + fine * 0.22 + shallow_wrinkle * 0.19)
     if detail == "cloth":
         weave = (math.sin(u * math.tau * 32) * 0.5 + 0.5) * 0.45 + (math.sin(v * math.tau * 28) * 0.5 + 0.5) * 0.45
         return clamp(base * 0.35 + weave * 0.65)
@@ -2377,8 +2454,10 @@ def material_height(detail: str, u: float, v: float) -> float:
         pores = material_grain(detail, u * 1.7, v * 1.7)
         return clamp(base * 0.5 + pores * 0.5)
     if detail == "metal":
-        scratches = (math.sin((u * 90 + v * 12) * math.tau) * 0.5 + 0.5) * 0.28
-        return clamp(base * 0.48 + scratches + 0.24)
+        scratches = (math.sin((u * 90 + v * 12) * math.tau) * 0.5 + 0.5) * 0.22
+        pits = material_grain("metal-pitting", u * 3.0, v * 3.0) * 0.18
+        edge = 0.12 * (gaussian(u, 0.0, 0.05) + gaussian(u, 1.0, 0.05) + gaussian(v, 0.0, 0.05) + gaussian(v, 1.0, 0.05))
+        return clamp(base * 0.36 + scratches + pits + edge + 0.16)
     if detail == "hair":
         strands = math.sin(u * math.tau * 38 + material_grain(detail, v, u) * 1.8) * 0.5 + 0.5
         return clamp(base * 0.32 + strands * 0.68)
