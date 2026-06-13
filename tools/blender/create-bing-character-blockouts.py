@@ -17,7 +17,7 @@ PBR_TEXTURE_ROOT = ASSET_ROOT / "materials" / "pbr"
 PBR_TEXTURE_SIZE = 256
 LOD0_FACE_BUDGET = 35_000
 LOD1_FACE_BUDGET = 12_000
-LOD1_DECIMATE_RATIO = 0.08
+LOD1_DECIMATE_RATIO = 0.18
 ACTION_POSES = (
     ("idle", "待机"),
     ("attack", "攻击"),
@@ -486,6 +486,7 @@ def add_face(collection, root, spec: CharacterSpec) -> None:
     add_ellipsoid(collection, root, f"{spec.character_id}_left_eye_socket", (-0.038, -0.101, 1.758), (0.029, 0.008, 0.017), skin_shadow)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_eye_socket", (0.038, -0.101, 1.758), (0.029, 0.008, 0.017), skin_shadow)
     add_layered_eyes(collection, root, spec, eye, black)
+    add_lash_and_brow_strands(collection, root, spec, hair)
     add_box(collection, root, f"{spec.character_id}_left_upper_eyelid", (-0.038, -0.116, 1.767), (0.025, 0.0035, 0.0045), skin_shadow, rotation=(0, 0, math.radians(-5)))
     add_box(collection, root, f"{spec.character_id}_right_upper_eyelid", (0.038, -0.116, 1.767), (0.025, 0.0035, 0.0045), skin_shadow, rotation=(0, 0, math.radians(5)))
     add_box(collection, root, f"{spec.character_id}_left_lower_eyelid", (-0.038, -0.115, 1.749), (0.021, 0.003, 0.0035), skin_highlight, rotation=(0, 0, math.radians(4)))
@@ -502,6 +503,7 @@ def add_face(collection, root, spec: CharacterSpec) -> None:
     add_ellipsoid(collection, root, f"{spec.character_id}_right_cheek_highlight", (0.058, -0.125, 1.707), (0.0055, 0.0018, 0.0035), skin_highlight)
     add_ellipsoid(collection, root, f"{spec.character_id}_upper_lip", (0, -0.126, 1.655), (0.034, 0.0045, 0.0045), lip)
     add_ellipsoid(collection, root, f"{spec.character_id}_lower_lip", (0, -0.125, 1.642), (0.03, 0.0045, 0.006), lip)
+    add_mouth_realism_details(collection, root, spec, lip, black)
     add_ellipsoid(collection, root, f"{spec.character_id}_chin_plane", (0, -0.108, 1.615), (0.045, 0.009, 0.018), skin_shadow)
     add_face_micro_landmarks(collection, root, spec, skin_shadow, skin_highlight, lip)
     add_face_realism_details(collection, root, spec, skin_shadow, skin_highlight, lip, eye)
@@ -533,6 +535,52 @@ def iris_color(spec: CharacterSpec) -> str:
         "vial": "#8b3f52",
         "mask": "#7f9db7",
     }.get(spec.prop, "#72523a")
+
+
+def add_lash_and_brow_strands(collection, root, spec: CharacterSpec, hair) -> None:
+    for side in [-1, 1]:
+        label = "right" if side > 0 else "left"
+        for index, offset in enumerate([-0.018, 0.0, 0.018]):
+            x = 0.039 * side + offset * side
+            add_box(
+                collection,
+                root,
+                f"{spec.character_id}_{label}_upper_lash_{index}",
+                (x, -0.123, 1.769 - abs(offset) * 0.035),
+                (0.006, 0.001, 0.0015),
+                hair,
+                rotation=(0, 0, math.radians((-7 + index * 7) * side)),
+            )
+            add_box(
+                collection,
+                root,
+                f"{spec.character_id}_{label}_brow_strand_{index}",
+                (x, -0.122, 1.789 + (index - 1) * 0.001),
+                (0.011, 0.0012, 0.0018),
+                hair,
+                rotation=(0, 0, math.radians((-10 + index * 10) * side)),
+            )
+
+
+def add_mouth_realism_details(collection, root, spec: CharacterSpec, lip, black) -> None:
+    enamel = bpy.data.materials.get("tooth_warm_enamel") or mat("tooth_warm_enamel", "#e8dfcf", roughness=0.46, detail="polished")
+    gum = bpy.data.materials.get("soft_gum_shadow") or mat("soft_gum_shadow", "#9d5c5f", roughness=0.82, detail="skin")
+
+    add_ellipsoid(collection, root, f"{spec.character_id}_mouth_cavity_shadow", (0, -0.134, 1.649), (0.030, 0.0014, 0.004), black)
+    add_ellipsoid(collection, root, f"{spec.character_id}_upper_lip_cupid_peak", (0, -0.1345, 1.659), (0.010, 0.001, 0.0028), lip)
+    add_ellipsoid(collection, root, f"{spec.character_id}_lower_lip_wet_highlight", (0, -0.134, 1.643), (0.020, 0.0009, 0.0022), bpy.data.materials["skin_soft_highlight"])
+    add_box(collection, root, f"{spec.character_id}_upper_gum_shadow", (0, -0.136, 1.652), (0.022, 0.0008, 0.0021), gum)
+    for index, x in enumerate([-0.015, -0.005, 0.005, 0.015]):
+        width = 0.005 if index in {1, 2} else 0.0042
+        add_box(
+            collection,
+            root,
+            f"{spec.character_id}_mouth_tooth_{index}",
+            (x, -0.137, 1.649),
+            (width, 0.0009, 0.0046),
+            enamel,
+            rotation=(0, 0, math.radians((index - 1.5) * 2.5)),
+        )
 
 
 def add_sculpted_face_mesh(
@@ -1116,7 +1164,7 @@ def skin_bone_for_object(obj: bpy.types.Object, spec: CharacterSpec) -> str | No
         return f"shin{side or ('.L' if location.x < 0 else '.R')}"
     if any(token in name for token in ("thigh", "knee")):
         return f"thigh{side or ('.L' if location.x < 0 else '.R')}"
-    if any(token in name for token in ("head", "face", "eye", "pupil", "iris", "limbal", "cornea", "eyelid", "ear", "nose", "cheek", "mouth", "lip", "brow", "chin", "jaw", "hair", "mask", "lens", "forehead", "pore", "tearline", "sclera", "scar")):
+    if any(token in name for token in ("head", "face", "eye", "pupil", "iris", "limbal", "cornea", "eyelid", "lash", "ear", "nose", "cheek", "mouth", "lip", "tooth", "teeth", "gum", "brow", "chin", "jaw", "hair", "mask", "lens", "forehead", "pore", "tearline", "sclera", "scar")):
         return "head"
     if "neck" in name:
         return "neck"
