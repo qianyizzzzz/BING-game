@@ -37,10 +37,10 @@
 | 项目 | 当前状态 |
 | --- | --- |
 | 可玩性 | 双玩家创建房间、加入房间、开始、出招、沿用上回合、攻击和结算 happy path 已通过 UI agent；复杂技能 smoke 已覆盖火箭双目标。 |
-| UI / HUD | 3D 牌桌、行动 HUD、底部命令区、目标预览、结算摘要和移动端 LOD 已落地。 |
+| UI / HUD | 3D 牌桌、行动 HUD、底部命令区、目标预览、结算摘要、血/饼变化摘要和移动端 LOD 已落地。 |
 | 自动化验收 | `test:ui-agents`、`test:ui-agents:complex` 和 `test:character-browser` 会先刷新 client dist，再运行浏览器 playtest。 |
-| 最新报告 | `artifacts/playtests/ui-agents-2026-06-13T21-28-19-791Z/report.md` |
-| 复杂技能报告 | `artifacts/playtests/ui-agents-2026-06-13T20-56-42-947Z/report.md` |
+| 最新报告 | `artifacts/playtests/ui-agents-2026-06-13T21-46-32-320Z/report.md` |
+| 复杂技能报告 | `artifacts/playtests/ui-agents-2026-06-13T21-55-29-942Z/report.md` |
 | 发布口径 | 可用于受控公网试玩；正式公开发布前仍需许可证、资产权属、复杂技能浏览器门禁和备份策略。 |
 
 ## 项目简介
@@ -70,7 +70,7 @@
 | 同步出招 | 玩家同时暗中提交行动，服务端统一亮招结算，避免传统轮流制的等待感。 |
 | 饼资源博弈 | 吃饼、消耗、反弹、防御和高费技能互相牵制，适合 2-6 人局。 |
 | 游戏 HUD | 行动面板显示“下一步 / 目标 / 状态”，底部固定“沿用上回合 / 提交”。 |
-| 战斗表现层 | BattleDirector 输出 beat、目标、hit-stop、VFX 和 camera cue，驱动桌面反馈。 |
+| 战斗表现层 | BattleDirector 输出 beat、目标、hit-stop、VFX 和 camera cue，驱动桌面反馈；结算摘要会显示行动者、目标、结果和血/饼变化。 |
 | 自动 playtest | 两个玩家 agent、开发商/QA agent 和美术总监视角会真实开房、出招、截图并生成 Markdown 报告。 |
 
 ## 快速开始

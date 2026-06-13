@@ -19,8 +19,9 @@
 - 已把可行动状态文案从“正在收招”改为“请选择行动 / 等待亮招”。
 - 已让技能提交按钮显示具体技能名，并暴露 `data-submit-label`。
 - 已让技能表现层从同回合 `turn_revealed.actions` 反查目标，火箭复杂技能 smoke 已验证 `cueTargets=2`、`summaryTargets=2`。
-- 已给不可提交状态增加补救动作提示，并暴露 `data-next-action-hint` / `action-recovery-hint`；默认 UI agents 已验证：`artifacts/playtests/ui-agents-2026-06-13T21-28-19-791Z/report.md`。
-- 仍待处理：前三回合 HP/饼 delta 白话摘要、完整目标线/落点 VFX。
+- 已给不可提交状态增加补救动作提示，并暴露 `data-next-action-hint` / `action-recovery-hint`；默认 UI agents 已验证：`artifacts/playtests/ui-agents-2026-06-13T21-46-32-320Z/report.md`。
+- 已给桌面结算摘要增加“行动者”和血/饼变化 chip，并暴露 `data-resource-delta-count` / `data-resource-deltas`；默认 UI agents 与火箭复杂技能 smoke 已纳入门禁：`artifacts/playtests/ui-agents-2026-06-13T21-55-29-942Z/report.md`。
+- 仍待处理：完整目标线/落点 VFX。
 
 ## Scope
 

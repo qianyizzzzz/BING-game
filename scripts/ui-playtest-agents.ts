@@ -1198,8 +1198,13 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     const summary = await page.getByTestId("battle-turn-summary").first().evaluate((element) => ({
       actionLabel: element.getAttribute("data-action-label") ?? "",
       amount: element.getAttribute("data-amount") ?? "",
+      cakeDeltaCount: element.getAttribute("data-cake-delta-count") ?? "",
+      hpDeltaCount: element.getAttribute("data-hp-delta-count") ?? "",
       kind: element.getAttribute("data-kind") ?? "",
+      resourceDeltaCount: element.getAttribute("data-resource-delta-count") ?? "",
+      resourceDeltas: element.getAttribute("data-resource-deltas") ?? "",
       sourceId: element.getAttribute("data-source-id") ?? "",
+      sourceLabel: element.getAttribute("data-source-label") ?? "",
       stepCount: element.getAttribute("data-step-count") ?? "",
       targetCount: element.getAttribute("data-target-count") ?? "",
       targetIds: element.getAttribute("data-target-ids") ?? "",
@@ -1281,6 +1286,16 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     if (summary.kind === "idle" || Number(summary.stepCount) <= 0 || summary.text.length < 8) {
       throw new Error(`新手结算摘要未绑定真实结算：${JSON.stringify(summary)}`);
     }
+    if (!summary.sourceLabel || summary.sourceLabel === "桌面") {
+      throw new Error(`新手结算摘要缺少行动者：${JSON.stringify(summary)}`);
+    }
+    if (
+      Number(summary.resourceDeltaCount) <= 0 ||
+      !summary.resourceDeltas ||
+      (!summary.resourceDeltas.includes("血") && !summary.resourceDeltas.includes("饼"))
+    ) {
+      throw new Error(`新手结算摘要缺少血量/饼变化：${JSON.stringify(summary)}`);
+    }
     if (readout.kind !== "system" && readout.kind !== summary.kind) {
       throw new Error(`新手结算摘要与 Battle readout 不一致：${JSON.stringify({ readout, summary })}`);
     }
@@ -1297,13 +1312,14 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     const directorSeatCount = await page.locator('.poker-seat[data-director-role]:not([data-director-role=""])').count();
     const directorTargetSeatCount = await page.locator('.poker-seat[data-director-role*="target"]').count();
     const mappedTargetSeatCount = Number(director.targetSeatCount);
+    const directorIsActive = director.active === "true";
     if (cueTargetIds.length > 0 && cueTargetSeatCount === 0) {
       throw new Error(`表现 cue 有目标但无法映射到座位：${JSON.stringify(cue)}`);
     }
     if (director.targetIds && mappedTargetSeatCount === 0) {
       throw new Error(`BattleDirector 有目标但无法映射到座位：${JSON.stringify(director)}`);
     }
-    if (director.targetIds && directorTargetSeatCount === 0) {
+    if (directorIsActive && director.targetIds && directorTargetSeatCount === 0) {
       throw new Error(`BattleDirector 有目标但没有座位高亮：${JSON.stringify(director)}`);
     }
     if (cueTargetIds.length > 0 && summaryTargetIds.length === 0) {
@@ -1320,7 +1336,7 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       throw new Error(`火箭复杂技能结算缺少双目标绑定：${JSON.stringify({ cue, director, summary })}`);
     }
 
-    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}，新手摘要=${summary.kind}/${summary.actionLabel}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, cueTargets=${cueTargetIds.length}, cueTargetSeats=${cueTargetSeatCount}, pokerTableCueTargetSeats=${pokerTableCueTargetSeatCount}, cueTargetDomSeats=${cueTargetDomSeatCount}, activeTargets=${activeTargetIds.length}, summaryTargets=${summaryTargetIds.length}, mappedActiveTargets=${mappedTargetSeatCount}, highlightedTargets=${directorTargetSeatCount}, seats=${directorSeatCount}）。`;
+    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}，新手摘要=${summary.sourceLabel}/${summary.actionLabel}，资源变化=${summary.resourceDeltas}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, cueTargets=${cueTargetIds.length}, cueTargetSeats=${cueTargetSeatCount}, pokerTableCueTargetSeats=${pokerTableCueTargetSeatCount}, cueTargetDomSeats=${cueTargetDomSeatCount}, activeTargets=${activeTargetIds.length}, summaryTargets=${summaryTargetIds.length}, hpDeltas=${summary.hpDeltaCount}, cakeDeltas=${summary.cakeDeltaCount}, mappedActiveTargets=${mappedTargetSeatCount}, highlightedTargets=${directorTargetSeatCount}, seats=${directorSeatCount}）。`;
     visualChecks.push(message);
     agent.observations.push(message);
   } catch (error) {

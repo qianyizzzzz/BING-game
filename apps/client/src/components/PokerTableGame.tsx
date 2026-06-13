@@ -4,11 +4,12 @@ import { Compass, Crown, Gauge, RadioTower, UsersRound } from "lucide-react";
 import {
   ACTION_PROMPT_SECONDS,
   ACTION_WINDOW_SECONDS,
+  GameEvent,
   PlayerId,
   PublicGameState
 } from "@bing/shared";
 import { battleDirectorSeatRole, useBattleDirector } from "../lib/battleDirector";
-import { formatDamage } from "../lib/format";
+import { formatDamage, playerName } from "../lib/format";
 import { buildSeatFeedbackMap, buildTableEffects } from "../lib/tableFeedback";
 import { PlayerSeat, SeatPosition } from "./PlayerSeat";
 import { SkillEffectLayer } from "./SkillEffectLayer";
@@ -65,6 +66,13 @@ export function PokerTableGame({
   const summaryStep = director.battleSteps[summaryStepIndex] ?? readoutStep;
   const summaryCue = director.presentationCues[summaryStepIndex] ?? readoutCue;
   const summaryTargetIds = summaryCue?.targetIds ?? [];
+  const readoutResourceDeltas = useMemo(
+    () => buildResourceDeltas(state, director.broadcast?.events),
+    [director.broadcast?.events, state]
+  );
+  const readoutResourceDeltaText = formatResourceDeltaSummary(readoutResourceDeltas);
+  const readoutHpDeltaCount = readoutResourceDeltas.filter((delta) => delta.hpDelta !== 0).length;
+  const readoutCakeDeltaCount = readoutResourceDeltas.filter((delta) => delta.cakeDelta !== 0).length;
   const readoutProgress =
     director.isPlaying && director.battleSteps.length > 0
       ? `结算 ${director.activeStepIndex + 1}/${director.battleSteps.length}`
@@ -80,6 +88,7 @@ export function PokerTableGame({
       ? `${summaryStep.kind === "heal" ? "治疗" : "伤害"} ${formatDamage(summaryStep.amount)}`
       : "";
   const readoutSummaryAction = summaryStep?.label ?? "等待亮招";
+  const readoutSummarySource = summaryStep?.sourceName ?? "桌面";
   const readoutSummaryTarget = summaryStep?.targetName ?? "所有玩家";
   const readoutSummaryResult =
     summaryAmountLabel || summaryStep?.description || "等待所有玩家提交行动。";
@@ -311,11 +320,20 @@ export function PokerTableGame({
                 data-action-label={readoutSummaryAction}
                 data-amount={summaryStep?.amount ?? ""}
                 data-kind={summaryStep?.kind ?? "idle"}
+                data-resource-delta-count={readoutResourceDeltas.length}
+                data-resource-deltas={readoutResourceDeltaText}
+                data-cake-delta-count={readoutCakeDeltaCount}
+                data-hp-delta-count={readoutHpDeltaCount}
                 data-source-id={summaryCue?.sourceId ?? ""}
+                data-source-label={readoutSummarySource}
                 data-step-count={director.battleSteps.length}
                 data-target-ids={summaryTargetIds.join(",")}
                 data-target-count={summaryTargetIds.length}
               >
+                <div>
+                  <span>行动者</span>
+                  <strong>{readoutSummarySource}</strong>
+                </div>
                 <div>
                   <span>动作</span>
                   <strong>{readoutSummaryAction}</strong>
@@ -329,6 +347,7 @@ export function PokerTableGame({
                   <strong>{readoutSummaryResult}</strong>
                 </div>
               </div>
+              <ResourceDeltaStrip deltas={readoutResourceDeltas} summary={readoutResourceDeltaText} />
               <p>{readoutStep.description}</p>
             </>
           ) : (
@@ -345,11 +364,20 @@ export function PokerTableGame({
                 data-action-label={readoutSummaryAction}
                 data-amount=""
                 data-kind="idle"
+                data-resource-delta-count="0"
+                data-resource-deltas="等待结算变化"
+                data-cake-delta-count="0"
+                data-hp-delta-count="0"
                 data-source-id=""
+                data-source-label={readoutSummarySource}
                 data-step-count={director.battleSteps.length}
                 data-target-ids=""
                 data-target-count="0"
               >
+                <div>
+                  <span>行动者</span>
+                  <strong>{readoutSummarySource}</strong>
+                </div>
                 <div>
                   <span>动作</span>
                   <strong>{readoutSummaryAction}</strong>
@@ -363,6 +391,7 @@ export function PokerTableGame({
                   <strong>{readoutSummaryResult}</strong>
                 </div>
               </div>
+              <ResourceDeltaStrip deltas={[]} summary="等待结算变化" />
               <p>等待所有玩家亮招。</p>
             </>
           )}
@@ -422,6 +451,57 @@ export function PokerTableGame({
   );
 }
 
+interface ResourceDelta {
+  playerId: PlayerId;
+  name: string;
+  hpDelta: number;
+  cakeDelta: number;
+  reasons: string[];
+}
+
+function ResourceDeltaStrip({
+  deltas,
+  summary
+}: {
+  deltas: ResourceDelta[];
+  summary: string;
+}) {
+  const visibleDeltas = deltas.slice(0, 4);
+  return (
+    <div
+      className={[
+        "battle-resource-deltas",
+        deltas.length === 0 ? "battle-resource-deltas-idle" : ""
+      ].join(" ")}
+      data-testid="battle-resource-deltas"
+      data-resource-delta-count={deltas.length}
+      data-resource-deltas={summary}
+      title={summary}
+    >
+      {visibleDeltas.length > 0 ? (
+        visibleDeltas.map((delta) => (
+          <span
+            className={[
+              "battle-resource-delta-chip",
+              delta.hpDelta < 0 ? "battle-resource-delta-danger" : "",
+              delta.hpDelta > 0 || delta.cakeDelta > 0 ? "battle-resource-delta-good" : ""
+            ].join(" ")}
+            key={delta.playerId}
+            title={formatResourceDeltaDetail(delta)}
+          >
+            {formatResourceDelta(delta)}
+          </span>
+        ))
+      ) : (
+        <span className="battle-resource-delta-chip">等待血量/饼变化</span>
+      )}
+      {deltas.length > visibleDeltas.length ? (
+        <span className="battle-resource-delta-chip">+{deltas.length - visibleDeltas.length}</span>
+      ) : null}
+    </div>
+  );
+}
+
 function phaseLabel(state: PublicGameState): string {
   if (state.phase === "lobby") {
     return "房间准备";
@@ -458,6 +538,96 @@ function getTablePrompt(state: PublicGameState, viewerNeedsAction: boolean): str
   }
 
   return "你已提交，等待所有玩家亮招。";
+}
+
+function buildResourceDeltas(
+  state: PublicGameState,
+  events: GameEvent[] | undefined
+): ResourceDelta[] {
+  if (!events?.length) {
+    return [];
+  }
+
+  const deltas = new Map<PlayerId, ResourceDelta>();
+  const ensureDelta = (playerId: PlayerId): ResourceDelta => {
+    const existing = deltas.get(playerId);
+    if (existing) {
+      return existing;
+    }
+
+    const delta: ResourceDelta = {
+      playerId,
+      name: playerName(state, playerId),
+      hpDelta: 0,
+      cakeDelta: 0,
+      reasons: []
+    };
+    deltas.set(playerId, delta);
+    return delta;
+  };
+
+  for (const event of events) {
+    if (event.type === "damage") {
+      const delta = ensureDelta(event.targetId);
+      delta.hpDelta -= event.amount;
+      delta.reasons.push(event.attackName ?? "受到伤害");
+      continue;
+    }
+
+    if (event.type === "heal") {
+      const delta = ensureDelta(event.targetId);
+      delta.hpDelta += event.amount;
+      delta.reasons.push(event.reason);
+      continue;
+    }
+
+    if (event.type === "cake_changed") {
+      const cakeDelta = event.after - event.before;
+      if (cakeDelta === 0) {
+        continue;
+      }
+
+      const delta = ensureDelta(event.playerId);
+      delta.cakeDelta += cakeDelta;
+      delta.reasons.push(event.reason);
+    }
+  }
+
+  return Array.from(deltas.values()).filter(
+    (delta) => delta.hpDelta !== 0 || delta.cakeDelta !== 0
+  );
+}
+
+function formatResourceDeltaSummary(deltas: ResourceDelta[]): string {
+  if (deltas.length === 0) {
+    return "本轮没有血量/饼变化";
+  }
+
+  return deltas.map(formatResourceDelta).join("；");
+}
+
+function formatResourceDelta(delta: ResourceDelta): string {
+  return `${delta.name} ${formatDeltaParts(delta)}`;
+}
+
+function formatResourceDeltaDetail(delta: ResourceDelta): string {
+  const reasonText = Array.from(new Set(delta.reasons)).join("、");
+  return reasonText ? `${formatResourceDelta(delta)}｜${reasonText}` : formatResourceDelta(delta);
+}
+
+function formatDeltaParts(delta: ResourceDelta): string {
+  const parts: string[] = [];
+  if (delta.hpDelta !== 0) {
+    parts.push(`血${formatSignedDelta(delta.hpDelta)}`);
+  }
+  if (delta.cakeDelta !== 0) {
+    parts.push(`饼${formatSignedDelta(delta.cakeDelta)}`);
+  }
+  return parts.join(" / ");
+}
+
+function formatSignedDelta(value: number): string {
+  return value > 0 ? `+${value}` : String(value);
 }
 
 function orderPlayersForViewer(

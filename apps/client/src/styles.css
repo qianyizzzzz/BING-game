@@ -5349,7 +5349,7 @@ select {
   bottom: 18px;
   z-index: 8;
   width: min(360px, calc(100% - 430px));
-  min-height: 132px;
+  min-height: 160px;
   border: 1px solid rgba(136, 247, 219, 0.24);
   border-radius: 8px;
   background:
@@ -5445,7 +5445,7 @@ select {
 
 .battle-turn-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
   margin-top: 7px;
 }
@@ -5480,6 +5480,48 @@ select {
 
 .battle-turn-summary-idle div {
   border-color: rgba(201, 178, 124, 0.12);
+}
+
+.battle-resource-deltas {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.battle-resource-delta-chip {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(201, 178, 124, 0.18);
+  border-radius: 999px;
+  background: rgba(5, 8, 7, 0.42);
+  padding: 4px 7px;
+  color: rgba(248, 237, 210, 0.82);
+  font-size: 10px;
+  font-weight: 950;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.battle-resource-delta-good {
+  border-color: rgba(136, 247, 219, 0.26);
+  background: rgba(13, 72, 67, 0.52);
+  color: #c8fff0;
+}
+
+.battle-resource-delta-danger {
+  border-color: rgba(231, 111, 47, 0.34);
+  background: rgba(127, 29, 29, 0.36);
+  color: #fed7aa;
+}
+
+.battle-resource-deltas-idle .battle-resource-delta-chip {
+  color: rgba(248, 237, 210, 0.58);
 }
 
 .battle-readout p {
@@ -5549,7 +5591,7 @@ select {
     bottom: auto;
     top: 128px;
     width: min(310px, calc(100% - 20px));
-    min-height: 102px;
+    min-height: 132px;
     padding: 9px;
   }
 
@@ -5558,7 +5600,7 @@ select {
   }
 
   .battle-turn-summary {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 4px;
     margin-top: 5px;
   }
@@ -5578,6 +5620,17 @@ select {
   .battle-readout p {
     font-size: 11px;
   }
+
+  .battle-resource-deltas {
+    gap: 4px;
+    margin-top: 5px;
+  }
+
+  .battle-resource-delta-chip {
+    max-width: 100%;
+    padding: 3px 6px;
+    font-size: 9px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -5596,8 +5649,8 @@ select {
   .battle-readout {
     top: 96px;
     width: min(166px, calc(100% - 20px));
-    min-height: 82px;
-    max-height: 144px;
+    min-height: 116px;
+    max-height: 176px;
     overflow: hidden;
     padding: 7px;
   }
@@ -5619,7 +5672,7 @@ select {
 
   .battle-turn-summary {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 3px;
   }
 
@@ -5634,6 +5687,17 @@ select {
 
   .battle-turn-summary strong {
     margin-top: 0;
+    font-size: 8.5px;
+  }
+
+  .battle-resource-deltas {
+    gap: 3px;
+    margin-top: 5px;
+  }
+
+  .battle-resource-delta-chip {
+    max-width: 100%;
+    padding: 3px 5px;
     font-size: 8.5px;
   }
 
