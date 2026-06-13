@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | Phase A 文案、品牌、布局 | 已落地 | 中文 README、BING / 饼首屏、牌桌 HUD、行动 dock、移动端 dock 已完成基础优化 |
 | Phase B 回合动画时间线 | 已落地 | `turnTimeline` 覆盖亮招、冲击、防御、反弹、技能、击败、恢复、系统事件，并接入 sound cue 占位 |
-| Phase C Playtest Agents | 已落地 | `npm run test:ui-agents` 可自动启动服务、双玩家跑 3 回合、截图、检查 console、canvas、遮挡、目标预览、沿用上回合、结算 cue 目标座位映射 |
+| Phase C Playtest Agents | 已落地 | `npm run test:ui-agents` 可自动启动服务、双玩家跑 3 回合；`npm run test:ui-agents:complex` 覆盖单房主 + AI 的火箭双目标 smoke |
 | P1 目标预览 | 已落地 | 选择攻击/技能目标会高亮对应座位 |
 | P1 沿用上回合 | 已落地 | 行动面板提供“沿用上回合”快捷按钮，并做基础合法性提示 |
 | P1 事件日志与动画口径 | 已落地 | 日志显示对应 battle beat 标签，便于 QA 对照动画反馈 |
@@ -33,7 +33,7 @@
 | --- | --- | --- |
 | 新手玩家 | 核心路径能跑通，但“为什么这样结算”仍主要靠日志理解。 | 前 3 回合做新手结算摘要：动作、目标、HP/饼 delta、等待/亮招状态都贴到桌面。 |
 | 竞技玩家 | 已有目标高亮和沿用上回合，但快速读局还缺历史压缩、资源趋势和动画加速。 | 做竞技读局层：上一招、资源 delta、目标线、威胁提示、快速复用/改目标；有 target 的 cue 必须映射座位或目标线。 |
-| 开发商 / QA | 基础 CI、夜间 UI agents 和手动角色浏览器 workflow 已有，但复杂技能链仍未覆盖到 CI。 | 扩展 UI agent 场景，捕捉动画中帧，检查 `data-beat`、目标线、资源 delta、impact shake；把断线重连和多人集火放入可选 workflow。 |
+| 开发商 / QA | 基础 CI、夜间 UI agents、手动角色浏览器 workflow 和本地复杂技能 smoke 已有；复杂技能 CI、断线重连和多人集火仍需扩展。 | 扩展 UI agent 场景，捕捉动画中帧，检查 `data-beat`、目标线、资源 delta、impact shake；把断线重连和多人集火放入可选 workflow。 |
 | 美术总监 | 当前角色是合格 WIP/blockout，LOD0/LOD1 已有 first-pass blended skin 和同名预览 clips。 | 补来源声明、精细权重绘制、精修动作、LOD 运行时切换和压缩策略。 |
 
 ## 2026-06-13 晚间子智能体追加评审
@@ -201,6 +201,7 @@
 
 ```bash
 npm run test:ui-agents
+npm run test:ui-agents:complex
 ```
 
 脚本能力：
@@ -211,6 +212,7 @@ npm run test:ui-agents
 - 玩家 B 加入房间。
 - 房主开始游戏。
 - 两个玩家连续提交 3 回合。
+- 可选复杂技能模式使用单房主 + 2 个 AI 对手，验证火箭双目标 HUD 和座位映射。
 - 检查目标预览高亮。
 - 检查“沿用上回合”快捷按钮。
 - 检查 console/page error。
@@ -239,7 +241,7 @@ npm run test:ui-agents
 - 增加沿用上回合。
 - 事件日志显示对应动画 beat。
 
-状态：已完成核心项，后续继续覆盖复杂技能。
+状态：已完成核心项，复杂技能 smoke 已接入，后续继续扩展响应窗口、多人集火和 CI 调度。
 
 ### P2：让牌桌更像活的游戏
 

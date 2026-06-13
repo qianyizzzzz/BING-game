@@ -24,6 +24,8 @@
   <img alt="Vite" src="https://img.shields.io/badge/Vite-7-646cff?style=flat-square&logo=vite&logoColor=white">
   <img alt="Socket.IO" src="https://img.shields.io/badge/Socket.IO-4.8-010101?style=flat-square&logo=socketdotio&logoColor=white">
   <img alt="Three.js" src="https://img.shields.io/badge/Three.js-0.184-111111?style=flat-square&logo=threedotjs&logoColor=white">
+  <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/qianyizzzzz/BING-game/ci.yml?branch=main&label=CI&style=flat-square&logo=github">
+  <img alt="Browser Playtest" src="https://img.shields.io/github/actions/workflow/status/qianyizzzzz/BING-game/browser-playtest.yml?branch=main&label=browser%20playtest&style=flat-square&logo=playwright">
 </p>
 
 <p align="center">
@@ -34,10 +36,11 @@
 
 | 项目 | 当前状态 |
 | --- | --- |
-| 可玩性 | 双玩家创建房间、加入房间、开始、出招、沿用上回合、攻击和结算 happy path 已通过 UI agent。 |
+| 可玩性 | 双玩家创建房间、加入房间、开始、出招、沿用上回合、攻击和结算 happy path 已通过 UI agent；复杂技能 smoke 已覆盖火箭双目标。 |
 | UI / HUD | 3D 牌桌、行动 HUD、底部命令区、目标预览、结算摘要和移动端 LOD 已落地。 |
-| 自动化验收 | `test:ui-agents` 和 `test:character-browser` 会先刷新 client dist，再运行浏览器 playtest。 |
-| 最新报告 | `artifacts/playtests/ui-agents-2026-06-13T17-07-06-046Z/report.md` |
+| 自动化验收 | `test:ui-agents`、`test:ui-agents:complex` 和 `test:character-browser` 会先刷新 client dist，再运行浏览器 playtest。 |
+| 最新报告 | `artifacts/playtests/ui-agents-2026-06-13T20-34-01-651Z/report.md` |
+| 复杂技能报告 | `artifacts/playtests/ui-agents-2026-06-13T20-27-09-434Z/report.md` |
 | 发布口径 | 可用于受控公网试玩；正式公开发布前仍需许可证、资产权属、复杂技能浏览器门禁和备份策略。 |
 
 ## 项目简介
@@ -51,7 +54,7 @@
 - React 游戏客户端：3D 牌桌、玩家座位、技能特效、行动面板、结算日志、新手教程和复盘入口。
 - 比赛记录与复盘：服务端保存对局，支持复盘页面、文本报告和训练样本导出。
 - 公网联机脚本：通过 Cloudflare Tunnel 临时生成 HTTPS 地址，让不同网络的玩家直接加入。
-- Playtest agents：自动开房、双玩家出招、截图、检查 canvas、遮挡、目标预览、行动 HUD、底部命令区和沿用上回合。
+- Playtest agents：自动开房、双玩家出招、复杂技能 smoke、截图、检查 canvas、遮挡、目标预览、行动 HUD、底部命令区和沿用上回合。
 - 本地角色资产：6 个默认角色已有 Blender blockout、LOD0/LOD1 skinned/animated GLB、portrait、mobile-avatar、turnaround、table-scale、rig-guide、动作剪影和材质审计。
 
 ## 截图
@@ -68,7 +71,7 @@
 | 饼资源博弈 | 吃饼、消耗、反弹、防御和高费技能互相牵制，适合 2-6 人局。 |
 | 游戏 HUD | 行动面板显示“下一步 / 目标 / 状态”，底部固定“沿用上回合 / 提交”。 |
 | 战斗表现层 | BattleDirector 输出 beat、目标、hit-stop、VFX 和 camera cue，驱动桌面反馈。 |
-| 自动 playtest | 两个玩家 agent 加一个 QA agent 会真实开房、出招、截图并生成 Markdown 报告。 |
+| 自动 playtest | 两个玩家 agent、开发商/QA agent 和美术总监视角会真实开房、出招、截图并生成 Markdown 报告。 |
 
 ## 快速开始
 
@@ -124,6 +127,7 @@ npm run serve
 | `npm run test:rules` | 运行规则回归测试。 |
 | `npm run test:turn-timeline` | 检查事件日志到动画 beat 的映射。 |
 | `npm run test:ui-agents` | 先构建 client，再启动双玩家 UI agent，生成截图和 Markdown 报告。 |
+| `npm run test:ui-agents:complex` | 先构建 client，再运行单房主 + AI 对手的复杂技能 smoke。 |
 | `npm run import:skills` | 从技能表导入技能数据。 |
 | `npm run training:export` | 导出比赛训练数据。 |
 | `npm run training:selfplay` | 运行自博弈训练脚本。 |
@@ -134,9 +138,9 @@ npm run serve
 - 6 个默认角色已具备 `idle / attack / defend / skill / hit / down` 动作剪影 QA 图。
 - 逐角色浏览器验收已覆盖 6 个默认角色的选择、房间状态、animated GLB 请求和 3D canvas 采样。
 - 初版 BattleDirector 已统一结算 cue、牌桌 metadata 和 3D 镜头脉冲。
-- UI agent 已覆盖双玩家 3 回合 happy path，并检查 canvas、GLB 加载、目标预览、行动 HUD、底部命令区、遮挡、console error 和失败动作。
+- UI agent 已覆盖双玩家 3 回合 happy path 和复杂技能 smoke，并检查 canvas、GLB 加载、目标预览、行动 HUD、底部命令区、遮挡、console error 和失败动作。
 - 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、精细权重绘制和精修运行时动画。
-- 下一阶段重点是竞技读局层、复杂技能参数抽屉、结算白话反馈、6 角色 runtime 精修和更完整的平衡测试。
+- 下一阶段重点是竞技读局层、复杂技能参数抽屉、断线重连/多人集火 playtest、6 角色 runtime 精修和更完整的平衡测试。
 
 ## 项目结构
 
