@@ -11,7 +11,7 @@ export interface CharacterProfile {
   secondary: string;
 }
 
-export type CharacterActionPose = "idle" | "attack" | "defend" | "skill" | "hit";
+export type CharacterActionPose = "idle" | "attack" | "defend" | "skill" | "hit" | "down";
 export type CharacterActionPoseUrls = Record<CharacterActionPose, string>;
 
 export const DEFAULT_CHARACTER_ID = "ember-guardian";
@@ -117,6 +117,7 @@ function buildActionPoseUrls(characterId: string): CharacterActionPoseUrls {
     attack: `${basePath}/action-attack.png`,
     defend: `${basePath}/action-defend.png`,
     skill: `${basePath}/action-skill.png`,
-    hit: `${basePath}/action-hit.png`
+    hit: `${basePath}/action-hit.png`,
+    down: `${basePath}/action-down.png`
   };
 }

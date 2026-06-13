@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -23,6 +24,15 @@ ACTION_POSES = (
     ("defend", "防御"),
     ("skill", "技能"),
     ("hit", "受击"),
+    ("down", "down"),
+)
+ANIMATION_CLIPS = (
+    ("idle", 48),
+    ("attack", 26),
+    ("defend", 32),
+    ("skill", 40),
+    ("hit", 22),
+    ("down", 46),
 )
 RIG_BONES = (
     ("hips", None, (0.0, 0.0, 0.72), (0.0, 0.0, 0.91)),
@@ -122,15 +132,21 @@ CHARACTERS = [
 
 
 def main() -> None:
+    animation_pass_only = "--bing-animation-pass" in sys.argv
+    action_pose_only = "--bing-action-poses-only" in sys.argv
+    action_pose_filter = selected_action_pose_ids()
+    print(f"BING_GENERATION_MODE={'action-poses-only' if action_pose_only else 'animation-pass' if animation_pass_only else 'full'}", flush=True)
     clear_scene()
     configure_scene()
     materials = build_materials()
     roots: dict[str, bpy.types.Object] = {}
 
     for index, spec in enumerate(CHARACTERS):
+        print(f"BING_CHARACTER_BUILD_START={spec.character_id}", flush=True)
         root = create_character(spec)
         root.location.x = (index - (len(CHARACTERS) - 1) / 2) * 2.05
         roots[spec.character_id] = root
+        print(f"BING_CHARACTER_BUILD_DONE={spec.character_id}", flush=True)
 
     add_gallery_floor()
     add_camera_and_lights()
@@ -139,18 +155,61 @@ def main() -> None:
     ARTIFACT_ROOT.mkdir(parents=True, exist_ok=True)
     (ASSET_ROOT / "source").mkdir(parents=True, exist_ok=True)
 
+    if action_pose_only:
+        for spec in CHARACTERS:
+            print(f"BING_ACTION_RENDER_START={spec.character_id}", flush=True)
+            render_action_pose_views(spec, roots, action_pose_filter)
+            print(f"BING_ACTION_RENDER_DONE={spec.character_id}", flush=True)
+        selected = ",".join(sorted(action_pose_filter)) if action_pose_filter else "all"
+        print(f"BING_ACTION_POSE_ONLY_DONE={selected}", flush=True)
+        return
+
     lod1_metrics: dict[str, tuple[int, int]] = {}
     for spec in CHARACTERS:
+        print(f"BING_CHARACTER_EXPORT_START={spec.character_id}", flush=True)
         lod1_metrics[spec.character_id] = export_character(spec, roots)
-        render_character_views(spec, roots)
-        render_action_pose_views(spec, roots)
+        print(f"BING_CHARACTER_EXPORT_DONE={spec.character_id}", flush=True)
+        if not animation_pass_only:
+            print(f"BING_STATIC_RENDER_START={spec.character_id}", flush=True)
+            render_character_views(spec, roots)
+            print(f"BING_STATIC_RENDER_DONE={spec.character_id}", flush=True)
+        print(f"BING_ACTION_RENDER_START={spec.character_id}", flush=True)
+        render_action_pose_views(spec, roots, action_pose_filter)
+        print(f"BING_ACTION_RENDER_DONE={spec.character_id}", flush=True)
+        print(f"BING_RIG_GUIDE_RENDER_START={spec.character_id}", flush=True)
         render_rig_guide_view(spec, roots)
-    render_material_qa_board()
+        print(f"BING_RIG_GUIDE_RENDER_DONE={spec.character_id}", flush=True)
+    if not animation_pass_only:
+        print("BING_MATERIAL_QA_START", flush=True)
+        render_material_qa_board()
+        print("BING_MATERIAL_QA_DONE", flush=True)
 
     scene_path = ASSET_ROOT / "source" / "bing-character-blockouts.blend"
+    print("BING_SAVE_SCENE_START", flush=True)
     bpy.ops.wm.save_as_mainfile(filepath=str(scene_path))
-    write_report(scene_path, roots, lod1_metrics)
-    print(f"BING_CHARACTER_BLOCKOUTS_DONE={scene_path}")
+    write_report(scene_path, roots, lod1_metrics, animation_pass_only=animation_pass_only)
+    print(f"BING_CHARACTER_BLOCKOUTS_DONE={scene_path}", flush=True)
+
+
+def selected_action_pose_ids() -> set[str] | None:
+    for arg in sys.argv:
+        if not arg.startswith("--bing-action-poses="):
+            continue
+        selected = {pose_id.strip() for pose_id in arg.split("=", 1)[1].split(",") if pose_id.strip()}
+        valid = {pose_id for pose_id, _label in ACTION_POSES}
+        unknown = selected - valid
+        if unknown:
+            raise ValueError(f"Unknown BING action pose ids: {', '.join(sorted(unknown))}")
+        return selected
+    return None
+
+
+def fast_action_render_enabled() -> bool:
+    return (
+        "--bing-fast-action-render" in sys.argv
+        or "--bing-action-poses-only" in sys.argv
+        or "--bing-animation-pass" in sys.argv
+    )
 
 
 def clear_scene() -> None:
@@ -753,7 +812,128 @@ def add_armature_rig(collection, root, spec: CharacterSpec) -> bpy.types.Object:
             bone.use_connect = False
 
     bpy.ops.object.mode_set(mode="OBJECT")
+    add_rig_animation_clips(rig, spec)
     return rig
+
+
+def add_rig_animation_clips(rig: bpy.types.Object, spec: CharacterSpec) -> None:
+    rig.animation_data_create()
+    while rig.animation_data.nla_tracks:
+        rig.animation_data.nla_tracks.remove(rig.animation_data.nla_tracks[0])
+
+    rig["bing_rig_status"] = "guide_armature_keyed_no_weights"
+    rig["bing_animation_status"] = "preview_keyframes_no_skin_weights"
+    rig["bing_animation_clips"] = ",".join(clip_id for clip_id, _duration in ANIMATION_CLIPS)
+
+    bpy.ops.object.select_all(action="DESELECT")
+    rig.select_set(True)
+    bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.mode_set(mode="POSE")
+
+    strip_start = 1
+    for clip_id, duration in ANIMATION_CLIPS:
+        action = bpy.data.actions.new(f"{spec.character_id}_{clip_id}_rig_preview")
+        action.use_fake_user = True
+        action["bing_clip_id"] = clip_id
+        action["bing_clip_duration_frames"] = duration
+        rig.animation_data.action = action
+
+        for frame, pose_map in rig_animation_keyframes(spec, clip_id, duration):
+            reset_rig_pose(rig)
+            apply_rig_pose(rig, pose_map)
+            for pose_bone in rig.pose.bones:
+                pose_bone.keyframe_insert(data_path="rotation_euler", frame=frame)
+                if pose_bone.name == "hips":
+                    pose_bone.keyframe_insert(data_path="location", frame=frame)
+
+        smooth_action_curves(action)
+        track = rig.animation_data.nla_tracks.new()
+        track.name = f"{clip_id}_preview"
+        strip = track.strips.new(clip_id, strip_start, action)
+        strip.name = clip_id
+        strip.frame_start = strip_start
+        strip.frame_end = strip_start + duration
+        strip_start += duration + 8
+
+    rig.animation_data.action = None
+    reset_rig_pose(rig)
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+
+def reset_rig_pose(rig: bpy.types.Object) -> None:
+    for pose_bone in rig.pose.bones:
+        pose_bone.rotation_mode = "XYZ"
+        pose_bone.location = (0, 0, 0)
+        pose_bone.rotation_euler = (0, 0, 0)
+        pose_bone.scale = (1, 1, 1)
+
+
+def apply_rig_pose(rig: bpy.types.Object, pose_map: dict[str, dict[str, tuple[float, float, float]]]) -> None:
+    for bone_name, values in pose_map.items():
+        pose_bone = rig.pose.bones.get(bone_name)
+        if not pose_bone:
+            continue
+        if "rot" in values:
+            pose_bone.rotation_euler = tuple(math.radians(value) for value in values["rot"])
+        if "loc" in values:
+            pose_bone.location = values["loc"]
+
+
+def rig_animation_keyframes(spec: CharacterSpec, clip_id: str, duration: int) -> list[tuple[int, dict[str, dict[str, tuple[float, float, float]]]]]:
+    lead = ".L" if spec.prop == "shield" else ".R"
+    off = ".R" if lead == ".L" else ".L"
+
+    if clip_id == "idle":
+        return [
+            (1, {}),
+            (duration // 2, {"spine": {"rot": (1.5, 0, -1.5)}, "chest": {"rot": (-1.5, 0, 2.5)}, f"upper_arm{lead}": {"rot": (2, 0, -4)}, f"upper_arm{off}": {"rot": (1, 0, 3)}}),
+            (duration, {}),
+        ]
+
+    if clip_id == "attack":
+        lead_sign = -1 if lead == ".L" else 1
+        return [
+            (1, {}),
+            (8, {"hips": {"rot": (0, 0, -7 * lead_sign), "loc": (0, -0.015, 0)}, "spine": {"rot": (-5, 0, -10 * lead_sign)}, "chest": {"rot": (-7, 0, -16 * lead_sign)}, f"upper_arm{lead}": {"rot": (-58, 0, -24 * lead_sign)}, f"forearm{lead}": {"rot": (-36, 0, -12 * lead_sign)}, f"hand{lead}": {"rot": (-14, 0, -8 * lead_sign)}}),
+            (14, {"hips": {"rot": (0, 0, 10 * lead_sign), "loc": (0.02 * lead_sign, -0.045, 0)}, "spine": {"rot": (7, 0, 11 * lead_sign)}, "chest": {"rot": (9, 0, 20 * lead_sign)}, f"upper_arm{lead}": {"rot": (-16, 0, 34 * lead_sign)}, f"forearm{lead}": {"rot": (-18, 0, 24 * lead_sign)}, f"hand{lead}": {"rot": (-8, 0, 20 * lead_sign)}}),
+            (duration, {}),
+        ]
+
+    if clip_id == "defend":
+        return [
+            (1, {}),
+            (12, {"hips": {"rot": (-2, 0, 0), "loc": (0, 0.01, -0.01)}, "spine": {"rot": (5, 0, 0)}, "chest": {"rot": (8, 0, 0)}, "upper_arm.L": {"rot": (-42, 0, -22)}, "forearm.L": {"rot": (-28, 0, -16)}, "upper_arm.R": {"rot": (-42, 0, 22)}, "forearm.R": {"rot": (-28, 0, 16)}}),
+            (duration, {"hips": {"loc": (0, 0.005, 0)}, "spine": {"rot": (2, 0, 0)}, "chest": {"rot": (4, 0, 0)}}),
+        ]
+
+    if clip_id == "skill":
+        return [
+            (1, {}),
+            (18, {"hips": {"loc": (0, -0.01, 0.018)}, "spine": {"rot": (-4, 0, 0)}, "chest": {"rot": (-9, 0, 0)}, "upper_arm.L": {"rot": (-76, 0, -34)}, "forearm.L": {"rot": (-34, 0, -16)}, "hand.L": {"rot": (-18, 0, -8)}, "upper_arm.R": {"rot": (-76, 0, 34)}, "forearm.R": {"rot": (-34, 0, 16)}, "hand.R": {"rot": (-18, 0, 8)}}),
+            (duration, {}),
+        ]
+
+    if clip_id == "hit":
+        return [
+            (1, {}),
+            (6, {"hips": {"rot": (0, 0, 9), "loc": (0.025, 0.018, 0)}, "spine": {"rot": (12, 0, 9)}, "chest": {"rot": (18, 0, 12)}, "upper_arm.L": {"rot": (18, 0, -10)}, "forearm.L": {"rot": (16, 0, -14)}, "upper_arm.R": {"rot": (18, 0, 10)}, "forearm.R": {"rot": (16, 0, 14)}}),
+            (duration, {}),
+        ]
+
+    if clip_id == "down":
+        return [
+            (1, {}),
+            (14, {"hips": {"rot": (36, 0, -12), "loc": (0, -0.06, -0.06)}, "spine": {"rot": (28, 0, -8)}, "chest": {"rot": (24, 0, -6)}, "neck": {"rot": (-12, 0, 4)}, "upper_arm.L": {"rot": (32, 0, -20)}, "forearm.L": {"rot": (18, 0, -12)}, "upper_arm.R": {"rot": (30, 0, 24)}, "forearm.R": {"rot": (24, 0, 18)}}),
+            (duration, {"hips": {"rot": (74, 0, -18), "loc": (0, -0.22, -0.16)}, "spine": {"rot": (42, 0, -8)}, "chest": {"rot": (32, 0, -6)}, "neck": {"rot": (-24, 0, 6)}, "thigh.L": {"rot": (-18, 0, -8)}, "shin.L": {"rot": (18, 0, 4)}, "thigh.R": {"rot": (-12, 0, 10)}, "shin.R": {"rot": (22, 0, -5)}, "upper_arm.L": {"rot": (52, 0, -34)}, "forearm.L": {"rot": (22, 0, -18)}, "upper_arm.R": {"rot": (44, 0, 30)}, "forearm.R": {"rot": (28, 0, 20)}}),
+        ]
+
+    return [(1, {}), (duration, {})]
+
+
+def smooth_action_curves(action: bpy.types.Action) -> None:
+    for curve in action.fcurves:
+        for keyframe in curve.keyframe_points:
+            keyframe.interpolation = "BEZIER"
 
 
 def add_gallery_floor() -> None:
@@ -923,7 +1103,11 @@ def render_character_views(spec: CharacterSpec, roots: dict[str, bpy.types.Objec
     set_all_visible(roots)
 
 
-def render_action_pose_views(spec: CharacterSpec, roots: dict[str, bpy.types.Object]) -> None:
+def render_action_pose_views(
+    spec: CharacterSpec,
+    roots: dict[str, bpy.types.Object],
+    pose_filter: set[str] | None = None,
+) -> None:
     root = roots[spec.character_id]
     out_dir = ASSET_ROOT / spec.character_id
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -932,22 +1116,35 @@ def render_action_pose_views(spec: CharacterSpec, roots: dict[str, bpy.types.Obj
     snapshot = capture_transforms(objects)
     scene = bpy.context.scene
     original_resolution = (scene.render.resolution_x, scene.render.resolution_y)
+    original_engine = scene.render.engine
     scene.render.resolution_x = 512
     scene.render.resolution_y = 512
+    if fast_action_render_enabled():
+        scene.render.engine = "BLENDER_WORKBENCH"
     camera = scene.camera
 
     for pose_id, _label in ACTION_POSES:
+        if pose_filter is not None and pose_id not in pose_filter:
+            continue
+        print(f"BING_ACTION_POSE_RENDER_START={spec.character_id}:{pose_id}", flush=True)
         restore_transforms(snapshot)
         root.location = (0, 0, 0)
         root.rotation_euler = (0, 0, 0)
         apply_action_pose(root, spec, pose_id)
-        camera.location = (0, -4.55, 1.32)
-        camera.data.lens = 70
-        look_at(camera, mathutils.Vector((0, 0, 1.02)))
+        if pose_id == "down":
+            camera.location = (0, -4.35, 0.92)
+            camera.data.lens = 66
+            look_at(camera, mathutils.Vector((0, -0.08, 0.42)))
+        else:
+            camera.location = (0, -4.55, 1.32)
+            camera.data.lens = 70
+            look_at(camera, mathutils.Vector((0, 0, 1.02)))
         scene.render.filepath = str(out_dir / f"action-{pose_id}.png")
         bpy.ops.render.render(write_still=True)
+        print(f"BING_ACTION_POSE_RENDER_DONE={spec.character_id}:{pose_id}", flush=True)
 
     restore_transforms(snapshot)
+    scene.render.engine = original_engine
     scene.render.resolution_x, scene.render.resolution_y = original_resolution
     set_all_visible(roots)
 
@@ -1032,6 +1229,19 @@ def apply_action_pose(root: bpy.types.Object, spec: CharacterSpec, pose_id: str)
         for side in [-1, 1]:
             side_name = "right" if side > 0 else "left"
             nudge_pose_parts(root, [f"{side_name}_forearm", f"{side_name}_hand", f"{side_name}_finger", f"{side_name}_thumb", f"{side_name}_knuckle", f"{side_name}_nail"], location=(0.014 * side, 0.018, -0.04), rotation=(math.radians(10), 0, math.radians(6 * side)))
+        return
+
+    if pose_id == "down":
+        root.location.y = -0.12
+        root.location.z = 0.28
+        root.rotation_euler.x = math.radians(72)
+        root.rotation_euler.z = math.radians(-15)
+        for side in [-1, 1]:
+            side_name = "right" if side > 0 else "left"
+            nudge_pose_parts(root, [f"{side_name}_upper_arm", f"{side_name}_forearm"], location=(0.02 * side, 0.04, -0.045), rotation=(math.radians(22), 0, math.radians(18 * side)))
+            nudge_pose_parts(root, [f"{side_name}_hand", f"{side_name}_finger", f"{side_name}_thumb", f"{side_name}_knuckle", f"{side_name}_nail"], location=(0.026 * side, 0.055, -0.06), rotation=(math.radians(20), 0, math.radians(14 * side)))
+            nudge_pose_parts(root, [f"{side_name}_thigh", f"{side_name}_shin", f"{side_name}_foot"], location=(0.018 * side, -0.015, 0.025), rotation=(math.radians(-14), 0, math.radians(8 * side)))
+        nudge_pose_parts(root, prop_pose_tokens(spec), location=(0, 0.025, -0.035), rotation=(math.radians(12), 0, math.radians(-10)))
 
 
 def prop_pose_tokens(spec: CharacterSpec) -> list[str]:
@@ -1113,10 +1323,13 @@ def render_material_qa_board() -> None:
     bpy.data.images.remove(image)
 
 
-def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metrics: dict[str, tuple[int, int]]) -> None:
+def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metrics: dict[str, tuple[int, int]], animation_pass_only: bool = False) -> None:
     rows = []
     review_rows = []
     pbr_texture_count = len(list(PBR_TEXTURE_ROOT.rglob("*.png"))) if PBR_TEXTURE_ROOT.exists() else 0
+    pose_ids = " / ".join(pose_id for pose_id, _label in ACTION_POSES)
+    animation_clip_ids = " / ".join(clip_id for clip_id, _duration in ANIMATION_CLIPS)
+    generation_mode = "animation pass" if animation_pass_only else "full asset pass"
     for spec in CHARACTERS:
         out_dir = ASSET_ROOT / spec.character_id
         vertex_count, face_count = mesh_metrics(roots[spec.character_id])
@@ -1139,15 +1352,16 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 日期：2026-06-13
 
-本轮通过 BlenderMCP socket 执行 `tools/blender/create-bing-character-blockouts.py`，为默认 6 个角色生成半写实比例与解剖优化资产。
+本轮通过 Blender MCP / Blender Python 执行 `tools/blender/create-bing-character-blockouts.py`，模式：`{generation_mode}`，为默认 6 个角色生成半写实比例、解剖优化与动画预览资产。
 
 ## 输出
 
 - Blender 源场景：`{repo_path(scene_path)}`
 - 每个角色导出 LOD0 `.glb` 和 LOD1 `-lod1.glb`
 - 每个角色导出 `portrait.png`、`mobile-avatar.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`、`table-scale.png`
-- 每个角色导出动作剪影 QA：`action-idle.png`、`action-attack.png`、`action-defend.png`、`action-skill.png`、`action-hit.png`
+- 每个角色导出动作剪影 QA：`{pose_ids}`
 - 每个角色建立 `{len(RIG_BONES)}` 根骨骼的 guide armature，并导出 `rig-guide.png`
+- 每个 guide armature 写入预览动画 clips：`{animation_clip_ids}`；当前为关键帧预览，尚未完成权重蒙皮
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、职业道具和服装层次
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
 - 材质近景 QA：`{repo_path(ASSET_ROOT / "materials" / "material-qa.png")}`
@@ -1186,8 +1400,8 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 - 源场景：`{repo_path(scene_path)}`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
-- 动作 QA：每角色 `idle / attack / defend / skill / hit` 五张动作剪影图
-- 绑定准备：每角色 `{len(RIG_BONES)}` 根骨骼 guide armature 与 `rig-guide.png`
+- 动作 QA：每角色 `{pose_ids}` 动作剪影图
+- 绑定准备：每角色 `{len(RIG_BONES)}` 根骨骼 guide armature、`rig-guide.png` 与 `{animation_clip_ids}` 预览动画 clips
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、服装层次和职业道具
 - 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
@@ -1200,8 +1414,8 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
-- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、权重蒙皮和可播放动画；真人质感仍需外部雕刻/贴图阶段继续推进。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、预览动画 clips、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、权重蒙皮和可播放蒙皮动画；真人质感仍需外部雕刻/贴图阶段继续推进。
 
 ## 下一步 P0
 
@@ -1211,7 +1425,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 ## 下一步 P1
 
 - 在 `TableScene3D` 中接入 `.glb`，用桌面距离 QA 图校准相机和灯光。
-- 给 guide armature 补权重蒙皮，把当前动作剪影升级为可播放动画，并补死亡/倒地动作。
+- 给 guide armature 补权重蒙皮，把当前关键帧预览升级为网格可播放动画，并继续扩展死亡/倒地后的结算动作。
 """
     (DOCS_ROOT / "CHARACTER_ASSET_AUDIT.md").write_text(review, encoding="utf-8")
 
