@@ -2,7 +2,7 @@
 
 日期：2026-06-13
 
-当前结论：项目适合受控公网试玩；正式公开发布前仍需补 CI 浏览器门禁、安全白名单、持久化策略、许可证和资产权属。
+当前结论：项目适合受控公网试玩；正式公开发布前仍需补角色浏览器门禁、安全白名单、持久化策略、许可证和资产权属。
 
 ## 1. Clean Clone 验证
 
@@ -12,6 +12,7 @@
 - 运行 `npm run build`。
 - 运行 `npm run test:ci`。
 - 本地需要浏览器验收时运行 `npm run test:ui-agents` 和 `npm run test:character-browser`。
+- GitHub Actions 可手动或夜间运行 Browser Playtest，并上传 UI agent 截图与报告。
 
 通过标准：构建和测试均通过；Vite 大 chunk 警告可接受，但需要记录为后续性能优化项。
 
@@ -64,7 +65,7 @@ docker run -p 3001:3001 -v bing-data:/app/data bing-card-game
 - 补充正式 `LICENSE` 和资产权属说明。
 - 明确角色 GLB、贴图、截图、技能表来源。
 - 清理公开战斗画面中的 placeholder 网络请求。
-- 建立浏览器级夜间 CI：`test:ui-agents`、`test:character-browser`，并上传报告和截图。
+- 扩展浏览器级夜间 CI：把 `test:character-browser` 和复杂技能链加入可选 workflow，并上传报告和截图。
 - 做一次移动端 360px/375px/390px/430px 截图 QA。
 
 通过标准：阻断项全部关闭后，才把项目描述从“受控试玩”改为“公开发布”。
