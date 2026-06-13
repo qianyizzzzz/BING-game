@@ -15,6 +15,7 @@ ARTIFACT_ROOT = PROJECT_ROOT / "artifacts" / "art"
 DOCS_ROOT = PROJECT_ROOT / "docs"
 PBR_TEXTURE_ROOT = ASSET_ROOT / "materials" / "pbr"
 PBR_TEXTURE_SIZE = 256
+PBR_TEXTURE_VERSION = "semireal-materials-v2"
 LOD0_FACE_BUDGET = 40_000
 LOD1_FACE_BUDGET = 12_000
 LOD1_DECIMATE_RATIO = 0.15
@@ -2361,8 +2362,13 @@ def ensure_pbr_texture_pack(
         "normal": out_dir / "normal.png",
         "roughness": out_dir / "roughness.png",
     }
-    for kind, path in paths.items():
-        write_pbr_texture(path, kind, detail, color, roughness)
+    version_path = PBR_TEXTURE_ROOT / ".texture-version"
+    current_version = version_path.read_text(encoding="utf-8").strip() if version_path.exists() else ""
+    needs_write = current_version != PBR_TEXTURE_VERSION or any(not path.exists() for path in paths.values())
+    if needs_write:
+        for kind, path in paths.items():
+            write_pbr_texture(path, kind, detail, color, roughness)
+        version_path.write_text(PBR_TEXTURE_VERSION, encoding="utf-8")
     return paths
 
 
