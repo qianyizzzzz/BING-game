@@ -17,6 +17,8 @@
     "public:tunnel": "node scripts/public-play.mjs --tunnel-only --skip-build",
     "build": "npm run build -w @bing/shared && npm run build -w @bing/server && npm run build -w @bing/client",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "test:ci": "npm run typecheck && npm run test:rules && npm run test:turn-timeline",
+    "verify": "npm run build && npm run test:ci && npm run test:ui-agents",
     "test:rules": "tsx scripts/rule-regression-check.ts",
     "test:turn-timeline": "tsx scripts/turn-timeline-check.ts",
     "test:ui-agents": "tsx scripts/ui-playtest-agents.ts",
