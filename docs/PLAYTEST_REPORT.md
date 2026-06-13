@@ -1,7 +1,7 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-13  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T17-07-06-046Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T20-09-59-891Z/report.md`
 最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T17-16-00-934Z/report.md`
 
 ## 结论

@@ -2111,7 +2111,7 @@ export function ActionPanel({
               const targetError =
                 row.kind === "skill" ? multiTargetSkillTargetError(state, row) : undefined;
               return (
-                <div key={row.id} className="action-row">
+                <div key={row.id} className="action-row" data-testid={`attack-row-${index}`}>
                   <div
                     className={
                       row.kind === "skill" && row.skillId === LIAN_BAO_SKILL_ID
@@ -2123,6 +2123,7 @@ export function ActionPanel({
                       攻击 / 技能
                       <select
                         className="soft-input mt-1 w-full"
+                        data-testid={`attack-row-kind-${index}`}
                         value={rowValue(row)}
                         onChange={(event) => updateRowKind(row.id, event.target.value)}
                       >
@@ -2201,6 +2202,7 @@ export function ActionPanel({
                         <TargetSelect
                           enemies={enemies}
                           targetId={row.targetId}
+                          testId={`attack-row-target-${index}`}
                           onChange={(nextTargetId) =>
                             updateAttackRow(row.id, {
                               targetId: nextTargetId,
@@ -2219,6 +2221,7 @@ export function ActionPanel({
                               enemies={extraTargetOptions(row, extraIndex)}
                               key={extraIndex}
                               targetId={(row.extraTargetIds ?? [])[extraIndex] ?? ""}
+                              testId={`attack-row-extra-target-${index}-${extraIndex}`}
                               onChange={(nextTargetId) =>
                                 updateAttackRowExtraTarget(row.id, extraIndex, nextTargetId)
                               }
@@ -2273,6 +2276,7 @@ export function ActionPanel({
             <div className="flex items-center justify-between gap-3">
               <button
                 className="btn-secondary disabled:opacity-40"
+                data-testid="add-attack-row"
                 disabled={
                   attackRows.length >= enemies.length ||
                   attackRows.some((row) => rowIsArea(row))
@@ -2302,6 +2306,7 @@ export function ActionPanel({
                     技能
                     <select
                       className="soft-input mt-1 w-full"
+                      data-testid="skill-action-select"
                       value={selectedSkill?.skill.id ?? ""}
                       onChange={(event) => {
                         setSkillId(event.target.value);
@@ -2350,6 +2355,7 @@ export function ActionPanel({
                       <TargetSelect
                         enemies={enemies}
                         targetId={skillTargetId}
+                        testId="skill-action-target"
                         onChange={(nextTargetId) => {
                           setSkillTargetId(nextTargetId);
                           setSkillExtraTargetIds((current) =>
@@ -2367,6 +2373,7 @@ export function ActionPanel({
                                 enemies={skillExtraTargetOptions(extraIndex)}
                                 key={extraIndex}
                                 targetId={skillExtraTargetIds[extraIndex] ?? ""}
+                                testId={`skill-action-extra-target-${extraIndex}`}
                                 onChange={(nextTargetId) =>
                                   updateSkillExtraTarget(extraIndex, nextTargetId)
                                 }
@@ -3011,14 +3018,23 @@ interface TargetSelectProps {
   targetId: string;
   label: string;
   onChange: (targetId: string) => void;
+  testId?: string;
 }
 
-function TargetSelect({ allowEmpty = false, enemies, targetId, label, onChange }: TargetSelectProps) {
+function TargetSelect({
+  allowEmpty = false,
+  enemies,
+  targetId,
+  label,
+  onChange,
+  testId
+}: TargetSelectProps) {
   return (
     <label className="block text-sm font-medium text-gray-700">
       {label}
       <select
         className="soft-input mt-1 w-full"
+        data-testid={testId}
         value={targetId}
         onChange={(event) => onChange(event.target.value)}
       >

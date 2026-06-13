@@ -999,6 +999,7 @@ export function App() {
                     {isOwner ? (
                       <button
                         className="btn-secondary"
+                        data-testid="toggle-settings"
                         disabled={busy}
                         onClick={() => setSettingsOpen((open) => !open)}
                         type="button"
@@ -1295,7 +1296,7 @@ function TestSkillPanel({
   }
 
   return (
-    <section className="surface-card p-5">
+    <section className="surface-card p-5" data-testid="test-skill-panel">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-teal-700" aria-hidden="true" />
@@ -1490,7 +1491,14 @@ function SkillPicker({
   }
 
   return (
-    <article className="settings-field block">
+    <article
+      className="settings-field block"
+      data-testid={`skill-picker-${player.id}`}
+      data-player-kind={player.kind}
+      data-player-name={player.name}
+      data-selected-count={selected.length}
+      data-selected-skill-ids={selected.join(",")}
+    >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <strong className="block truncate text-sm text-gray-950">{player.name}</strong>
@@ -1509,6 +1517,7 @@ function SkillPicker({
           return (
             <button
               className="btn-secondary max-w-full px-2 py-1 text-xs"
+              data-testid={`skill-picker-remove-${player.id}-${index}`}
               disabled={busy}
               key={`${skillId}:${index}`}
               onClick={() => removeSelectedSkill(index)}
@@ -1534,6 +1543,7 @@ function SkillPicker({
         />
         <input
           className="soft-input w-full pl-9"
+          data-testid={`skill-picker-search-${player.id}`}
           disabled={busy || !canAdd}
           onChange={(event) => setSkillQuery(event.target.value)}
           placeholder={`搜索 ${allSkills.length} 个可添加技能`}
@@ -1543,6 +1553,7 @@ function SkillPicker({
 
       <select
         className="soft-input mt-2 w-full"
+        data-testid={`skill-picker-add-${player.id}`}
         disabled={busy || !canAdd}
         onChange={(event) => {
           const skillId = event.target.value as SkillId;
@@ -1584,7 +1595,10 @@ function SettingsPanel({
   onChange: (config: Partial<GameConfig>) => void;
 }) {
   return (
-    <div className="mt-4 grid gap-3 border-t border-teal-100/70 pt-4 text-sm md:grid-cols-2">
+    <div
+      className="mt-4 grid gap-3 border-t border-teal-100/70 pt-4 text-sm md:grid-cols-2"
+      data-testid="settings-panel"
+    >
       <label className="settings-field flex items-center gap-2 font-medium text-gray-700">
         <input
           checked={config.hideCakeCounts}
@@ -1592,6 +1606,15 @@ function SettingsPanel({
           type="checkbox"
         />
         隐藏他人饼数量
+      </label>
+      <label className="settings-field flex items-center gap-2 font-medium text-gray-700">
+        <input
+          checked={config.firstTurnNoAttack}
+          data-testid="settings-first-turn-no-attack"
+          onChange={(event) => onChange({ firstTurnNoAttack: event.target.checked })}
+          type="checkbox"
+        />
+        首回合禁攻
       </label>
       <label className="settings-field block font-medium text-gray-700">
         回合限时
@@ -1610,6 +1633,7 @@ function SettingsPanel({
         技能模式
         <select
           className="soft-input mt-1 w-full"
+          data-testid="settings-skill-mode"
           onChange={(event) => {
             const skillMode = event.target.value as GameConfig["skillMode"];
             onChange({
@@ -1628,6 +1652,7 @@ function SettingsPanel({
         小技能数量
         <select
           className="soft-input mt-1 w-full"
+          data-testid="settings-skill-count"
           disabled={config.skillMode === "none"}
           onChange={(event) => {
             const skillCount = Number(event.target.value);

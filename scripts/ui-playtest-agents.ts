@@ -13,6 +13,7 @@ interface AgentLog {
 
 interface RunConfig {
   autoServe: boolean;
+  complexSkills: boolean;
   url: string;
   outDir: string;
 }
@@ -20,8 +21,10 @@ interface RunConfig {
 const config = readConfig();
 const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 const runDir = path.resolve(config.outDir, `ui-agents-${timestamp}`);
+const ROCKET_SKILL_ID = "skill_79_36319";
 
 fs.mkdirSync(runDir, { recursive: true });
+logStep(`run directory ${runDir}`);
 
 const firstTimer: AgentLog = {
   name: "玩家 Agent A",
@@ -48,6 +51,7 @@ const runNotes: string[] = [];
 const placeholderRequests: string[] = [];
 const visualChecks: string[] = [];
 const visualIssues: string[] = [];
+const complexSkillChecks: string[] = [];
 const screenshots: string[] = [];
 const pageNames = new WeakMap<Page, string>();
 const glbResponses = new Map<string, Set<string>>();
@@ -81,20 +85,45 @@ try {
     await clickByTestId(playerB, "join-room");
     await waitForRoomLobby(playerB, "加入房间");
     await screenshot(playerB, "02-player-b-joined.png");
+    if (config.complexSkills) {
+      await configureComplexSkillScenario(playerA, firstTimer, producer);
+      await screenshot(playerA, "02b-complex-skill-lobby.png");
+      logStep("complex skill lobby configured");
+    }
     await collectLobbyPrepCopyCheck(playerA, firstTimer, "新手玩家");
     await collectLobbyPrepCopyCheck(playerB, competitor, "竞技玩家");
     competitor.observations.push("成功加入房间，检查加入路径是否足够快。");
 
     await ensureGameCanStart(playerA);
     await clickByTestId(playerA, "start-game");
+    logStep("game started");
+    if (config.complexSkills) {
+      const prepWindows = await resolveActionWindows([playerA, playerB]);
+      if (prepWindows > 0) {
+        producer.observations.push(`开局技能准备窗口已自动处理 ${prepWindows} 次，后续进入出招阶段。`);
+        complexSkillChecks.push(`开局技能准备窗口已处理 ${prepWindows} 次。`);
+      }
+    }
     await waitForActionDock(playerA);
     await waitForActionDock(playerB);
+    logStep("initial action docks visible");
     producer.observations.push("房主能从大厅进入战斗桌面，行动 dock 已出现。");
 
     for (let turn = 1; turn <= 3; turn += 1) {
-      if (turn === 2) {
+      logStep(`turn ${turn} begin`);
+      if (config.complexSkills && turn > 1) {
+        const skippedWindows = await resolveActionWindows([playerA, playerB]);
+        if (skippedWindows > 0) {
+          producer.observations.push(`第 ${turn} 回合前自动处理 ${skippedWindows} 个响应窗口。`);
+        }
+        await waitForActionDock(playerA);
+        await waitForActionDock(playerB);
+      }
+      if (config.complexSkills && turn === 3) {
+        await submitRocketSkillTurn(playerA, turn, firstTimer);
+      } else if (!config.complexSkills && turn === 2) {
         await submitRepeatTurn(playerA, turn, firstTimer);
-      } else if (turn === 3) {
+      } else if (!config.complexSkills && turn === 3) {
         await submitAttackTurn(playerA, turn, firstTimer);
       } else {
         await submitCakeTurn(playerA, turn, firstTimer);
@@ -102,8 +131,14 @@ try {
       await submitCakeTurn(playerB, turn, competitor);
       await playerA.waitForTimeout(900);
       if (turn === 1) {
-        await collectTargetPreviewCheck(playerA, firstTimer, "新手玩家");
-        await collectTargetPreviewCheck(playerB, competitor, "竞技玩家");
+        if (config.complexSkills) {
+          const message = "复杂技能场景跳过基础攻击预览，后续火箭双目标 HUD 会覆盖目标映射检查。";
+          visualChecks.push(message);
+          producer.observations.push(message);
+        } else {
+          await collectTargetPreviewCheck(playerA, firstTimer, "新手玩家");
+          await collectTargetPreviewCheck(playerB, competitor, "竞技玩家");
+        }
       }
       if (turn === 3) {
         const skippedWindows = await resolveActionWindows([playerA, playerB]);
@@ -114,13 +149,17 @@ try {
         await collectBattlePresentationCueCheck(playerB, competitor, "竞技玩家");
       }
       await playerA.waitForTimeout(700);
+      logStep(`turn ${turn} end`);
     }
 
     await screenshot(playerA, "03-player-a-after-turns.png");
     await screenshot(playerB, "04-player-b-after-turns.png");
+    logStep("after-turn screenshots captured");
 
+    logStep("visual health begin");
     await collectVisualHealth(playerA, firstTimer, "新手玩家");
     await collectVisualHealth(playerB, competitor, "竞技玩家");
+    logStep("visual health end");
     await collectHeuristicFeedback(playerA, firstTimer, "新手玩家");
     await collectHeuristicFeedback(playerB, competitor, "竞技玩家");
     collectProducerFeedback();
@@ -149,6 +188,12 @@ if (visualIssues.length > 0 || consoleErrors.length > 0 || failedActions.length 
   throw new Error(
     `UI playtest reported issues: visual=${visualIssues.length}, console=${consoleErrors.length}, failed=${failedActions.length}`
   );
+}
+
+function logStep(message: string): void {
+  const line = `[ui-agents] ${new Date().toISOString()} ${message}`;
+  console.log(line);
+  fs.appendFileSync(path.join(runDir, "progress.log"), `${line}\n`, "utf-8");
 }
 
 async function newAgentPage(browser: Browser, name: string): Promise<Page> {
@@ -308,6 +353,107 @@ async function optionalClickByTestId(page: Page, testId: string): Promise<void> 
   }
 }
 
+async function configureComplexSkillScenario(
+  page: Page,
+  playerAgent: AgentLog,
+  producerAgent: AgentLog
+): Promise<void> {
+  await ensureSettingsPanelOpen(page);
+  await setCheckboxByTestId(page, "settings-first-turn-no-attack", false);
+  await selectByTestId(page, "settings-skill-mode", "test_select");
+  await trySelectByTestId(page, "settings-skill-count", "1");
+  await page.getByTestId("test-skill-panel").first().waitFor({ state: "visible", timeout: 30_000 });
+  await addAiPlayers(page, 1);
+
+  const ownerPicker = page.locator('article[data-testid^="skill-picker-"]').first();
+  await ownerPicker.waitFor({ state: "visible", timeout: 30_000 });
+  await clearSelectedSkills(ownerPicker);
+  const addSkill = ownerPicker.locator('select[data-testid^="skill-picker-add-"]').first();
+  await waitForEnabled(addSkill, 10_000);
+  await addSkill.selectOption(ROCKET_SKILL_ID);
+  await ownerPicker.locator('[data-testid^="skill-picker-remove-"]').first().waitFor({
+    state: "visible",
+    timeout: 30_000
+  });
+
+  const aiPickerCount = await page.locator('article[data-testid^="skill-picker-"][data-player-kind="ai"]').count();
+  const message = `复杂技能场景已配置：测试自选 1 技能，房主携带火箭，AI 数量 ${aiPickerCount}。`;
+  complexSkillChecks.push(message);
+  playerAgent.observations.push(message);
+  producerAgent.observations.push("复杂技能 playtest 已固定为至少 3 人局，便于检查双目标技能映射。");
+}
+
+async function ensureSettingsPanelOpen(page: Page): Promise<void> {
+  const panel = page.getByTestId("settings-panel").first();
+  if (await panel.isVisible().catch(() => false)) {
+    return;
+  }
+  await clickByTestId(page, "toggle-settings");
+  await panel.waitFor({ state: "visible", timeout: 10_000 });
+}
+
+async function addAiPlayers(page: Page, count: number): Promise<void> {
+  for (let index = 0; index < count; index += 1) {
+    const previousAiCount = await page.locator('article[data-testid^="skill-picker-"][data-player-kind="ai"]').count();
+    await clickByTestId(page, "add-ai");
+    await page.locator('[data-player-kind="ai"]').nth(previousAiCount).waitFor({
+      state: "visible",
+      timeout: 20_000
+    });
+  }
+}
+
+async function clearSelectedSkills(picker: Locator): Promise<void> {
+  for (let index = 0; index < 3; index += 1) {
+    const removeButton = picker.locator('[data-testid^="skill-picker-remove-"]').first();
+    if (!(await removeButton.isVisible().catch(() => false))) {
+      return;
+    }
+    await activate(removeButton, 5_000);
+  }
+}
+
+async function selectByTestId(page: Page, testId: string, value: string): Promise<void> {
+  const select = page.getByTestId(testId).first();
+  await select.waitFor({ state: "attached", timeout: 10_000 });
+  if (!(await waitForEnabled(select, 10_000))) {
+    throw new Error(`Select ${testId} is not enabled`);
+  }
+  await select.selectOption(value);
+}
+
+async function trySelectByTestId(page: Page, testId: string, value: string): Promise<void> {
+  const select = page.getByTestId(testId).first();
+  await select.waitFor({ state: "attached", timeout: 10_000 });
+  if (!(await waitForEnabled(select, 2_000))) {
+    return;
+  }
+  await select.selectOption(value);
+}
+
+async function setCheckboxByTestId(page: Page, testId: string, checked: boolean): Promise<void> {
+  const checkbox = page.getByTestId(testId).first();
+  await checkbox.waitFor({ state: "attached", timeout: 10_000 });
+  const current = await checkbox.isChecked({ timeout: 500 });
+  if (current !== checked) {
+    await checkbox.evaluate(
+      (element, nextChecked) => {
+        if (!(element instanceof HTMLInputElement)) {
+          throw new Error("Element is not an input");
+        }
+        const checkedSetter = Object.getOwnPropertyDescriptor(
+          HTMLInputElement.prototype,
+          "checked"
+        )?.set;
+        checkedSetter?.call(element, nextChecked);
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+      },
+      checked
+    );
+  }
+}
+
 async function ensureGameCanStart(page: Page): Promise<void> {
   const startButton = page.getByTestId("start-game").first();
   await startButton.waitFor({ state: "attached", timeout: 15_000 });
@@ -324,8 +470,12 @@ async function ensureGameCanStart(page: Page): Promise<void> {
 
 async function waitForActionDock(page: Page): Promise<void> {
   await page.locator(".table-action-dock").first().waitFor({ state: "visible", timeout: 20_000 });
-  await page.getByTestId("submit-action").first().waitFor({ state: "attached", timeout: 20_000 });
+  await page.locator(".action-command-footer").first().waitFor({ state: "visible", timeout: 20_000 }).catch(() => undefined);
   await page.waitForTimeout(250);
+}
+
+function submitActionButton(page: Page): Locator {
+  return page.locator('[data-testid="submit-action"], .action-command-footer .btn-primary').first();
 }
 
 async function waitForRoomLobby(page: Page, actionLabel: string): Promise<void> {
@@ -399,15 +549,21 @@ async function waitForAnyActionWindowControl(pages: Page[], timeoutMs: number): 
 
 async function clickActionWindowControl(page: Page): Promise<boolean> {
   for (const testId of ["skip-to-next-action", "pass-action-window"]) {
-    const control = page.getByTestId(testId).first();
-    if (!(await control.isVisible().catch(() => false))) {
+    try {
+      const control = page.getByTestId(testId).first();
+      if (!(await control.isVisible().catch(() => false))) {
+        continue;
+      }
+      if (!(await waitForEnabled(control, 1_000))) {
+        continue;
+      }
+      await activate(control, 2_000);
+      return true;
+    } catch {
+      // Socket updates can remove a transient window control between visibility
+      // polling and the click. The next pass will pick up the current control.
       continue;
     }
-    if (!(await waitForEnabled(control, 1_000))) {
-      continue;
-    }
-    await activate(control, 2_000);
-    return true;
   }
 
   return false;
@@ -421,10 +577,13 @@ async function readRoomId(page: Page): Promise<string> {
 async function submitCakeTurn(page: Page, turn: number, agent: AgentLog): Promise<void> {
   try {
     await page.locator(".table-action-dock").first().waitFor({ state: "visible", timeout: 20_000 });
-    const gainCake = page.getByTestId("action-mode-gain-cake").first();
-    await activate(gainCake, 20_000);
+    const command = await readActionCommandStrip(page).catch(() => undefined);
+    if (!command?.selectedAction.includes("吃饼")) {
+      const gainCake = page.getByTestId("action-mode-gain-cake").first();
+      await activate(gainCake, 20_000);
+    }
 
-    const submit = page.getByTestId("submit-action").first();
+    const submit = submitActionButton(page);
     if (!(await waitForEnabled(submit, 20_000))) {
       const label = await submit.innerText().catch(() => "未知按钮");
       const message = `第 ${turn} 回合提交按钮不可用：${label}`;
@@ -446,7 +605,7 @@ async function submitAttackTurn(page: Page, turn: number, agent: AgentLog): Prom
     await page.locator(".table-action-dock").first().waitFor({ state: "visible", timeout: 20_000 });
     await activate(page.getByTestId("action-mode-attack").first(), 20_000);
 
-    const submit = page.getByTestId("submit-action").first();
+    const submit = submitActionButton(page);
     if (!(await waitForEnabled(submit, 20_000))) {
       const label = await submit.innerText().catch(() => "未知按钮");
       const message = `第 ${turn} 回合攻击提交按钮不可用：${label}`;
@@ -461,6 +620,141 @@ async function submitAttackTurn(page: Page, turn: number, agent: AgentLog): Prom
     failedActions.push(message);
     agent.issues.push(message);
   }
+}
+
+async function submitRocketSkillTurn(page: Page, turn: number, agent: AgentLog): Promise<void> {
+  try {
+    await page.locator(".table-action-dock").first().waitFor({ state: "visible", timeout: 20_000 });
+    await ensureAttackMode(page);
+
+    const kindSelect = page.getByTestId("attack-row-kind-0").first();
+    await kindSelect.waitFor({ state: "attached", timeout: 10_000 });
+    await setSelectValue(kindSelect, `skill:${ROCKET_SKILL_ID}`);
+    await page.waitForFunction(
+      (value) => {
+        const select = document.querySelector('[data-testid="attack-row-kind-0"]');
+        return select instanceof HTMLSelectElement && select.value === value;
+      },
+      `skill:${ROCKET_SKILL_ID}`,
+      { timeout: 10_000 }
+    );
+
+    const extraTarget = page.getByTestId("attack-row-extra-target-0-0").first();
+    await extraTarget.waitFor({ state: "attached", timeout: 10_000 });
+    const extraTargetId = await selectFirstNonEmptyOption(extraTarget);
+
+    await page.waitForFunction(
+      () => {
+        const command = document.querySelector('[data-testid="action-command-strip"]');
+        return (
+          command instanceof HTMLElement &&
+          command.dataset.readyState === "ready" &&
+          Number(command.dataset.targetCount ?? "0") >= 2 &&
+          Boolean(command.dataset.targetIds)
+        );
+      },
+      undefined,
+      { timeout: 10_000 }
+    );
+
+    const command = await readActionCommandStrip(page);
+    const targetIds = splitDataIds(command.targetIds);
+    if (targetIds.length < 2) {
+      throw new Error(`火箭未形成双目标 HUD：${JSON.stringify(command)}`);
+    }
+    const mappedSeats = await countSeatsForPlayerIds(page, targetIds);
+    if (mappedSeats < targetIds.length) {
+      throw new Error(`火箭目标未完整映射到座位：targets=${targetIds.join(",")} seats=${mappedSeats}`);
+    }
+
+    const submit = submitActionButton(page);
+    if (!(await waitForEnabled(submit, 20_000))) {
+      const label = await submit.innerText().catch(() => "未知按钮");
+      const message = `第 ${turn} 回合火箭提交按钮不可用：${label}`;
+      failedActions.push(message);
+      agent.issues.push(message);
+      return;
+    }
+    await activate(submit, 20_000);
+    const message = `第 ${turn} 回合完成火箭技能提交，HUD 目标 ${targetIds.length} 个，追加目标 ${extraTargetId}，座位映射 ${mappedSeats}/${targetIds.length}。`;
+    complexSkillChecks.push(message);
+    agent.observations.push(message);
+  } catch (error) {
+    const snapshot = await collectRocketSkillDebugSnapshot(page).catch(() => "无法读取火箭调试快照");
+    const message = `第 ${turn} 回合火箭技能提交失败：${String(error)}；${snapshot}`;
+    failedActions.push(message);
+    agent.issues.push(message);
+    throw new Error(message);
+  }
+}
+
+async function ensureAttackMode(page: Page): Promise<void> {
+  const rowSelect = page.getByTestId("attack-row-kind-0").first();
+  if (await rowSelect.isVisible({ timeout: 500 }).catch(() => false)) {
+    return;
+  }
+
+  await activate(page.getByTestId("action-mode-attack").first(), 20_000);
+  await rowSelect.waitFor({ state: "attached", timeout: 10_000 });
+}
+
+async function collectRocketSkillDebugSnapshot(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const rowSelect = document.querySelector('[data-testid="attack-row-kind-0"]');
+    const options = rowSelect instanceof HTMLSelectElement
+      ? Array.from(rowSelect.options).map((option) => `${option.value}:${option.textContent?.trim() ?? ""}`).join(" | ")
+      : "row-select-missing";
+    const command = document.querySelector('[data-testid="action-command-strip"]');
+    const commandState = command instanceof HTMLElement
+      ? `ready=${command.dataset.readyState}; targets=${command.dataset.targetIds}; selected=${command.dataset.selectedAction}; block=${command.dataset.blockReason}`
+      : "command-missing";
+    const playerSkillText = Array.from(document.querySelectorAll('[data-testid^="skill-picker-"], .skill-card, .player-card'))
+      .map((element) => element.textContent?.replace(/\s+/g, " ").trim() ?? "")
+      .filter(Boolean)
+      .slice(0, 8)
+      .join(" || ");
+    return `rocketDebug options=[${options}] command=[${commandState}] text=[${playerSkillText}]`;
+  });
+}
+
+async function selectFirstNonEmptyOption(select: Locator): Promise<string> {
+  await select.waitFor({ state: "attached", timeout: 10_000 });
+  if (!(await waitForEnabled(select, 10_000))) {
+    throw new Error("目标下拉不可用");
+  }
+  const value = await select.evaluate((element) => {
+    if (!(element instanceof HTMLSelectElement)) {
+      return "";
+    }
+    return Array.from(element.options).find((option) => option.value)?.value ?? "";
+  });
+  if (!value) {
+    throw new Error("目标下拉没有可选目标");
+  }
+  await setSelectValue(select, value);
+  return value;
+}
+
+async function setSelectValue(select: Locator, value: string): Promise<void> {
+  await select.waitFor({ state: "attached", timeout: 10_000 });
+  if (!(await waitForEnabled(select, 10_000))) {
+    throw new Error(`下拉控件不可用：${value}`);
+  }
+  await select.evaluate(
+    (element, nextValue) => {
+      if (!(element instanceof HTMLSelectElement)) {
+        throw new Error("Element is not a select");
+      }
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        HTMLSelectElement.prototype,
+        "value"
+      )?.set;
+      valueSetter?.call(element, nextValue);
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    },
+    value
+  );
 }
 
 async function submitRepeatTurn(page: Page, turn: number, agent: AgentLog): Promise<void> {
@@ -489,18 +783,14 @@ async function activate(locator: Locator, timeoutMs = 10_000): Promise<void> {
     const label = await locator.innerText().catch(() => "未知控件");
     throw new Error(`控件不可用：${label}`);
   }
-  await locator.evaluate((element) => {
-    if (element instanceof HTMLElement) {
-      element.click();
-    }
-  });
+  await locator.dispatchEvent("click", undefined, { timeout: timeoutMs });
 }
 
 async function waitForEnabled(locator: Locator, timeoutMs: number): Promise<boolean> {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     try {
-      if (await locator.isEnabled()) {
+      if (await locator.isEnabled({ timeout: 500 })) {
         return true;
       }
     } catch {
@@ -734,7 +1024,7 @@ async function readActionCommandFooter(page: Page): Promise<{
 }> {
   return page.getByTestId("action-command-footer").first().evaluate((element) => {
     const footerRect = element.getBoundingClientRect();
-    const submit = element.querySelector('[data-testid="submit-action"]');
+    const submit = element.querySelector('[data-testid="submit-action"], .btn-primary');
     const submitRect = submit instanceof HTMLElement
       ? submit.getBoundingClientRect()
       : new DOMRect();
@@ -1316,6 +1606,10 @@ function renderReport(): string {
     "",
     ...(runNotes.length > 0 ? runNotes.map((item) => `- ${item}`) : ["- 无"]),
     "",
+    "## Complex Skill Scenario",
+    "",
+    ...(complexSkillChecks.length > 0 ? complexSkillChecks.map((item) => `- ${item}`) : ["- 未执行"]),
+    "",
     renderAgent(firstTimer),
     renderAgent(competitor),
     renderAgent(producer),
@@ -1359,8 +1653,10 @@ function readConfig(): RunConfig {
   const urlArg = process.argv.find((arg) => arg.startsWith("--url="));
   const outArg = process.argv.find((arg) => arg.startsWith("--out="));
   const noServer = process.argv.includes("--no-server");
+  const complexSkills = process.argv.includes("--complex-skills");
   return {
     autoServe: !noServer && !urlArg,
+    complexSkills,
     url: urlArg?.slice("--url=".length) || process.env.BING_PLAYTEST_URL || "http://localhost:3001",
     outDir: outArg?.slice("--out=".length) || path.resolve("artifacts", "playtests")
   };
