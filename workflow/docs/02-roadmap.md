@@ -120,13 +120,13 @@ Deliverable:
 
 - `npm run typecheck`
 - `npm run test:ui-agents`
+- `npm run test:ui-agents:complex`
 - `npm run test:character-browser -- --character=ember-guardian`
 - `docs/PLAYTEST_REPORT.md` 指向最新报告。
 - 重要步骤单独 commit，push 约每 3 小时一次。
 
 下一步：
 
-- 复杂技能链浏览器场景。
 - 断线重连和多人集火 playtest。
 - 技能参数二级抽屉。
 - 许可证、资产权属和公开发布说明。

@@ -8,9 +8,10 @@
 
 2026-06-14 进展：
 - 已给大厅设置、测试技能选择器、攻击/技能目标控件补稳定 `data-testid`。
-- 已新增 `npm run test:ui-agents:complex` 作为显式复杂技能诊断入口；默认 `npm run test:ui-agents` 保持绿色。
-- 已验证默认 UI agents 通过：`artifacts/playtests/ui-agents-2026-06-13T20-09-59-891Z/report.md`。
-- 复杂模式当前暴露的问题是多端回合同步和受控表单点击时序，下一步应把复杂技能 smoke 拆成单房主 + AI 驱动，避免依赖第二个人类页连续提交。
+- 已新增 `npm run test:ui-agents:complex` 作为显式复杂技能 smoke；默认 `npm run test:ui-agents` 保持绿色。
+- 已验证默认 UI agents 通过：`artifacts/playtests/ui-agents-2026-06-13T20-34-01-651Z/report.md`。
+- 已验证复杂技能 UI agents 通过：`artifacts/playtests/ui-agents-2026-06-13T20-27-09-434Z/report.md`。
+- 复杂模式当前采用“单房主 + 2 个 AI 对手”，避免第二个人类页连续提交带来的同步抖动；第 3 回合已完成火箭双目标提交，HUD 目标数 2，座位映射 2/2。
 
 ## Why
 
@@ -65,12 +66,14 @@
 - 行动 HUD 在技能模式下仍显示下一步、目标、状态和不可提交原因。
 - 结算摘要保留动作、目标和结果，不被系统步骤覆盖。
 - `npm run test:ui-agents` 通过，并上传截图 artifact。
+- `npm run test:ui-agents:complex` 通过，并上传复杂技能截图 artifact。
 
 ## Verification
 
 ```bash
 npm run typecheck
 npm run test:ui-agents
+npm run test:ui-agents:complex
 ```
 
 ## Commit

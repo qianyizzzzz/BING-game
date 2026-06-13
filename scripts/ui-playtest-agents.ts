@@ -66,7 +66,8 @@ if (config.autoServe) {
 try {
   const browser = await chromium.launch({ headless: true });
   const playerA = await newAgentPage(browser, "first-timer");
-  const playerB = await newAgentPage(browser, "competitor");
+  const playerB = config.complexSkills ? undefined : await newAgentPage(browser, "competitor");
+  const activePages = playerB ? [playerA, playerB] : [playerA];
 
   try {
     await openPlaytestHome(playerA);
@@ -79,45 +80,55 @@ try {
     roomId = await readRoomId(playerA);
     firstTimer.observations.push(`成功创建房间：${roomId || "未读取到房号"}`);
 
-    await openPlaytestHome(playerB);
-    await fillPlayerName(playerB, "竞技玩家");
-    await fillRoomId(playerB, roomId);
-    await clickByTestId(playerB, "join-room");
-    await waitForRoomLobby(playerB, "加入房间");
-    await screenshot(playerB, "02-player-b-joined.png");
+    if (playerB) {
+      await openPlaytestHome(playerB);
+      await fillPlayerName(playerB, "竞技玩家");
+      await fillRoomId(playerB, roomId);
+      await clickByTestId(playerB, "join-room");
+      await waitForRoomLobby(playerB, "加入房间");
+      await screenshot(playerB, "02-player-b-joined.png");
+    } else {
+      competitor.observations.push("复杂技能模式使用 AI 作为对手，跳过第二个人类页连续提交。");
+    }
     if (config.complexSkills) {
-      await configureComplexSkillScenario(playerA, firstTimer, producer);
+      await configureComplexSkillScenario(playerA, firstTimer, producer, playerB ? 1 : 2);
       await screenshot(playerA, "02b-complex-skill-lobby.png");
       logStep("complex skill lobby configured");
     }
     await collectLobbyPrepCopyCheck(playerA, firstTimer, "新手玩家");
-    await collectLobbyPrepCopyCheck(playerB, competitor, "竞技玩家");
-    competitor.observations.push("成功加入房间，检查加入路径是否足够快。");
+    if (playerB) {
+      await collectLobbyPrepCopyCheck(playerB, competitor, "竞技玩家");
+      competitor.observations.push("成功加入房间，检查加入路径是否足够快。");
+    }
 
     await ensureGameCanStart(playerA);
     await clickByTestId(playerA, "start-game");
     logStep("game started");
     if (config.complexSkills) {
-      const prepWindows = await resolveActionWindows([playerA, playerB]);
+      const prepWindows = await resolveActionWindows(activePages);
       if (prepWindows > 0) {
         producer.observations.push(`开局技能准备窗口已自动处理 ${prepWindows} 次，后续进入出招阶段。`);
         complexSkillChecks.push(`开局技能准备窗口已处理 ${prepWindows} 次。`);
       }
     }
     await waitForActionDock(playerA);
-    await waitForActionDock(playerB);
+    if (playerB) {
+      await waitForActionDock(playerB);
+    }
     logStep("initial action docks visible");
     producer.observations.push("房主能从大厅进入战斗桌面，行动 dock 已出现。");
 
     for (let turn = 1; turn <= 3; turn += 1) {
       logStep(`turn ${turn} begin`);
       if (config.complexSkills && turn > 1) {
-        const skippedWindows = await resolveActionWindows([playerA, playerB]);
+        const skippedWindows = await resolveActionWindows(activePages);
         if (skippedWindows > 0) {
           producer.observations.push(`第 ${turn} 回合前自动处理 ${skippedWindows} 个响应窗口。`);
         }
         await waitForActionDock(playerA);
-        await waitForActionDock(playerB);
+        if (playerB) {
+          await waitForActionDock(playerB);
+        }
       }
       if (config.complexSkills && turn === 3) {
         await submitRocketSkillTurn(playerA, turn, firstTimer);
@@ -128,7 +139,9 @@ try {
       } else {
         await submitCakeTurn(playerA, turn, firstTimer);
       }
-      await submitCakeTurn(playerB, turn, competitor);
+      if (playerB) {
+        await submitCakeTurn(playerB, turn, competitor);
+      }
       await playerA.waitForTimeout(900);
       if (turn === 1) {
         if (config.complexSkills) {
@@ -137,31 +150,41 @@ try {
           producer.observations.push(message);
         } else {
           await collectTargetPreviewCheck(playerA, firstTimer, "新手玩家");
-          await collectTargetPreviewCheck(playerB, competitor, "竞技玩家");
+          if (playerB) {
+            await collectTargetPreviewCheck(playerB, competitor, "竞技玩家");
+          }
         }
       }
       if (turn === 3) {
-        const skippedWindows = await resolveActionWindows([playerA, playerB]);
+        const skippedWindows = await resolveActionWindows(activePages);
         if (skippedWindows > 0) {
           producer.observations.push(`第三回合攻击后自动跳过 ${skippedWindows} 个响应窗口以触发表现层结算。`);
         }
         await collectBattlePresentationCueCheck(playerA, firstTimer, "新手玩家");
-        await collectBattlePresentationCueCheck(playerB, competitor, "竞技玩家");
+        if (playerB) {
+          await collectBattlePresentationCueCheck(playerB, competitor, "竞技玩家");
+        }
       }
       await playerA.waitForTimeout(700);
       logStep(`turn ${turn} end`);
     }
 
     await screenshot(playerA, "03-player-a-after-turns.png");
-    await screenshot(playerB, "04-player-b-after-turns.png");
+    if (playerB) {
+      await screenshot(playerB, "04-player-b-after-turns.png");
+    }
     logStep("after-turn screenshots captured");
 
     logStep("visual health begin");
     await collectVisualHealth(playerA, firstTimer, "新手玩家");
-    await collectVisualHealth(playerB, competitor, "竞技玩家");
+    if (playerB) {
+      await collectVisualHealth(playerB, competitor, "竞技玩家");
+    }
     logStep("visual health end");
     await collectHeuristicFeedback(playerA, firstTimer, "新手玩家");
-    await collectHeuristicFeedback(playerB, competitor, "竞技玩家");
+    if (playerB) {
+      await collectHeuristicFeedback(playerB, competitor, "竞技玩家");
+    }
     collectProducerFeedback();
   } catch (error) {
     fatalError = error;
@@ -169,7 +192,9 @@ try {
     failedActions.push(`UI playtest 流程异常：${message}`);
     producer.issues.push(`自动化流程中断：${message}`);
     await screenshot(playerA, "99-player-a-error.png").catch(() => undefined);
-    await screenshot(playerB, "99-player-b-error.png").catch(() => undefined);
+    if (playerB) {
+      await screenshot(playerB, "99-player-b-error.png").catch(() => undefined);
+    }
   } finally {
     await browser.close();
   }
@@ -356,14 +381,15 @@ async function optionalClickByTestId(page: Page, testId: string): Promise<void> 
 async function configureComplexSkillScenario(
   page: Page,
   playerAgent: AgentLog,
-  producerAgent: AgentLog
+  producerAgent: AgentLog,
+  aiCount: number
 ): Promise<void> {
   await ensureSettingsPanelOpen(page);
   await setCheckboxByTestId(page, "settings-first-turn-no-attack", false);
   await selectByTestId(page, "settings-skill-mode", "test_select");
   await trySelectByTestId(page, "settings-skill-count", "1");
   await page.getByTestId("test-skill-panel").first().waitFor({ state: "visible", timeout: 30_000 });
-  await addAiPlayers(page, 1);
+  await addAiPlayers(page, aiCount);
 
   const ownerPicker = page.locator('article[data-testid^="skill-picker-"]').first();
   await ownerPicker.waitFor({ state: "visible", timeout: 30_000 });
@@ -436,20 +462,14 @@ async function setCheckboxByTestId(page: Page, testId: string, checked: boolean)
   await checkbox.waitFor({ state: "attached", timeout: 10_000 });
   const current = await checkbox.isChecked({ timeout: 500 });
   if (current !== checked) {
-    await checkbox.evaluate(
-      (element, nextChecked) => {
-        if (!(element instanceof HTMLInputElement)) {
-          throw new Error("Element is not an input");
-        }
-        const checkedSetter = Object.getOwnPropertyDescriptor(
-          HTMLInputElement.prototype,
-          "checked"
-        )?.set;
-        checkedSetter?.call(element, nextChecked);
-        element.dispatchEvent(new Event("input", { bubbles: true }));
-        element.dispatchEvent(new Event("change", { bubbles: true }));
+    await checkbox.click({ force: true, timeout: 10_000 });
+    await page.waitForFunction(
+      ({ expected, id }) => {
+        const element = document.querySelector(`[data-testid="${id}"]`);
+        return element instanceof HTMLInputElement && element.checked === expected;
       },
-      checked
+      { expected: checked, id: testId },
+      { timeout: 30_000 }
     );
   }
 }
@@ -1106,7 +1126,7 @@ async function collectTargetPreviewDebugSnapshot(page: Page): Promise<string> {
 
 function splitDataIds(value: string): string[] {
   return value
-    .split(",")
+    .split(/[|,]/)
     .map((item) => item.trim())
     .filter(Boolean);
 }
