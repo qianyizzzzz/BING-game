@@ -117,6 +117,7 @@ try {
     }
     logStep("initial action docks visible");
     producer.observations.push("房主能从大厅进入战斗桌面，行动 dock 已出现。");
+    await collectActionRecoveryHintCheck(playerA, firstTimer, "新手玩家");
 
     for (let turn = 1; turn <= 3; turn += 1) {
       logStep(`turn ${turn} begin`);
@@ -1008,6 +1009,7 @@ async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: str
 
 async function readActionCommandStrip(page: Page): Promise<{
   blockReason: string;
+  nextActionHint: string;
   nextStep: string;
   readyState: string;
   selectedAction: string;
@@ -1017,6 +1019,7 @@ async function readActionCommandStrip(page: Page): Promise<{
 }> {
   return page.getByTestId("action-command-strip").first().evaluate((element) => ({
     blockReason: element.getAttribute("data-block-reason") ?? "",
+    nextActionHint: element.getAttribute("data-next-action-hint") ?? "",
     nextStep: element.getAttribute("data-next-step") ?? "",
     readyState: element.getAttribute("data-ready-state") ?? "",
     selectedAction: element.getAttribute("data-selected-action") ?? "",
@@ -1024,6 +1027,39 @@ async function readActionCommandStrip(page: Page): Promise<{
     targetIds: element.getAttribute("data-target-ids") ?? "",
     text: element.textContent?.replace(/\s+/g, " ").trim() ?? ""
   }));
+}
+
+async function collectActionRecoveryHintCheck(page: Page, agent: AgentLog, label: string): Promise<void> {
+  try {
+    await activate(page.getByTestId("action-mode-defense").first(), 20_000);
+    const defenseSelect = page.getByTestId("defense-select").first();
+    await defenseSelect.waitFor({ state: "attached", timeout: 10_000 });
+    await setSelectValue(defenseSelect, "rebound");
+    await page.waitForFunction(
+      () => {
+        const command = document.querySelector('[data-testid="action-command-strip"]');
+        return (
+          command instanceof HTMLElement &&
+          command.dataset.readyState === "blocked" &&
+          Boolean(command.dataset.blockReason) &&
+          Boolean(command.dataset.nextActionHint)
+        );
+      },
+      undefined,
+      { timeout: 10_000 }
+    );
+    const command = await readActionCommandStrip(page);
+    const message = `${label}: 不可提交时显示原因和补救动作（${command.blockReason} -> ${command.nextActionHint}）。`;
+    visualChecks.push(message);
+    agent.observations.push(message);
+  } catch (error) {
+    const command = await readActionCommandStrip(page).catch(() => undefined);
+    const message = `${label}: 不可提交补救提示检查失败：${String(error)}；${command ? JSON.stringify(command) : "无命令区"}`;
+    visualIssues.push(message);
+    agent.issues.push(message);
+  } finally {
+    await activate(page.getByTestId("action-mode-gain-cake").first(), 20_000).catch(() => undefined);
+  }
 }
 
 async function readActionCommandFooter(page: Page): Promise<{

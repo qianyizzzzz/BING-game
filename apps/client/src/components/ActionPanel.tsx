@@ -2090,6 +2090,7 @@ export function ActionPanel({
               防御
               <select
                 className="soft-input mt-1 w-full"
+                data-testid="defense-select"
                 value={defense}
                 onChange={(event) => setDefense(event.target.value as typeof defense)}
               >

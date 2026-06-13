@@ -39,7 +39,7 @@
 | 可玩性 | 双玩家创建房间、加入房间、开始、出招、沿用上回合、攻击和结算 happy path 已通过 UI agent；复杂技能 smoke 已覆盖火箭双目标。 |
 | UI / HUD | 3D 牌桌、行动 HUD、底部命令区、目标预览、结算摘要和移动端 LOD 已落地。 |
 | 自动化验收 | `test:ui-agents`、`test:ui-agents:complex` 和 `test:character-browser` 会先刷新 client dist，再运行浏览器 playtest。 |
-| 最新报告 | `artifacts/playtests/ui-agents-2026-06-13T21-00-22-591Z/report.md` |
+| 最新报告 | `artifacts/playtests/ui-agents-2026-06-13T21-28-19-791Z/report.md` |
 | 复杂技能报告 | `artifacts/playtests/ui-agents-2026-06-13T20-56-42-947Z/report.md` |
 | 发布口径 | 可用于受控公网试玩；正式公开发布前仍需许可证、资产权属、复杂技能浏览器门禁和备份策略。 |
 

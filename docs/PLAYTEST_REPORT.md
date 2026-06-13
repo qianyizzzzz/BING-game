@@ -1,7 +1,7 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-13  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T21-00-22-591Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T21-28-19-791Z/report.md`
 最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T20-56-42-947Z/report.md`
 最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T21-17-44-857Z/report.md`
 
@@ -133,4 +133,5 @@ UI 优化方法：
 - 行动状态 pill 从“正在收招”改为“请选择行动 / 等待亮招”，降低新手误解。
 - 技能攻击提交按钮显示具体技能名，例如“提交：火箭”，并暴露 `data-submit-label` 供 UI agent 检查。
 - `BattleDirector` / readout / summary 从同回合 `turn_revealed.actions` 反查技能目标，火箭复杂技能已验证 `cueTargets=2`、`summaryTargets=2`。
+- 不可提交状态已显示“原因 + 补救动作”，UI agent 已验证“饼不足，不能反弹 -> 先改选吃饼或降低消耗”。
 - 夜间 Browser Playtest workflow 已加入 `npm run test:ui-agents:complex`。
