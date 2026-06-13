@@ -652,9 +652,22 @@ async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: str
         const highlightedSeats = page.locator(".poker-seat-highlighted");
         await highlightedSeats.first().waitFor({ state: "visible", timeout: 12_000 });
         const count = await highlightedSeats.count();
+        const command = await readActionCommandStrip(page);
+        if (command.readyState !== "ready") {
+          throw new Error(`行动 HUD 未进入可提交状态：${JSON.stringify(command)}`);
+        }
+        if (Number(command.targetCount) <= 0 || !command.targetIds) {
+          throw new Error(`行动 HUD 未显示攻击目标：${JSON.stringify(command)}`);
+        }
+        if (!command.selectedAction || !command.text.includes("下一步") || !command.text.includes("状态")) {
+          throw new Error(`行动 HUD 摘要不完整：${JSON.stringify(command)}`);
+        }
         const message = `${label}: 选择攻击模式后 ${count} 个目标座位出现高亮预览。`;
         visualChecks.push(message);
         agent.observations.push(message);
+        const hudMessage = `${label}: 行动 HUD 显示下一步“${command.nextStep}”，目标数 ${command.targetCount}。`;
+        visualChecks.push(hudMessage);
+        agent.observations.push(hudMessage);
         return;
       } catch (error) {
         lastError = error;
@@ -668,6 +681,26 @@ async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: str
     visualIssues.push(message);
     agent.issues.push(message);
   }
+}
+
+async function readActionCommandStrip(page: Page): Promise<{
+  blockReason: string;
+  nextStep: string;
+  readyState: string;
+  selectedAction: string;
+  targetCount: string;
+  targetIds: string;
+  text: string;
+}> {
+  return page.getByTestId("action-command-strip").first().evaluate((element) => ({
+    blockReason: element.getAttribute("data-block-reason") ?? "",
+    nextStep: element.getAttribute("data-next-step") ?? "",
+    readyState: element.getAttribute("data-ready-state") ?? "",
+    selectedAction: element.getAttribute("data-selected-action") ?? "",
+    targetCount: element.getAttribute("data-target-count") ?? "",
+    targetIds: element.getAttribute("data-target-ids") ?? "",
+    text: element.textContent?.replace(/\s+/g, " ").trim() ?? ""
+  }));
 }
 
 async function waitForAttackPreviewReady(page: Page, timeoutMs: number): Promise<void> {

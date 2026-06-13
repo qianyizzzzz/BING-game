@@ -776,6 +776,57 @@ select {
   padding: 12px;
 }
 
+.action-command-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr) minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+  border: 1px solid rgba(15, 118, 110, 0.2);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(20, 184, 166, 0.12), rgba(251, 191, 36, 0.1)),
+    rgba(255, 255, 255, 0.78);
+  padding: 10px;
+}
+
+.action-command-strip div {
+  min-width: 0;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 8px 9px;
+}
+
+.action-command-strip span {
+  display: block;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.action-command-strip strong {
+  display: block;
+  margin-top: 3px;
+  color: #111827;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.action-command-strip-blocked {
+  border-color: rgba(245, 158, 11, 0.42);
+  background:
+    linear-gradient(90deg, rgba(245, 158, 11, 0.14), rgba(220, 38, 38, 0.07)),
+    rgba(255, 251, 235, 0.82);
+}
+
+.action-command-strip-waiting {
+  border-color: rgba(16, 185, 129, 0.28);
+  background:
+    linear-gradient(90deg, rgba(16, 185, 129, 0.12), rgba(20, 184, 166, 0.08)),
+    rgba(240, 253, 250, 0.82);
+}
+
 .action-summary-panel {
   display: grid;
   gap: 10px;
@@ -4591,9 +4642,43 @@ select {
 
 .table-action-dock .action-board .rounded-lg.border-amber-200,
 .table-action-dock .action-row,
+.table-action-dock .action-command-strip,
 .table-action-dock .action-summary-panel {
   border-color: rgba(201, 178, 124, 0.2);
   background: rgba(5, 8, 7, 0.56);
+}
+
+.table-action-dock .action-command-strip {
+  border-color: rgba(136, 247, 219, 0.2);
+  background:
+    linear-gradient(90deg, rgba(136, 247, 219, 0.1), rgba(201, 178, 124, 0.08)),
+    rgba(5, 8, 7, 0.68);
+}
+
+.table-action-dock .action-command-strip div {
+  background: rgba(6, 13, 12, 0.62);
+}
+
+.table-action-dock .action-command-strip span {
+  color: #88f7db;
+}
+
+.table-action-dock .action-command-strip strong {
+  color: #fff7d7;
+}
+
+.table-action-dock .action-command-strip-blocked {
+  border-color: rgba(231, 111, 47, 0.48);
+  background:
+    linear-gradient(90deg, rgba(231, 111, 47, 0.14), rgba(201, 178, 124, 0.08)),
+    rgba(20, 8, 5, 0.72);
+}
+
+.table-action-dock .action-command-strip-waiting {
+  border-color: rgba(136, 247, 219, 0.36);
+  background:
+    linear-gradient(90deg, rgba(35, 161, 122, 0.16), rgba(136, 247, 219, 0.08)),
+    rgba(5, 15, 12, 0.74);
 }
 
 .table-action-dock .action-summary-panel {
@@ -4665,6 +4750,22 @@ select {
     margin-bottom: 8px;
   }
 
+  .table-action-dock .action-command-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+    padding: 7px;
+  }
+
+  .table-action-dock .action-command-strip div {
+    padding: 7px 6px;
+  }
+
+  .table-action-dock .action-command-strip strong {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
   .table-action-dock .action-mode-grid {
     display: flex;
     margin-right: -6px;
@@ -4705,6 +4806,22 @@ select {
 
   .table-action-dock .action-board > .flex:first-child p {
     display: none;
+  }
+
+  .table-action-dock .action-command-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .table-action-dock .action-command-strip div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .table-action-dock .action-command-strip strong {
+    margin-top: 0;
+    text-align: right;
   }
 
   .table-action-dock .action-summary-meta span {

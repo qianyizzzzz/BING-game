@@ -706,6 +706,27 @@ export function ActionPanel({
       hasAreaMixed ||
       hasInvalidMultiTargetSkillTargets
   );
+  const actionInvalidReason = attackCostTooHigh
+    ? `饼不足，需要 ${attackCost} 饼`
+    : skillCostTooHigh
+      ? `饼不足，需要 ${skillCost} 饼`
+      : mode === "skill" && !selectedSkill
+        ? "还没有选择技能"
+        : mode === "skill" && !selectedSkillPlay
+          ? "当前技能不能在此阶段使用"
+          : mode === "skill" && selectedSkillTargetError
+            ? selectedSkillTargetError
+            : reboundUnavailable
+              ? "饼不足，不能反弹"
+              : missingTarget
+                ? "还没有选择目标"
+                : duplicatedTargets
+                  ? "同一回合不能重复指定同一目标"
+                  : hasAreaMixed
+                    ? "群攻招式必须单独使用"
+                    : hasInvalidMultiTargetSkillTargets
+                      ? "追加目标需要补全"
+                      : undefined;
   const selectedActionSummary = summarizeActionSelection({
     attackRows,
     defense,
@@ -761,6 +782,13 @@ export function ActionPanel({
     viewerHasScatterRebound
   ]);
   const previewTargetKey = previewTargetIds.join("|");
+  const previewTargetLabel = previewTargetIds.length > 0
+    ? previewTargetIds.map((id) => getPlayerName(state, id)).join("、")
+    : mode === "skill" && selectedSkillPlay?.targetMode === "all"
+      ? "全体敌人"
+      : mode === "gain_cake"
+        ? "自己"
+        : "无需目标";
   const submitLabel =
     mode === "gain_cake"
       ? "提交：吃饼 +1"
@@ -770,10 +798,31 @@ export function ActionPanel({
           ? "提交：攻击"
           : "提交：技能";
   const readinessLabel = alreadySubmitted
-    ? "已提交，等待亮招"
-    : actionInvalid
-      ? "需要补全选择"
+      ? "已提交，等待亮招"
+      : actionInvalid
+        ? "需要补全选择"
       : "可以提交";
+  const actionBlockReason = !viewer
+    ? "请选择座位后再出招"
+    : alreadySubmitted
+      ? "已经提交，等待其他玩家"
+      : state.phase !== "collecting_actions"
+        ? "等待牌桌进入行动阶段"
+        : viewer.status !== "alive"
+          ? "当前角色不能行动"
+          : submitting
+            ? "正在提交"
+            : actionInvalidReason;
+  const actionReadyState = alreadySubmitted
+    ? "waiting"
+    : actionBlockReason
+      ? "blocked"
+      : "ready";
+  const actionCommandLabel = alreadySubmitted
+    ? "等待全部玩家亮招"
+    : actionReadyState === "ready"
+      ? "点击提交，锁定本回合"
+      : "先处理提示，再提交";
   const repeatActionError = getRepeatActionError({
     canAct,
     lastActionSubmission,
@@ -1948,6 +1997,34 @@ export function ActionPanel({
         ) : null}
       </div>
 
+      <div
+        className={[
+          "action-command-strip",
+          `action-command-strip-${actionReadyState}`
+        ].join(" ")}
+        data-testid="action-command-strip"
+        data-ready-state={actionReadyState}
+        data-block-reason={actionBlockReason ?? ""}
+        data-next-step={actionCommandLabel}
+        data-target-count={previewTargetIds.length}
+        data-target-ids={previewTargetKey}
+        data-selected-action={selectedActionSummary}
+        aria-live="polite"
+      >
+        <div>
+          <span>下一步</span>
+          <strong>{actionCommandLabel}</strong>
+        </div>
+        <div>
+          <span>目标</span>
+          <strong>{previewTargetLabel}</strong>
+        </div>
+        <div>
+          <span>状态</span>
+          <strong>{actionBlockReason ?? "可以提交"}</strong>
+        </div>
+      </div>
+
       <form className="action-form mt-4 space-y-4" onSubmit={submit}>
         <div className="action-mode-grid grid grid-cols-2 gap-2 sm:grid-cols-4">
           <ModeButton
@@ -2357,6 +2434,7 @@ export function ActionPanel({
           <div className="action-summary-meta">
             <span>{readinessLabel}</span>
             <span>{selectedActionCost > 0 ? `消耗 ${selectedActionCost} 饼` : "无消耗"}</span>
+            <span>{previewTargetLabel}</span>
           </div>
         </div>
 
