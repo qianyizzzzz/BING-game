@@ -52,6 +52,8 @@ Figma Desktop must be open with Desktop MCP server enabled.
 
 Use Blender MCP for character modeling tasks only when the tool is actually available in the session.
 
+Project subagent entry: `.agents/art-director-blender.md`.
+
 Required art-director workflow:
 
 1. Read `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`.
