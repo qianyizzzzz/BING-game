@@ -1,8 +1,8 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-14  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T22-48-17-625Z/report.md`
-最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T22-54-51-034Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T23-25-07-313Z/report.md`
+最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md`
 最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T22-59-21-950Z/report.md`
 
 ## 结论
@@ -74,6 +74,7 @@
 - 双端 canvas 正常渲染，并检测到运行时 LOD0 animated GLB 成功加载。
 - UI agent 已覆盖目标预览、沿用上回合、遮挡检查、结算 cue、cue target 到座位的映射。
 - UI agent 已覆盖行动 HUD：攻击模式下必须显示下一步、目标数、目标 id 和可提交状态。
+- UI agent 已覆盖多目标当前选择摘要：火箭双目标提交前必须显示“火箭 -> AI 1 + AI 2”，并与 HUD 目标数、座位映射一致。
 - UI agent 已覆盖底部命令区：移动端和桌面端提交按钮保持可见，触控高度不低于 44px。
 - UI agent 已覆盖新手结算摘要：当 readout 已播放到系统步骤时，摘要仍要保留本轮真实动作、目标绑定和目标座位映射。
 - UI agent 已覆盖血/饼变化摘要：默认 happy path 报告显示“资源变化=新手玩家 饼-3；竞技玩家 血-1 / 饼-3”，复杂技能报告显示“资源变化=AI 1 血-6；AI 2 血-6；新手玩家 饼-2”。
@@ -136,6 +137,7 @@ UI 优化方法：
 - 行动状态 pill 从“正在收招”改为“请选择行动 / 等待亮招”，降低新手误解。
 - 技能攻击提交按钮显示具体技能名，例如“提交：火箭”，并暴露 `data-submit-label` 供 UI agent 检查。
 - `BattleDirector` / readout / summary 从同回合 `turn_revealed.actions` 反查技能目标，火箭复杂技能已验证 `cueTargets=2`、`summaryTargets=2`。
+- `ActionPanel` 当前选择摘要已消费技能 `targetIds`，火箭双目标会显示两个目标名；`tableFeedback` 也会从技能 `targetIds` 生成多目标桌面特效。
 - 不可提交状态已显示“原因 + 补救动作”，UI agent 已验证“饼不足，不能反弹 -> 先改选吃饼或降低消耗”。
 - 桌面结算摘要已增加“行动者”和血/饼变化 chip；默认 UI agents 与火箭复杂技能 smoke 都已把资源变化纳入门禁。
 - `SkillEffectLayer` 已暴露目标线/落点元数据，复杂技能 smoke 会检查多目标技能的 vector、impact 和 target 数量。

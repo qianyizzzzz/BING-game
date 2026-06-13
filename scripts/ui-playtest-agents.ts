@@ -683,6 +683,13 @@ async function submitRocketSkillTurn(page: Page, turn: number, agent: AgentLog):
     if (targetIds.length < 2) {
       throw new Error(`火箭未形成双目标 HUD：${JSON.stringify(command)}`);
     }
+    const targetNames = await readPlayerNamesForIds(page, targetIds);
+    const missingSummaryNames = targetNames.filter((name) => !command.selectedAction.includes(name));
+    if (!command.selectedAction.includes("火箭") || missingSummaryNames.length > 0) {
+      throw new Error(
+        `火箭当前选择摘要未写全技能名和目标名：${JSON.stringify({ command, targetNames, missingSummaryNames })}`
+      );
+    }
     const mappedSeats = await countSeatsForPlayerIds(page, targetIds);
     if (mappedSeats < targetIds.length) {
       throw new Error(`火箭目标未完整映射到座位：targets=${targetIds.join(",")} seats=${mappedSeats}`);
@@ -697,7 +704,7 @@ async function submitRocketSkillTurn(page: Page, turn: number, agent: AgentLog):
       return;
     }
     await activate(submit, 20_000);
-    const message = `第 ${turn} 回合完成火箭技能提交，HUD 目标 ${targetIds.length} 个，追加目标 ${extraTargetId}，座位映射 ${mappedSeats}/${targetIds.length}。`;
+    const message = `第 ${turn} 回合完成火箭技能提交，当前选择=${command.selectedAction}，HUD 目标 ${targetIds.length} 个，追加目标 ${extraTargetId}，座位映射 ${mappedSeats}/${targetIds.length}。`;
     complexSkillChecks.push(message);
     agent.observations.push(message);
   } catch (error) {
@@ -1180,6 +1187,25 @@ async function countSeatsForPlayerIds(page: Page, playerIds: string[]): Promise<
         }
         return ids.includes(seat.dataset.playerId ?? "");
       }).length,
+    playerIds
+  );
+}
+
+async function readPlayerNamesForIds(page: Page, playerIds: string[]): Promise<string[]> {
+  if (playerIds.length === 0) {
+    return [];
+  }
+
+  return page.locator(".poker-seat").evaluateAll(
+    (seats, ids) =>
+      ids
+        .map((id) => {
+          const seat = seats.find(
+            (item) => item instanceof HTMLElement && item.dataset.playerId === id
+          );
+          return seat?.querySelector(".seat-name-line strong")?.textContent?.trim() ?? "";
+        })
+        .filter(Boolean),
     playerIds
   );
 }

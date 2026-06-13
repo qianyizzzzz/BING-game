@@ -1,6 +1,7 @@
 import {
   GameEvent,
   PlayerId,
+  PlayerAction,
   PlayerActionPlan,
   PublicGameState,
   BASE_ATTACKS,
@@ -387,10 +388,10 @@ export function buildTableEffects(state: PublicGameState): TableEffect[] {
           }
 
           const skill = getSkill(action.skillId);
-          const targetIds =
-            "targetId" in action && action.targetId
-              ? [action.targetId]
-              : aliveEnemyIds(sourceId);
+          const explicitTargetIds = actionTargetIds(action);
+          const targetIds = explicitTargetIds.length > 0
+            ? explicitTargetIds
+            : aliveEnemyIds(sourceId);
           const config = skillEffectForAction(action.skillId, targetIds.length);
           effects.push({
             ...config,
@@ -452,6 +453,18 @@ function actionPlanFeedback(eventId: string, plan: PlayerActionPlan): SeatFeedba
     label,
     tone: "good"
   };
+}
+
+function actionTargetIds(action: PlayerAction): PlayerId[] {
+  const targetId = "targetId" in action ? action.targetId : undefined;
+  const targetIds = "targetIds" in action ? action.targetIds ?? [] : [];
+  return Array.from(
+    new Set(
+      [targetId, ...targetIds].filter(
+        (id): id is PlayerId => Boolean(id)
+      )
+    )
+  );
 }
 
 function skillEffectForAction(skillId: string, targetCount: number): SkillEffectConfig {

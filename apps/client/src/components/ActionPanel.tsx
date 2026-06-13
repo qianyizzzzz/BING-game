@@ -751,7 +751,10 @@ export function ActionPanel({
     selectedSkillName: selectedSkill?.skill.name,
     skillCost,
     skillStacks,
-    skillTargetName: getPlayerName(state, skillTargetId),
+    skillTargetNames:
+      selectedSkillPlay?.targetMode === "all"
+        ? enemies.filter((enemy) => enemy.id !== viewer?.id).map((enemy) => enemy.name)
+        : skillTargetIds.map((id) => getPlayerName(state, id)).filter(Boolean),
     state,
     totalAttackCost: attackCost
   });
@@ -2958,7 +2961,7 @@ function summarizeActionSelection({
   mode,
   selectedSkillName,
   skillStacks,
-  skillTargetName,
+  skillTargetNames,
   state
 }: {
   attackRows: AttackRow[];
@@ -2967,7 +2970,7 @@ function summarizeActionSelection({
   selectedSkillName: string | undefined;
   skillCost: number;
   skillStacks: number;
-  skillTargetName: string;
+  skillTargetNames: string[];
   state: PublicGameState;
   totalAttackCost: number;
 }): string {
@@ -2984,7 +2987,9 @@ function summarizeActionSelection({
       return "技能：请选择可用技能";
     }
 
-    const target = skillTargetName ? ` -> ${skillTargetName}` : "";
+    const target = skillTargetNames.length > 0
+      ? ` -> ${formatTargetNames(skillTargetNames)}`
+      : "";
     const stacks = skillStacks > 1 ? ` x${skillStacks}` : "";
     return `技能：${selectedSkillName}${stacks}${target}`;
   }
@@ -3002,10 +3007,17 @@ function summarizeActionSelection({
       const stacks = row.stacks > 1 ? ` x${row.stacks}` : "";
       const target = isAttackRowArea(row)
         ? "全体"
-        : getPlayerName(state, row.targetId) || "未选目标";
+        : formatTargetNames(
+            rowTargetIds(row).map((targetId) => getPlayerName(state, targetId)).filter(Boolean),
+            "未选目标"
+          );
       return `${name}${stacks} -> ${target}`;
     })
     .join(" / ");
+}
+
+function formatTargetNames(names: string[], fallback = "未选目标"): string {
+  return names.length > 0 ? names.join(" + ") : fallback;
 }
 
 function submitNameForAttackRows(attackRows: AttackRow[]): string {

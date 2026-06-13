@@ -18,6 +18,7 @@
 | P1 BattleDirector 初版 | 已落地 | `battleDirector` 统一 active cue、camera cue、hit-stop、VFX metadata，并驱动 3D 桌面轻量镜头脉冲 |
 | P1 新手结算摘要 | 已落地 | 桌面 readout 增加“行动者 / 动作 / 目标 / 结果”和血/饼变化摘要；`test:ui-agents` 与 complex smoke 检查摘要目标绑定、资源变化和遮挡 |
 | P1 目标线/落点 VFX | 已落地 | `SkillEffectLayer` 暴露 vector、impact 和 target 元数据；火箭复杂技能 smoke 验证多目标目标线与落点 |
+| P1 多目标当前选择摘要 | 已落地 | 火箭双目标在提交前显示“火箭 -> AI 1 + AI 2”，UI agent 检查技能名、两个目标名、HUD 目标数和座位映射一致 |
 | P1 运行时 LOD 分流 | 已落地 | 移动/低性能设备加载 LOD1，桌面加载 LOD0；UI agent 同时检查 390px 移动端和 1280px 桌面端 GLB |
 | P1 placeholder 请求清理 | 已落地 | 牌桌、牌背、弃牌改为 CSS 深渊纹理；UI agent 检查 Network 不出现 `/assets/placeholders/` |
 | P0 首屏 CTA 准备门禁 | 已落地 | 首屏按钮进入玩家准备区并聚焦玩家名，不再直接创建房间；UI agent 防回归 |
@@ -51,7 +52,7 @@
 | 视角 | P0 / P1 发现 | 已处理 / 下一步 |
 | --- | --- | --- |
 | 新手玩家 Agent | 可行动阶段不能写成“正在收招”；技能提交和结算摘要必须保留技能名、目标、补救动作和资源变化。 | 已改为“请选择行动 / 等待亮招”，技能提交显示“提交：火箭”等具体名称；不可提交补救动作和前三回合 HP/饼 delta 已纳入 UI agent 门禁。 |
-| 竞技玩家 Agent | 火箭等目标型技能在提交时有目标，但结算/VFX 若丢 target，会破坏竞技读局。 | 已让 `BattleDirector` / readout / summary 从 `turn_revealed.actions` 反查目标；复杂 smoke 已验证 cueTargets=2、summaryTargets=2。 |
+| 竞技玩家 Agent | 火箭等目标型技能在提交、亮招、摘要和 VFX 任一阶段丢 target，都会破坏竞技读局。 | 已让 `ActionPanel`、`tableFeedback`、`BattleDirector` / readout / summary 消费技能 `targetIds`；复杂 smoke 已验证当前选择、cueTargets=2、summaryTargets=2 和目标线/落点。 |
 | 开发商 / QA Agent | 公开 demo 前要处理生产 Origin、public 资产边界、LICENSE/资产权属、持久化备份和发布产物审计。 | Browser Playtest workflow 已加入 complex smoke；下一步做 `verify:release`、dist 资产审计和 socket 重连/观战场景。 |
 | 美术总监 Agent | 桌面中心仍被网页卡片感挤压，角色存在感还不够像游戏舞台。 | 目标线/落点 VFX 已纳入 smoke；下一步做角色 bbox 尺寸门禁、桌面中心遮挡预算和 6 角色浏览器报告口径。 |
 

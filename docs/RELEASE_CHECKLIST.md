@@ -10,8 +10,8 @@
 
 - `npm run test:ci`
 - `npm run test:release-assets:dist`
-- 默认 UI agent：`artifacts/playtests/ui-agents-2026-06-13T22-48-17-625Z/report.md`
-- 复杂技能 UI agent：`artifacts/playtests/ui-agents-2026-06-13T22-54-51-034Z/report.md`
+- 默认 UI agent：`artifacts/playtests/ui-agents-2026-06-13T23-25-07-313Z/report.md`
+- 复杂技能 UI agent：`artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md`
 - 角色浏览器：`artifacts/playtests/character-runtime-2026-06-13T22-59-21-950Z/report.md`
 
 说明：`npm run verify:release` 在 Codex 本地工具 20 分钟上限下触发超时，但该次运行已经产出以上通过的浏览器报告；发布或 CI 环境建议给完整门禁更长超时，或按上述子命令拆分执行。
