@@ -19,6 +19,7 @@ workflow/
     TASK-template.md
     TASK-001-vertical-slice.md
     TASK-002-main-menu.md
+    TASK-003-complex-skill-browser-playtest.md
   reviews/
     REVIEW-template.md
   playtests/
@@ -65,6 +66,10 @@ workflow/
 ```text
 workflow/tasks/TASK-003-inventory.md
 ```
+
+当前正在排队的高价值任务：
+
+- `workflow/tasks/TASK-003-complex-skill-browser-playtest.md`：把 UI agent 从 happy path 扩展到复杂技能链、响应窗口和多目标验收。
 
 任务文件必须写清楚：
 
