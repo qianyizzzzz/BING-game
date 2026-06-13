@@ -19,16 +19,16 @@
 
 | id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
 | --- | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- |
-| `ember-guardian` | 烛火守卫 | 30571 | 32168 | 通过 | 3383 | 5301 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
-| `jade-trickster` | 青玉术士 | 30813 | 32438 | 通过 | 3382 | 5325 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
-| `violet-duelist` | 紫曦剑客 | 29941 | 31504 | 通过 | 3318 | 5191 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
-| `solar-chef` | 日冕饼师 | 29901 | 31474 | 通过 | 3278 | 5161 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
-| `crimson-mender` | 绯红医师 | 30445 | 32066 | 通过 | 3368 | 5277 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
-| `iron-oracle` | 铁面观察者 | 13649 | 14052 | 通过 | 1671 | 2527 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
+| `ember-guardian` | 烛火守卫 | 30571 | 32168 | 通过 | 6429 | 11341 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
+| `jade-trickster` | 青玉术士 | 30813 | 32438 | 通过 | 6454 | 11417 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
+| `violet-duelist` | 紫曦剑客 | 29941 | 31504 | 通过 | 6303 | 11109 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
+| `solar-chef` | 日冕饼师 | 29901 | 31474 | 通过 | 6263 | 11079 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
+| `crimson-mender` | 绯红医师 | 30445 | 32066 | 通过 | 6401 | 11291 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
+| `iron-oracle` | 铁面观察者 | 13649 | 14052 | 通过 | 3093 | 5345 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、分层眼睛、睫毛/眉毛、口腔/牙齿、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、LOD0 first-pass rigid skin weights、骨骼驱动蒙皮 QA、预览动画 clips、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、分层眼睛、睫毛/眉毛、口腔/牙齿、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、LOD0 first-pass rigid skin weights、骨骼驱动蒙皮 QA、预览动画 clips、预算内高保真 LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
 - 仍不足：还没有真实高模雕刻、手工/烘焙贴图、精细权重绘制和可播放精修动画；当前 LOD0 GLB 有 WIP 预览动作，LOD1 仍缺运行时 animation clips，真人质感也还需要外部雕刻/贴图阶段继续推进。
 
 ## 运行时验收
