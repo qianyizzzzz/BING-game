@@ -137,13 +137,15 @@ def main() -> None:
     action_pose_only = "--bing-action-poses-only" in sys.argv
     face_detail_only = "--bing-face-detail-only" in sys.argv
     skinning_preview_only = "--bing-skinning-preview-only" in sys.argv
+    static_view_only = "--bing-static-only" in sys.argv
+    rig_guide_only = "--bing-rig-guide-only" in sys.argv
     export_only = "--bing-export-only" in sys.argv
     save_scene_only = "--bing-save-scene-only" in sys.argv
     metrics_only = "--bing-metrics-only" in sys.argv
     action_pose_filter = selected_action_pose_ids()
     character_filter = selected_character_ids()
     active_characters = [spec for spec in CHARACTERS if character_filter is None or spec.character_id in character_filter]
-    print(f"BING_GENERATION_MODE={'metrics-only' if metrics_only else 'save-scene-only' if save_scene_only else 'face-detail-only' if face_detail_only else 'skinning-preview-only' if skinning_preview_only else 'action-poses-only' if action_pose_only else 'export-only' if export_only else 'animation-pass' if animation_pass_only else 'full'}", flush=True)
+    print(f"BING_GENERATION_MODE={'metrics-only' if metrics_only else 'save-scene-only' if save_scene_only else 'face-detail-only' if face_detail_only else 'skinning-preview-only' if skinning_preview_only else 'static-only' if static_view_only else 'rig-guide-only' if rig_guide_only else 'action-poses-only' if action_pose_only else 'export-only' if export_only else 'animation-pass' if animation_pass_only else 'full'}", flush=True)
     clear_scene()
     configure_scene()
     materials = build_materials()
@@ -191,6 +193,22 @@ def main() -> None:
             render_face_detail_view(spec, roots)
             print(f"BING_FACE_DETAIL_RENDER_DONE={spec.character_id}", flush=True)
         print(f"BING_FACE_DETAIL_ONLY_DONE={','.join(spec.character_id for spec in active_characters)}", flush=True)
+        return
+
+    if static_view_only:
+        for spec in active_characters:
+            print(f"BING_STATIC_RENDER_START={spec.character_id}", flush=True)
+            render_character_views(spec, roots)
+            print(f"BING_STATIC_RENDER_DONE={spec.character_id}", flush=True)
+        print(f"BING_STATIC_ONLY_DONE={','.join(spec.character_id for spec in active_characters)}", flush=True)
+        return
+
+    if rig_guide_only:
+        for spec in active_characters:
+            print(f"BING_RIG_GUIDE_RENDER_START={spec.character_id}", flush=True)
+            render_rig_guide_view(spec, roots)
+            print(f"BING_RIG_GUIDE_RENDER_DONE={spec.character_id}", flush=True)
+        print(f"BING_RIG_GUIDE_ONLY_DONE={','.join(spec.character_id for spec in active_characters)}", flush=True)
         return
 
     if skinning_preview_only:
