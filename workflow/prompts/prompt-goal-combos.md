@@ -89,6 +89,63 @@ Commit:
 如果整理成文档，commit：Document subagent UI review findings
 ```
 
+## 长时间仓库任务模板
+
+适合“持续做到某个时间，如果没完成就继续”的任务。关键是把完成边界、提交节奏、push 节奏和验证方式写清楚。
+
+```text
+Goal:
+在 BING-game 中持续推进 {主题}，目标是在 {日期时间/时区} 前完成可验证版本；如果没有完成，就继续推进下一个最高优先级子任务。
+
+Context:
+- 工作区：C:\Users\haoyu\Desktop\bing\bing(1)\bing
+- 分支：main
+- 发布口径：适合受控公网试玩，不宣称正式公开发布
+- 约束：README 使用中文；重要步骤单独 commit；push 约每 3 小时一次；不要回滚用户改动
+
+Task:
+1. 先检查 git status、README、package scripts、最新 playtest 报告。
+2. 逐步完成 P0/P1 任务，每完成一个重要步骤就 commit。
+3. 运行对应验证命令，并把报告路径写入文档。
+4. 到 push 窗口再统一 push。
+
+Acceptance:
+- 工作区每个阶段都有清楚 commit。
+- 关键命令通过，例如 typecheck、test:ci、test:ui-agents 或 test:ui-agents:complex。
+- docs/PLAYTEST_REPORT.md、README.md 或 workflow/tasks/ 指向最新状态。
+- 未完成事项进入下一步任务清单，而不是只写在聊天里。
+
+Commit:
+按功能/文档/验证拆 commit，不把无关改动混在一起。
+```
+
+## 多 Agent 组合模板
+
+```text
+Goal:
+用子智能体从 4 个视角评审 BING 的 UI、动画、发布质量和美术方向，并把建议整理成可执行任务。
+
+Context:
+- 只读评审阶段不要修改文件。
+- 必读：README.md、docs/UI_DESIGN_PLAN.md、docs/PLAYTEST_REPORT.md、最新 artifacts/playtests 报告。
+- 角色：新手玩家、竞技玩家、开发商/QA、美术总监。
+
+Task:
+1. 新手玩家 Agent：找首次开房、前三回合、结算理解的困惑点。
+2. 竞技玩家 Agent：找读局、快速操作、平衡和复玩问题。
+3. 开发商/QA Agent：找 CI、发布、数据、安全和仓库边界问题。
+4. 美术总监 Agent：找角色、牌桌、VFX、动画和风格统一问题。
+5. 主 Agent 汇总成 P0/P1/P2 修改意见，并新建或更新 workflow/tasks。
+
+Acceptance:
+- 每个 agent 至少输出 3 条发现。
+- 汇总结果包含“已处理 / 下一步 / 验收标准”。
+- 至少 1 条建议被转成可验证任务或自动化门禁。
+
+Commit:
+整理成文档后 commit：Document multi-agent design review
+```
+
 ## 美术 / Blender 模板
 
 ```text
