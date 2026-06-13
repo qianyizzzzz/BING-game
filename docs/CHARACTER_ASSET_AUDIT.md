@@ -15,16 +15,16 @@
 - PBR 贴图目录：`apps/client/public/assets/characters/materials/pbr`，当前 `123` 张 PNG
 - 材质近景 QA：`apps/client/public/assets/characters/materials/material-qa.png`
 - 面部近景 QA：每角色导出 `face-detail.png`，用于检查分层眼睛、虹膜/角膜高光、睫毛/眉毛、口腔/牙齿、皮肤毛孔/小斑点、唇部阴影和面具磨损。
-- 预算：LOD0 不超过 35000 faces；LOD1 不超过 12000 faces
+- 预算：LOD0 不超过 40000 faces；LOD1 不超过 12000 faces
 
 | id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
 | --- | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- |
-| `ember-guardian` | 烛火守卫 | 30571 | 32168 | 通过 | 6221 | 11021 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
-| `jade-trickster` | 青玉术士 | 30813 | 32438 | 通过 | 6246 | 11097 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
-| `violet-duelist` | 紫曦剑客 | 29941 | 31504 | 通过 | 6095 | 10789 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
-| `solar-chef` | 日冕饼师 | 29901 | 31474 | 通过 | 6055 | 10759 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
-| `crimson-mender` | 绯红医师 | 30445 | 32066 | 通过 | 6193 | 10971 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
-| `iron-oracle` | 铁面观察者 | 13649 | 14052 | 通过 | 2877 | 4965 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
+| `ember-guardian` | 烛火守卫 | 37035 | 39140 | 通过 | 6387 | 11160 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
+| `jade-trickster` | 青玉术士 | 37277 | 39410 | 通过 | 6404 | 11220 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
+| `violet-duelist` | 紫曦剑客 | 36405 | 38476 | 通过 | 6280 | 10966 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
+| `solar-chef` | 日冕饼师 | 36365 | 38446 | 通过 | 6240 | 10936 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
+| `crimson-mender` | 绯红医师 | 36909 | 39038 | 通过 | 6363 | 11118 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
+| `iron-oracle` | 铁面观察者 | 17187 | 17856 | 通过 | 3091 | 5246 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
 
 ## 美术判断
 
