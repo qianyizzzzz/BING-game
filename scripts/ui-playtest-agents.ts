@@ -68,6 +68,7 @@ try {
     await openPlaytestHome(playerA);
     await screenshot(playerA, "01-player-a-landing.png");
     firstTimer.observations.push("首屏已加载，用于检查品牌、创建房间入口和角色选择是否清楚。");
+    await collectHeroCtaPrepCheck(playerA, firstTimer, "新手玩家");
 
     await fillPlayerName(playerA, "新手玩家");
     await clickByTestId(playerA, "create-room");
@@ -160,7 +161,10 @@ async function newAgentPage(browser: Browser, name: string): Promise<Page> {
   glbResponses.set(name, new Set());
   page.on("console", (message) => {
     if (message.type() === "error") {
-      consoleErrors.push(`[${name}] ${message.text()}`);
+      const text = message.text();
+      if (!isBenignBrowserResourceClose(text)) {
+        consoleErrors.push(`[${name}] ${text}`);
+      }
     }
   });
   page.on("pageerror", (error) => {
@@ -178,6 +182,10 @@ async function newAgentPage(browser: Browser, name: string): Promise<Page> {
     glbResponses.get(name)?.add(modelName);
   });
   return page;
+}
+
+function isBenignBrowserResourceClose(message: string): boolean {
+  return message.trim() === "Failed to load resource: net::ERR_CONNECTION_CLOSED";
 }
 
 async function openPlaytestHome(page: Page): Promise<void> {
@@ -569,6 +577,28 @@ async function collectHeuristicFeedback(page: Page, agent: AgentLog, label: stri
   }
   if (agent.issues.length === 0) {
     agent.observations.push(`${label} 视角没有触发关键可用性告警。`);
+  }
+}
+
+async function collectHeroCtaPrepCheck(page: Page, agent: AgentLog, label: string): Promise<void> {
+  try {
+    await activate(page.getByTestId("create-room-hero").first(), 10_000);
+    await page.waitForFunction(
+      () => document.activeElement?.getAttribute("data-testid") === "player-name-input",
+      undefined,
+      { timeout: 6_000 }
+    );
+    const roomVisible = await page.getByTestId("room-code").first().isVisible().catch(() => false);
+    if (roomVisible) {
+      throw new Error("首屏 CTA 点击后直接创建了房间");
+    }
+    const message = `${label}: 首屏 CTA 会进入玩家准备区并聚焦玩家名，没有跳过角色/昵称确认。`;
+    visualChecks.push(message);
+    agent.observations.push(message);
+  } catch (error) {
+    const message = `${label}: 首屏 CTA 准备流程检查失败：${String(error)}`;
+    visualIssues.push(message);
+    agent.issues.push(message);
   }
 }
 

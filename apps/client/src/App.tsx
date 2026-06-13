@@ -218,6 +218,16 @@ export function App() {
     setLastActionSubmission(null);
   }, [identity?.roomId]);
 
+  function focusJourneyConsole() {
+    document
+      .getElementById("journey-console")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => {
+      document.querySelector<HTMLInputElement>('[data-testid="player-name-input"]')?.focus();
+    }, 260);
+    setMessage("先确认玩家名、头像和角色，再点击创建房间。");
+  }
+
   function createRoom() {
     setBusy(true);
     socket.emit("room:create", buildRoomPayload(playerName, account), (response) => {
@@ -736,11 +746,7 @@ export function App() {
             </div>
             <Button
               className="rounded-full px-6 py-2.5 text-sm hover:scale-[1.03]"
-              onClick={() =>
-                document
-                  .getElementById("journey-console")
-                  ?.scrollIntoView({ behavior: "smooth", block: "center" })
-              }
+              onClick={focusJourneyConsole}
               variant="glass"
             >
               进入大厅
@@ -774,10 +780,10 @@ export function App() {
                 className="mt-12 rounded-full px-14 py-5 text-base hover:scale-[1.03]"
                 data-testid="create-room-hero"
                 disabled={busy}
-                onClick={createRoom}
+                onClick={focusJourneyConsole}
                 variant="glass"
               >
-                立即创建房间
+                确认身份后开房
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
