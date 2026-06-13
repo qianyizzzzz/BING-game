@@ -2362,7 +2362,7 @@ def ensure_pbr_texture_pack(
         "normal": out_dir / "normal.png",
         "roughness": out_dir / "roughness.png",
     }
-    version_path = PBR_TEXTURE_ROOT / ".texture-version"
+    version_path = out_dir / ".texture-version"
     current_version = version_path.read_text(encoding="utf-8").strip() if version_path.exists() else ""
     needs_write = current_version != PBR_TEXTURE_VERSION or any(not path.exists() for path in paths.values())
     if needs_write:
