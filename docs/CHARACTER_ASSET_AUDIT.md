@@ -19,29 +19,29 @@
 
 | id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
 | --- | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- |
-| `ember-guardian` | 烛火守卫 | 30571 | 32168 | 通过 | 6429 | 11341 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
-| `jade-trickster` | 青玉术士 | 30813 | 32438 | 通过 | 6454 | 11417 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
-| `violet-duelist` | 紫曦剑客 | 29941 | 31504 | 通过 | 6303 | 11109 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
-| `solar-chef` | 日冕饼师 | 29901 | 31474 | 通过 | 6263 | 11079 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
-| `crimson-mender` | 绯红医师 | 30445 | 32066 | 通过 | 6401 | 11291 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
-| `iron-oracle` | 铁面观察者 | 13649 | 14052 | 通过 | 3093 | 5345 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
+| `ember-guardian` | 烛火守卫 | 30571 | 32168 | 通过 | 6221 | 11021 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
+| `jade-trickster` | 青玉术士 | 30813 | 32438 | 通过 | 6246 | 11097 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
+| `violet-duelist` | 紫曦剑客 | 29941 | 31504 | 通过 | 6095 | 10789 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
+| `solar-chef` | 日冕饼师 | 29901 | 31474 | 通过 | 6055 | 10759 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
+| `crimson-mender` | 绯红医师 | 30445 | 32066 | 通过 | 6193 | 10971 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
+| `iron-oracle` | 铁面观察者 | 13649 | 14052 | 通过 | 2877 | 4965 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、分层眼睛、睫毛/眉毛、口腔/牙齿、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、LOD0 first-pass rigid skin weights、骨骼驱动蒙皮 QA、预览动画 clips、预算内高保真 LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
-- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、精细权重绘制和可播放精修动画；当前 LOD0 GLB 有 WIP 预览动作，LOD1 仍缺运行时 animation clips，真人质感也还需要外部雕刻/贴图阶段继续推进。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、分层眼睛、睫毛/眉毛、口腔/牙齿、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、first-pass rigid skin weights、骨骼驱动蒙皮 QA、LOD0/LOD1 预览动画 clips、预算内高保真 animated LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、精细权重绘制和可播放精修动画；当前 LOD0/LOD1 GLB 均为 WIP 预览动作，真人质感也还需要外部雕刻/贴图阶段继续推进。
 
 ## 运行时验收
 
-- 静态资产审计：`npm run test:assets`，覆盖 LOD0/LOD1 GLB、LOD0 skinned mesh、LOD0 动画命名、动作图、骨骼驱动蒙皮 QA、移动头像、turnaround、table-scale、face-detail、rig-guide、material QA 和 PBR 贴图包。
+- 静态资产审计：`npm run test:assets`，覆盖 LOD0/LOD1 GLB、LOD0/LOD1 skinned mesh、LOD0/LOD1 动画命名、动作图、骨骼驱动蒙皮 QA、移动头像、turnaround、table-scale、face-detail、rig-guide、material QA 和 PBR 贴图包。
 - 浏览器逐角色验收：`npm run test:character-browser`，创建角色房间并用观战视角验证 LOD0 animated GLB 请求和 3D canvas 采样。
-- 当前运行时 `TableScene3D` 加载 LOD0 skinned/animated GLB，并按 battle director cue 播放 `idle / attack / defend / skill / hit / down` 预览 clips；LOD1 仍保留为预算内静态性能备选，`npm run test:assets` 会继续提示 6 个 LOD1 暂无运行时 animation clips。
+- 当前运行时 `TableScene3D` 加载 LOD0 skinned/animated GLB，并按 battle director cue 播放 `idle / attack / defend / skill / hit / down` 预览 clips；LOD1 已导出同名 skinned/animated clips，可作为后续性能档动态切换目标。
 
 ## 下一步 P0
 
 - 替换程序几何脸为雕刻面部或外部授权模型基底，减少“几何拼装感”。
 - 用高模或授权基底烘焙替换当前程序化 PBR 贴图。
-- 评估是否给 LOD1 也导出 skin/animation，或按设备性能在 LOD0 动画和 LOD1 静态模型之间动态切换。
+- 评估运行时是否按设备性能在 LOD0/LOD1 animated GLB 之间动态切换。
 
 ## 下一步 P1
 

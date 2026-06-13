@@ -126,10 +126,10 @@ function auditGlb(characterId: string, label: string, filePath: string): void {
     failures.push(`${characterId} ${label}: GLB has incomplete scene graph ${JSON.stringify(info)}`);
   }
 
-  if (label === "model-lod0") {
+  if (label === "model-lod0" || label === "model-lod1") {
     if (info.skins < 1 || info.skinnedNodes < 1 || info.weightedMeshPrimitives < 1) {
       warnings.push(
-        `${characterId} ${label}: WIP skinned character GLB incomplete, got skins=${info.skins}, skinnedNodes=${info.skinnedNodes}, weightedMeshPrimitives=${info.weightedMeshPrimitives}`
+        `${characterId} ${label}: skinned character GLB incomplete, got skins=${info.skins}, skinnedNodes=${info.skinnedNodes}, weightedMeshPrimitives=${info.weightedMeshPrimitives}`
       );
     }
 
@@ -143,10 +143,6 @@ function auditGlb(characterId: string, label: string, filePath: string): void {
     if (missingAnimations.length > 0) {
       warnings.push(`${characterId} ${label}: missing preview animation clips ${missingAnimations.join(", ")}`);
     }
-  }
-
-  if (label === "model-lod1" && info.animations === 0) {
-    warnings.push(`${characterId} ${label}: no runtime animation clips yet`);
   }
 }
 

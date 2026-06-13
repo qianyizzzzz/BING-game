@@ -1336,34 +1336,80 @@ def export_character(spec: CharacterSpec, roots: dict[str, bpy.types.Object]) ->
 
 
 def export_lod1_character(spec: CharacterSpec, root: bpy.types.Object, out_dir: Path) -> tuple[int, int]:
+    def remove_lod_object(obj: bpy.types.Object) -> None:
+        data = obj.data if obj.type in {"ARMATURE", "MESH"} else None
+        data_type = obj.type
+        bpy.data.objects.remove(obj, do_unlink=True)
+        if data and data.users == 0:
+            if data_type == "ARMATURE":
+                bpy.data.armatures.remove(data)
+            elif data_type == "MESH":
+                bpy.data.meshes.remove(data)
+
+    def apply_modifier(obj: bpy.types.Object, modifier_name: str) -> None:
+        bpy.ops.object.select_all(action="DESELECT")
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
+        override = {
+            "active_object": obj,
+            "object": obj,
+            "selected_objects": [obj],
+            "selected_editable_objects": [obj],
+            "scene": bpy.context.scene,
+            "view_layer": bpy.context.view_layer,
+        }
+        if bpy.context.window:
+            override["window"] = bpy.context.window
+        if bpy.context.screen:
+            override["screen"] = bpy.context.screen
+        if bpy.context.area:
+            override["area"] = bpy.context.area
+        if bpy.context.region:
+            override["region"] = bpy.context.region
+        with bpy.context.temp_override(**override):
+            bpy.ops.object.modifier_apply(modifier=modifier_name)
+        obj.select_set(False)
+
     stale_collection = bpy.data.collections.get(f"BING_{spec.character_id}_lod1_export")
     if stale_collection:
         for obj in list(stale_collection.objects):
-            mesh = obj.data if obj.type == "MESH" else None
-            bpy.data.objects.remove(obj, do_unlink=True)
-            if mesh and mesh.users == 0:
-                bpy.data.meshes.remove(mesh)
+            remove_lod_object(obj)
         bpy.data.collections.remove(stale_collection)
 
     lod_collection = bpy.data.collections.new(f"BING_{spec.character_id}_lod1_export")
     bpy.context.scene.collection.children.link(lod_collection)
     lod_root = bpy.data.objects.new(f"{spec.character_id}_lod1_root", None)
     lod_collection.objects.link(lod_root)
+    lod_root["bing_lod"] = "lod1"
 
     duplicates: list[bpy.types.Object] = [lod_root]
-    depsgraph = bpy.context.evaluated_depsgraph_get()
+    source_rig = bpy.data.objects.get(f"{spec.character_id}_guide_armature")
+    lod_rig = None
+    if source_rig:
+        lod_rig = source_rig.copy()
+        lod_rig.data = source_rig.data.copy()
+        lod_rig.name = f"{source_rig.name}_lod1"
+        lod_rig.data.name = f"{source_rig.data.name}_lod1"
+        lod_rig.parent = lod_root
+        lod_rig.matrix_world = source_rig.matrix_world.copy()
+        lod_rig.hide_render = False
+        lod_rig.hide_viewport = False
+        lod_rig["bing_lod"] = "lod1"
+        lod_collection.objects.link(lod_rig)
+        duplicates.append(lod_rig)
+
     for obj in character_objects(root):
-        if obj == root or obj.type != "MESH":
+        if obj == root or obj == source_rig or obj.type != "MESH":
             continue
         duplicate = obj.copy()
         duplicate.data = obj.data.copy()
         duplicate.name = f"{obj.name}_lod1"
         duplicate.parent = lod_root
         duplicate.matrix_world = obj.matrix_world.copy()
+        armature_modifier_names = [modifier.name for modifier in duplicate.modifiers if modifier.type == "ARMATURE"]
         for modifier in list(duplicate.modifiers):
             if modifier.type == "ARMATURE":
                 duplicate.modifiers.remove(modifier)
-        clear_vertex_groups(duplicate)
         lod_collection.objects.link(duplicate)
         duplicates.append(duplicate)
         if len(duplicate.data.polygons) > 12:
@@ -1372,14 +1418,13 @@ def export_lod1_character(spec: CharacterSpec, root: bpy.types.Object, out_dir: 
             if hasattr(decimate, "use_collapse_triangulate"):
                 decimate.use_collapse_triangulate = True
             bpy.context.view_layer.update()
-            original_mesh = duplicate.data
-            evaluated = duplicate.evaluated_get(depsgraph)
-            decimated_mesh = bpy.data.meshes.new_from_object(evaluated, depsgraph=depsgraph)
-            decimated_mesh.name = f"{duplicate.name}_mesh"
-            duplicate.modifiers.clear()
-            duplicate.data = decimated_mesh
-            if original_mesh.users == 0:
-                bpy.data.meshes.remove(original_mesh)
+            apply_modifier(duplicate, decimate.name)
+            duplicate.data.name = f"{duplicate.name}_mesh"
+        if lod_rig and armature_modifier_names:
+            armature = duplicate.modifiers.new(name=armature_modifier_names[0], type="ARMATURE")
+            armature.object = lod_rig
+            armature.use_vertex_groups = True
+            armature.show_on_cage = True
 
     vertices, faces = mesh_metrics(lod_root)
     bpy.ops.object.select_all(action="DESELECT")
@@ -1408,13 +1453,13 @@ def export_lod1_character(spec: CharacterSpec, root: bpy.types.Object, out_dir: 
             export_format="GLB",
             use_selection=True,
             export_apply=True,
+            export_animation_mode="NLA_TRACKS",
+            export_nla_strips=True,
+            export_extra_animations=False,
         )
 
     for obj in list(duplicates):
-        mesh = obj.data if obj.type == "MESH" else None
-        bpy.data.objects.remove(obj, do_unlink=True)
-        if mesh and mesh.users == 0:
-            bpy.data.meshes.remove(mesh)
+        remove_lod_object(obj)
     bpy.data.collections.remove(lod_collection)
     return vertices, faces
 
@@ -1876,7 +1921,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - 每个角色导出 `portrait.png`、`mobile-avatar.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`、`table-scale.png`
 - 每个角色导出动作剪影 QA：`{pose_ids}`
 - 每个角色建立 `{len(RIG_BONES)}` 根骨骼的 guide armature，并导出 `rig-guide.png`
-- 每个角色写入 first-pass rigid skin weights，LOD0 GLB 已具备 skinned mesh 结构；仍需手工权重绘制与动作精修
+- 每个角色写入 first-pass rigid skin weights，LOD0/LOD1 GLB 均已具备 skinned mesh 结构；仍需手工权重绘制与动作精修
 - 每个 guide armature 写入预览动画 clips：`{animation_clip_ids}`；当前为关键帧预览，可驱动 rigid skin 初版
 - 每个角色导出骨骼驱动蒙皮 QA：`skin-preview-attack / skin-preview-skill / skin-preview-hit / skin-preview-down`，琥珀骨架为目标姿态 overlay
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、职业道具和服装层次
@@ -1933,20 +1978,20 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、分层眼睛、睫毛/眉毛、口腔/牙齿、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、LOD0 first-pass rigid skin weights、骨骼驱动蒙皮 QA、预览动画 clips、预算内高保真 LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
-- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、精细权重绘制和可播放精修动画；当前 LOD0 GLB 有 WIP 预览动作，LOD1 仍缺运行时 animation clips，真人质感也还需要外部雕刻/贴图阶段继续推进。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、分层眼睛、睫毛/眉毛、口腔/牙齿、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、first-pass rigid skin weights、骨骼驱动蒙皮 QA、LOD0/LOD1 预览动画 clips、预算内高保真 animated LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、精细权重绘制和可播放精修动画；当前 LOD0/LOD1 GLB 均为 WIP 预览动作，真人质感也还需要外部雕刻/贴图阶段继续推进。
 
 ## 运行时验收
 
-- 静态资产审计：`npm run test:assets`，覆盖 LOD0/LOD1 GLB、LOD0 skinned mesh、LOD0 动画命名、动作图、骨骼驱动蒙皮 QA、移动头像、turnaround、table-scale、face-detail、rig-guide、material QA 和 PBR 贴图包。
+- 静态资产审计：`npm run test:assets`，覆盖 LOD0/LOD1 GLB、LOD0/LOD1 skinned mesh、LOD0/LOD1 动画命名、动作图、骨骼驱动蒙皮 QA、移动头像、turnaround、table-scale、face-detail、rig-guide、material QA 和 PBR 贴图包。
 - 浏览器逐角色验收：`npm run test:character-browser`，创建角色房间并用观战视角验证 LOD0 animated GLB 请求和 3D canvas 采样。
-- 当前运行时 `TableScene3D` 加载 LOD0 skinned/animated GLB，并按 battle director cue 播放 `idle / attack / defend / skill / hit / down` 预览 clips；LOD1 仍保留为预算内静态性能备选，`npm run test:assets` 会继续提示 6 个 LOD1 暂无运行时 animation clips。
+- 当前运行时 `TableScene3D` 加载 LOD0 skinned/animated GLB，并按 battle director cue 播放 `idle / attack / defend / skill / hit / down` 预览 clips；LOD1 已导出同名 skinned/animated clips，可作为后续性能档动态切换目标。
 
 ## 下一步 P0
 
 - 替换程序几何脸为雕刻面部或外部授权模型基底，减少“几何拼装感”。
 - 用高模或授权基底烘焙替换当前程序化 PBR 贴图。
-- 评估是否给 LOD1 也导出 skin/animation，或按设备性能在 LOD0 动画和 LOD1 静态模型之间动态切换。
+- 评估运行时是否按设备性能在 LOD0/LOD1 animated GLB 之间动态切换。
 
 ## 下一步 P1
 
