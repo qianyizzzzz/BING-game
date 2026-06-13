@@ -33,7 +33,7 @@
 
 ## 运行时验收
 
-- 静态资产审计：`npm run test:assets`
+- 静态资产审计：`npm run test:assets`，覆盖 LOD0/LOD1 GLB、LOD0 动画命名、动作图、移动头像、turnaround、table-scale、face-detail、rig-guide、material QA 和 PBR 贴图包。
 - 浏览器逐角色验收：`npm run test:character-browser`，创建角色房间并用观战视角验证 LOD1 GLB 请求和 3D canvas 采样。
 
 ## 下一步 P0

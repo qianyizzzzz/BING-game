@@ -9,6 +9,7 @@ type PngInfo = {
 
 type GlbInfo = {
   animations: number;
+  animationNames: string[];
   images: number;
   materials: number;
   meshes: number;
@@ -20,6 +21,17 @@ const projectRoot = path.resolve(import.meta.dirname, "..");
 const publicRoot = path.join(projectRoot, "apps", "client", "public");
 const failures: string[] = [];
 const warnings: string[] = [];
+const expectedAnimationNames = ["idle", "attack", "defend", "skill", "hit", "down"];
+const requiredCharacterImages = [
+  ["mobile-avatar", "mobile-avatar.png", 768, 768],
+  ["face-detail", "face-detail.png", 640, 640],
+  ["turnaround-front", "turnaround-front.png", 768, 768],
+  ["turnaround-side", "turnaround-side.png", 768, 768],
+  ["turnaround-three-quarter", "turnaround-three-quarter.png", 768, 768],
+  ["table-scale", "table-scale.png", 768, 768],
+  ["rig-guide", "rig-guide.png", 512, 512]
+] as const;
+const requiredPbrTextureFiles = ["albedo.png", "normal.png", "roughness.png"] as const;
 
 for (const character of CHARACTER_ROSTER) {
   const publicUrls = [
@@ -42,7 +54,18 @@ for (const character of CHARACTER_ROSTER) {
       auditGlb(character.id, label, filePath);
     }
   }
+
+  for (const [label, fileName, width, height] of requiredCharacterImages) {
+    const filePath = path.join(publicRoot, "assets", "characters", character.id, fileName);
+    if (!fs.existsSync(filePath)) {
+      failures.push(`${character.id} ${label}: missing ${repoPath(filePath)}`);
+      continue;
+    }
+    auditPng(character.id, label, filePath, { width, height });
+  }
 }
+
+auditMaterialAssets();
 
 if (warnings.length > 0) {
   console.warn("character runtime asset warnings:");
@@ -61,10 +84,17 @@ if (failures.length > 0) {
   console.log(`character runtime asset audit passed: ${CHARACTER_ROSTER.length} characters`);
 }
 
-function auditPng(characterId: string, label: string, filePath: string): void {
+function auditPng(characterId: string, label: string, filePath: string, expected?: PngInfo): void {
   const info = readPngInfo(filePath);
   if (!info) {
     failures.push(`${characterId} ${label}: invalid PNG ${repoPath(filePath)}`);
+    return;
+  }
+
+  if (expected && (info.width !== expected.width || info.height !== expected.height)) {
+    failures.push(
+      `${characterId} ${label}: expected ${expected.width}x${expected.height} PNG, got ${info.width}x${info.height}`
+    );
     return;
   }
 
@@ -89,8 +119,55 @@ function auditGlb(characterId: string, label: string, filePath: string): void {
     failures.push(`${characterId} ${label}: GLB has incomplete scene graph ${JSON.stringify(info)}`);
   }
 
+  if (label === "model-lod0") {
+    const missingAnimations = expectedAnimationNames.filter(
+      (name) =>
+        !info.animationNames.some(
+          (animationName) => animationName === name || animationName.includes(`_${name}_`)
+        )
+    );
+    if (missingAnimations.length > 0) {
+      warnings.push(`${characterId} ${label}: missing preview animation clips ${missingAnimations.join(", ")}`);
+    }
+  }
+
   if (label === "model-lod1" && info.animations === 0) {
     warnings.push(`${characterId} ${label}: no runtime animation clips yet`);
+  }
+}
+
+function auditMaterialAssets(): void {
+  const materialQaPath = path.join(publicRoot, "assets", "characters", "materials", "material-qa.png");
+  if (!fs.existsSync(materialQaPath)) {
+    failures.push(`materials material-qa: missing ${repoPath(materialQaPath)}`);
+  } else {
+    auditPng("materials", "material-qa", materialQaPath);
+  }
+
+  const pbrRoot = path.join(publicRoot, "assets", "characters", "materials", "pbr");
+  if (!fs.existsSync(pbrRoot)) {
+    failures.push(`materials pbr: missing ${repoPath(pbrRoot)}`);
+    return;
+  }
+
+  const texturePacks = fs
+    .readdirSync(pbrRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
+  if (texturePacks.length < 30) {
+    warnings.push(`materials pbr: expected at least 30 texture packs, found ${texturePacks.length}`);
+  }
+
+  for (const packName of texturePacks) {
+    for (const fileName of requiredPbrTextureFiles) {
+      const filePath = path.join(pbrRoot, packName, fileName);
+      if (!fs.existsSync(filePath)) {
+        failures.push(`materials pbr/${packName}: missing ${fileName}`);
+        continue;
+      }
+      auditPng("materials", `pbr/${packName}/${fileName}`, filePath);
+    }
   }
 }
 
@@ -127,8 +204,12 @@ function readGlbInfo(filePath: string): GlbInfo | undefined {
   }
 
   const gltf = JSON.parse(buffer.subarray(jsonStart, jsonEnd).toString("utf8").trim());
+  const animationNames = Array.isArray(gltf.animations)
+    ? gltf.animations.map((animation: { name?: unknown }) => String(animation.name ?? ""))
+    : [];
   return {
     animations: Array.isArray(gltf.animations) ? gltf.animations.length : 0,
+    animationNames,
     images: Array.isArray(gltf.images) ? gltf.images.length : 0,
     materials: Array.isArray(gltf.materials) ? gltf.materials.length : 0,
     meshes: Array.isArray(gltf.meshes) ? gltf.meshes.length : 0,
