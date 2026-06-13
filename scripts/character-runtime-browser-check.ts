@@ -227,7 +227,7 @@ async function activate(locator: Locator, timeoutMs = 10_000): Promise<void> {
     throw new Error(`控件不可用：${label}`);
   }
   await locator.scrollIntoViewIfNeeded({ timeout: timeoutMs });
-  await locator.click({ timeout: timeoutMs });
+  await locator.dispatchEvent("click", undefined, { timeout: timeoutMs });
 }
 
 async function waitForEnabled(locator: Locator, timeoutMs: number): Promise<boolean> {
