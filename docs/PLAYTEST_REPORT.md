@@ -1,7 +1,8 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-13  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T03-33-44-049Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T12-33-40-021Z/report.md`  
+最新逐角色浏览器验收：`artifacts/playtests/character-runtime-2026-06-13T08-57-15-348Z/report.md`
 
 ## 结论
 
@@ -59,8 +60,9 @@
 当前通过项：
 
 - `npm run test:ui-agents` 最近一次通过，无 console error、无 failed action、无视觉 QA 告警。
-- 双端 canvas 正常渲染，并检测到 `ember-guardian-lod1.glb` 成功加载。
-- UI agent 已覆盖目标预览、沿用上回合、遮挡检查和结算 cue。
+- 双端 canvas 正常渲染，并检测到运行时 LOD0 animated GLB 成功加载。
+- UI agent 已覆盖目标预览、沿用上回合、遮挡检查、结算 cue、cue target 到座位的映射。
+- `npm run test:character-browser` 已逐个验证 6 个角色：期望 GLB 与观察 GLB 一致，canvas 非空，console/page error 为无。
 
 缺口：
 

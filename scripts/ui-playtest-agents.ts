@@ -143,6 +143,11 @@ console.log(`UI playtest agent report written to ${reportPath}`);
 if (fatalError) {
   throw fatalError;
 }
+if (visualIssues.length > 0 || consoleErrors.length > 0 || failedActions.length > 0) {
+  throw new Error(
+    `UI playtest reported issues: visual=${visualIssues.length}, console=${consoleErrors.length}, failed=${failedActions.length}`
+  );
+}
 
 async function newAgentPage(browser: Browser, name: string): Promise<Page> {
   const context = await browser.newContext({
@@ -604,11 +609,14 @@ async function collectVisualHealth(page: Page, agent: AgentLog, label: string): 
 async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: string): Promise<void> {
   let lastError: unknown;
   try {
-    for (let attempt = 1; attempt <= 2; attempt += 1) {
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
       try {
-        await activate(page.getByTestId("action-mode-attack").first(), 15_000);
+        await waitForActionDock(page);
+        await waitForAttackPreviewReady(page, 25_000);
+        await activate(page.getByTestId("action-mode-attack").first(), 20_000);
+        await waitForAttackModeSelected(page, 10_000);
         const highlightedSeats = page.locator(".poker-seat-highlighted");
-        await highlightedSeats.first().waitFor({ state: "visible", timeout: 8_000 });
+        await highlightedSeats.first().waitFor({ state: "visible", timeout: 12_000 });
         const count = await highlightedSeats.count();
         const message = `${label}: 选择攻击模式后 ${count} 个目标座位出现高亮预览。`;
         visualChecks.push(message);
@@ -621,10 +629,88 @@ async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: str
     }
     throw lastError;
   } catch (error) {
-    const message = `${label}: 目标预览高亮检查失败：${String(error)}`;
+    const snapshot = await collectTargetPreviewDebugSnapshot(page).catch(() => "无法读取调试快照");
+    const message = `${label}: 目标预览高亮检查失败：${String(error)}；${snapshot}`;
     visualIssues.push(message);
     agent.issues.push(message);
   }
+}
+
+async function waitForAttackPreviewReady(page: Page, timeoutMs: number): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const attackButton = document.querySelector('[data-testid="action-mode-attack"]');
+      const statusText = document.querySelector(".battle-status-main")?.textContent ?? "";
+      return (
+        attackButton instanceof HTMLButtonElement &&
+        !attackButton.disabled &&
+        !statusText.includes("第 1 回合")
+      );
+    },
+    undefined,
+    { timeout: timeoutMs }
+  );
+}
+
+async function waitForAttackModeSelected(page: Page, timeoutMs: number): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const attackButton = document.querySelector('[data-testid="action-mode-attack"]');
+      const hasAttackTargetSelect = Array.from(document.querySelectorAll("label")).some((label) =>
+        label.textContent?.includes("攻击目标")
+      );
+      return (
+        attackButton instanceof HTMLElement &&
+        attackButton.classList.contains("mode-button-active") &&
+        hasAttackTargetSelect
+      );
+    },
+    undefined,
+    { timeout: timeoutMs }
+  );
+}
+
+async function collectTargetPreviewDebugSnapshot(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const statusText = document.querySelector(".battle-status-main")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    const promptText = document.querySelector(".battle-status-prompt")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    const attackButton = document.querySelector('[data-testid="action-mode-attack"]');
+    const attackState =
+      attackButton instanceof HTMLButtonElement
+        ? `attackDisabled=${attackButton.disabled}, attackClass=${attackButton.className}`
+        : "attackButton=missing";
+    const highlighted = document.querySelectorAll(".poker-seat-highlighted").length;
+    const targetSelects = Array.from(document.querySelectorAll("label"))
+      .map((label) => label.textContent?.replace(/\s+/g, " ").trim() ?? "")
+      .filter((text) => text.includes("目标"))
+      .slice(0, 4)
+      .join(" | ");
+    return `status=${statusText}; prompt=${promptText}; ${attackState}; highlighted=${highlighted}; targets=${targetSelects || "none"}`;
+  });
+}
+
+function splitDataIds(value: string): string[] {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+async function countSeatsForPlayerIds(page: Page, playerIds: string[]): Promise<number> {
+  if (playerIds.length === 0) {
+    return 0;
+  }
+
+  return page.locator(".poker-seat").evaluateAll(
+    (seats, ids) =>
+      seats.filter((seat) => {
+        if (!(seat instanceof HTMLElement)) {
+          return false;
+        }
+        return ids.includes(seat.dataset.playerId ?? "");
+      }).length,
+    playerIds
+  );
 }
 
 async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, label: string): Promise<void> {
@@ -672,6 +758,7 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       cueCount: element.getAttribute("data-cue-count") ?? "",
       hitStopMs: element.getAttribute("data-first-hit-stop-ms") ?? "",
       targetIds: element.getAttribute("data-first-target-ids") ?? "",
+      targetSeatCount: element.getAttribute("data-first-target-seat-count") ?? "",
       vfx: element.getAttribute("data-first-vfx") ?? ""
     }));
     const director = await page.getByTestId("battle-director-state").first().evaluate((element) => ({
@@ -680,7 +767,10 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       camera: element.getAttribute("data-active-camera-cue") ?? "",
       cueCount: element.getAttribute("data-cue-count") ?? "",
       hitStopMs: element.getAttribute("data-active-hit-stop-ms") ?? "",
-      targetIds: element.getAttribute("data-active-target-ids") ?? ""
+      seatPlayerIds: element.getAttribute("data-seat-player-ids") ?? "",
+      sourceSeatCount: element.getAttribute("data-active-source-seat-count") ?? "",
+      targetIds: element.getAttribute("data-active-target-ids") ?? "",
+      targetSeatCount: element.getAttribute("data-active-target-seat-count") ?? ""
     }));
 
     if (Number(cue.cueCount) <= 0) {
@@ -704,12 +794,26 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     if (!readout.kind || readout.kind === "idle" || Number(readout.stepCount) <= 0 || readout.text.length < 8) {
       throw new Error(`Battle readout 不完整：${JSON.stringify(readout)}`);
     }
+    const cueTargetIds = splitDataIds(cue.targetIds);
+    const activeTargetIds = splitDataIds(director.targetIds);
+    const seatPlayerIds = splitDataIds(director.seatPlayerIds);
+    const cueTargetSeatCount = Number(cue.targetSeatCount);
+    const pokerTableCueTargetSeatCount = cueTargetIds.filter((targetId) => seatPlayerIds.includes(targetId)).length;
+    const cueTargetDomSeatCount = await countSeatsForPlayerIds(page, cueTargetIds);
     const directorSeatCount = await page.locator('.poker-seat[data-director-role]:not([data-director-role=""])').count();
-    if (director.targetIds && directorSeatCount === 0) {
+    const directorTargetSeatCount = await page.locator('.poker-seat[data-director-role*="target"]').count();
+    const mappedTargetSeatCount = Number(director.targetSeatCount);
+    if (cueTargetIds.length > 0 && cueTargetSeatCount === 0) {
+      throw new Error(`表现 cue 有目标但无法映射到座位：${JSON.stringify(cue)}`);
+    }
+    if (director.targetIds && mappedTargetSeatCount === 0) {
+      throw new Error(`BattleDirector 有目标但无法映射到座位：${JSON.stringify(director)}`);
+    }
+    if (director.targetIds && directorTargetSeatCount === 0) {
       throw new Error(`BattleDirector 有目标但没有座位高亮：${JSON.stringify(director)}`);
     }
 
-    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, targets=${cue.targetIds || director.targetIds || readout.targetIds || "无"}, seats=${directorSeatCount}）。`;
+    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, cueTargets=${cueTargetIds.length}, cueTargetSeats=${cueTargetSeatCount}, pokerTableCueTargetSeats=${pokerTableCueTargetSeatCount}, cueTargetDomSeats=${cueTargetDomSeatCount}, activeTargets=${activeTargetIds.length}, mappedActiveTargets=${mappedTargetSeatCount}, highlightedTargets=${directorTargetSeatCount}, seats=${directorSeatCount}）。`;
     visualChecks.push(message);
     agent.observations.push(message);
   } catch (error) {

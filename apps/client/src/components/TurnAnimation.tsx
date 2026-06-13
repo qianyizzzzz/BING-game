@@ -53,6 +53,14 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
     return null;
   }
 
+  const seatedPlayerIds = new Set(
+    state.players
+      .filter((player) => player.kind !== "spectator")
+      .map((player) => player.id)
+  );
+  const firstCueTargetSeatCount =
+    firstCue?.targetIds.filter((targetId) => seatedPlayerIds.has(targetId)).length ?? 0;
+
   const cueMetadata = (
     <div
       aria-hidden="true"
@@ -63,6 +71,7 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
       data-first-camera-cue={firstCue?.camera ?? "none"}
       data-first-hit-stop-ms={firstCue?.hitStopMs ?? 0}
       data-first-target-ids={firstCue?.targetIds.join(",") ?? ""}
+      data-first-target-seat-count={firstCueTargetSeatCount}
       data-first-vfx={firstCue?.vfx ?? "none"}
     />
   );

@@ -120,6 +120,14 @@ export function PokerTableGame({
       : state.phase === "action_window"
         ? "RIFT"
         : "CALM";
+  const activeDirectorTargetSeatCount = orderedPlayers.filter((player) =>
+    director.activeTargetIds.includes(player.id)
+  ).length;
+  const activeDirectorSourceSeatCount =
+    director.activeSourceId && orderedPlayers.some((player) => player.id === director.activeSourceId)
+      ? 1
+      : 0;
+  const seatPlayerIds = orderedPlayers.map((player) => player.id).join(",");
 
   useEffect(() => {
     if (!activeDeadline) {
@@ -177,8 +185,12 @@ export function PokerTableGame({
           data-active-beat={director.activeBeat}
           data-active-camera-cue={director.activeCameraCue}
           data-active-hit-stop-ms={director.activeHitStopMs}
+          data-active-source-id={director.activeSourceId ?? ""}
+          data-active-source-seat-count={activeDirectorSourceSeatCount}
           data-active-target-ids={director.activeTargetIds.join(",")}
+          data-active-target-seat-count={activeDirectorTargetSeatCount}
           data-cue-count={director.cueCount}
+          data-seat-player-ids={seatPlayerIds}
         />
         <TableScene3D
           directorCue={activeDirectorCue}

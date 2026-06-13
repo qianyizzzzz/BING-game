@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | Phase A 文案、品牌、布局 | 已落地 | 中文 README、BING / 饼首屏、牌桌 HUD、行动 dock、移动端 dock 已完成基础优化 |
 | Phase B 回合动画时间线 | 已落地 | `turnTimeline` 覆盖亮招、冲击、防御、反弹、技能、击败、恢复、系统事件，并接入 sound cue 占位 |
-| Phase C Playtest Agents | 已落地 | `npm run test:ui-agents` 可自动启动服务、双玩家跑 3 回合、截图、检查 console、canvas、遮挡、目标预览、沿用上回合 |
+| Phase C Playtest Agents | 已落地 | `npm run test:ui-agents` 可自动启动服务、双玩家跑 3 回合、截图、检查 console、canvas、遮挡、目标预览、沿用上回合、结算 cue 目标座位映射 |
 | P1 目标预览 | 已落地 | 选择攻击/技能目标会高亮对应座位 |
 | P1 沿用上回合 | 已落地 | 行动面板提供“沿用上回合”快捷按钮，并做基础合法性提示 |
 | P1 事件日志与动画口径 | 已落地 | 日志显示对应 battle beat 标签，便于 QA 对照动画反馈 |
@@ -106,7 +106,7 @@
 - `apps/client/src/lib/turnTimeline.ts` 负责把事件映射为 beat、sound cue 和描述。
 - `battlePresentation` / `BattleDirector` 数据层从 `GameEvent` 生成 `beat`、来源、目标、时间、强度、VFX、SFX 和相机 cue，已供 `TurnAnimation`、`PlayerSeat` 和 `TableScene3D` 共用；下一步接 `SkillEffectLayer`、音效资源和新手摘要。
 - `scripts/turn-timeline-check.ts` 用来防止新增事件没有视觉映射。
-- `scripts/ui-playtest-agents.ts` 用来检查桌面/移动端截图、canvas 非空、遮挡、目标预览和关键动作。
+- `scripts/ui-playtest-agents.ts` 用来检查桌面/移动端截图、canvas 非空、遮挡、目标预览、结算 cue 目标座位映射和关键动作。
 - 下一步新增 `competitive-readability-check`：构造固定 4 人局，覆盖普通攻击、防御、反弹、群攻、变伤和复活窗口，并断言 source/target、HP/饼 delta、battle cue、座位 role 和中文摘要齐全。
 
 ## 3. Agent 测试与评审设置
