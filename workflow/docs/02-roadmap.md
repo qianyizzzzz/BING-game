@@ -107,11 +107,26 @@ Done when:
 Focus:
 
 ```text
-TODO: 本周只追一个目标。
+把 BING 从“可玩的网页原型”推进到“可受控公网试玩的游戏切片”。
 ```
 
 Deliverable:
 
 ```text
-TODO: 一段可玩流程 / 一组 UI 截图 / 一段录屏 / 一份 playtest 记录。
+双玩家 3 回合 playtest、移动端/桌面行动 HUD、底部命令区、角色 GLB 运行时 smoke、中文 README 和发布清单。
 ```
+
+验收：
+
+- `npm run typecheck`
+- `npm run test:ui-agents`
+- `npm run test:character-browser -- --character=ember-guardian`
+- `docs/PLAYTEST_REPORT.md` 指向最新报告。
+- 重要步骤单独 commit，push 约每 3 小时一次。
+
+下一步：
+
+- 复杂技能链浏览器场景。
+- 断线重连和多人集火 playtest。
+- 技能参数二级抽屉。
+- 许可证、资产权属和公开发布说明。
