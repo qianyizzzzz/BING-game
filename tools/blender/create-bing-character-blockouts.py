@@ -11,6 +11,7 @@ import mathutils
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ASSET_ROOT = PROJECT_ROOT / "apps" / "client" / "public" / "assets" / "characters"
+SOURCE_ROOT = PROJECT_ROOT / "tools" / "blender" / "source"
 ARTIFACT_ROOT = PROJECT_ROOT / "artifacts" / "art"
 DOCS_ROOT = PROJECT_ROOT / "docs"
 PBR_TEXTURE_ROOT = ASSET_ROOT / "materials" / "pbr"
@@ -172,11 +173,11 @@ def main() -> None:
     add_camera_and_lights()
 
     ASSET_ROOT.mkdir(parents=True, exist_ok=True)
+    SOURCE_ROOT.mkdir(parents=True, exist_ok=True)
     ARTIFACT_ROOT.mkdir(parents=True, exist_ok=True)
-    (ASSET_ROOT / "source").mkdir(parents=True, exist_ok=True)
 
     if save_scene_only:
-        scene_path = ASSET_ROOT / "source" / "bing-character-blockouts.blend"
+        scene_path = SOURCE_ROOT / "bing-character-blockouts.blend"
         print("BING_SAVE_SCENE_START", flush=True)
         bpy.ops.wm.save_as_mainfile(filepath=str(scene_path))
         print(f"BING_SAVE_SCENE_ONLY_DONE={scene_path}", flush=True)
@@ -253,7 +254,7 @@ def main() -> None:
         print(f"BING_CHARACTER_EXPORT_ONLY_DONE={','.join(spec.character_id for spec in active_characters)}", flush=True)
         return
 
-    scene_path = ASSET_ROOT / "source" / "bing-character-blockouts.blend"
+    scene_path = SOURCE_ROOT / "bing-character-blockouts.blend"
     print("BING_SAVE_SCENE_START", flush=True)
     bpy.ops.wm.save_as_mainfile(filepath=str(scene_path))
     write_report(scene_path, roots, lod1_metrics, animation_pass_only=animation_pass_only)

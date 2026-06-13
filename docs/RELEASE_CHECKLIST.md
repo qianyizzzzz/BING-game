@@ -11,6 +11,7 @@
 - 运行 `npm ci`。
 - 运行 `npm run build`。
 - 运行 `npm run test:ci`。
+- 发布前运行 `npm run verify:release`，完整覆盖默认 UI、复杂技能、角色浏览器和发布资产边界。
 - 本地需要浏览器验收时运行 `npm run test:ui-agents`、`npm run test:ui-agents:complex` 和 `npm run test:character-browser`。
 - GitHub Actions 可夜间运行默认 UI agents 与复杂技能 smoke，并可手动运行角色浏览器验收；报告和截图会作为 artifacts 上传。
 
@@ -66,6 +67,7 @@ docker run -p 3001:3001 -v bing-data:/app/data bing-card-game
 - 补充正式 `LICENSE` 和资产权属说明。
 - 明确角色 GLB、贴图、截图、技能表来源。
 - 保持公开战斗画面没有 `/assets/placeholders/` 网络请求。
+- 发布产物不得包含 `*.blend*` 或 `assets/characters/source/`；源场景只保留在 `tools/blender/source/`。
 - 扩展浏览器级 CI：复杂技能 smoke 已纳入夜间 workflow；继续把响应窗口、断线重连和多人集火加入可选 workflow，并上传报告和截图。
 - 做一次移动端 360px/375px/390px/430px 截图 QA。
 

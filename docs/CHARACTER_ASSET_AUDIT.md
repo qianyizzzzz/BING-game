@@ -6,7 +6,7 @@
 
 ## 当前产物
 
-- 源场景：`apps/client/public/assets/characters/source/bing-character-blockouts.blend`
+- 源场景：`tools/blender/source/bing-character-blockouts.blend`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
 - 动作 QA：每角色 `idle / attack / defend / skill / hit / down` 动作剪影图
 - 绑定准备：每角色 `17` 根骨骼 guide armature、`rig-guide.png`、LOD0/LOD1 first-pass blended skin weights、`skin-preview-*.png` 与 `idle / attack / defend / skill / hit / down` 预览动画 clips

@@ -1,11 +1,12 @@
 # BING 本地 Blender 工具
 
-本目录用于本机便携版 Blender 和 Blender MCP。大文件不会提交到 git。
+本目录用于本机便携版 Blender、Blender MCP 和项目角色源场景。便携版 Blender、第三方 add-on 和临时备份不会提交到 git；项目源场景放在 `tools/blender/source/`，避免进入 Web 静态发布目录。
 
 ## 当前约定
 
 - Blender 便携目录：`tools/blender/blender-4.5.0-windows-x64/`
 - Blender MCP add-on：`tools/blender/blender-mcp/addon.py`
+- 项目角色源场景：`tools/blender/source/bing-character-blockouts.blend`
 - MCP server：通过 `uvx blender-mcp` 启动
 - Blender socket：`localhost:9876`
 
@@ -47,4 +48,3 @@ tools\blender\blender-4.5.0-windows-x64\blender.exe --background --python tools\
 2. 确认 `BlenderMCP` add-on 已启用。
 3. 在 3D View 侧栏 `BlenderMCP` 面板点击连接，或使用已启用的自动启动。
 4. 重启/刷新 Codex MCP 客户端，使其加载 `uvx blender-mcp` server。
-
