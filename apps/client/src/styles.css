@@ -3002,6 +3002,45 @@ select {
   animation: effect-label-float var(--effect-duration) ease both;
 }
 
+.table-target-lock {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 70px;
+  height: 70px;
+  border: 2px solid color-mix(in srgb, currentColor 72%, white);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 0 18px color-mix(in srgb, currentColor 22%, transparent),
+    0 0 18px color-mix(in srgb, currentColor 28%, transparent);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.58);
+  animation: table-target-lock var(--effect-duration) ease-out both;
+}
+
+.table-target-lock::before,
+.table-target-lock::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+  transform: translate(-50%, -50%);
+}
+
+.table-target-lock::before {
+  width: 46px;
+  height: 2px;
+}
+
+.table-target-lock::after {
+  width: 2px;
+  height: 46px;
+}
+
 .effect-depth-ring,
 .effect-dust {
   position: absolute;
@@ -4477,6 +4516,25 @@ select {
   }
 }
 
+@keyframes table-target-lock {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.44) rotate(-10deg);
+  }
+  18% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.04) rotate(0deg);
+  }
+  58% {
+    opacity: 0.58;
+    transform: translate(-50%, -50%) scale(0.9) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.18) rotate(8deg);
+  }
+}
+
 @keyframes effect-dust-kick {
   0%,
   32% {
@@ -4562,6 +4620,7 @@ select {
   .skill-relic-card::after,
   .skill-relic-halo,
   .table-cast-seal,
+  .table-target-lock,
   .effect-depth-ring,
   .effect-dust,
   .effect-fracture,

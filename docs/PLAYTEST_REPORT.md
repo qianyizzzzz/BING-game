@@ -1,8 +1,8 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-13  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T21-46-32-320Z/report.md`
-最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T21-55-29-942Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T22-36-09-841Z/report.md`
+最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T22-31-28-877Z/report.md`
 最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T21-17-44-857Z/report.md`
 
 ## 结论
@@ -75,7 +75,8 @@
 - UI agent 已覆盖行动 HUD：攻击模式下必须显示下一步、目标数、目标 id 和可提交状态。
 - UI agent 已覆盖底部命令区：移动端和桌面端提交按钮保持可见，触控高度不低于 44px。
 - UI agent 已覆盖新手结算摘要：当 readout 已播放到系统步骤时，摘要仍要保留本轮真实动作、目标绑定和目标座位映射。
-- UI agent 已覆盖血/饼变化摘要：默认 happy path 报告显示“资源变化=新手玩家 饼-2；竞技玩家 血-1 / 饼-2”，复杂技能报告显示“资源变化=AI 1 血-6；AI 2 血-6；新手玩家 饼-2”。
+- UI agent 已覆盖血/饼变化摘要：默认 happy path 报告显示“资源变化=新手玩家 饼-3；竞技玩家 血-1 / 饼-3”，复杂技能报告显示“资源变化=AI 1 血-6；AI 2 血-6”。
+- UI agent 已覆盖目标线/落点 VFX：火箭复杂技能 smoke 验证 `effectVectors=6`、`effectImpacts=6`、`effectTargets=2`。
 - UI agent 已覆盖运行时 LOD 分流：390px 移动端加载 `*-lod1.glb`，1280px 桌面端加载 LOD0 `*.glb`。
 - UI agent 已覆盖公开战斗画面 Network 检查：不应再请求 `/assets/placeholders/`。
 - UI agent 已覆盖首屏 CTA：点击后必须进入玩家准备区并聚焦玩家名，不能直接跳过昵称/角色确认创建房间。
@@ -136,4 +137,5 @@ UI 优化方法：
 - `BattleDirector` / readout / summary 从同回合 `turn_revealed.actions` 反查技能目标，火箭复杂技能已验证 `cueTargets=2`、`summaryTargets=2`。
 - 不可提交状态已显示“原因 + 补救动作”，UI agent 已验证“饼不足，不能反弹 -> 先改选吃饼或降低消耗”。
 - 桌面结算摘要已增加“行动者”和血/饼变化 chip；默认 UI agents 与火箭复杂技能 smoke 都已把资源变化纳入门禁。
+- `SkillEffectLayer` 已暴露目标线/落点元数据，复杂技能 smoke 会检查多目标技能的 vector、impact 和 target 数量。
 - 夜间 Browser Playtest workflow 已加入 `npm run test:ui-agents:complex`。

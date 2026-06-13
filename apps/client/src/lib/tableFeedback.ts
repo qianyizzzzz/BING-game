@@ -116,7 +116,7 @@ export const SKILL_EFFECT_PRESETS: Record<SkillEffectType, SkillEffectConfig> = 
   }
 };
 
-const EFFECT_MAX_AGE_MS = 5200;
+const EFFECT_MAX_AGE_MS = 12_000;
 
 export function buildSeatFeedbackMap(state: PublicGameState): Record<PlayerId, SeatFeedback> {
   const feedback: Record<PlayerId, SeatFeedback> = {};
@@ -259,7 +259,12 @@ export function buildTableEffects(state: PublicGameState): TableEffect[] {
       .filter((player) => player.id !== sourceId && player.status === "alive")
       .map((player) => player.id);
 
-  for (const event of state.eventLog.slice(-10)) {
+  const latestRevealIndex = findLatestEventIndex(state.eventLog, "turn_revealed");
+  const recentEvents = state.eventLog.slice(
+    latestRevealIndex >= 0 ? latestRevealIndex : Math.max(0, state.eventLog.length - 40)
+  );
+
+  for (const event of recentEvents) {
     if (now - event.at > EFFECT_MAX_AGE_MS) {
       continue;
     }
@@ -523,6 +528,19 @@ function findLatestEvent<T extends GameEvent["type"]>(
   return [...events].reverse().find(
     (event): event is Extract<GameEvent, { type: T }> => event.type === type
   );
+}
+
+function findLatestEventIndex<T extends GameEvent["type"]>(
+  events: GameEvent[],
+  type: T
+): number {
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    if (events[index]?.type === type) {
+      return index;
+    }
+  }
+
+  return -1;
 }
 
 function isLikelySkillName(name: string): boolean {

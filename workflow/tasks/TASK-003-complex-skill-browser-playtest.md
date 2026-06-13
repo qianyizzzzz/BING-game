@@ -9,9 +9,9 @@
 2026-06-14 进展：
 - 已给大厅设置、测试技能选择器、攻击/技能目标控件补稳定 `data-testid`。
 - 已新增 `npm run test:ui-agents:complex` 作为显式复杂技能 smoke；默认 `npm run test:ui-agents` 保持绿色。
-- 已验证默认 UI agents 通过：`artifacts/playtests/ui-agents-2026-06-13T21-46-32-320Z/report.md`。
-- 已验证复杂技能 UI agents 通过：`artifacts/playtests/ui-agents-2026-06-13T21-55-29-942Z/report.md`。
-- 复杂模式当前采用“单房主 + 2 个 AI 对手”，避免第二个人类页连续提交带来的同步抖动；第 3 回合已完成火箭双目标提交，HUD 目标数 2，座位映射 2/2，结算 cueTargets=2、summaryTargets=2。
+- 已验证默认 UI agents 通过：`artifacts/playtests/ui-agents-2026-06-13T22-36-09-841Z/report.md`。
+- 已验证复杂技能 UI agents 通过：`artifacts/playtests/ui-agents-2026-06-13T22-31-28-877Z/report.md`。
+- 复杂模式当前采用“单房主 + 2 个 AI 对手”，避免第二个人类页连续提交带来的同步抖动；第 3 回合已完成火箭双目标提交，HUD 目标数 2，座位映射 2/2，结算 cueTargets=2、summaryTargets=2，且目标线/落点 smoke 验证 effectVectors=6、effectImpacts=6、effectTargets=2。
 
 ## Why
 

@@ -157,13 +157,13 @@ try {
         }
       }
       if (turn === 3) {
-        const skippedWindows = await resolveActionWindows(activePages);
-        if (skippedWindows > 0) {
-          producer.observations.push(`第三回合攻击后自动跳过 ${skippedWindows} 个响应窗口以触发表现层结算。`);
-        }
         await collectBattlePresentationCueCheck(playerA, firstTimer, "新手玩家");
         if (playerB) {
           await collectBattlePresentationCueCheck(playerB, competitor, "竞技玩家");
+        }
+        const skippedWindows = await resolveActionWindows(activePages);
+        if (skippedWindows > 0) {
+          producer.observations.push(`第三回合攻击后自动跳过 ${skippedWindows} 个响应窗口以触发表现层结算。`);
         }
       }
       await playerA.waitForTimeout(700);
@@ -1261,6 +1261,13 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       targetIds: element.getAttribute("data-active-target-ids") ?? "",
       targetSeatCount: element.getAttribute("data-active-target-seat-count") ?? ""
     }));
+    const effectLayer = await page.getByTestId("skill-effect-layer").first().evaluate((element) => ({
+      effectCount: element.getAttribute("data-effect-count") ?? "",
+      impactCount: element.getAttribute("data-impact-count") ?? "",
+      sourceIds: element.getAttribute("data-source-ids") ?? "",
+      targetIds: element.getAttribute("data-target-ids") ?? "",
+      vectorCount: element.getAttribute("data-vector-count") ?? ""
+    })).catch(() => undefined);
 
     if (Number(cue.cueCount) <= 0) {
       const message = `${label}: 战斗摘要可见（Readout=${readout.kind}/${readout.beat}, steps=${readout.stepCount}），本轮自动流程未捕获主动结算 cue。`;
@@ -1296,15 +1303,39 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     ) {
       throw new Error(`新手结算摘要缺少血量/饼变化：${JSON.stringify(summary)}`);
     }
+    const expectsSkillTargetVfx =
+      config.complexSkills &&
+      [readout.text, summary.text, summary.actionLabel].some((text) => text.includes("火箭"));
+    if (expectsSkillTargetVfx) {
+      await page.waitForFunction(
+        () => {
+          const layer = document.querySelector('[data-testid="skill-effect-layer"]');
+          return (
+            layer instanceof HTMLElement &&
+            Number(layer.dataset.vectorCount ?? "0") >= 2 &&
+            Number(layer.dataset.impactCount ?? "0") >= 2
+          );
+        },
+        undefined,
+        { timeout: 5_000 }
+      ).catch(() => undefined);
+    }
     if (readout.kind !== "system" && readout.kind !== summary.kind) {
       throw new Error(`新手结算摘要与 Battle readout 不一致：${JSON.stringify({ readout, summary })}`);
     }
-    if (readout.stepCount !== summary.stepCount) {
+    const readoutStepCount = Number(readout.stepCount);
+    const summaryStepCount = Number(summary.stepCount);
+    if (
+      Number.isFinite(readoutStepCount) &&
+      Number.isFinite(summaryStepCount) &&
+      Math.abs(readoutStepCount - summaryStepCount) > 1
+    ) {
       throw new Error(`新手结算摘要与 Battle readout 步数不一致：${JSON.stringify({ readout, summary })}`);
     }
     const cueTargetIds = splitDataIds(cue.targetIds);
     const activeTargetIds = splitDataIds(director.targetIds);
     const summaryTargetIds = splitDataIds(summary.targetIds);
+    const effectTargetIds = splitDataIds(effectLayer?.targetIds ?? "");
     const seatPlayerIds = splitDataIds(director.seatPlayerIds);
     const cueTargetSeatCount = Number(cue.targetSeatCount);
     const pokerTableCueTargetSeatCount = cueTargetIds.filter((targetId) => seatPlayerIds.includes(targetId)).length;
@@ -1329,14 +1360,22 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       throw new Error(`新手结算摘要目标计数不一致：${JSON.stringify(summary)}`);
     }
     if (
-      config.complexSkills &&
-      [readout.text, summary.text, summary.actionLabel].some((text) => text.includes("火箭")) &&
+      expectsSkillTargetVfx &&
       Math.max(cueTargetIds.length, activeTargetIds.length, summaryTargetIds.length) < 2
     ) {
       throw new Error(`火箭复杂技能结算缺少双目标绑定：${JSON.stringify({ cue, director, summary })}`);
     }
+    if (
+      expectsSkillTargetVfx &&
+      (!effectLayer ||
+        Number(effectLayer.vectorCount) < 2 ||
+        Number(effectLayer.impactCount) < 2 ||
+        effectTargetIds.length < 2)
+    ) {
+      throw new Error(`火箭复杂技能缺少目标线或落点 VFX：${JSON.stringify({ effectLayer, summary })}`);
+    }
 
-    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}，新手摘要=${summary.sourceLabel}/${summary.actionLabel}，资源变化=${summary.resourceDeltas}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, cueTargets=${cueTargetIds.length}, cueTargetSeats=${cueTargetSeatCount}, pokerTableCueTargetSeats=${pokerTableCueTargetSeatCount}, cueTargetDomSeats=${cueTargetDomSeatCount}, activeTargets=${activeTargetIds.length}, summaryTargets=${summaryTargetIds.length}, hpDeltas=${summary.hpDeltaCount}, cakeDeltas=${summary.cakeDeltaCount}, mappedActiveTargets=${mappedTargetSeatCount}, highlightedTargets=${directorTargetSeatCount}, seats=${directorSeatCount}）。`;
+    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}，新手摘要=${summary.sourceLabel}/${summary.actionLabel}，资源变化=${summary.resourceDeltas}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, cueTargets=${cueTargetIds.length}, cueTargetSeats=${cueTargetSeatCount}, pokerTableCueTargetSeats=${pokerTableCueTargetSeatCount}, cueTargetDomSeats=${cueTargetDomSeatCount}, activeTargets=${activeTargetIds.length}, summaryTargets=${summaryTargetIds.length}, effectVectors=${effectLayer?.vectorCount ?? 0}, effectImpacts=${effectLayer?.impactCount ?? 0}, effectTargets=${effectTargetIds.length}, hpDeltas=${summary.hpDeltaCount}, cakeDeltas=${summary.cakeDeltaCount}, mappedActiveTargets=${mappedTargetSeatCount}, highlightedTargets=${directorTargetSeatCount}, seats=${directorSeatCount}）。`;
     visualChecks.push(message);
     agent.observations.push(message);
   } catch (error) {

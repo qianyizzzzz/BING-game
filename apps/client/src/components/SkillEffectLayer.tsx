@@ -62,23 +62,36 @@ export function SkillEffectLayer({
         effect,
         key: `${effect.id}-${targetId}-${index}`,
         source,
-        target
+        target,
+        targetId
       };
     });
   });
+  const travelItems = effectItems.filter(({ dx, dy }) => Math.hypot(dx, dy) >= 1.5);
+  const targetIds = uniqueIds(effects.flatMap((effect) => effect.targetIds));
+  const sourceIds = uniqueIds(effects.map((effect) => effect.sourceId));
 
   if (effectItems.length === 0) {
     return null;
   }
 
   return (
-    <div className="skill-effect-layer" aria-hidden="true">
+    <div
+      className="skill-effect-layer"
+      aria-hidden="true"
+      data-testid="skill-effect-layer"
+      data-effect-count={effects.length}
+      data-impact-count={effectItems.length}
+      data-source-ids={sourceIds.join(",")}
+      data-target-ids={targetIds.join(",")}
+      data-vector-count={travelItems.length}
+    >
       <svg
         className="skill-effect-vectors"
         preserveAspectRatio="none"
         viewBox="0 0 100 100"
       >
-        {effectItems.map(({ dx, dy, effect, key, source, target }) => {
+        {effectItems.map(({ dx, dy, effect, key, source, target, targetId }) => {
           if (Math.hypot(dx, dy) < 1.5) {
             return null;
           }
@@ -96,6 +109,9 @@ export function SkillEffectLayer({
                     "--effect-duration": `${effect.duration}ms`
                   } as CSSProperties
                 }
+                data-effect-type={effect.type}
+                data-source-id={effect.sourceId ?? ""}
+                data-target-id={targetId}
                 vectorEffect="non-scaling-stroke"
                 x1={source.x}
                 x2={target.x}
@@ -113,6 +129,7 @@ export function SkillEffectLayer({
                     "--effect-duration": `${effect.duration}ms`
                   } as CSSProperties
                 }
+                data-effect-type={effect.type}
               />
             </g>
           );
@@ -131,7 +148,15 @@ export function SkillEffectLayer({
         } as CSSProperties;
 
         return (
-          <span key={key} className="table-effect-item" style={style}>
+          <span
+            key={key}
+            className="table-effect-item"
+            data-effect-type={effect.type}
+            data-source-id={effect.sourceId ?? ""}
+            data-target-count={effect.targetIds.length}
+            data-target-ids={effect.targetIds.join(",")}
+            style={style}
+          >
             <span
               className={[
                 "table-cast-seal",
@@ -157,6 +182,7 @@ export function SkillEffectLayer({
                 effect.targetType === "all" ? "table-skill-effect-all" : ""
               ].join(" ")}
             >
+              <em className="table-target-lock" aria-hidden="true" />
               <em className="effect-depth-ring" aria-hidden="true" />
               {EFFECT_DUST.map((dust, dustIndex) => (
                 <em
@@ -208,4 +234,8 @@ export function SkillEffectLayer({
       })}
     </div>
   );
+}
+
+function uniqueIds(ids: Array<string | undefined>): string[] {
+  return [...new Set(ids.filter((id): id is string => Boolean(id)))];
 }

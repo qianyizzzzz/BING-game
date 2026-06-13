@@ -9,8 +9,10 @@ import {
   PublicGameState
 } from "@bing/shared";
 import { battleDirectorSeatRole, useBattleDirector } from "../lib/battleDirector";
+import type { BattlePresentationCue } from "../lib/battlePresentation";
 import { formatDamage, playerName } from "../lib/format";
 import { buildSeatFeedbackMap, buildTableEffects } from "../lib/tableFeedback";
+import type { SkillEffectType, TableEffect } from "../lib/tableFeedback";
 import { PlayerSeat, SeatPosition } from "./PlayerSeat";
 import { SkillEffectLayer } from "./SkillEffectLayer";
 import { TableScene3D } from "./TableScene3D";
@@ -47,6 +49,11 @@ export function PokerTableGame({
   const feedbackMap = useMemo(() => buildSeatFeedbackMap(state), [state]);
   const effects = useMemo(() => buildTableEffects(state), [state]);
   const director = useBattleDirector(state);
+  const presentationEffects = useMemo(
+    () => buildPresentationTableEffects(director.presentationCues),
+    [director.presentationCues]
+  );
+  const skillLayerEffects = effects.length > 0 ? effects : presentationEffects;
   const activeDirectorCue = director.activeCue;
   const readoutStep = director.visibleStep ?? director.battleSteps[0];
   const readoutCue = director.visibleCue ?? director.firstCue;
@@ -397,7 +404,7 @@ export function PokerTableGame({
           )}
         </div>
 
-        <SkillEffectLayer effects={effects} seatPositions={seatPositions} />
+        <SkillEffectLayer effects={skillLayerEffects} seatPositions={seatPositions} />
 
         {orderedPlayers.map((player) => {
           const isActiveActor =
@@ -538,6 +545,68 @@ function getTablePrompt(state: PublicGameState, viewerNeedsAction: boolean): str
   }
 
   return "你已提交，等待所有玩家亮招。";
+}
+
+function buildPresentationTableEffects(cues: BattlePresentationCue[]): TableEffect[] {
+  return cues
+    .filter((cue) => cue.sourceId && cue.targetIds.length > 0 && cue.vfx !== "none")
+    .map((cue) => ({
+      id: `cue-${cue.id}`,
+      type: effectTypeForCue(cue),
+      color: effectColorForCue(cue),
+      duration: Math.max(900, cue.durationMs),
+      targetType: cue.targetIds.length > 1 ? "all" : "single",
+      sourceId: cue.sourceId,
+      targetIds: cue.targetIds,
+      label: cue.label
+    }));
+}
+
+function effectTypeForCue(cue: BattlePresentationCue): SkillEffectType {
+  switch (cue.vfx) {
+    case "shield-spark":
+      return "shield";
+    case "reflect-arc":
+      return "beam";
+    case "heal-pulse":
+      return "heal";
+    case "single-hit":
+      return "damage";
+    case "shatter":
+      return "storm";
+    case "defeat-fade":
+      return "curse";
+    case "area-burst":
+    case "skill-sigil":
+      return "burst";
+    case "system-pulse":
+    case "none":
+      return "burst";
+  }
+}
+
+function effectColorForCue(cue: BattlePresentationCue): string {
+  switch (cue.vfx) {
+    case "shield-spark":
+      return "#3b82f6";
+    case "reflect-arc":
+      return "#8b5cf6";
+    case "heal-pulse":
+      return "#22c55e";
+    case "single-hit":
+      return "#ef4444";
+    case "area-burst":
+      return "#f97316";
+    case "shatter":
+      return "#facc15";
+    case "defeat-fade":
+      return "#c084fc";
+    case "skill-sigil":
+      return "#14b8a6";
+    case "system-pulse":
+    case "none":
+      return "#88f7db";
+  }
 }
 
 function buildResourceDeltas(
