@@ -24,7 +24,7 @@ bing-card-game/
         socket.ts           # Socket 通信契约
         types.ts            # 核心类型
   scripts/
-    import-skills.py        # 从根目录 xlsx 导入技能表
+    import-skills.py        # 从 docs/archive xlsx 导入技能表
   docs/
     ARCHITECTURE.md
 ```

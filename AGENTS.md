@@ -25,7 +25,7 @@ npm run typecheck
 # Run rule regression tests
 npm run test:rules
 
-# Regenerate skill catalog from the xlsx spreadsheet in the repo root
+# Regenerate skill catalog from the xlsx spreadsheet in docs/archive
 npm run import:skills
 
 # AI self-play training
@@ -65,7 +65,7 @@ Key files:
 | `engine/validation.ts` | Action validation before a submission is accepted |
 | `state/machine.ts` | `shouldFinishGame` and phase transition logic |
 | `skills/registry.ts` | `implementedSkills` — register skill hooks here |
-| `skills/generatedSkillCatalog.ts` | **Auto-generated** from the xlsx spreadsheet; never edit manually |
+| `skills/generatedSkillCatalog.ts` | **Auto-generated** from the xlsx spreadsheet in `docs/archive/`; never edit manually |
 | `skills/types.ts` | `SkillDefinition`, `SkillHooks`, `SkillPlayDefinition` types |
 | `skills/phases.ts` | Maps skill timing strings to `SkillTimingPhase` values |
 | `socket.ts` | Typed Socket.IO event contracts (both directions) |

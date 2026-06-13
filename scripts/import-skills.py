@@ -41,9 +41,15 @@ def resolve_source() -> Path:
             return matches[0]
         raise SystemExit(f"No .xlsx skill file matched {pattern}")
 
-    files = sorted(path for path in ROOT.glob("*.xlsx") if not path.name.startswith("~$"))
+    search_roots = [ROOT / "docs" / "archive", ROOT]
+    files = sorted(
+        path
+        for search_root in search_roots
+        for path in search_root.glob("*.xlsx")
+        if not path.name.startswith("~$")
+    )
     if not files:
-        raise SystemExit("No .xlsx skill file found in project root")
+        raise SystemExit("No .xlsx skill file found in docs/archive or project root")
     return sorted(files, key=skill_source_sort_key)[0]
 
 
