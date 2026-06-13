@@ -12,9 +12,9 @@
 - 绑定准备：每角色 `17` 根骨骼 guide armature 与 `rig-guide.png`；LOD0 GLB 已有 first-pass rigid skin weights，可由预览关键帧 clips 驱动，并导出 `skin-preview-attack / skill / hit / down` 蒙皮 QA 图；图中的琥珀骨架是目标姿态 overlay，用来检查 mesh 跟随、穿插和折断感，仍需手工权重绘制
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、服装层次和职业道具
 - 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
-- PBR 贴图目录：`apps/client/public/assets/characters/materials/pbr`，当前 `96` 张 PNG
+- PBR 贴图目录：`apps/client/public/assets/characters/materials/pbr`，当前 `117` 张 PNG
 - 材质近景 QA：`apps/client/public/assets/characters/materials/material-qa.png`
-- 面部近景 QA：每角色 `face-detail.png`，用于检查眼球湿润高光、皮肤毛孔/小斑点、唇部阴影和面具磨损。
+- 面部近景 QA：每角色 `face-detail.png`，用于检查分层眼睛、虹膜/角膜高光、眼球湿润高光、皮肤毛孔/小斑点、唇部阴影和面具磨损。
 - 预算：LOD0 不超过 35000 faces；LOD1 不超过 12000 faces
 
 | id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
@@ -28,7 +28,7 @@
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、眼球湿润高光、皮肤毛孔/小斑点、唇部阴影、面部近景 QA、发型/头饰、服装层次、职业道具、guide armature、first-pass rigid skin weights、骨骼驱动蒙皮 QA、预览动画 clips、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、分层眼睛、虹膜/角膜材质、眼球湿润高光、皮肤毛孔/小斑点、唇部阴影、面部近景 QA、发型/头饰、服装层次、职业道具、guide armature、first-pass rigid skin weights、骨骼驱动蒙皮 QA、预览动画 clips、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
 - 仍不足：还没有真实高模雕刻、手工/烘焙贴图、精细权重绘制和可播放精修动画；当前 LOD0 GLB 已有 skinned mesh 与 `idle / attack / defend / skill / hit / down` 预览动作，但 `skin-preview-*` 仍显示 mesh 跟随不足，动作质量还不能当最终游戏动画。
 
 ## 运行时验收

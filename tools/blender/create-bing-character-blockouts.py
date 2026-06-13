@@ -467,10 +467,7 @@ def add_face(collection, root, spec: CharacterSpec) -> None:
     add_ear_anatomy(collection, root, spec, 1, skin_shadow, skin_highlight)
     add_ellipsoid(collection, root, f"{spec.character_id}_left_eye_socket", (-0.038, -0.101, 1.758), (0.029, 0.008, 0.017), skin_shadow)
     add_ellipsoid(collection, root, f"{spec.character_id}_right_eye_socket", (0.038, -0.101, 1.758), (0.029, 0.008, 0.017), skin_shadow)
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_eye", (-0.038, -0.109, 1.758), (0.013, 0.0045, 0.008), eye)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_eye", (0.038, -0.109, 1.758), (0.013, 0.0045, 0.008), eye)
-    add_ellipsoid(collection, root, f"{spec.character_id}_left_pupil", (-0.038, -0.113, 1.758), (0.0045, 0.002, 0.0045), black)
-    add_ellipsoid(collection, root, f"{spec.character_id}_right_pupil", (0.038, -0.113, 1.758), (0.0045, 0.002, 0.0045), black)
+    add_layered_eyes(collection, root, spec, eye, black)
     add_box(collection, root, f"{spec.character_id}_left_upper_eyelid", (-0.038, -0.116, 1.767), (0.025, 0.0035, 0.0045), skin_shadow, rotation=(0, 0, math.radians(-5)))
     add_box(collection, root, f"{spec.character_id}_right_upper_eyelid", (0.038, -0.116, 1.767), (0.025, 0.0035, 0.0045), skin_shadow, rotation=(0, 0, math.radians(5)))
     add_box(collection, root, f"{spec.character_id}_left_lower_eyelid", (-0.038, -0.115, 1.749), (0.021, 0.003, 0.0035), skin_highlight, rotation=(0, 0, math.radians(4)))
@@ -489,7 +486,35 @@ def add_face(collection, root, spec: CharacterSpec) -> None:
     add_ellipsoid(collection, root, f"{spec.character_id}_lower_lip", (0, -0.125, 1.642), (0.03, 0.0045, 0.006), lip)
     add_ellipsoid(collection, root, f"{spec.character_id}_chin_plane", (0, -0.108, 1.615), (0.045, 0.009, 0.018), skin_shadow)
     add_face_micro_landmarks(collection, root, spec, skin_shadow, skin_highlight, lip)
-    add_face_realism_details(collection, root, spec, skin_shadow, skin_highlight, lip, eye, black)
+    add_face_realism_details(collection, root, spec, skin_shadow, skin_highlight, lip, eye)
+
+
+def add_layered_eyes(collection, root, spec: CharacterSpec, sclera, black) -> None:
+    iris = mat(f"{spec.character_id}_iris_tint", iris_color(spec), roughness=0.24, detail="polished")
+    limbal = bpy.data.materials.get("eye_limbal_ring") or mat("eye_limbal_ring", "#15100d", roughness=0.42, detail="polished")
+    cornea = bpy.data.materials.get("eye_clear_cornea") or mat("eye_clear_cornea", "#f7fff7", roughness=0.08, emission=0.08, detail="polished")
+    tear = bpy.data.materials.get("tearline_wet_edge") or mat("tearline_wet_edge", "#f3d7c3", roughness=0.34, detail="polished")
+
+    for side in [-1, 1]:
+        label = "right" if side > 0 else "left"
+        x = 0.038 * side
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_sclera", (x, -0.109, 1.758), (0.014, 0.0048, 0.0084), sclera)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_limbal_ring", (x, -0.1132, 1.758), (0.0084, 0.0011, 0.0058), limbal)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_iris", (x, -0.1142, 1.758), (0.0066, 0.001, 0.0048), iris)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_pupil", (x, -0.1153, 1.758), (0.0032, 0.0008, 0.0032), black)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_cornea_dome", (x - 0.0022 * side, -0.1164, 1.7615), (0.005, 0.0007, 0.0026), cornea)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_inner_tear_well", (0.0205 * side, -0.1168, 1.755), (0.004, 0.0008, 0.0032), tear)
+
+
+def iris_color(spec: CharacterSpec) -> str:
+    return {
+        "shield": "#72523a",
+        "jade": "#2aa89b",
+        "blade": "#7760c8",
+        "pan": "#9a6a2d",
+        "vial": "#8b3f52",
+        "mask": "#7f9db7",
+    }.get(spec.prop, "#72523a")
 
 
 def add_sculpted_face_mesh(
@@ -610,7 +635,7 @@ def add_face_micro_landmarks(collection, root, spec: CharacterSpec, skin_shadow,
     add_ellipsoid(collection, root, f"{spec.character_id}_chin_highlight", (0, -0.128, 1.612), (0.018, 0.0018, 0.0035), skin_highlight)
 
 
-def add_face_realism_details(collection, root, spec: CharacterSpec, skin_shadow, skin_highlight, lip, eye, black) -> None:
+def add_face_realism_details(collection, root, spec: CharacterSpec, skin_shadow, skin_highlight, lip, eye) -> None:
     pore_mat = bpy.data.materials.get("skin_pore_soft") or mat("skin_pore_soft", "#9d6655", roughness=0.9, detail="skin")
     catchlight = bpy.data.materials.get("eye_wet_catchlight") or mat("eye_wet_catchlight", "#f8fff2", roughness=0.14, emission=0.12, detail="polished")
     tear_mat = bpy.data.materials.get("tearline_wet_edge") or mat("tearline_wet_edge", "#f3d7c3", roughness=0.34, detail="polished")
@@ -629,7 +654,7 @@ def add_face_realism_details(collection, root, spec: CharacterSpec, skin_shadow,
         add_ellipsoid(collection, root, f"{spec.character_id}_{label}_tearline_wet_edge", (0.038 * side, -0.1195, 1.747), (0.022, 0.0012, 0.0022), tear_mat)
         add_ellipsoid(collection, root, f"{spec.character_id}_{label}_lower_lid_volume", (0.039 * side, -0.128, 1.742), (0.023, 0.002, 0.004), skin_shadow)
         add_ellipsoid(collection, root, f"{spec.character_id}_{label}_upper_lid_volume", (0.04 * side, -0.127, 1.773), (0.027, 0.002, 0.004), skin_shadow)
-        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_sclera_shadow", (0.049 * side, -0.116, 1.756), (0.006, 0.001, 0.006), black)
+        add_ellipsoid(collection, root, f"{spec.character_id}_{label}_outer_eye_corner_shadow", (0.052 * side, -0.119, 1.756), (0.0032, 0.0009, 0.0035), skin_shadow)
 
     pore_points = [
         (-0.055, 1.707, 0.0),
@@ -1073,7 +1098,7 @@ def skin_bone_for_object(obj: bpy.types.Object, spec: CharacterSpec) -> str | No
         return f"shin{side or ('.L' if location.x < 0 else '.R')}"
     if any(token in name for token in ("thigh", "knee")):
         return f"thigh{side or ('.L' if location.x < 0 else '.R')}"
-    if any(token in name for token in ("head", "face", "eye", "pupil", "eyelid", "ear", "nose", "cheek", "mouth", "lip", "brow", "chin", "jaw", "hair", "mask", "lens", "forehead", "pore", "tearline", "sclera", "scar")):
+    if any(token in name for token in ("head", "face", "eye", "pupil", "iris", "limbal", "cornea", "eyelid", "ear", "nose", "cheek", "mouth", "lip", "brow", "chin", "jaw", "hair", "mask", "lens", "forehead", "pore", "tearline", "sclera", "scar")):
         return "head"
     if "neck" in name:
         return "neck"
