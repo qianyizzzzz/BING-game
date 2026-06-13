@@ -128,5 +128,6 @@ Deliverable:
 下一步：
 
 - 断线重连和多人集火 playtest。
+- 行动可读性与复杂技能结算摘要：`workflow/tasks/TASK-004-readability-and-skill-summary.md`。
 - 技能参数二级抽屉。
 - 许可证、资产权属和公开发布说明。

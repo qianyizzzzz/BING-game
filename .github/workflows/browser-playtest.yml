@@ -9,7 +9,7 @@ jobs:
   ui-agents:
     name: UI agents
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
 
     steps:
       - name: Checkout
@@ -29,6 +29,9 @@ jobs:
 
       - name: Run UI playtest agents
         run: npm run test:ui-agents
+
+      - name: Run complex skill UI playtest agents
+        run: npm run test:ui-agents:complex
 
       - name: Upload playtest artifacts
         if: always()

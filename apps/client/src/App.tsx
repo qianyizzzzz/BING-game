@@ -162,6 +162,25 @@ export function App() {
   );
   const submittedCount = state?.pendingActionPlayerIds.length ?? 0;
   const passCount = state?.actionWindowPassPlayerIds.length ?? 0;
+  const viewerSubmitted = Boolean(
+    state &&
+      identity &&
+      state.phase === "collecting_actions" &&
+      state.pendingActionPlayerIds.includes(identity.playerId)
+  );
+  const statusPillLabel = !state
+    ? ""
+    : state.phase === "lobby"
+      ? "房间等待中"
+      : state.phase === "finished"
+        ? "游戏结束"
+        : state.phase === "action_window"
+          ? state.activeTimingPhase === "revival_action"
+            ? "复活阶段"
+            : "行动窗口"
+          : viewerSubmitted
+            ? "等待亮招"
+            : "请选择行动";
   const missingStartPlayers = state?.phase === "lobby"
     ? Math.max(0, MIN_PLAYERS - seatedCount)
     : 0;
@@ -929,15 +948,7 @@ export function App() {
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                   <div className="status-pill w-fit">
-                    {state.phase === "lobby"
-                      ? "房间等待中"
-                      : state.phase === "finished"
-                        ? "游戏结束"
-                        : state.phase === "action_window"
-                          ? state.activeTimingPhase === "revival_action"
-                            ? "复活阶段"
-                            : "行动窗口"
-                          : "正在收招"}
+                    {statusPillLabel}
                   </div>
                   <div className="mt-1 text-xl font-bold text-gray-950">
                     {state.phase === "lobby" ? "房间准备 · 等待开始" : `第 ${state.roundNumber} 轮 · 本轮第 ${state.roundTurnNumber} 回合`}

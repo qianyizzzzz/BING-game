@@ -7,6 +7,8 @@ import {
   MAX_BATTLE_STEPS,
   STEP_DURATION_MS,
   buildBattleStepForEvent,
+  targetIdsForPlayerAction,
+  targetIdsForSkillEvent,
   type BattleBeat,
   type BattleSoundCue,
   type BattleStep,
@@ -80,7 +82,7 @@ export function buildBattlePresentation(events: GameEvent[], state: PublicGameSt
       continue;
     }
 
-    const cue = buildPresentationCue(event, step, cursorMs);
+    const cue = buildPresentationCue(event, step, state, cursorMs);
     cues.push(cue);
     cursorMs += cue.durationMs;
 
@@ -95,10 +97,11 @@ export function buildBattlePresentation(events: GameEvent[], state: PublicGameSt
 export function buildPresentationCue(
   event: GameEvent,
   step: BattleStep,
+  state: PublicGameState,
   startMs = 0
 ): BattlePresentationCue {
   const profile = BEAT_PROFILES[step.beat];
-  const participants = eventParticipants(event);
+  const participants = eventParticipants(event, state);
   return {
     id: step.id,
     eventType: event.type,
@@ -119,7 +122,10 @@ export function buildPresentationCue(
   };
 }
 
-function eventParticipants(event: GameEvent): { sourceId?: PlayerId | undefined; targetIds: PlayerId[] } {
+function eventParticipants(
+  event: GameEvent,
+  state: PublicGameState
+): { sourceId?: PlayerId | undefined; targetIds: PlayerId[] } {
   switch (event.type) {
     case "damage":
       return { sourceId: event.sourceId, targetIds: [event.targetId] };
@@ -137,8 +143,18 @@ function eventParticipants(event: GameEvent): { sourceId?: PlayerId | undefined;
       return { sourceId: event.attackerAId, targetIds: [event.attackerBId] };
     case "skill_revealed":
     case "skill_used":
+      return {
+        sourceId: event.playerId,
+        targetIds: targetIdsForSkillEvent(
+          state,
+          event.playerId,
+          event.skillId,
+          event.turnNumber,
+          event.roundNumber
+        )
+      };
     case "action_switched":
-      return { sourceId: event.playerId, targetIds: [] };
+      return { sourceId: event.playerId, targetIds: targetIdsForPlayerAction(event.after) };
     case "player_died":
       return { sourceId: event.sourceId, targetIds: [event.playerId] };
     case "game_finished":

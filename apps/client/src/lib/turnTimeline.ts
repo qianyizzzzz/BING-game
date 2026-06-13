@@ -1,6 +1,8 @@
 import {
   DEFEAT_LEVEL_LABELS,
   GameEvent,
+  PlayerAction,
+  PlayerId,
   PublicGameState
 } from "@bing/shared";
 import { playerName } from "./format";
@@ -229,6 +231,14 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
 
   if (event.type === "skill_used") {
     const source = playerRef(state, event.playerId);
+    const targetIds = targetIdsForSkillEvent(
+      state,
+      event.playerId,
+      event.skillId,
+      event.turnNumber,
+      event.roundNumber
+    );
+    const targetLabel = targetLabelForIds(state, targetIds, "战场");
     return {
       id: event.id,
       kind: "skill",
@@ -236,14 +246,25 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
       soundCue: "skill",
       sourceName: source.name,
       sourceAvatarUrl: source.avatarUrl,
-      targetName: "战场",
+      targetName: targetLabel,
       label: event.skillName,
-      description: `${source.name} 触发 ${event.skillName}（${event.reason}）`
+      description:
+        targetIds.length > 0
+          ? `${source.name} 对 ${targetLabel} 触发 ${event.skillName}（${event.reason}）`
+          : `${source.name} 触发 ${event.skillName}（${event.reason}）`
     };
   }
 
   if (event.type === "skill_revealed") {
     const source = playerRef(state, event.playerId);
+    const targetIds = targetIdsForSkillEvent(
+      state,
+      event.playerId,
+      event.skillId,
+      event.turnNumber,
+      event.roundNumber
+    );
+    const targetLabel = targetLabelForIds(state, targetIds, "技能");
     return {
       id: event.id,
       kind: "skill",
@@ -251,7 +272,7 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
       soundCue: "skill",
       sourceName: source.name,
       sourceAvatarUrl: source.avatarUrl,
-      targetName: "技能",
+      targetName: targetLabel,
       label: event.skillName,
       description: `${source.name} 暴露了 ${event.skillName}（${event.reason}）`
     };
@@ -259,6 +280,8 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
 
   if (event.type === "action_switched") {
     const source = playerRef(state, event.playerId);
+    const targetIds = targetIdsForPlayerAction(event.after);
+    const targetLabel = targetLabelForIds(state, targetIds, "出招");
     return {
       id: event.id,
       kind: "skill",
@@ -266,9 +289,12 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
       soundCue: "skill",
       sourceName: source.name,
       sourceAvatarUrl: source.avatarUrl,
-      targetName: "出招",
+      targetName: targetLabel,
       label: event.skillName,
-      description: `${source.name} 使用 ${event.skillName} 改写出招`
+      description:
+        targetIds.length > 0
+          ? `${source.name} 使用 ${event.skillName} 改写出招，目标 ${targetLabel}`
+          : `${source.name} 使用 ${event.skillName} 改写出招`
     };
   }
 
@@ -332,6 +358,71 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
   }
 
   return null;
+}
+
+export function targetIdsForSkillEvent(
+  state: PublicGameState,
+  playerId: PlayerId,
+  skillId: string,
+  turnNumber?: number,
+  roundNumber?: number
+): PlayerId[] {
+  const plan =
+    state.revealedActions?.[playerId] ??
+    findRevealedActionPlan(state, playerId, turnNumber, roundNumber);
+  const action = plan?.actions.find(
+    (candidate) => candidate.type === "skill" && candidate.skillId === skillId
+  );
+  return action ? targetIdsForPlayerAction(action) : [];
+}
+
+export function targetIdsForPlayerAction(action: PlayerAction | undefined): PlayerId[] {
+  if (!action) {
+    return [];
+  }
+
+  if (action.type === "attack" || action.type === "defense") {
+    return uniqueTargetIds([action.targetId]);
+  }
+
+  if (action.type === "skill") {
+    return uniqueTargetIds([...(action.targetIds ?? []), action.targetId]);
+  }
+
+  return [];
+}
+
+function targetLabelForIds(state: PublicGameState, targetIds: PlayerId[], fallback: string): string {
+  return targetIds.length > 0
+    ? targetIds.map((id) => playerName(state, id)).join("、")
+    : fallback;
+}
+
+function uniqueTargetIds(ids: Array<PlayerId | undefined>): PlayerId[] {
+  return [...new Set(ids.filter((id): id is PlayerId => Boolean(id)))];
+}
+
+function findRevealedActionPlan(
+  state: PublicGameState,
+  playerId: PlayerId,
+  turnNumber: number | undefined,
+  roundNumber: number | undefined
+) {
+  for (let index = state.eventLog.length - 1; index >= 0; index -= 1) {
+    const event = state.eventLog[index];
+    if (event?.type !== "turn_revealed") {
+      continue;
+    }
+    if (turnNumber !== undefined && event.turnNumber !== turnNumber) {
+      continue;
+    }
+    if (roundNumber !== undefined && event.roundNumber !== roundNumber) {
+      continue;
+    }
+    return event.actions[playerId];
+  }
+
+  return undefined;
 }
 
 function playerRef(

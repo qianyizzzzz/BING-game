@@ -49,7 +49,7 @@ const reveal: Extract<GameEvent, { type: "turn_revealed" }> = {
   ...baseEvent("reveal"),
   type: "turn_revealed",
   actions: {
-    p1: { actions: [{ type: "attack", attackId: "sha", stacks: 1, targetId: "p2" }] },
+    p1: { actions: [{ type: "skill", skillId: "skill_alpha", stacks: 1, targetId: "p2" }] },
     p2: { actions: [{ type: "defense", defense: "small" }] }
   }
 };
@@ -288,6 +288,10 @@ for (const item of cases) {
   assert.ok(cue.durationMs > 0, `${item.name} presentation duration`);
   assert.ok(cue.intensity >= 0 && cue.intensity <= 1, `${item.name} presentation intensity`);
   assert.ok(cue.vfx !== "none", `${item.name} presentation vfx`);
+  if (item.name === "skill used") {
+    assert.equal(step.targetName, "玩家二", "skill used target label");
+    assert.deepEqual(cue.targetIds, ["p2"], "skill used presentation targets");
+  }
 }
 
 const broadcast = findLatestBroadcast([reveal, ...cases.map((item) => item.event)]);

@@ -1276,6 +1276,13 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     if (summaryTargetIds.length > 0 && Number(summary.targetCount) !== summaryTargetIds.length) {
       throw new Error(`新手结算摘要目标计数不一致：${JSON.stringify(summary)}`);
     }
+    if (
+      config.complexSkills &&
+      [readout.text, summary.text, summary.actionLabel].some((text) => text.includes("火箭")) &&
+      Math.max(cueTargetIds.length, activeTargetIds.length, summaryTargetIds.length) < 2
+    ) {
+      throw new Error(`火箭复杂技能结算缺少双目标绑定：${JSON.stringify({ cue, director, summary })}`);
+    }
 
     const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}，新手摘要=${summary.kind}/${summary.actionLabel}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, cueTargets=${cueTargetIds.length}, cueTargetSeats=${cueTargetSeatCount}, pokerTableCueTargetSeats=${pokerTableCueTargetSeatCount}, cueTargetDomSeats=${cueTargetDomSeatCount}, activeTargets=${activeTargetIds.length}, summaryTargets=${summaryTargetIds.length}, mappedActiveTargets=${mappedTargetSeatCount}, highlightedTargets=${directorTargetSeatCount}, seats=${directorSeatCount}）。`;
     visualChecks.push(message);

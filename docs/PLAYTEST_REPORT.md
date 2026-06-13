@@ -1,8 +1,8 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-13  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T20-34-01-651Z/report.md`
-最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T20-27-09-434Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T21-00-22-591Z/report.md`
+最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T20-56-42-947Z/report.md`
 最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T17-16-00-934Z/report.md`
 
 ## 结论
@@ -68,7 +68,7 @@
 当前通过项：
 
 - `npm run test:ui-agents` 最近一次通过，无 console error、无 failed action、无视觉 QA 告警。
-- `npm run test:ui-agents:complex` 最近一次通过，覆盖“单房主 + 2 个 AI 对手”的火箭双目标技能 smoke，HUD 目标数 2，座位映射 2/2。
+- `npm run test:ui-agents:complex` 最近一次通过，覆盖“单房主 + 2 个 AI 对手”的火箭双目标技能 smoke，HUD 目标数 2，座位映射 2/2，结算 cueTargets=2、summaryTargets=2。
 - `npm run test:ui-agents` 和 `npm run test:character-browser` 会先执行 `npm run build -w @bing/client`，避免浏览器验收使用过期 `apps/client/dist`。
 - 双端 canvas 正常渲染，并检测到运行时 LOD0 animated GLB 成功加载。
 - UI agent 已覆盖目标预览、沿用上回合、遮挡检查、结算 cue、cue target 到座位的映射。
@@ -120,3 +120,17 @@ UI 优化方法：
 - `scripts/ui-playtest-agents.ts` 增加 lobby 文案回归检查，并把第三回合流程稳定为“新手攻击、竞技玩家吃饼承压”。
 - 行动面板顶部新增“下一步 / 目标 / 状态”HUD，明确是否可提交和不可提交原因；UI agent 会检查目标数、目标 id 和 ready 状态。
 - 行动面板底部新增 portal HUD 命令区，“沿用上回合 / 提交”固定在视窗内；UI agent 会检查按钮可见性和 44px 触控高度。
+
+## 2026-06-14 凌晨子智能体复审
+
+- 新手玩家 Agent：优先修正可行动阶段文案，避免“正在收招”让人误解为结算中；技能提交和结算摘要必须显示技能名与目标；禁用提交时需要“原因 + 补救动作”。
+- 竞技玩家 Agent：火箭等目标型技能必须在提交、亮招、摘要和 VFX 阶段保留 source/target；下一步做上一招、HP/饼 delta、威胁阈值和 2/3/4/6 人平衡遥测。
+- 开发商/QA Agent：受控公网试玩可以继续，但公开 demo 前要收紧生产 Origin、清理 public 资产边界、补 LICENSE/资产权属、持久化备份和发布产物审计。
+- 美术总监 Agent：角色与桌面仍偏 WIP；P0 是技能 VFX target 绑定、角色运行时可读尺寸、桌面中心遮挡控制和 6 角色浏览器报告口径。
+
+本轮已落实：
+
+- 行动状态 pill 从“正在收招”改为“请选择行动 / 等待亮招”，降低新手误解。
+- 技能攻击提交按钮显示具体技能名，例如“提交：火箭”，并暴露 `data-submit-label` 供 UI agent 检查。
+- `BattleDirector` / readout / summary 从同回合 `turn_revealed.actions` 反查技能目标，火箭复杂技能已验证 `cueTargets=2`、`summaryTargets=2`。
+- 夜间 Browser Playtest workflow 已加入 `npm run test:ui-agents:complex`。

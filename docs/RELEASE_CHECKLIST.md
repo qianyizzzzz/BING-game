@@ -2,7 +2,7 @@
 
 日期：2026-06-13
 
-当前结论：项目适合受控公网试玩；正式公开发布前仍需补复杂技能浏览器门禁、安全白名单、持久化策略、许可证和资产权属。
+当前结论：项目适合受控公网试玩；正式公开发布前仍需补断线重连/多人集火浏览器门禁、安全白名单、持久化策略、许可证和资产权属。
 
 ## 1. Clean Clone 验证
 
@@ -11,8 +11,8 @@
 - 运行 `npm ci`。
 - 运行 `npm run build`。
 - 运行 `npm run test:ci`。
-- 本地需要浏览器验收时运行 `npm run test:ui-agents` 和 `npm run test:character-browser`。
-- GitHub Actions 可夜间运行 UI agents，并可手动运行角色浏览器验收；报告和截图会作为 artifacts 上传。
+- 本地需要浏览器验收时运行 `npm run test:ui-agents`、`npm run test:ui-agents:complex` 和 `npm run test:character-browser`。
+- GitHub Actions 可夜间运行默认 UI agents 与复杂技能 smoke，并可手动运行角色浏览器验收；报告和截图会作为 artifacts 上传。
 
 通过标准：构建和测试均通过；Vite 大 chunk 警告可接受，但需要记录为后续性能优化项。
 
@@ -20,6 +20,7 @@
 
 - 运行 `npm run dev`，确认前端 `5173` 和后端 `3001` 可访问。
 - 创建房间、加入房间、开始游戏、提交三回合行动。
+- 运行复杂技能 smoke，确认火箭双目标 HUD 和座位映射仍通过。
 - 检查 3D canvas、角色 GLB、目标预览、新手结算摘要、控制台错误。
 
 通过标准：无 console/page error，无 UI agent 视觉告警。
@@ -64,8 +65,8 @@ docker run -p 3001:3001 -v bing-data:/app/data bing-card-game
 
 - 补充正式 `LICENSE` 和资产权属说明。
 - 明确角色 GLB、贴图、截图、技能表来源。
-- 清理公开战斗画面中的 placeholder 网络请求。
-- 扩展浏览器级 CI：把复杂技能链、断线重连和多人集火加入可选 workflow，并上传报告和截图。
+- 保持公开战斗画面没有 `/assets/placeholders/` 网络请求。
+- 扩展浏览器级 CI：复杂技能 smoke 已纳入夜间 workflow；继续把响应窗口、断线重连和多人集火加入可选 workflow，并上传报告和截图。
 - 做一次移动端 360px/375px/390px/430px 截图 QA。
 
 通过标准：阻断项全部关闭后，才把项目描述从“受控试玩”改为“公开发布”。

@@ -45,6 +45,15 @@
 | 开发商 Agent | 当前适合受控公网试玩，不适合正式公开发布；浏览器 CI、发布清单、环境变量、Node 版本、安全白名单、备份和许可证仍缺。 | 下一步新增 `docs/RELEASE_CHECKLIST.md`，统一 `.env.example` 和 Node 版本口径。 |
 | 美术总监 Agent | 角色运行时偏小、剪影差异不足。 | 已落地运行时 LOD 选择和 placeholder 网络请求清理；下一步做角色尺寸/遮挡验收。 |
 
+## 2026-06-14 凌晨子智能体追加评审
+
+| 视角 | P0 / P1 发现 | 已处理 / 下一步 |
+| --- | --- | --- |
+| 新手玩家 Agent | 可行动阶段不能写成“正在收招”；技能提交和结算摘要必须保留技能名、目标和补救动作。 | 已改为“请选择行动 / 等待亮招”，技能提交显示“提交：火箭”等具体名称；下一步补禁用原因的补救动作和前三回合 HP/饼 delta。 |
+| 竞技玩家 Agent | 火箭等目标型技能在提交时有目标，但结算/VFX 若丢 target，会破坏竞技读局。 | 已让 `BattleDirector` / readout / summary 从 `turn_revealed.actions` 反查目标；复杂 smoke 已验证 cueTargets=2、summaryTargets=2。 |
+| 开发商 / QA Agent | 公开 demo 前要处理生产 Origin、public 资产边界、LICENSE/资产权属、持久化备份和发布产物审计。 | Browser Playtest workflow 已加入 complex smoke；下一步做 `verify:release`、dist 资产审计和 socket 重连/观战场景。 |
+| 美术总监 Agent | 桌面中心仍被网页卡片感挤压，角色存在感和技能落点还不够像游戏舞台。 | 下一步做目标线/落点 VFX、角色 bbox 尺寸门禁、桌面中心遮挡预算和 6 角色浏览器报告口径。 |
+
 ## 1. UI 优化方法
 
 ### 已有优势

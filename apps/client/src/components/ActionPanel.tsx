@@ -789,14 +789,15 @@ export function ActionPanel({
       : mode === "gain_cake"
         ? "自己"
         : "无需目标";
+  const attackSubmitName = submitNameForAttackRows(attackRows);
   const submitLabel =
     mode === "gain_cake"
       ? "提交：吃饼 +1"
       : mode === "defense"
         ? "提交：防御"
         : mode === "attack"
-          ? "提交：攻击"
-          : "提交：技能";
+          ? `提交：${attackSubmitName}`
+          : `提交：${selectedSkill?.skill.name ?? "技能"}`;
   const readinessLabel = alreadySubmitted
       ? "已提交，等待亮招"
       : actionInvalid
@@ -2471,6 +2472,7 @@ export function ActionPanel({
           <button
             className="btn-primary action-submit-button w-full justify-center py-3 disabled:cursor-not-allowed disabled:bg-gray-300"
             data-testid="submit-action"
+            data-submit-label={submitLabel}
             disabled={!canAct || submitting || actionInvalid}
             type="submit"
           >
@@ -2979,6 +2981,22 @@ function summarizeActionSelection({
       return `${name}${stacks} -> ${target}`;
     })
     .join(" / ");
+}
+
+function submitNameForAttackRows(attackRows: AttackRow[]): string {
+  const skillNames = attackRows
+    .filter((row) => row.kind === "skill")
+    .map((row) => getSkill(row.skillId)?.name ?? "技能攻击");
+
+  if (skillNames.length === 0) {
+    return "攻击";
+  }
+
+  if (skillNames.length === 1 && attackRows.length === 1) {
+    return skillNames[0] ?? "技能攻击";
+  }
+
+  return "技能连招";
 }
 
 function isAttackRowArea(row: AttackRow): boolean {
