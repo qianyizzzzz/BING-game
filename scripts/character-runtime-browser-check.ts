@@ -32,6 +32,13 @@ interface CharacterRuntimeResult {
 }
 
 const config = readConfig();
+const selectedCharacterIds = readSelectedCharacterIds();
+const activeRoster = selectedCharacterIds
+  ? CHARACTER_ROSTER.filter((character) => selectedCharacterIds.has(character.id))
+  : CHARACTER_ROSTER;
+const unknownCharacterIds = selectedCharacterIds
+  ? [...selectedCharacterIds].filter((id) => !CHARACTER_ROSTER.some((character) => character.id === id))
+  : [];
 const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 const runDir = path.resolve(config.outDir, `character-runtime-${timestamp}`);
 const failures: string[] = [];
@@ -40,6 +47,10 @@ let serverProcess: ChildProcess | undefined;
 
 fs.mkdirSync(runDir, { recursive: true });
 
+if (unknownCharacterIds.length > 0) {
+  failures.push(`unknown character filter: ${unknownCharacterIds.join(", ")}`);
+}
+
 if (config.autoServe) {
   serverProcess = await startServer(config.url);
 }
@@ -47,7 +58,7 @@ if (config.autoServe) {
 try {
   const browser = await chromium.launch({ headless: true });
   try {
-    for (const [index, character] of CHARACTER_ROSTER.entries()) {
+    for (const [index, character] of activeRoster.entries()) {
       results.push(await verifyCharacter(browser, character, index));
     }
   } finally {
@@ -68,7 +79,7 @@ if (failures.length > 0) {
   console.error(`report - ${reportPath}`);
   process.exitCode = 1;
 } else {
-  console.log(`character runtime browser check passed: ${CHARACTER_ROSTER.length} characters`);
+  console.log(`character runtime browser check passed: ${activeRoster.length} characters`);
   console.log(`report - ${reportPath}`);
 }
 
@@ -77,7 +88,7 @@ async function verifyCharacter(
   character: CharacterProfile,
   index: number
 ): Promise<CharacterRuntimeResult> {
-  const expectedModel = path.basename(new URL(character.lod1ModelUrl, config.url).pathname);
+  const expectedModel = path.basename(new URL(character.modelUrl, config.url).pathname);
   const consoleIssues: string[] = [];
   const observedModels = new Set<string>();
   const hostContext = await browser.newContext({ viewport: { width: 1280, height: 860 } });
@@ -637,6 +648,20 @@ function readConfig(): RunConfig {
     outDir: outArg?.slice("--out=".length) || path.resolve("artifacts", "playtests"),
     url: urlArg?.slice("--url=".length) || process.env.BING_PLAYTEST_URL || "http://localhost:3001"
   };
+}
+
+function readSelectedCharacterIds(): Set<string> | undefined {
+  const characterArg = process.argv.find((arg) => arg.startsWith("--character="));
+  if (!characterArg) {
+    return undefined;
+  }
+
+  const selected = characterArg
+    .slice("--character=".length)
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+  return selected.length > 0 ? new Set(selected) : undefined;
 }
 
 function errorMessage(error: unknown): string {

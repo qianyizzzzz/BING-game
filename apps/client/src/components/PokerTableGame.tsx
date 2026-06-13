@@ -7,6 +7,7 @@ import {
   PublicGameState
 } from "@bing/shared";
 import { battleDirectorSeatRole, useBattleDirector } from "../lib/battleDirector";
+import { formatDamage } from "../lib/format";
 import { buildSeatFeedbackMap, buildTableEffects } from "../lib/tableFeedback";
 import { PlayerSeat, SeatPosition } from "./PlayerSeat";
 import { SkillEffectLayer } from "./SkillEffectLayer";
@@ -45,6 +46,19 @@ export function PokerTableGame({
   const effects = useMemo(() => buildTableEffects(state), [state]);
   const director = useBattleDirector(state);
   const activeDirectorCue = director.activeCue;
+  const readoutStep = director.visibleStep ?? director.battleSteps[0];
+  const readoutCue = director.visibleCue ?? director.firstCue;
+  const readoutTargetIds = readoutCue?.targetIds ?? [];
+  const readoutProgress =
+    director.isPlaying && director.battleSteps.length > 0
+      ? `结算 ${director.activeStepIndex + 1}/${director.battleSteps.length}`
+      : readoutStep
+        ? "上一轮"
+        : "等待亮招";
+  const readoutAmountLabel =
+    typeof readoutStep?.amount === "number"
+      ? `${readoutStep.kind === "heal" ? "治疗" : "伤害"} ${formatDamage(readoutStep.amount)}`
+      : "";
   const seatedPlayers = state.players.filter((player) => player.kind !== "spectator");
   const activePlayers = seatedPlayers.filter((player) => player.status === "alive");
   const spectators = state.players.filter((player) => player.kind === "spectator");
@@ -224,6 +238,47 @@ export function PokerTableGame({
               <span style={{ width: `${deadlineProgress}%` }} />
             </div>
           ) : null}
+        </div>
+
+        <div
+          className={[
+            "battle-readout",
+            director.isPlaying ? "battle-readout-active" : ""
+          ].join(" ")}
+          data-testid="battle-readout"
+          data-active={director.isPlaying ? "true" : "false"}
+          data-beat={readoutCue?.beat ?? "idle"}
+          data-kind={readoutStep?.kind ?? "idle"}
+          data-source-id={readoutCue?.sourceId ?? ""}
+          data-step-count={director.battleSteps.length}
+          data-target-ids={readoutTargetIds.join(",")}
+          aria-live="polite"
+        >
+          <div className="battle-readout-kicker">
+            <span>{readoutProgress}</span>
+            {readoutAmountLabel ? <strong>{readoutAmountLabel}</strong> : null}
+          </div>
+          {readoutStep ? (
+            <>
+              <h3>{readoutStep.label}</h3>
+              <div className="battle-readout-route">
+                <b>{readoutStep.sourceName}</b>
+                <span aria-hidden="true">→</span>
+                <b>{readoutStep.targetName}</b>
+              </div>
+              <p>{readoutStep.description}</p>
+            </>
+          ) : (
+            <>
+              <h3>暂无结算</h3>
+              <div className="battle-readout-route">
+                <b>桌面</b>
+                <span aria-hidden="true">→</span>
+                <b>等待</b>
+              </div>
+              <p>等待所有玩家亮招。</p>
+            </>
+          )}
         </div>
 
         <SkillEffectLayer effects={effects} seatPositions={seatPositions} />

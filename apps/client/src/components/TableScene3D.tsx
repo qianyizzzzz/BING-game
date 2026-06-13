@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { PlayerId, PublicGameState } from "@bing/shared";
 import type { BattlePresentationCue } from "../lib/battlePresentation";
 import type { CharacterProfile } from "../lib/characters";
@@ -24,6 +25,18 @@ const CHARACTER_COLORS = [
 ];
 const MODEL_TARGET_HEIGHT = 0.92;
 const MODEL_TABLETOP_Y = 0.54;
+const CHARACTER_CLIP_IDS = ["idle", "attack", "defend", "skill", "hit", "down"] as const;
+
+type CharacterClipId = (typeof CHARACTER_CLIP_IDS)[number];
+type LoadedCharacterRuntime = {
+  actions: Map<CharacterClipId, THREE.AnimationAction>;
+  activeAction?: THREE.AnimationAction | undefined;
+  activeClip?: CharacterClipId | undefined;
+  isDead: boolean;
+  mixer?: THREE.AnimationMixer | undefined;
+  playerId: PlayerId;
+  root: THREE.Group;
+};
 
 type OrganicSection = {
   offsetX?: number;
@@ -112,6 +125,7 @@ export function TableScene3D({
     camera.add(firstPersonRig);
 
     const loader = new GLTFLoader();
+    const loadedCharacters: LoadedCharacterRuntime[] = [];
     let disposed = false;
 
     players.forEach((player, index) => {
@@ -132,18 +146,21 @@ export function TableScene3D({
       character.lookAt(0, 0.46, 0);
       scene.add(character);
 
-      loadCharacterAsset(loader, profile, player.status === "dead", player.name)
-        .then((asset) => {
+      loadCharacterAsset(loader, profile, player.status === "dead", player.name, player.id)
+        .then((runtime) => {
           if (disposed) {
-            disposeObjectTree(asset);
+            disposeObjectTree(runtime.root);
+            runtime.mixer?.stopAllAction();
             return;
           }
+          const asset = runtime.root;
           asset.position.copy(character.position);
           asset.position.y = MODEL_TABLETOP_Y;
           asset.quaternion.copy(character.quaternion);
           scene.remove(character);
           disposeObjectTree(character);
           scene.add(asset);
+          loadedCharacters.push(runtime);
         })
         .catch(() => {
           // Keep the procedural fallback when a public GLB cannot be loaded.
@@ -151,6 +168,7 @@ export function TableScene3D({
     });
 
     const startedAt = performance.now();
+    let previousFrameAt = startedAt;
     let frameId = 0;
 
     const resize = () => {
@@ -166,7 +184,10 @@ export function TableScene3D({
     resize();
 
     const render = () => {
-      const time = (performance.now() - startedAt) / 1000;
+      const now = performance.now();
+      const deltaSeconds = Math.min((now - previousFrameAt) / 1000, 0.05);
+      previousFrameAt = now;
+      const time = (now - startedAt) / 1000;
       applyDirectorCameraPulse(
         camera,
         baseCameraPosition,
@@ -178,6 +199,10 @@ export function TableScene3D({
       lantern.intensity = 2.75 + Math.sin(time * 2.1) * 0.28;
       const breath = Math.sin(time * 1.08);
       const pulse = Math.sin(time * 2.16 + 0.4);
+      loadedCharacters.forEach((runtime) => {
+        playCharacterClip(runtime, clipForRuntimeCharacter(runtime, directorCueRef.current));
+        runtime.mixer?.update(deltaSeconds);
+      });
       firstPersonRig.position.x = Math.sin(time * 0.38) * 0.006;
       firstPersonRig.position.y = breath * 0.016 + pulse * 0.003;
       firstPersonRig.position.z = Math.sin(time * 0.46 + 1.2) * 0.008;
@@ -231,6 +256,7 @@ export function TableScene3D({
       disposed = true;
       observer.disconnect();
       window.cancelAnimationFrame(frameId);
+      loadedCharacters.forEach((runtime) => runtime.mixer?.stopAllAction());
       container.removeChild(renderer.domElement);
       scene.traverse((object) => {
         const mesh = object as THREE.Mesh;
@@ -1905,18 +1931,28 @@ async function loadCharacterAsset(
   loader: GLTFLoader,
   profile: CharacterProfile,
   isDead: boolean,
-  name: string
-): Promise<THREE.Group> {
-  const gltf = await loader.loadAsync(profile.lod1ModelUrl);
-  return prepareLoadedCharacter(gltf.scene.clone(true), profile, isDead, name);
+  name: string,
+  playerId: PlayerId
+): Promise<LoadedCharacterRuntime> {
+  const gltf = await loader.loadAsync(profile.modelUrl);
+  return prepareLoadedCharacter(
+    SkeletonUtils.clone(gltf.scene),
+    gltf.animations,
+    profile,
+    isDead,
+    name,
+    playerId
+  );
 }
 
 function prepareLoadedCharacter(
   model: THREE.Object3D,
+  animations: THREE.AnimationClip[],
   profile: CharacterProfile,
   isDead: boolean,
-  name: string
-): THREE.Group {
+  name: string,
+  playerId: PlayerId
+): LoadedCharacterRuntime {
   const wrapper = new THREE.Group();
   wrapper.name = `${name} ${profile.id} asset`;
   wrapper.userData.kind = "character";
@@ -1949,7 +1985,104 @@ function prepareLoadedCharacter(
   model.position.x -= center.x;
   model.position.y -= normalizedBox.min.y;
   model.position.z -= center.z;
-  return wrapper;
+
+  const mixer = animations.length > 0 ? new THREE.AnimationMixer(model) : undefined;
+  const actions = new Map<CharacterClipId, THREE.AnimationAction>();
+  if (mixer) {
+    animations.forEach((clip) => {
+      const clipId = normalizeCharacterClipId(clip.name);
+      if (!clipId || actions.has(clipId)) {
+        return;
+      }
+      const action = mixer.clipAction(clip);
+      action.enabled = true;
+      action.setEffectiveWeight(1);
+      action.setEffectiveTimeScale(1);
+      actions.set(clipId, action);
+    });
+  }
+
+  const runtime: LoadedCharacterRuntime = {
+    actions,
+    isDead,
+    mixer,
+    playerId,
+    root: wrapper
+  };
+  playCharacterClip(runtime, isDead ? "down" : "idle");
+  return runtime;
+}
+
+function normalizeCharacterClipId(name: string): CharacterClipId | undefined {
+  const normalized = name.toLowerCase();
+  return CHARACTER_CLIP_IDS.find(
+    (clipId) =>
+      normalized === clipId ||
+      normalized.startsWith(`${clipId}_`) ||
+      normalized.includes(`_${clipId}_`) ||
+      normalized.endsWith(`_${clipId}`)
+  );
+}
+
+function clipForRuntimeCharacter(
+  runtime: LoadedCharacterRuntime,
+  cue: BattlePresentationCue | undefined
+): CharacterClipId {
+  if (runtime.isDead) {
+    return "down";
+  }
+
+  if (!cue) {
+    return "idle";
+  }
+
+  if (cue.targetIds.includes(runtime.playerId)) {
+    if (cue.beat === "defeat") {
+      return "down";
+    }
+    if (cue.beat === "defense" || cue.kind === "block" || cue.kind === "reflect") {
+      return "defend";
+    }
+    return "hit";
+  }
+
+  if (cue.sourceId === runtime.playerId) {
+    if (cue.kind === "skill" || cue.kind === "area" || cue.beat === "skill" || cue.beat === "recovery") {
+      return "skill";
+    }
+    if (cue.kind === "block") {
+      return "defend";
+    }
+    return "attack";
+  }
+
+  return "idle";
+}
+
+function playCharacterClip(runtime: LoadedCharacterRuntime, requestedClip: CharacterClipId): void {
+  if (!runtime.mixer || runtime.actions.size === 0 || runtime.activeClip === requestedClip) {
+    return;
+  }
+
+  const nextClip = runtime.actions.has(requestedClip) ? requestedClip : "idle";
+  const nextAction = runtime.actions.get(nextClip) ?? [...runtime.actions.values()][0];
+  if (!nextAction || runtime.activeAction === nextAction) {
+    runtime.activeClip = nextClip;
+    return;
+  }
+
+  runtime.activeAction?.fadeOut(0.16);
+  nextAction.reset();
+  if (nextClip === "idle") {
+    nextAction.setLoop(THREE.LoopRepeat, Infinity);
+    nextAction.clampWhenFinished = false;
+  } else {
+    nextAction.setLoop(THREE.LoopOnce, 1);
+    nextAction.clampWhenFinished = true;
+  }
+  nextAction.fadeIn(0.16).play();
+  runtime.activeAction = nextAction;
+  runtime.activeClip = nextClip;
 }
 
 function cloneLoadedMaterial(material: THREE.Material, isDead: boolean): THREE.Material {

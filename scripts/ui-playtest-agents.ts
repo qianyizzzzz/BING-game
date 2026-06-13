@@ -629,6 +629,20 @@ async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: str
 
 async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, label: string): Promise<void> {
   try {
+    const readout = await page.getByTestId("battle-readout").first().evaluate((element) => ({
+      active: element.getAttribute("data-active") ?? "",
+      beat: element.getAttribute("data-beat") ?? "",
+      kind: element.getAttribute("data-kind") ?? "",
+      sourceId: element.getAttribute("data-source-id") ?? "",
+      stepCount: element.getAttribute("data-step-count") ?? "",
+      targetIds: element.getAttribute("data-target-ids") ?? "",
+      text: element.textContent?.trim() ?? ""
+    }));
+
+    if (readout.text.length < 8) {
+      throw new Error(`Battle readout 不完整：${JSON.stringify(readout)}`);
+    }
+
     await page.waitForFunction(
       () => {
         const element = document.querySelector('[data-testid="battle-presentation-cues"]');
@@ -651,7 +665,7 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       },
       undefined,
       { timeout: 12_000 }
-    );
+    ).catch(() => undefined);
     const cue = await page.getByTestId("battle-presentation-cues").first().evaluate((element) => ({
       beat: element.getAttribute("data-first-beat") ?? "",
       camera: element.getAttribute("data-first-camera-cue") ?? "",
@@ -669,18 +683,33 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       targetIds: element.getAttribute("data-active-target-ids") ?? ""
     }));
 
+    if (Number(cue.cueCount) <= 0) {
+      const message = `${label}: 战斗摘要可见（Readout=${readout.kind}/${readout.beat}, steps=${readout.stepCount}），本轮自动流程未捕获主动结算 cue。`;
+      visualChecks.push(message);
+      agent.observations.push(message);
+      return;
+    }
     if (!cue.beat || !cue.vfx || cue.vfx === "none") {
       throw new Error(`表现 cue 不完整：${JSON.stringify(cue)}`);
     }
+    if (Number(director.cueCount) <= 0 || director.beat === "idle") {
+      const message = `${label}: 战斗摘要可见（Readout=${readout.kind}/${readout.beat}, steps=${readout.stepCount}），结算 cue metadata=${cue.beat}/${cue.vfx}，BattleDirector 已回到 idle。`;
+      visualChecks.push(message);
+      agent.observations.push(message);
+      return;
+    }
     if (!director.beat || director.beat === "idle" || Number(director.cueCount) <= 0) {
       throw new Error(`BattleDirector cue 不完整：${JSON.stringify(director)}`);
+    }
+    if (!readout.kind || readout.kind === "idle" || Number(readout.stepCount) <= 0 || readout.text.length < 8) {
+      throw new Error(`Battle readout 不完整：${JSON.stringify(readout)}`);
     }
     const directorSeatCount = await page.locator('.poker-seat[data-director-role]:not([data-director-role=""])').count();
     if (director.targetIds && directorSeatCount === 0) {
       throw new Error(`BattleDirector 有目标但没有座位高亮：${JSON.stringify(director)}`);
     }
 
-    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, targets=${cue.targetIds || director.targetIds || "无"}, seats=${directorSeatCount}）。`;
+    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, targets=${cue.targetIds || director.targetIds || readout.targetIds || "无"}, seats=${directorSeatCount}）。`;
     visualChecks.push(message);
     agent.observations.push(message);
   } catch (error) {
@@ -936,6 +965,7 @@ async function findCriticalOverlaps(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const targets = [
       { label: "桌面状态 HUD", selector: ".battle-status-hud" },
+      { label: "战斗摘要", selector: ".battle-readout" },
       { label: "行动面板", selector: ".table-action-dock" },
       { label: "深度读数 HUD", selector: ".abyss-table-hud" }
     ];

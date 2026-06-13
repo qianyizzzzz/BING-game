@@ -1939,14 +1939,14 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 ## 运行时验收
 
 - 静态资产审计：`npm run test:assets`，覆盖 LOD0/LOD1 GLB、LOD0 skinned mesh、LOD0 动画命名、动作图、骨骼驱动蒙皮 QA、移动头像、turnaround、table-scale、face-detail、rig-guide、material QA 和 PBR 贴图包。
-- 浏览器逐角色验收：`npm run test:character-browser`，创建角色房间并用观战视角验证 LOD1 GLB 请求和 3D canvas 采样。
-- 当前运行时 `TableScene3D` 加载 LOD1；`npm run test:assets` 仍会提示 6 个 LOD1 暂无运行时 animation clips，角色可动性以 LOD0 WIP 预览验收为准。
+- 浏览器逐角色验收：`npm run test:character-browser`，创建角色房间并用观战视角验证 LOD0 animated GLB 请求和 3D canvas 采样。
+- 当前运行时 `TableScene3D` 加载 LOD0 skinned/animated GLB，并按 battle director cue 播放 `idle / attack / defend / skill / hit / down` 预览 clips；LOD1 仍保留为预算内静态性能备选，`npm run test:assets` 会继续提示 6 个 LOD1 暂无运行时 animation clips。
 
 ## 下一步 P0
 
 - 替换程序几何脸为雕刻面部或外部授权模型基底，减少“几何拼装感”。
 - 用高模或授权基底烘焙替换当前程序化 PBR 贴图。
-- 选择运行时动画策略：要么导出带 skin/animation 的 LOD1，要么让 `TableScene3D` 在桌面距离可控时使用可动 LOD0。
+- 评估是否给 LOD1 也导出 skin/animation，或按设备性能在 LOD0 动画和 LOD1 静态模型之间动态切换。
 
 ## 下一步 P1
 
