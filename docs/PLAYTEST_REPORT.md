@@ -1,7 +1,7 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-13  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T16-59-57-110Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T17-07-06-046Z/report.md`
 最新逐角色浏览器验收：`artifacts/playtests/character-runtime-2026-06-13T15-11-32-893Z/report.md`
 
 ## 结论
@@ -67,6 +67,7 @@
 当前通过项：
 
 - `npm run test:ui-agents` 最近一次通过，无 console error、无 failed action、无视觉 QA 告警。
+- `npm run test:ui-agents` 会先执行 `npm run build -w @bing/client`，避免 UI agent 使用过期 `apps/client/dist`。
 - 双端 canvas 正常渲染，并检测到运行时 LOD0 animated GLB 成功加载。
 - UI agent 已覆盖目标预览、沿用上回合、遮挡检查、结算 cue、cue target 到座位的映射。
 - UI agent 已覆盖行动 HUD：攻击模式下必须显示下一步、目标数、目标 id 和可提交状态。
