@@ -32,7 +32,11 @@ const requiredCharacterImages = [
   ["turnaround-side", "turnaround-side.png", 768, 768],
   ["turnaround-three-quarter", "turnaround-three-quarter.png", 768, 768],
   ["table-scale", "table-scale.png", 768, 768],
-  ["rig-guide", "rig-guide.png", 512, 512]
+  ["rig-guide", "rig-guide.png", 512, 512],
+  ["skin-preview-attack", "skin-preview-attack.png", 512, 512],
+  ["skin-preview-skill", "skin-preview-skill.png", 512, 512],
+  ["skin-preview-hit", "skin-preview-hit.png", 512, 512],
+  ["skin-preview-down", "skin-preview-down.png", 512, 512]
 ] as const;
 const requiredPbrTextureFiles = ["albedo.png", "normal.png", "roughness.png"] as const;
 

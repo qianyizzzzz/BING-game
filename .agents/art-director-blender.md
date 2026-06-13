@@ -31,7 +31,7 @@
 - 优先使用正式 Blender MCP 工具。
 - 如果当前会话没有暴露 Blender MCP 工具，但本地 Blender 可用，可以使用 `tools/blender/blender-4.5.0-windows-x64/blender.exe` 和 `tools/blender/create-bing-character-blockouts.py` 继续建模与导出。
 - 如果 Blender 不存在，先在 `tools/blender/` 下安装便携版 Blender，不做系统级安装；网络或权限受限时明确报告。
-- 每次建模后保存 `.blend` 源文件，并导出 LOD0 / LOD1 `.glb`、头像、移动端头像、turnaround、table-scale、face-detail、action pose、rig-guide 和材质 QA。
+- 每次建模后保存 `.blend` 源文件，并导出 LOD0 / LOD1 `.glb`、头像、移动端头像、turnaround、table-scale、face-detail、action pose、skin-preview、rig-guide 和材质 QA。
 - LOD0 角色必须能通过资产审计中的 skinned mesh 检查：GLB 里需要有 skin、skinned nodes、JOINTS_0 和 WEIGHTS_0。
 - 不要声称已经完成最终真人级模型，除非已经有高模雕刻、手工/烘焙贴图、精细权重绘制和运行时可播放动画。
 
@@ -52,6 +52,7 @@
 - 每个动作有 anticipation、impact、follow-through、recovery。
 - 攻击、受击、技能释放需要 hit-stop，占位粒子、镜头震动/推进和音效事件点。
 - `idle / attack / defend / skill / hit / down` 必须在动作剪影里读得清楚。
+- `skin-preview-attack / skill / hit / down` 必须来自骨骼姿态和 skinned mesh；图中的琥珀骨架是目标姿态 overlay，用来检查 mesh 跟随、穿插、折断感和动作可读性。
 - 在正式接入前，至少保证 GLB 内 animation names 可被引擎读取，并且 LOD0 有 first-pass skin weights；最终目标是精细权重绘制和运行时可播放动画。
 
 ## 输出格式

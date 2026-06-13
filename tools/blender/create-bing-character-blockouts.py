@@ -34,6 +34,7 @@ ANIMATION_CLIPS = (
     ("hit", 22),
     ("down", 46),
 )
+SKINNING_PREVIEW_POSES = ("attack", "skill", "hit", "down")
 RIG_BONES = (
     ("hips", None, (0.0, 0.0, 0.72), (0.0, 0.0, 0.91)),
     ("spine", "hips", (0.0, 0.0, 0.91), (0.0, 0.0, 1.2)),
@@ -135,13 +136,14 @@ def main() -> None:
     animation_pass_only = "--bing-animation-pass" in sys.argv
     action_pose_only = "--bing-action-poses-only" in sys.argv
     face_detail_only = "--bing-face-detail-only" in sys.argv
+    skinning_preview_only = "--bing-skinning-preview-only" in sys.argv
     export_only = "--bing-export-only" in sys.argv
     save_scene_only = "--bing-save-scene-only" in sys.argv
     metrics_only = "--bing-metrics-only" in sys.argv
     action_pose_filter = selected_action_pose_ids()
     character_filter = selected_character_ids()
     active_characters = [spec for spec in CHARACTERS if character_filter is None or spec.character_id in character_filter]
-    print(f"BING_GENERATION_MODE={'metrics-only' if metrics_only else 'save-scene-only' if save_scene_only else 'face-detail-only' if face_detail_only else 'action-poses-only' if action_pose_only else 'export-only' if export_only else 'animation-pass' if animation_pass_only else 'full'}", flush=True)
+    print(f"BING_GENERATION_MODE={'metrics-only' if metrics_only else 'save-scene-only' if save_scene_only else 'face-detail-only' if face_detail_only else 'skinning-preview-only' if skinning_preview_only else 'action-poses-only' if action_pose_only else 'export-only' if export_only else 'animation-pass' if animation_pass_only else 'full'}", flush=True)
     clear_scene()
     configure_scene()
     materials = build_materials()
@@ -191,6 +193,15 @@ def main() -> None:
         print(f"BING_FACE_DETAIL_ONLY_DONE={','.join(spec.character_id for spec in active_characters)}", flush=True)
         return
 
+    if skinning_preview_only:
+        for spec in active_characters:
+            print(f"BING_SKINNING_PREVIEW_RENDER_START={spec.character_id}", flush=True)
+            render_skinning_preview_views(spec, roots, action_pose_filter)
+            print(f"BING_SKINNING_PREVIEW_RENDER_DONE={spec.character_id}", flush=True)
+        selected = ",".join(sorted(action_pose_filter)) if action_pose_filter else "default"
+        print(f"BING_SKINNING_PREVIEW_ONLY_DONE={selected}", flush=True)
+        return
+
     lod1_metrics: dict[str, tuple[int, int]] = {}
     for spec in active_characters:
         print(f"BING_CHARACTER_EXPORT_START={spec.character_id}", flush=True)
@@ -208,6 +219,9 @@ def main() -> None:
         print(f"BING_RIG_GUIDE_RENDER_START={spec.character_id}", flush=True)
         render_rig_guide_view(spec, roots)
         print(f"BING_RIG_GUIDE_RENDER_DONE={spec.character_id}", flush=True)
+        print(f"BING_SKINNING_PREVIEW_RENDER_START={spec.character_id}", flush=True)
+        render_skinning_preview_views(spec, roots, action_pose_filter)
+        print(f"BING_SKINNING_PREVIEW_RENDER_DONE={spec.character_id}", flush=True)
     if not animation_pass_only:
         print("BING_MATERIAL_QA_START", flush=True)
         render_material_qa_board()
@@ -254,6 +268,7 @@ def fast_action_render_enabled() -> bool:
     return (
         "--bing-fast-action-render" in sys.argv
         or "--bing-action-poses-only" in sys.argv
+        or "--bing-skinning-preview-only" in sys.argv
         or "--bing-animation-pass" in sys.argv
     )
 
@@ -1003,6 +1018,9 @@ def add_rigid_skin_weights(root: bpy.types.Object, spec: CharacterSpec, rig: bpy
 
         obj["bing_skinning"] = "rigid_first_pass"
         obj["bing_skin_bone"] = bone_name
+        world_matrix = obj.matrix_world.copy()
+        obj.parent = rig
+        obj.matrix_world = world_matrix
         weighted_meshes += 1
         weighted_vertices += len(vertex_indices)
 
@@ -1154,8 +1172,8 @@ def rig_animation_keyframes(spec: CharacterSpec, clip_id: str, duration: int) ->
     if clip_id == "down":
         return [
             (1, {}),
-            (14, {"hips": {"rot": (36, 0, -12), "loc": (0, -0.06, -0.06)}, "spine": {"rot": (28, 0, -8)}, "chest": {"rot": (24, 0, -6)}, "neck": {"rot": (-12, 0, 4)}, "upper_arm.L": {"rot": (32, 0, -20)}, "forearm.L": {"rot": (18, 0, -12)}, "upper_arm.R": {"rot": (30, 0, 24)}, "forearm.R": {"rot": (24, 0, 18)}}),
-            (duration, {"hips": {"rot": (74, 0, -18), "loc": (0, -0.22, -0.16)}, "spine": {"rot": (42, 0, -8)}, "chest": {"rot": (32, 0, -6)}, "neck": {"rot": (-24, 0, 6)}, "thigh.L": {"rot": (-18, 0, -8)}, "shin.L": {"rot": (18, 0, 4)}, "thigh.R": {"rot": (-12, 0, 10)}, "shin.R": {"rot": (22, 0, -5)}, "upper_arm.L": {"rot": (52, 0, -34)}, "forearm.L": {"rot": (22, 0, -18)}, "upper_arm.R": {"rot": (44, 0, 30)}, "forearm.R": {"rot": (28, 0, 20)}}),
+            (14, {"hips": {"rot": (48, 0, -12), "loc": (0, -0.12, -0.14)}, "spine": {"rot": (36, 0, -8)}, "chest": {"rot": (28, 0, -6)}, "neck": {"rot": (-14, 0, 4)}, "upper_arm.L": {"rot": (36, 0, -20)}, "forearm.L": {"rot": (22, 0, -12)}, "upper_arm.R": {"rot": (34, 0, 24)}, "forearm.R": {"rot": (28, 0, 18)}}),
+            (duration, {"hips": {"rot": (92, 0, -18), "loc": (0, -0.46, -0.52)}, "spine": {"rot": (64, 0, -10)}, "chest": {"rot": (46, 0, -8)}, "neck": {"rot": (-32, 0, 6)}, "thigh.L": {"rot": (-26, 0, -10)}, "shin.L": {"rot": (28, 0, 6)}, "thigh.R": {"rot": (-20, 0, 12)}, "shin.R": {"rot": (30, 0, -7)}, "upper_arm.L": {"rot": (62, 0, -38)}, "forearm.L": {"rot": (32, 0, -20)}, "upper_arm.R": {"rot": (54, 0, 34)}, "forearm.R": {"rot": (38, 0, 22)}}),
         ]
 
     return [(1, {}), (duration, {})]
@@ -1464,6 +1482,100 @@ def render_rig_guide_view(spec: CharacterSpec, roots: dict[str, bpy.types.Object
     set_all_visible(roots)
 
 
+def render_skinning_preview_views(
+    spec: CharacterSpec,
+    roots: dict[str, bpy.types.Object],
+    pose_filter: set[str] | None = None,
+) -> None:
+    root = roots[spec.character_id]
+    rig = bpy.data.objects.get(f"{spec.character_id}_guide_armature")
+    if rig is None:
+        print(f"BING_SKINNING_PREVIEW_SKIP={spec.character_id}:missing-rig", flush=True)
+        return
+
+    out_dir = ASSET_ROOT / spec.character_id
+    out_dir.mkdir(parents=True, exist_ok=True)
+    set_isolated(spec.character_id, roots)
+    objects = character_objects(root)
+    snapshot = capture_transforms(objects)
+    scene = bpy.context.scene
+    original_resolution = (scene.render.resolution_x, scene.render.resolution_y)
+    original_engine = scene.render.engine
+    scene.render.resolution_x = 512
+    scene.render.resolution_y = 512
+    if fast_action_render_enabled():
+        scene.render.engine = "BLENDER_WORKBENCH"
+    camera = scene.camera
+
+    for pose_id in SKINNING_PREVIEW_POSES:
+        if pose_filter is not None and pose_id not in pose_filter:
+            continue
+        print(f"BING_SKINNING_PREVIEW_POSE_RENDER_START={spec.character_id}:{pose_id}", flush=True)
+        restore_transforms(snapshot)
+        reset_rig_pose(rig)
+        root.location = (0, 0, 0)
+        root.rotation_euler = (0, 0, 0)
+        apply_rig_preview_pose(rig, spec, pose_id)
+        bpy.context.view_layer.update()
+        overlays = add_pose_rig_overlays(root, rig, spec, pose_id)
+        if pose_id == "down":
+            camera.location = (2.05, -3.35, 1.02)
+            camera.data.lens = 62
+            look_at(camera, mathutils.Vector((0, -0.1, 0.58)))
+        else:
+            camera.location = (1.05, -4.3, 1.32)
+            camera.data.lens = 70
+            look_at(camera, mathutils.Vector((0, 0, 1.03)))
+        scene.render.filepath = str(out_dir / f"skin-preview-{pose_id}.png")
+        bpy.ops.render.render(write_still=True)
+        remove_objects(overlays)
+        print(f"BING_SKINNING_PREVIEW_POSE_RENDER_DONE={spec.character_id}:{pose_id}", flush=True)
+
+    reset_rig_pose(rig)
+    restore_transforms(snapshot)
+    scene.render.engine = original_engine
+    scene.render.resolution_x, scene.render.resolution_y = original_resolution
+    set_all_visible(roots)
+
+
+def apply_rig_preview_pose(rig: bpy.types.Object, spec: CharacterSpec, pose_id: str) -> None:
+    duration = dict(ANIMATION_CLIPS).get(pose_id, 24)
+    keyframes = rig_animation_keyframes(spec, pose_id, duration)
+    keyed = [pose_map for _frame, pose_map in keyframes if pose_map]
+    if not keyed:
+        return
+    impact_poses = {"attack", "down"}
+    apply_rig_pose(rig, keyed[-1] if pose_id in impact_poses else keyed[0])
+
+
+def add_pose_rig_overlays(
+    root: bpy.types.Object,
+    rig: bpy.types.Object,
+    spec: CharacterSpec,
+    pose_id: str,
+) -> list[bpy.types.Object]:
+    collection = root.users_collection[0]
+    material = bpy.data.materials.get("skinning_pose_qa_amber") or mat("skinning_pose_qa_amber", "#ffd166", roughness=0.4, emission=0.55, detail="emissive")
+    overlays: list[bpy.types.Object] = []
+    for bone_name, _parent_name, _head, _tail in RIG_BONES:
+        pose_bone = rig.pose.bones.get(bone_name)
+        if pose_bone is None:
+            continue
+        head = rig.matrix_world @ pose_bone.head
+        tail = rig.matrix_world @ pose_bone.tail
+        overlays.append(limb(collection, root, f"{spec.character_id}_{pose_id}_skin_pose_bone_{bone_name}", head, tail, 0.0065, material))
+        overlays.append(add_ellipsoid(collection, root, f"{spec.character_id}_{pose_id}_skin_pose_joint_{bone_name}", head, (0.012, 0.012, 0.012), material))
+    return overlays
+
+
+def remove_objects(objects: list[bpy.types.Object]) -> None:
+    for obj in objects:
+        mesh = obj.data if obj.type == "MESH" else None
+        bpy.data.objects.remove(obj, do_unlink=True)
+        if mesh and mesh.users == 0:
+            bpy.data.meshes.remove(mesh)
+
+
 def rig_overlay_point(point: tuple[float, float, float]) -> tuple[float, float, float]:
     return (point[0], point[1] - 0.13, point[2])
 
@@ -1640,6 +1752,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - 每个角色建立 `{len(RIG_BONES)}` 根骨骼的 guide armature，并导出 `rig-guide.png`
 - 每个角色写入 first-pass rigid skin weights，LOD0 GLB 已具备 skinned mesh 结构；仍需手工权重绘制与动作精修
 - 每个 guide armature 写入预览动画 clips：`{animation_clip_ids}`；当前为关键帧预览，可驱动 rigid skin 初版
+- 每个角色导出骨骼驱动蒙皮 QA：`skin-preview-attack / skin-preview-skill / skin-preview-hit / skin-preview-down`，琥珀骨架为目标姿态 overlay
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、职业道具和服装层次
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
 - 材质近景 QA：`{repo_path(ASSET_ROOT / "materials" / "material-qa.png")}`
@@ -1665,7 +1778,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## P2
 
-- 将 first-pass rigid skin weights 升级为精细权重绘制，并补死亡/倒地可播放动作。
+- 将 first-pass rigid skin weights 升级为精细权重绘制，并继续用 `skin-preview-*` 检查攻击、技能、受击、倒地的剪影和穿插。
 - 建立每个角色的材质板和服装局部参考。
 """
     (ARTIFACT_ROOT / "bing-character-blockouts-report.md").write_text(report, encoding="utf-8")
@@ -1680,7 +1793,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - 源场景：`{repo_path(scene_path)}`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
 - 动作 QA：每角色 `{pose_ids}` 动作剪影图
-- 绑定准备：每角色 `{len(RIG_BONES)}` 根骨骼 guide armature、`rig-guide.png`、first-pass rigid skin weights 与 `{animation_clip_ids}` 预览动画 clips
+- 绑定准备：每角色 `{len(RIG_BONES)}` 根骨骼 guide armature、`rig-guide.png`、first-pass rigid skin weights、`skin-preview-*.png` 与 `{animation_clip_ids}` 预览动画 clips
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、服装层次和职业道具
 - 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
@@ -1694,12 +1807,12 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、first-pass rigid skin weights、预览动画 clips、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、first-pass rigid skin weights、骨骼驱动蒙皮 QA、预览动画 clips、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
 - 仍不足：还没有真实高模雕刻、手工/烘焙贴图、精细权重绘制和可播放精修动画；真人质感仍需外部雕刻/贴图阶段继续推进。
 
 ## 运行时验收
 
-- 静态资产审计：`npm run test:assets`，覆盖 LOD0/LOD1 GLB、LOD0 skinned mesh、LOD0 动画命名、动作图、移动头像、turnaround、table-scale、face-detail、rig-guide、material QA 和 PBR 贴图包。
+- 静态资产审计：`npm run test:assets`，覆盖 LOD0/LOD1 GLB、LOD0 skinned mesh、LOD0 动画命名、动作图、骨骼驱动蒙皮 QA、移动头像、turnaround、table-scale、face-detail、rig-guide、material QA 和 PBR 贴图包。
 - 浏览器逐角色验收：`npm run test:character-browser`，创建角色房间并用观战视角验证 LOD1 GLB 请求和 3D canvas 采样。
 
 ## 下一步 P0
@@ -1710,13 +1823,20 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 ## 下一步 P1
 
 - 在 `TableScene3D` 中接入 `.glb`，用桌面距离 QA 图校准相机和灯光。
-- 把 first-pass rigid skin weights 升级为精细权重绘制，让当前关键帧预览变成可播放的高质量蒙皮动画，并继续扩展死亡/倒地后的结算动作。
+- 把 first-pass rigid skin weights 升级为精细权重绘制，让当前关键帧预览变成可播放的高质量蒙皮动画；每次改动后先看 `skin-preview-*`，再扩展死亡/倒地后的结算动作。
 """
     (DOCS_ROOT / "CHARACTER_ASSET_AUDIT.md").write_text(review, encoding="utf-8")
 
 
 def character_objects(root: bpy.types.Object) -> list[bpy.types.Object]:
-    return [obj for obj in bpy.data.objects if obj == root or obj.parent == root]
+    objects: list[bpy.types.Object] = [root]
+    stack = [root]
+    while stack:
+        parent = stack.pop()
+        children = [obj for obj in bpy.data.objects if obj.parent == parent]
+        objects.extend(children)
+        stack.extend(children)
+    return objects
 
 
 def mesh_metrics(root: bpy.types.Object) -> tuple[int, int]:

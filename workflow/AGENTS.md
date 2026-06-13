@@ -65,7 +65,7 @@ Required art-director workflow:
 7. Check action silhouettes: idle, attack, defend, skill, hit, and down must read clearly before moving to rigged animation.
 8. Check rig readiness: guide armature must cover spine, head, arms, hands, legs, and feet, with `rig-guide.png` for visual QA; LOD0 GLB must expose skin, skinned nodes, `JOINTS_0`, and `WEIGHTS_0` before claiming animation readiness.
 9. Check material quality: skin pores, cloth weave, leather grain, metal wear, non-plastic roughness, and exported PBR PNG maps.
-10. Render front, side, three-quarter, table-scale, portrait-crop, mobile-avatar, face-detail, action-pose, rig-guide, and material close-up QA images.
-11. Export `.blend`, LOD0/LOD1 `.glb`, portrait, mobile-avatar, face-detail, turnaround images, table-scale images, action pose images, rig-guide images, PBR PNG maps, material QA image, and `docs/CHARACTER_ASSET_AUDIT.md`.
+10. Render front, side, three-quarter, table-scale, portrait-crop, mobile-avatar, face-detail, action-pose, skin-preview, rig-guide, and material close-up QA images.
+11. Export `.blend`, LOD0/LOD1 `.glb`, portrait, mobile-avatar, face-detail, turnaround images, table-scale images, action pose images, skin-preview images, rig-guide images, PBR PNG maps, material QA image, and `docs/CHARACTER_ASSET_AUDIT.md`.
 
 If Blender MCP is unavailable, report the missing tool and continue only with briefs, asset lists, Blender Python drafts, and acceptance criteria. Do not claim that modeling was completed.
