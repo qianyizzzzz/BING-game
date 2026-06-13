@@ -14,7 +14,7 @@
 - 复杂技能 UI agent：`artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md`
 - 角色浏览器：`artifacts/playtests/character-runtime-2026-06-13T22-59-21-950Z/report.md`
 
-说明：`npm run verify:release` 在 Codex 本地工具 20 分钟上限下触发超时，但该次运行已经产出以上通过的浏览器报告；发布或 CI 环境建议给完整门禁更长超时，或按上述子命令拆分执行。
+说明：`npm run verify:release` 已拆成“先 build 一次，再运行 `verify:release:run`”。日常单项命令仍会自行构建 client；发布或 CI 环境可以调用 `test:ui-agents:run`、`test:ui-agents:complex:run`、`test:character-browser:run` 复用已构建 dist，降低超时概率。
 
 ## 1. Clean Clone 验证
 
@@ -23,7 +23,7 @@
 - 运行 `npm ci`。
 - 运行 `npm run build`。
 - 运行 `npm run test:ci`。
-- 发布前运行 `npm run verify:release`，完整覆盖默认 UI、复杂技能、角色浏览器和发布资产边界。
+- 发布前运行 `npm run verify:release`，完整覆盖默认 UI、复杂技能、角色浏览器和发布资产边界；如果环境有严格超时，先 `npm run build`，再分段运行 `npm run verify:release:run` 中的子命令。
 - 本地需要浏览器验收时运行 `npm run test:ui-agents`、`npm run test:ui-agents:complex` 和 `npm run test:character-browser`。
 - GitHub Actions 可夜间运行默认 UI agents 与复杂技能 smoke，并可手动运行角色浏览器验收；报告和截图会作为 artifacts 上传。
 

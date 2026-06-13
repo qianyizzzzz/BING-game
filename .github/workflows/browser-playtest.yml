@@ -27,11 +27,14 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Build client dist
+        run: npm run build
+
       - name: Run UI playtest agents
-        run: npm run test:ui-agents
+        run: npm run test:ui-agents:run
 
       - name: Run complex skill UI playtest agents
-        run: npm run test:ui-agents:complex
+        run: npm run test:ui-agents:complex:run
 
       - name: Upload playtest artifacts
         if: always()
@@ -63,8 +66,11 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Build client dist
+        run: npm run build
+
       - name: Run character runtime browser check
-        run: npm run test:character-browser
+        run: npm run test:character-browser:run
 
       - name: Upload character runtime artifacts
         if: always()

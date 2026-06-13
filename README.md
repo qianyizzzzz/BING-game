@@ -122,8 +122,8 @@ npm run serve
 | `npm run public` | 构建、启动服务并打开临时公网隧道。 |
 | `npm run typecheck` | 对所有 workspace 运行 TypeScript 检查。 |
 | `npm run test:ci` | 运行 typecheck、角色资产审计、规则回归和 turn timeline 检查。 |
-| `npm run verify` | 构建项目并运行核心检查与 UI agents。 |
-| `npm run verify:release` | 构建并运行发布前完整门禁：CI、发布资产审计、默认 UI、复杂技能和角色浏览器。 |
+| `npm run verify` | 构建一次后运行核心检查与 UI agents。 |
+| `npm run verify:release` | 构建一次后运行发布前完整门禁：CI、发布资产审计、默认 UI、复杂技能和角色浏览器。 |
 | `npm run test:assets` | 检查 6 个角色的 GLB、头像、QA 图和 PBR 贴图资源。 |
 | `npm run test:release-assets` | 检查 public 静态资源中没有 Blender 源文件或角色 source 目录。 |
 | `npm run test:character-browser` | 先构建 client，再逐个创建角色房间，用真实浏览器验证 animated GLB 加载和 3D canvas。 |
@@ -131,6 +131,8 @@ npm run serve
 | `npm run test:turn-timeline` | 检查事件日志到动画 beat 的映射。 |
 | `npm run test:ui-agents` | 先构建 client，再启动双玩家 UI agent，生成截图和 Markdown 报告。 |
 | `npm run test:ui-agents:complex` | 先构建 client，再运行单房主 + AI 对手的复杂技能 smoke。 |
+| `npm run test:ui-agents:run` | 复用已构建的 client dist，直接运行默认 UI agent。 |
+| `npm run test:ui-agents:complex:run` | 复用已构建的 client dist，直接运行复杂技能 UI agent。 |
 | `npm run import:skills` | 从技能表导入技能数据。 |
 | `npm run training:export` | 导出比赛训练数据。 |
 | `npm run training:selfplay` | 运行自博弈训练脚本。 |
