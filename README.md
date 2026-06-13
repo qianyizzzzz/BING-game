@@ -155,6 +155,7 @@ workflow/          任务模板、评审模板、制作流程文档
 
 - [架构说明](docs/ARCHITECTURE.md)
 - [部署说明](docs/DEPLOYMENT.md)
+- [发布清单](docs/RELEASE_CHECKLIST.md)
 - [公网联机](docs/PUBLIC_PLAY.md)
 - [异网联机](docs/remote-play.md)
 - [AI 训练](docs/AI_TRAINING.md)

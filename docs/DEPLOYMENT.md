@@ -76,7 +76,22 @@ npm run build
 npm run serve
 ```
 
-再用 Nginx/Caddy 把域名的 HTTPS 流量反代到 `localhost:3001`。生产环境需要把 `data/` 挂到稳定磁盘，后续再替换成数据库。
+再用 Nginx/Caddy 把域名的 HTTPS 流量反代到 `localhost:3001`。生产环境需要把 `data/` 挂到稳定磁盘，后续再替换成数据库。正式发布前按 [发布清单](RELEASE_CHECKLIST.md) 逐项检查。
+
+推荐从 `.env.example` 复制生产环境变量：
+
+```bash
+cp .env.example .env
+```
+
+关键变量：
+
+- `PORT`：Node/Express 服务端口，默认 `3001`。
+- `PUBLIC_DIR`：生产静态前端目录，默认 `apps/client/dist`。
+- `CLIENT_ORIGIN`：本地开发前端来源，默认 `http://localhost:5173`。
+- `PUBLIC_ORIGINS` / `CLIENT_ORIGINS`：逗号分隔的公网白名单，例如正式域名和临时 tunnel 域名。
+- `ACCOUNT_DATA_FILE`：账号数据 JSON 路径；Docker 或云服务器部署时应放在持久化卷/磁盘上。
+- `VITE_SERVER_URL`：客户端构建时使用的服务端地址，本地通常是 `http://localhost:3001`。
 
 ## Docker 部署
 
