@@ -33,10 +33,13 @@ type LoadedCharacterRuntime = {
   activeAction?: THREE.AnimationAction | undefined;
   activeClip?: CharacterClipId | undefined;
   isDead: boolean;
+  lodTier: CharacterLodTier;
   mixer?: THREE.AnimationMixer | undefined;
   playerId: PlayerId;
   root: THREE.Group;
 };
+
+type CharacterLodTier = "lod0" | "lod1";
 
 type OrganicSection = {
   offsetX?: number;
@@ -126,6 +129,8 @@ export function TableScene3D({
 
     const loader = new GLTFLoader();
     const loadedCharacters: LoadedCharacterRuntime[] = [];
+    const characterLodTier = selectRuntimeCharacterLodTier();
+    container.dataset.characterLod = characterLodTier;
     let disposed = false;
 
     players.forEach((player, index) => {
@@ -146,7 +151,7 @@ export function TableScene3D({
       character.lookAt(0, 0.46, 0);
       scene.add(character);
 
-      loadCharacterAsset(loader, profile, player.status === "dead", player.name, player.id)
+      loadCharacterAsset(loader, profile, characterLodTier, player.status === "dead", player.name, player.id)
         .then((runtime) => {
           if (disposed) {
             disposeObjectTree(runtime.root);
@@ -1930,15 +1935,17 @@ function withAlpha(hex: string, alpha: number): string {
 async function loadCharacterAsset(
   loader: GLTFLoader,
   profile: CharacterProfile,
+  lodTier: CharacterLodTier,
   isDead: boolean,
   name: string,
   playerId: PlayerId
 ): Promise<LoadedCharacterRuntime> {
-  const gltf = await loader.loadAsync(profile.modelUrl);
+  const gltf = await loader.loadAsync(characterModelUrl(profile, lodTier));
   return prepareLoadedCharacter(
     SkeletonUtils.clone(gltf.scene),
     gltf.animations,
     profile,
+    lodTier,
     isDead,
     name,
     playerId
@@ -1949,6 +1956,7 @@ function prepareLoadedCharacter(
   model: THREE.Object3D,
   animations: THREE.AnimationClip[],
   profile: CharacterProfile,
+  lodTier: CharacterLodTier,
   isDead: boolean,
   name: string,
   playerId: PlayerId
@@ -1956,6 +1964,7 @@ function prepareLoadedCharacter(
   const wrapper = new THREE.Group();
   wrapper.name = `${name} ${profile.id} asset`;
   wrapper.userData.kind = "character";
+  wrapper.userData.lodTier = lodTier;
   wrapper.userData.phase = stablePhase(`${name}:${profile.id}`);
   wrapper.add(model);
 
@@ -2005,12 +2014,30 @@ function prepareLoadedCharacter(
   const runtime: LoadedCharacterRuntime = {
     actions,
     isDead,
+    lodTier,
     mixer,
     playerId,
     root: wrapper
   };
   playCharacterClip(runtime, isDead ? "down" : "idle");
   return runtime;
+}
+
+function characterModelUrl(profile: CharacterProfile, lodTier: CharacterLodTier): string {
+  return lodTier === "lod1" ? profile.lod1ModelUrl : profile.modelUrl;
+}
+
+function selectRuntimeCharacterLodTier(): CharacterLodTier {
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  const isNarrow = window.matchMedia?.("(max-width: 720px)").matches ?? window.innerWidth <= 720;
+  const isCoarsePointer = window.matchMedia?.("(pointer: coarse)").matches ?? false;
+  const isLowMemory = typeof memory === "number" && memory <= 4;
+  const isLowCpu =
+    typeof navigator.hardwareConcurrency === "number" &&
+    navigator.hardwareConcurrency > 0 &&
+    navigator.hardwareConcurrency <= 4;
+
+  return isNarrow || isCoarsePointer || isLowMemory || isLowCpu ? "lod1" : "lod0";
 }
 
 function normalizeCharacterClipId(name: string): CharacterClipId | undefined {

@@ -883,9 +883,18 @@ async function inspectCharacterModelLoads(page: Page): Promise<{ ok: boolean; me
     return { ok: false, message: "10s 内没有成功的 .glb 响应" };
   }
 
+  const observed = Array.from(models).sort();
+  const expectedLod = pageName === "first-timer" ? "lod1" : pageName === "competitor" ? "lod0" : undefined;
+  if (expectedLod === "lod1" && !observed.some((model) => model.endsWith("-lod1.glb"))) {
+    return { ok: false, message: `移动端应加载 LOD1，实际=${observed.join(", ")}` };
+  }
+  if (expectedLod === "lod0" && !observed.some((model) => model.endsWith(".glb") && !model.endsWith("-lod1.glb"))) {
+    return { ok: false, message: `桌面端应加载 LOD0，实际=${observed.join(", ")}` };
+  }
+
   return {
     ok: true,
-    message: Array.from(models).sort().join(", ")
+    message: `${observed.join(", ")}${expectedLod ? `, expected=${expectedLod}` : ""}`
   };
 }
 

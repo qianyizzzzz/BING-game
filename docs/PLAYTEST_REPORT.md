@@ -1,12 +1,12 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-13  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T14-55-00-293Z/report.md`
-最新逐角色浏览器验收：`artifacts/playtests/character-runtime-2026-06-13T08-57-15-348Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T15-07-09-747Z/report.md`
+最新逐角色浏览器验收：`artifacts/playtests/character-runtime-2026-06-13T15-11-32-893Z/report.md`
 
 ## 结论
 
-当前版本的双玩家 happy path 可以跑通：创建房间、加入房间、开始游戏、吃饼、沿用上回合、攻击、目标预览、BattleDirector cue、3D canvas、GLB 加载、遮挡检查、console 检查和新手结算摘要门禁均通过。
+当前版本的双玩家 happy path 可以跑通：创建房间、加入房间、开始游戏、吃饼、沿用上回合、攻击、目标预览、BattleDirector cue、3D canvas、GLB 加载、移动端 LOD1/桌面 LOD0 分流、遮挡检查、console 检查和新手结算摘要门禁均通过。
 但这还不是“新玩家一眼就懂、竞技玩家愿意反复玩”的状态。下一阶段重点应该放在：移动端主指令条、竞技读局层、复杂技能中帧验证、运行时角色 LOD/可读性和平衡数据。
 
 ## 2026-06-13 午间子智能体复审
@@ -70,6 +70,7 @@
 - 双端 canvas 正常渲染，并检测到运行时 LOD0 animated GLB 成功加载。
 - UI agent 已覆盖目标预览、沿用上回合、遮挡检查、结算 cue、cue target 到座位的映射。
 - UI agent 已覆盖新手结算摘要：当 readout 已播放到系统步骤时，摘要仍要保留本轮真实动作、目标绑定和目标座位映射。
+- UI agent 已覆盖运行时 LOD 分流：390px 移动端加载 `*-lod1.glb`，1280px 桌面端加载 LOD0 `*.glb`。
 - `npm run test:character-browser` 已逐个验证 6 个角色：期望 GLB 与观察 GLB 一致，canvas 非空，console/page error 为无。
 
 缺口：
