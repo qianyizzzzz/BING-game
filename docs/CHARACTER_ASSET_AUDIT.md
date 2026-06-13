@@ -35,6 +35,7 @@
 
 - 静态资产审计：`npm run test:assets`，覆盖 LOD0/LOD1 GLB、LOD0 skinned mesh、LOD0 动画命名、动作图、骨骼驱动蒙皮 QA、移动头像、turnaround、table-scale、face-detail、rig-guide、material QA 和 PBR 贴图包。
 - 浏览器逐角色验收：`npm run test:character-browser`，创建角色房间并用观战视角验证 LOD1 GLB 请求和 3D canvas 采样。
+- 当前运行时 `TableScene3D` 加载 LOD1；LOD1 暂无 skin/animation，角色动画还停留在 LOD0 WIP 验收阶段。
 
 ## 下一步 P0
 
@@ -44,4 +45,5 @@
 ## 下一步 P1
 
 - 验收 6 个角色 GLB 内的 `idle / attack / defend / skill / hit / down` 预览 clips，确认引擎侧能读取 animation names。
+- 选择运行时策略：要么导出带 skin/animation 的 LOD1，要么让 `TableScene3D` 在桌面距离可控时使用可动 LOD0。
 - 把 first-pass rigid skin weights 升级为精细权重绘制，把当前动作剪影和预览关键帧升级为高质量可播放蒙皮动画；每次改动后先用 `skin-preview-*` 排查穿插和剪影问题。

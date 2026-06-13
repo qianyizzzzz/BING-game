@@ -25,10 +25,10 @@
 
 | 视角 | 结论 | 下一步 |
 | --- | --- | --- |
-| 新手玩家 | 核心路径能跑通，但“为什么这样结算”仍主要靠日志理解。 | 前 3 回合做引导式战斗反馈：亮招、目标、资源变化和伤害原因贴到桌面/座位上。 |
-| 竞技玩家 | 已有目标高亮和沿用上回合，但快速读局还缺历史压缩、资源趋势和动画加速。 | 做竞技读局层：上一招、资源 delta、目标线、威胁提示、快速复用/改目标。 |
-| 开发商 / QA | 流程测试通过，但自动化还偏“能点”，没有充分覆盖攻击、防御、反弹、技能连锁的中帧表现。 | 扩展 UI agent 场景，捕捉动画中帧，检查 `data-beat`、目标线、资源 delta、impact shake。 |
-| 美术总监 | 当前角色是合格 WIP/blockout，不是最终半写实资产；角色 GLB 已进入战斗桌面，但完整蒙皮和运行时动画仍不足。 | 资产提交时明确 WIP；补来源声明、完整 rigid/painted skin、可播放动作和压缩策略。 |
+| 新手玩家 | 核心路径能跑通，但“为什么这样结算”仍主要靠日志理解。 | 前 3 回合做新手结算摘要：动作、目标、HP/饼 delta、等待/亮招状态都贴到桌面。 |
+| 竞技玩家 | 已有目标高亮和沿用上回合，但快速读局还缺历史压缩、资源趋势和动画加速。 | 做竞技读局层：上一招、资源 delta、目标线、威胁提示、快速复用/改目标；有 target 的 cue 必须映射座位或目标线。 |
+| 开发商 / QA | 基础 CI 已有，但浏览器检查和复杂技能链仍未覆盖到 CI。 | 扩展 UI agent 场景，捕捉动画中帧，检查 `data-beat`、目标线、资源 delta、impact shake；把浏览器检查放入可选/夜间 workflow。 |
+| 美术总监 | 当前角色是合格 WIP/blockout，LOD0 有 first-pass rigid skin，但运行时 LOD1 仍是静态展示。 | 补来源声明、精细权重绘制、可播放动作、运行时 `AnimationMixer` 和压缩策略。 |
 
 ## 1. UI 优化方法
 
@@ -104,9 +104,10 @@
 - 继续使用 Three.js 承载牌桌和镜头。
 - CSS 负责小状态：hover、selected、disabled、ready、resource changed。
 - `apps/client/src/lib/turnTimeline.ts` 负责把事件映射为 beat、sound cue 和描述。
-- 下一步新增 `battlePresentation` / `BattleDirector` 数据层，从 `GameEvent` 生成 `beat`、来源、目标、时间、强度、VFX、SFX 和相机 cue，供 `TurnAnimation`、`SkillEffectLayer`、`PlayerSeat`、`TableScene3D` 共用。
+- `battlePresentation` / `BattleDirector` 数据层从 `GameEvent` 生成 `beat`、来源、目标、时间、强度、VFX、SFX 和相机 cue，已供 `TurnAnimation`、`PlayerSeat` 和 `TableScene3D` 共用；下一步接 `SkillEffectLayer`、音效资源和新手摘要。
 - `scripts/turn-timeline-check.ts` 用来防止新增事件没有视觉映射。
 - `scripts/ui-playtest-agents.ts` 用来检查桌面/移动端截图、canvas 非空、遮挡、目标预览和关键动作。
+- 下一步新增 `competitive-readability-check`：构造固定 4 人局，覆盖普通攻击、防御、反弹、群攻、变伤和复活窗口，并断言 source/target、HP/饼 delta、battle cue、座位 role 和中文摘要齐全。
 
 ## 3. Agent 测试与评审设置
 

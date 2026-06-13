@@ -1,12 +1,19 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-13  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T00-39-21-056Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T03-33-44-049Z/report.md`
 
 ## 结论
 
-当前版本的双玩家 happy path 可以跑通：创建房间、加入房间、开始游戏、吃饼、沿用上回合、攻击、目标预览、结算 cue、3D canvas、GLB 加载、遮挡检查和 console 检查均通过。  
-但这还不是“新玩家一眼就懂、竞技玩家愿意反复玩”的状态。下一阶段重点应该放在：准备阶段语义、移动端行动区、结算白话反馈、读局信息和平衡数据。
+当前版本的双玩家 happy path 可以跑通：创建房间、加入房间、开始游戏、吃饼、沿用上回合、攻击、目标预览、BattleDirector cue、3D canvas、GLB 加载、遮挡检查和 console 检查均通过。  
+但这还不是“新玩家一眼就懂、竞技玩家愿意反复玩”的状态。下一阶段重点应该放在：新手结算摘要、竞技读局层、复杂技能中帧验证、运行时角色动画和平衡数据。
+
+## 2026-06-13 午间子智能体复审
+
+- 新手玩家 Agent：前三回合最缺“为什么这样结算”的白话摘要。提交后也要明确“你已提交什么，还差谁，一起亮招”。
+- 竞技玩家 Agent：读局层还缺上一招、HP/饼 delta、目标线、威胁阈值和动画加速；有 target 的 cue 必须映射到座位或目标线。
+- 开发商/QA Agent：GitHub Actions 已补基础 CI，但浏览器检查仍未进 CI；应继续扩展多人、断线重连、技能窗口和 release 体积预算。
+- 美术总监 Agent：LOD0 已有 first-pass rigid skin 和 `skin-preview-*` QA，足够 WIP 管线验收；运行时仍加载静态 LOD1，下一步要把可播放动画接进 `TableScene3D`。
 
 ## 玩家 Agent A：新手可用性
 
@@ -57,16 +64,16 @@
 
 缺口：
 
-- 还没有 GitHub Actions CI。
+- GitHub Actions 已补 `build + test:ci`，但浏览器类检查仍在本地运行，未进入 CI。
 - UI agent 只覆盖 2 玩家 3 回合 happy path，没有覆盖断线重连、复杂技能链、多人集火、观战和公网 tunnel。
-- 6 个角色的 runtime GLB 还需要一次全量选择和加载验收。
-- 角色资产仍是 WIP/blockout，未完成权重蒙皮、可播放动作和最终授权说明。
+- 6 个角色的浏览器加载验收已通过，但运行时 LOD1 仍无可播放动画。
+- 角色资产仍是 WIP/blockout，未完成精细权重绘制、可播放动作和最终授权说明。
 
 收尾建议：
 
 - 保持小步 commit，不把半生成资产和代码混在一起。
 - 09:30 前优先做 README、交接文档、基础测试和最后 push。
-- 后续补 `test:ci`，把 typecheck、规则回归、turn timeline 和 UI agents 串起来。
+- 后续补浏览器/夜间 workflow，把 `test:character-browser` 和更丰富的 UI agent 场景放进可选 CI。
 
 ## 美术总监 Agent：UI 与动画方向
 
@@ -81,10 +88,10 @@ UI 优化方法：
 
 动画方案：
 
-- 建立 `BattleDirector`：由结算事件统一驱动 `TurnAnimation`、`SkillEffectLayer`、`PlayerSeat`、`TableScene3D` 和音效。
+- 扩展 `BattleDirector`：已统一 active cue、座位高亮和 3D 镜头脉冲；下一步驱动技能 VFX 分层、音效资源和新手结算摘要。
 - 标准节奏：锁定 200ms、亮招 600-800ms、预备 250ms、冲击 80-140ms hit-stop、余波 500ms、回中 300ms。
 - 角色动作目标：`idle / attack / defend / skill / hit / down`，运行时用 `THREE.AnimationMixer` 做 80-160ms crossfade。
-- 当前 LOD1 GLB 已接入桌面展示，但尚无可播放动作；下一步必须补权重蒙皮和动画导出。
+- 当前 LOD1 GLB 已接入桌面展示，但尚无可播放动作；LOD0 已有 first-pass rigid skin 与预览 clips，下一步必须把可动 LOD 或可动 LOD1 接入运行时。
 
 ## 本轮已落实
 
