@@ -17,7 +17,7 @@
 | P1 事件日志与动画口径 | 已落地 | 日志显示对应 battle beat 标签，便于 QA 对照动画反馈 |
 | P1 BattleDirector 初版 | 已落地 | `battleDirector` 统一 active cue、camera cue、hit-stop、VFX metadata，并驱动 3D 桌面轻量镜头脉冲 |
 | Phase D 生产质感 | 进行中 | 需要继续做角色资产、音效资源、性能 profiling 和可访问性 |
-| Phase E Blender 角色生产 | 进行中 | 已有角色 blockout、LOD0/LOD1、PBR、动作剪影、face-detail 和浏览器加载验收；仍需最终高模、完整蒙皮和运行时可播放动画 |
+| Phase E Blender 角色生产 | 进行中 | 已有角色 blockout、LOD0/LOD1 skinned/animated GLB、PBR、动作剪影、face-detail 和浏览器加载验收；仍需最终高模、精细权重、手工/烘焙贴图和精修动画 |
 
 ## 2026-06-13 子智能体增量判断
 
@@ -28,7 +28,7 @@
 | 新手玩家 | 核心路径能跑通，但“为什么这样结算”仍主要靠日志理解。 | 前 3 回合做新手结算摘要：动作、目标、HP/饼 delta、等待/亮招状态都贴到桌面。 |
 | 竞技玩家 | 已有目标高亮和沿用上回合，但快速读局还缺历史压缩、资源趋势和动画加速。 | 做竞技读局层：上一招、资源 delta、目标线、威胁提示、快速复用/改目标；有 target 的 cue 必须映射座位或目标线。 |
 | 开发商 / QA | 基础 CI 已有，但浏览器检查和复杂技能链仍未覆盖到 CI。 | 扩展 UI agent 场景，捕捉动画中帧，检查 `data-beat`、目标线、资源 delta、impact shake；把浏览器检查放入可选/夜间 workflow。 |
-| 美术总监 | 当前角色是合格 WIP/blockout，LOD0 有 first-pass rigid skin，但运行时 LOD1 仍是静态展示。 | 补来源声明、精细权重绘制、可播放动作、运行时 `AnimationMixer` 和压缩策略。 |
+| 美术总监 | 当前角色是合格 WIP/blockout，LOD0/LOD1 已有 first-pass rigid skin 和同名预览 clips。 | 补来源声明、精细权重绘制、精修动作、LOD 运行时切换和压缩策略。 |
 
 ## 1. UI 优化方法
 

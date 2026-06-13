@@ -40,7 +40,7 @@
 - 比赛记录与复盘：服务端保存对局，支持复盘页面、文本报告和训练样本导出。
 - 公网联机脚本：通过 Cloudflare Tunnel 临时生成 HTTPS 地址，让不同网络的玩家直接加入。
 - Playtest agents：自动开房、双玩家出招、截图、检查 canvas、遮挡、目标预览和沿用上回合。
-- 本地角色资产：6 个默认角色已有 Blender blockout、LOD0/LOD1 GLB、portrait、mobile-avatar、turnaround、table-scale、rig-guide、动作剪影和材质审计。
+- 本地角色资产：6 个默认角色已有 Blender blockout、LOD0/LOD1 skinned/animated GLB、portrait、mobile-avatar、turnaround、table-scale、rig-guide、动作剪影和材质审计。
 
 ## 截图
 
@@ -98,7 +98,7 @@ npm run serve
 | `npm run test:ci` | 运行 typecheck、角色资产审计、规则回归和 turn timeline 检查。 |
 | `npm run verify` | 构建项目并运行核心检查与 UI agents。 |
 | `npm run test:assets` | 检查 6 个角色的 GLB、头像、QA 图和 PBR 贴图资源。 |
-| `npm run test:character-browser` | 逐个创建角色房间，用真实浏览器验证 LOD1 GLB 加载和 3D canvas。 |
+| `npm run test:character-browser` | 逐个创建角色房间，用真实浏览器验证 animated GLB 加载和 3D canvas。 |
 | `npm run test:rules` | 运行规则回归测试。 |
 | `npm run test:turn-timeline` | 检查事件日志到动画 beat 的映射。 |
 | `npm run test:ui-agents` | 启动双玩家 UI agent，生成截图和 Markdown 报告。 |
@@ -108,12 +108,12 @@ npm run serve
 
 ## 当前进度
 
-- 桌面端已接入 LOD1 GLB 角色展示；加载失败时会回退到程序化 3D 角色。
+- 桌面端已接入 LOD0 animated GLB 角色展示；加载失败时会回退到程序化 3D 角色。
 - 6 个默认角色已具备 `idle / attack / defend / skill / hit / down` 动作剪影 QA 图。
-- 逐角色浏览器验收已覆盖 6 个默认角色的选择、房间状态、LOD1 GLB 请求和 3D canvas 采样。
+- 逐角色浏览器验收已覆盖 6 个默认角色的选择、房间状态、animated GLB 请求和 3D canvas 采样。
 - 初版 BattleDirector 已统一结算 cue、牌桌 metadata 和 3D 镜头脉冲。
 - UI agent 已覆盖双玩家 3 回合 happy path，并检查 canvas、GLB 加载、目标预览、遮挡、console error 和失败动作。
-- 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、权重蒙皮和可播放运行时动画。
+- 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、精细权重绘制和精修运行时动画。
 - 下一阶段重点是 BattleDirector、移动端行动区、结算白话反馈、6 角色 runtime 验收和更完整的平衡测试。
 
 ## 项目结构

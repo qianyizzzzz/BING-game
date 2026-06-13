@@ -13,7 +13,7 @@
 - 新手玩家 Agent：前三回合最缺“为什么这样结算”的白话摘要。提交后也要明确“你已提交什么，还差谁，一起亮招”。
 - 竞技玩家 Agent：读局层还缺上一招、HP/饼 delta、目标线、威胁阈值和动画加速；有 target 的 cue 必须映射到座位或目标线。
 - 开发商/QA Agent：GitHub Actions 已补基础 CI，但浏览器检查仍未进 CI；应继续扩展多人、断线重连、技能窗口和 release 体积预算。
-- 美术总监 Agent：LOD0 已有 first-pass rigid skin 和 `skin-preview-*` QA，足够 WIP 管线验收；运行时仍加载静态 LOD1，下一步要把可播放动画接进 `TableScene3D`。
+- 美术总监 Agent：LOD0/LOD1 已有 first-pass rigid skin、同名预览 clips 和 `skin-preview-*` QA，足够 WIP 管线验收；下一步是精修权重、动作过渡和 LOD 运行时切换。
 
 ## 玩家 Agent A：新手可用性
 
@@ -66,7 +66,7 @@
 
 - GitHub Actions 已补 `build + test:ci`，但浏览器类检查仍在本地运行，未进入 CI。
 - UI agent 只覆盖 2 玩家 3 回合 happy path，没有覆盖断线重连、复杂技能链、多人集火、观战和公网 tunnel。
-- 6 个角色的浏览器加载验收已通过，但运行时 LOD1 仍无可播放动画。
+- 6 个角色的浏览器加载验收已通过，LOD0/LOD1 GLB 均已具备可读取的预览动画 clips。
 - 角色资产仍是 WIP/blockout，未完成精细权重绘制、可播放动作和最终授权说明。
 
 收尾建议：
@@ -91,11 +91,11 @@ UI 优化方法：
 - 扩展 `BattleDirector`：已统一 active cue、座位高亮和 3D 镜头脉冲；下一步驱动技能 VFX 分层、音效资源和新手结算摘要。
 - 标准节奏：锁定 200ms、亮招 600-800ms、预备 250ms、冲击 80-140ms hit-stop、余波 500ms、回中 300ms。
 - 角色动作目标：`idle / attack / defend / skill / hit / down`，运行时用 `THREE.AnimationMixer` 做 80-160ms crossfade。
-- 当前 LOD1 GLB 已接入桌面展示，但尚无可播放动作；LOD0 已有 first-pass rigid skin 与预览 clips，下一步必须把可动 LOD 或可动 LOD1 接入运行时。
+- 当前桌面运行时加载 LOD0 animated GLB；LOD1 已具备同名 first-pass skin 与预览 clips，下一步是做设备性能档切换、动作 crossfade 和精修权重。
 
 ## 本轮已落实
 
-- 3D 桌面开始加载角色 LOD1 GLB，并在 UI agent 报告中检测 `.glb` 响应。
+- 3D 桌面开始加载角色 animated GLB，并在 UI agent 报告中检测 `.glb` 响应。
 - UI agent 截图 helper 增加更稳定的 timeout、动画禁用和重试。
 - 六个角色补齐 `action-down.png` 倒地剪影。
 - 房间准备阶段 HUD 改为“房间准备 · 等待开始”，避免显示回合数造成误解。
