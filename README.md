@@ -95,8 +95,9 @@ npm run serve
 | `npm run serve` | 启动生产模式服务。 |
 | `npm run public` | 构建、启动服务并打开临时公网隧道。 |
 | `npm run typecheck` | 对所有 workspace 运行 TypeScript 检查。 |
-| `npm run test:ci` | 运行 typecheck、规则回归和 turn timeline 检查。 |
+| `npm run test:ci` | 运行 typecheck、角色资产审计、规则回归和 turn timeline 检查。 |
 | `npm run verify` | 构建项目并运行核心检查与 UI agents。 |
+| `npm run test:assets` | 检查 6 个角色的头像、GLB 和动作剪影资源。 |
 | `npm run test:rules` | 运行规则回归测试。 |
 | `npm run test:turn-timeline` | 检查事件日志到动画 beat 的映射。 |
 | `npm run test:ui-agents` | 启动双玩家 UI agent，生成截图和 Markdown 报告。 |
