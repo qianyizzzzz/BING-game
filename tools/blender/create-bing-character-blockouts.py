@@ -421,7 +421,8 @@ def create_character(spec: CharacterSpec) -> bpy.types.Object:
     add_prop(collection, root, spec, metal, emissive, leather)
     add_base(collection, root, spec, emissive)
     print(f"BING_CHARACTER_PROP_BASE_DONE={spec.character_id}", flush=True)
-    add_armature_rig(collection, root, spec)
+    rig = add_armature_rig(collection, root, spec)
+    add_rigid_skin_weights(root, spec, rig)
     print(f"BING_CHARACTER_RIG_DONE={spec.character_id}", flush=True)
 
     return root
@@ -975,6 +976,121 @@ def add_rig_animation_clips(rig: bpy.types.Object, spec: CharacterSpec) -> None:
     bpy.ops.object.mode_set(mode="OBJECT")
 
 
+def add_rigid_skin_weights(root: bpy.types.Object, spec: CharacterSpec, rig: bpy.types.Object) -> None:
+    weighted_meshes = 0
+    weighted_vertices = 0
+    skipped_meshes = 0
+    for obj in character_objects(root):
+        if obj.type != "MESH":
+            continue
+        bone_name = skin_bone_for_object(obj, spec)
+        if bone_name is None:
+            skipped_meshes += 1
+            continue
+
+        clear_vertex_groups(obj)
+        group = obj.vertex_groups.new(name=bone_name)
+        vertex_indices = list(range(len(obj.data.vertices)))
+        if vertex_indices:
+            group.add(vertex_indices, 1.0, "REPLACE")
+
+        armature = obj.modifiers.get(f"{spec.character_id}_rigid_skin")
+        if armature is None:
+            armature = obj.modifiers.new(name=f"{spec.character_id}_rigid_skin", type="ARMATURE")
+        armature.object = rig
+        armature.use_vertex_groups = True
+        armature.show_on_cage = True
+
+        obj["bing_skinning"] = "rigid_first_pass"
+        obj["bing_skin_bone"] = bone_name
+        weighted_meshes += 1
+        weighted_vertices += len(vertex_indices)
+
+    rig["bing_rig_status"] = "rigid_skin_weights"
+    rig["bing_skinning_status"] = "rigid_first_pass_needs_weight_paint"
+    rig["bing_weighted_meshes"] = weighted_meshes
+    rig["bing_weighted_vertices"] = weighted_vertices
+    root["bing_skinning_status"] = "rigid_first_pass_needs_weight_paint"
+    root["bing_weighted_meshes"] = weighted_meshes
+    root["bing_weighted_vertices"] = weighted_vertices
+    root["bing_static_meshes"] = skipped_meshes
+    print(
+        f"BING_CHARACTER_SKIN_WEIGHTS_DONE={spec.character_id}:meshes={weighted_meshes}:vertices={weighted_vertices}:static={skipped_meshes}",
+        flush=True,
+    )
+
+
+def clear_vertex_groups(obj: bpy.types.Object) -> None:
+    while obj.vertex_groups:
+        obj.vertex_groups.remove(obj.vertex_groups[0])
+
+
+def skin_bone_for_object(obj: bpy.types.Object, spec: CharacterSpec) -> str | None:
+    name = obj.name.lower()
+    location = obj.matrix_world.translation
+    side = ".L" if "_left_" in name or location.x < -0.28 else ".R" if "_right_" in name or location.x > 0.28 else ""
+
+    if "table_scale_base" in name:
+        return None
+    if "round_shield" in name or "shield_ring" in name:
+        return "hand.L"
+    if "violet_blade" in name or "blade_gem" in name or "iron_pan" in name or "pan_handle" in name:
+        return "hand.R"
+    if "red_vial" in name:
+        return "hand.L"
+    if "medic_satchel" in name or "cake_relic" in name:
+        return "hips"
+    if "observer_orbit" in name or "sensor_core" in name or "jade_charm" in name:
+        return "chest"
+
+    if any(token in name for token in ("finger", "thumb", "hand", "knuckle", "nail")):
+        return f"hand{side or ('.L' if location.x < 0 else '.R')}"
+    if any(token in name for token in ("forearm", "elbow")):
+        return f"forearm{side or ('.L' if location.x < 0 else '.R')}"
+    if any(token in name for token in ("upper_arm", "shoulder")):
+        return f"upper_arm{side or ('.L' if location.x < 0 else '.R')}"
+    if any(token in name for token in ("boot", "foot")):
+        return f"foot{side or ('.L' if location.x < 0 else '.R')}"
+    if any(token in name for token in ("shin", "calf")):
+        return f"shin{side or ('.L' if location.x < 0 else '.R')}"
+    if any(token in name for token in ("thigh", "knee")):
+        return f"thigh{side or ('.L' if location.x < 0 else '.R')}"
+    if any(token in name for token in ("head", "face", "eye", "pupil", "eyelid", "ear", "nose", "cheek", "mouth", "lip", "brow", "chin", "jaw", "hair", "mask", "lens", "forehead", "pore", "tearline", "sclera", "scar")):
+        return "head"
+    if "neck" in name:
+        return "neck"
+    if any(token in name for token in ("ribcage", "chest", "collar", "lapel", "torso")):
+        return "chest"
+    if any(token in name for token in ("abdomen", "belt", "waist", "stitch")):
+        return "spine"
+    if any(token in name for token in ("pelvis", "coat_tail", "robe", "skirt", "coat")):
+        return "hips"
+
+    if abs(location.x) > 0.24 and 0.66 <= location.z <= 1.4:
+        fallback_side = ".L" if location.x < 0 else ".R"
+        if location.z > 1.12:
+            return f"upper_arm{fallback_side}"
+        if location.z > 0.82:
+            return f"forearm{fallback_side}"
+        return f"hand{fallback_side}"
+    if abs(location.x) > 0.06 and location.z < 0.72:
+        fallback_side = ".L" if location.x < 0 else ".R"
+        if location.z < 0.12:
+            return f"foot{fallback_side}"
+        if location.z < 0.42:
+            return f"shin{fallback_side}"
+        return f"thigh{fallback_side}"
+    if location.z >= 1.58:
+        return "head"
+    if location.z >= 1.43:
+        return "neck"
+    if location.z >= 1.12:
+        return "chest"
+    if location.z >= 0.82:
+        return "spine"
+    return "hips"
+
+
 def reset_rig_pose(rig: bpy.types.Object) -> None:
     for pose_bone in rig.pose.bones:
         pose_bone.rotation_mode = "XYZ"
@@ -1098,6 +1214,9 @@ def export_character(spec: CharacterSpec, roots: dict[str, bpy.types.Object]) ->
         export_format="GLB",
         use_selection=True,
         export_apply=True,
+        export_animation_mode="NLA_TRACKS",
+        export_nla_strips=True,
+        export_extra_animations=False,
     )
     lod1_metrics = export_lod1_character(spec, root, out_dir)
 
@@ -1132,6 +1251,10 @@ def export_lod1_character(spec: CharacterSpec, root: bpy.types.Object, out_dir: 
         duplicate.name = f"{obj.name}_lod1"
         duplicate.parent = lod_root
         duplicate.matrix_world = obj.matrix_world.copy()
+        for modifier in list(duplicate.modifiers):
+            if modifier.type == "ARMATURE":
+                duplicate.modifiers.remove(modifier)
+        clear_vertex_groups(duplicate)
         lod_collection.objects.link(duplicate)
         duplicates.append(duplicate)
         if len(duplicate.data.polygons) > 12:
@@ -1515,7 +1638,8 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - 每个角色导出 `portrait.png`、`mobile-avatar.png`、`turnaround-front.png`、`turnaround-side.png`、`turnaround-three-quarter.png`、`table-scale.png`
 - 每个角色导出动作剪影 QA：`{pose_ids}`
 - 每个角色建立 `{len(RIG_BONES)}` 根骨骼的 guide armature，并导出 `rig-guide.png`
-- 每个 guide armature 写入预览动画 clips：`{animation_clip_ids}`；当前为关键帧预览，尚未完成权重蒙皮
+- 每个角色写入 first-pass rigid skin weights，LOD0 GLB 已具备 skinned mesh 结构；仍需手工权重绘制与动作精修
+- 每个 guide armature 写入预览动画 clips：`{animation_clip_ids}`；当前为关键帧预览，可驱动 rigid skin 初版
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、职业道具和服装层次
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
 - 材质近景 QA：`{repo_path(ASSET_ROOT / "materials" / "material-qa.png")}`
@@ -1541,7 +1665,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## P2
 
-- 将当前动作剪影升级为骨骼绑定动画，并补死亡/倒地可播放动作。
+- 将 first-pass rigid skin weights 升级为精细权重绘制，并补死亡/倒地可播放动作。
 - 建立每个角色的材质板和服装局部参考。
 """
     (ARTIFACT_ROOT / "bing-character-blockouts-report.md").write_text(report, encoding="utf-8")
@@ -1556,7 +1680,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 - 源场景：`{repo_path(scene_path)}`
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
 - 动作 QA：每角色 `{pose_ids}` 动作剪影图
-- 绑定准备：每角色 `{len(RIG_BONES)}` 根骨骼 guide armature、`rig-guide.png` 与 `{animation_clip_ids}` 预览动画 clips
+- 绑定准备：每角色 `{len(RIG_BONES)}` 根骨骼 guide armature、`rig-guide.png`、first-pass rigid skin weights 与 `{animation_clip_ids}` 预览动画 clips
 - 建模：连续面部 sculpt surface、眼袋/法令/耳廓细节、手部拇指/指节/指甲、服装层次和职业道具
 - 材质：皮肤、布料、皮革、金属、头发均带程序化 micro-bump、roughness variation 和导出的 albedo/normal/roughness PNG
 - PBR 贴图目录：`{repo_path(PBR_TEXTURE_ROOT)}`，当前 `{pbr_texture_count}` 张 PNG
@@ -1570,8 +1694,13 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 
 ## 美术判断
 
-- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、预览动画 clips、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
-- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、权重蒙皮和可播放蒙皮动画；真人质感仍需外部雕刻/贴图阶段继续推进。
+- 已完成：统一 7-7.5 头身比例、角色体型差异、连续面部 sculpt surface、眼袋/法令/耳廓、手部拇指/指节/指甲、发型/头饰、服装层次、职业道具、guide armature、first-pass rigid skin weights、预览动画 clips、LOD1、移动端头像、桌面距离渲染、动作剪影 QA、材质近景 QA 和可追踪 PBR 贴图文件。
+- 仍不足：还没有真实高模雕刻、手工/烘焙贴图、精细权重绘制和可播放精修动画；真人质感仍需外部雕刻/贴图阶段继续推进。
+
+## 运行时验收
+
+- 静态资产审计：`npm run test:assets`，覆盖 LOD0/LOD1 GLB、LOD0 skinned mesh、LOD0 动画命名、动作图、移动头像、turnaround、table-scale、face-detail、rig-guide、material QA 和 PBR 贴图包。
+- 浏览器逐角色验收：`npm run test:character-browser`，创建角色房间并用观战视角验证 LOD1 GLB 请求和 3D canvas 采样。
 
 ## 下一步 P0
 
@@ -1581,7 +1710,7 @@ def write_report(scene_path: Path, roots: dict[str, bpy.types.Object], lod1_metr
 ## 下一步 P1
 
 - 在 `TableScene3D` 中接入 `.glb`，用桌面距离 QA 图校准相机和灯光。
-- 给 guide armature 补权重蒙皮，把当前关键帧预览升级为网格可播放动画，并继续扩展死亡/倒地后的结算动作。
+- 把 first-pass rigid skin weights 升级为精细权重绘制，让当前关键帧预览变成可播放的高质量蒙皮动画，并继续扩展死亡/倒地后的结算动作。
 """
     (DOCS_ROOT / "CHARACTER_ASSET_AUDIT.md").write_text(review, encoding="utf-8")
 

@@ -132,7 +132,8 @@ function auditGlb(characterId: string, label: string, filePath: string): void {
     const missingAnimations = expectedAnimationNames.filter(
       (name) =>
         !info.animationNames.some(
-          (animationName) => animationName === name || animationName.includes(`_${name}_`)
+          (animationName) =>
+            animationName === name || animationName.startsWith(`${name}_`) || animationName.includes(`_${name}_`)
         )
     );
     if (missingAnimations.length > 0) {
