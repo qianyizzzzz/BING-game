@@ -4,6 +4,18 @@
 
 当前结论：项目适合受控公网试玩；正式公开发布前仍需补断线重连/多人集火浏览器门禁、安全白名单、持久化策略、许可证和资产权属。
 
+## 0. 最新本地验证
+
+2026-06-14 07:08 本地拆分门禁已通过：
+
+- `npm run test:ci`
+- `npm run test:release-assets:dist`
+- 默认 UI agent：`artifacts/playtests/ui-agents-2026-06-13T22-48-17-625Z/report.md`
+- 复杂技能 UI agent：`artifacts/playtests/ui-agents-2026-06-13T22-54-51-034Z/report.md`
+- 角色浏览器：`artifacts/playtests/character-runtime-2026-06-13T22-59-21-950Z/report.md`
+
+说明：`npm run verify:release` 在 Codex 本地工具 20 分钟上限下触发超时，但该次运行已经产出以上通过的浏览器报告；发布或 CI 环境建议给完整门禁更长超时，或按上述子命令拆分执行。
+
 ## 1. Clean Clone 验证
 
 - 使用 Node.js 24 和 npm 10+。

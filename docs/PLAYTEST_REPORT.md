@@ -1,9 +1,9 @@
 # BING Playtest 子智能体报告
 
-日期：2026-06-13  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T22-36-09-841Z/report.md`
-最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T22-31-28-877Z/report.md`
-最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T21-17-44-857Z/report.md`
+日期：2026-06-14  
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T22-48-17-625Z/report.md`
+最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T22-54-51-034Z/report.md`
+最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T22-59-21-950Z/report.md`
 
 ## 结论
 
@@ -69,13 +69,14 @@
 
 - `npm run test:ui-agents` 最近一次通过，无 console error、无 failed action、无视觉 QA 告警。
 - `npm run test:ui-agents:complex` 最近一次通过，覆盖“单房主 + 2 个 AI 对手”的火箭双目标技能 smoke，HUD 目标数 2，座位映射 2/2，结算 cueTargets=2、summaryTargets=2。
+- `npm run test:ci` 和 `npm run test:release-assets:dist` 最近一次通过，覆盖类型检查、规则回归、角色资源、发布资产边界和 dist 产物审计。
 - `npm run test:ui-agents` 和 `npm run test:character-browser` 会先执行 `npm run build -w @bing/client`，避免浏览器验收使用过期 `apps/client/dist`。
 - 双端 canvas 正常渲染，并检测到运行时 LOD0 animated GLB 成功加载。
 - UI agent 已覆盖目标预览、沿用上回合、遮挡检查、结算 cue、cue target 到座位的映射。
 - UI agent 已覆盖行动 HUD：攻击模式下必须显示下一步、目标数、目标 id 和可提交状态。
 - UI agent 已覆盖底部命令区：移动端和桌面端提交按钮保持可见，触控高度不低于 44px。
 - UI agent 已覆盖新手结算摘要：当 readout 已播放到系统步骤时，摘要仍要保留本轮真实动作、目标绑定和目标座位映射。
-- UI agent 已覆盖血/饼变化摘要：默认 happy path 报告显示“资源变化=新手玩家 饼-3；竞技玩家 血-1 / 饼-3”，复杂技能报告显示“资源变化=AI 1 血-6；AI 2 血-6”。
+- UI agent 已覆盖血/饼变化摘要：默认 happy path 报告显示“资源变化=新手玩家 饼-3；竞技玩家 血-1 / 饼-3”，复杂技能报告显示“资源变化=AI 1 血-6；AI 2 血-6；新手玩家 饼-2”。
 - UI agent 已覆盖目标线/落点 VFX：火箭复杂技能 smoke 验证 `effectVectors=6`、`effectImpacts=6`、`effectTargets=2`。
 - UI agent 已覆盖运行时 LOD 分流：390px 移动端加载 `*-lod1.glb`，1280px 桌面端加载 LOD0 `*.glb`。
 - UI agent 已覆盖公开战斗画面 Network 检查：不应再请求 `/assets/placeholders/`。
@@ -108,7 +109,7 @@ UI 优化方法：
 
 动画方案：
 
-- 扩展 `BattleDirector`：已统一 active cue、座位高亮和 3D 镜头脉冲；下一步驱动技能 VFX 分层、音效资源和新手结算摘要。
+- 扩展 `BattleDirector`：已统一 active cue、座位高亮、3D 镜头脉冲和技能目标线/落点元数据；下一步驱动音效资源、竞技读局层和更完整的中帧验证。
 - 标准节奏：锁定 200ms、亮招 600-800ms、预备 250ms、冲击 80-140ms hit-stop、余波 500ms、回中 300ms。
 - 角色动作目标：`idle / attack / defend / skill / hit / down`，运行时用 `THREE.AnimationMixer` 做 80-160ms crossfade。
 - 当前桌面运行时加载 LOD0 animated GLB；LOD1 已具备同名 first-pass skin 与预览 clips，下一步是做设备性能档切换、动作 crossfade 和精修权重。
