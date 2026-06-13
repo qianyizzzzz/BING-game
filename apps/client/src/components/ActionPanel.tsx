@@ -724,9 +724,26 @@ export function ActionPanel({
                   ? "同一回合不能重复指定同一目标"
                   : hasAreaMixed
                     ? "群攻招式必须单独使用"
-                    : hasInvalidMultiTargetSkillTargets
+                  : hasInvalidMultiTargetSkillTargets
                       ? "追加目标需要补全"
                       : undefined;
+  const actionRecoveryHint = actionInvalid
+    ? attackCostTooHigh || skillCostTooHigh || reboundUnavailable
+      ? "先改选吃饼或降低消耗"
+      : missingTarget
+        ? "先选择目标"
+        : duplicatedTargets
+          ? "换一个未指定过的目标"
+          : hasAreaMixed
+            ? "移除其他招式，只保留群攻"
+            : hasInvalidMultiTargetSkillTargets
+              ? "补全追加目标"
+              : mode === "skill" && !selectedSkill
+                ? "先选择一项可用技能"
+                : mode === "skill" && !selectedSkillPlay
+                  ? "改选当前阶段可用的技能"
+                  : undefined
+    : undefined;
   const selectedActionSummary = summarizeActionSelection({
     attackRows,
     defense,
@@ -814,6 +831,11 @@ export function ActionPanel({
           : submitting
             ? "正在提交"
             : actionInvalidReason;
+  const actionStatusLabel = actionBlockReason
+    ? actionRecoveryHint
+      ? `${actionBlockReason} · ${actionRecoveryHint}`
+      : actionBlockReason
+    : "可以提交";
   const actionReadyState = alreadySubmitted
     ? "waiting"
     : actionBlockReason
@@ -2009,6 +2031,7 @@ export function ActionPanel({
         data-next-step={actionCommandLabel}
         data-target-count={previewTargetIds.length}
         data-target-ids={previewTargetKey}
+        data-next-action-hint={actionRecoveryHint ?? ""}
         data-selected-action={selectedActionSummary}
         aria-live="polite"
       >
@@ -2022,7 +2045,7 @@ export function ActionPanel({
         </div>
         <div>
           <span>状态</span>
-          <strong>{actionBlockReason ?? "可以提交"}</strong>
+          <strong>{actionStatusLabel}</strong>
         </div>
       </div>
 
@@ -2444,6 +2467,7 @@ export function ActionPanel({
             <span>{readinessLabel}</span>
             <span>{selectedActionCost > 0 ? `消耗 ${selectedActionCost} 饼` : "无消耗"}</span>
             <span>{previewTargetLabel}</span>
+            {actionRecoveryHint ? <span data-testid="action-recovery-hint">{actionRecoveryHint}</span> : null}
           </div>
           </div>
         </div>
