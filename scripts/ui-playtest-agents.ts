@@ -675,8 +675,12 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     if (!director.beat || director.beat === "idle" || Number(director.cueCount) <= 0) {
       throw new Error(`BattleDirector cue 不完整：${JSON.stringify(director)}`);
     }
+    const directorSeatCount = await page.locator('.poker-seat[data-director-role]:not([data-director-role=""])').count();
+    if (director.targetIds && directorSeatCount === 0) {
+      throw new Error(`BattleDirector 有目标但没有座位高亮：${JSON.stringify(director)}`);
+    }
 
-    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, targets=${cue.targetIds || director.targetIds || "无"}）。`;
+    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, targets=${cue.targetIds || director.targetIds || "无"}, seats=${directorSeatCount}）。`;
     visualChecks.push(message);
     agent.observations.push(message);
   } catch (error) {

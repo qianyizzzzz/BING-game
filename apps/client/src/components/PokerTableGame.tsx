@@ -6,7 +6,7 @@ import {
   PlayerId,
   PublicGameState
 } from "@bing/shared";
-import { useBattleDirector } from "../lib/battleDirector";
+import { battleDirectorSeatRole, useBattleDirector } from "../lib/battleDirector";
 import { buildSeatFeedbackMap, buildTableEffects } from "../lib/tableFeedback";
 import { PlayerSeat, SeatPosition } from "./PlayerSeat";
 import { SkillEffectLayer } from "./SkillEffectLayer";
@@ -242,16 +242,20 @@ export function PokerTableGame({
             isOwner &&
             Boolean(viewerPlayerId) &&
             player.id !== viewerPlayerId;
+          const directorRole = director.isPlaying
+            ? battleDirectorSeatRole(player.id, director.activeSourceId, director.activeTargetIds)
+            : undefined;
 
           return (
             <PlayerSeat
               key={player.id}
               canKick={canKick}
+              directorRole={directorRole}
               feedback={feedbackMap[player.id] ?? {
                 animation: "idle",
                 animationKey: `idle-${player.id}`
               }}
-              highlighted={highlightedPlayerIds.has(player.id)}
+              highlighted={highlightedPlayerIds.has(player.id) || Boolean(directorRole)}
               isActiveActor={isActiveActor}
               isViewer={player.id === viewerPlayerId}
               onKick={onKickPlayer}

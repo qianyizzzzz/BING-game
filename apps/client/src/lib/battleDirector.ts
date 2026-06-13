@@ -42,6 +42,8 @@ export interface BattleDirectorState extends BattleDirectorSnapshot {
   visibleStep: BattleStep | undefined;
 }
 
+export type BattleDirectorSeatRole = "source" | "target" | "source-target";
+
 export function useBattleDirector(state: PublicGameState): BattleDirectorState {
   const playedRevealIds = useRef(new Set<string>());
   const [activeRevealId, setActiveRevealId] = useState<string | null>(null);
@@ -137,4 +139,23 @@ export function buildBattleDirectorSnapshotFromCues(
 
 export function battleDirectorTotalDurationMs(cueCount: number): number {
   return Math.max(1, cueCount) * STEP_DURATION_MS + 900;
+}
+
+export function battleDirectorSeatRole(
+  playerId: PlayerId,
+  sourceId: PlayerId | undefined,
+  targetIds: PlayerId[]
+): BattleDirectorSeatRole | undefined {
+  const isSource = sourceId === playerId;
+  const isTarget = targetIds.includes(playerId);
+  if (isSource && isTarget) {
+    return "source-target";
+  }
+  if (isSource) {
+    return "source";
+  }
+  if (isTarget) {
+    return "target";
+  }
+  return undefined;
 }

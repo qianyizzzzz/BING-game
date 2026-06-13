@@ -13,6 +13,7 @@ export interface SeatPosition {
 
 interface PlayerSeatProps {
   canKick?: boolean;
+  directorRole?: "source" | "target" | "source-target" | undefined;
   feedback: SeatFeedback;
   highlighted?: boolean;
   isActiveActor: boolean;
@@ -25,6 +26,7 @@ interface PlayerSeatProps {
 
 export function PlayerSeat({
   canKick = false,
+  directorRole,
   feedback,
   highlighted = false,
   isActiveActor,
@@ -58,6 +60,7 @@ export function PlayerSeat({
         isActiveActor ? "poker-seat-active" : "",
         submitted ? "poker-seat-submitted" : "",
         highlighted ? "poker-seat-highlighted" : "",
+        directorRole ? `poker-seat-director-${directorRole}` : "",
         pendingDeath ? "poker-seat-pending-death" : "",
         dead ? "poker-seat-dead" : "",
         feedback.tone ? `poker-seat-tone-${feedback.tone}` : ""
@@ -68,6 +71,7 @@ export function PlayerSeat({
         "--seat-shift-x": `${cardOffset.x}px`,
         "--seat-shift-y": `${cardOffset.y}px`
       } as CSSProperties}
+      data-director-role={directorRole ?? ""}
     >
       <div className="seat-identity-row">
         <CharacterAvatar

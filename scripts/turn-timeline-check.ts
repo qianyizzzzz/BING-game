@@ -13,7 +13,7 @@ import {
   type BattleStepKind
 } from "../apps/client/src/lib/turnTimeline";
 import { buildBattlePresentation } from "../apps/client/src/lib/battlePresentation";
-import { buildBattleDirectorSnapshot } from "../apps/client/src/lib/battleDirector";
+import { battleDirectorSeatRole, buildBattleDirectorSnapshot } from "../apps/client/src/lib/battleDirector";
 import { getBattleCueProfile } from "../apps/client/src/lib/battleAudio";
 
 const now = Date.now();
@@ -310,6 +310,10 @@ assert.equal(director.activeCameraCue, cappedPresentation[1]?.camera);
 assert.equal(director.activeHitStopMs, cappedPresentation[1]?.hitStopMs);
 assert.deepEqual(director.activeTargetIds, cappedPresentation[1]?.targetIds);
 assert.ok(director.totalDurationMs > cappedPresentation.length * 600);
+assert.equal(battleDirectorSeatRole("p1", "p1", ["p2"]), "source");
+assert.equal(battleDirectorSeatRole("p2", "p1", ["p2"]), "target");
+assert.equal(battleDirectorSeatRole("p1", "p1", ["p1"]), "source-target");
+assert.equal(battleDirectorSeatRole("p3", "p1", ["p2"]), undefined);
 
 console.log(`turn timeline check passed: ${cases.length} event mappings and presentation cues covered`);
 
