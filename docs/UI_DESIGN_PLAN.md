@@ -35,7 +35,7 @@
 | --- | --- | --- |
 | 新手玩家 | 核心路径能跑通，但“为什么这样结算”仍主要靠日志理解。 | 前 3 回合做新手结算摘要：动作、目标、HP/饼 delta、等待/亮招状态都贴到桌面。 |
 | 竞技玩家 | 已有目标高亮和沿用上回合，但快速读局还缺历史压缩、资源趋势和动画加速。 | 做竞技读局层：上一招、资源 delta、目标线、威胁提示、快速复用/改目标；有 target 的 cue 必须映射座位或目标线。 |
-| 开发商 / QA | 基础 CI、夜间 UI agents、手动角色浏览器 workflow 和本地复杂技能 smoke 已有；复杂技能 CI、断线重连和多人集火仍需扩展。 | 扩展 UI agent 场景，捕捉动画中帧，检查 `data-beat`、目标线、资源 delta、impact shake；把断线重连和多人集火放入可选 workflow。 |
+| 开发商 / QA | 基础 CI、夜间 UI agents、手动角色浏览器 workflow、本地复杂技能 smoke 和重连/观战 smoke 已有；多人集火和公网 tunnel 仍需扩展。 | 扩展 UI agent 场景，捕捉动画中帧，检查 `data-beat`、目标线、资源 delta、impact shake；把多人集火和公网 tunnel 放入可选 workflow。 |
 | 美术总监 | 当前角色是合格 WIP/blockout，LOD0/LOD1 已有 first-pass blended skin 和同名预览 clips。 | 补来源声明、精细权重绘制、精修动作、LOD 运行时切换和压缩策略。 |
 
 ## 2026-06-13 晚间子智能体追加评审
@@ -53,7 +53,7 @@
 | --- | --- | --- |
 | 新手玩家 Agent | 可行动阶段不能写成“正在收招”；技能提交和结算摘要必须保留技能名、目标、补救动作和资源变化。 | 已改为“请选择行动 / 等待亮招”，技能提交显示“提交：火箭”等具体名称；不可提交补救动作和前三回合 HP/饼 delta 已纳入 UI agent 门禁。 |
 | 竞技玩家 Agent | 火箭等目标型技能在提交、亮招、摘要和 VFX 任一阶段丢 target，都会破坏竞技读局。 | 已让 `ActionPanel`、`tableFeedback`、`BattleDirector` / readout / summary 消费技能 `targetIds`；复杂 smoke 已验证当前选择、cueTargets=2、summaryTargets=2 和目标线/落点。 |
-| 开发商 / QA Agent | 公开 demo 前要处理生产 Origin、public 资产边界、LICENSE/资产权属、持久化备份和发布产物审计。 | Browser Playtest workflow 已加入 complex smoke；下一步做 `verify:release`、dist 资产审计和 socket 重连/观战场景。 |
+| 开发商 / QA Agent | 公开 demo 前要处理生产 Origin、public 资产边界、LICENSE/资产权属、持久化备份和发布产物审计。 | Browser Playtest workflow 已加入 complex smoke 和手动重连/观战 smoke；下一步做多人集火、公网 tunnel 和响应窗口场景。 |
 | 美术总监 Agent | 桌面中心仍被网页卡片感挤压，角色存在感还不够像游戏舞台。 | 目标线/落点 VFX 已纳入 smoke；下一步做角色 bbox 尺寸门禁、桌面中心遮挡预算和 6 角色浏览器报告口径。 |
 
 ## 1. UI 优化方法

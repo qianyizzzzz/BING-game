@@ -42,7 +42,7 @@
 | 最新报告 | `artifacts/playtests/ui-agents-2026-06-13T23-25-07-313Z/report.md` |
 | 复杂技能报告 | `artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md` |
 | 角色浏览器报告 | `artifacts/playtests/character-runtime-2026-06-13T22-59-21-950Z/report.md` |
-| 发布口径 | 可用于受控公网试玩；正式公开发布前仍需许可证、资产权属、断线重连/多人集火门禁和备份策略。 |
+| 发布口径 | 可用于受控公网试玩；正式公开发布前仍需许可证、资产权属、多人集火/公网 tunnel 门禁和备份策略。 |
 
 ## 项目简介
 
@@ -133,6 +133,7 @@ npm run serve
 | `npm run test:ui-agents:complex` | 先构建 client，再运行单房主 + AI 对手的复杂技能 smoke。 |
 | `npm run test:ui-agents:run` | 复用已构建的 client dist，直接运行默认 UI agent。 |
 | `npm run test:ui-agents:complex:run` | 复用已构建的 client dist，直接运行复杂技能 UI agent。 |
+| `npm run test:ui-agents:reconnect` | 先构建 client，再验证房间恢复、提交后 reload、观战加入与观战 reload。 |
 | `npm run import:skills` | 从技能表导入技能数据。 |
 | `npm run training:export` | 导出比赛训练数据。 |
 | `npm run training:selfplay` | 运行自博弈训练脚本。 |
@@ -145,7 +146,7 @@ npm run serve
 - 初版 BattleDirector 已统一结算 cue、牌桌 metadata 和 3D 镜头脉冲。
 - UI agent 已覆盖双玩家 3 回合 happy path 和复杂技能 smoke，并检查 canvas、GLB 加载、目标预览、行动 HUD、底部命令区、遮挡、console error 和失败动作。
 - 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、精细权重绘制和精修运行时动画。
-- 下一阶段重点是竞技读局层、复杂技能参数抽屉、断线重连/多人集火 playtest、6 角色 runtime 精修和更完整的平衡测试。
+- 下一阶段重点是竞技读局层、复杂技能参数抽屉、多人集火/公网 tunnel playtest、6 角色 runtime 精修和更完整的平衡测试。
 
 ## 项目结构
 

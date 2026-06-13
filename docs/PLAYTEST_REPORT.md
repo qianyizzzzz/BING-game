@@ -3,6 +3,7 @@
 日期：2026-06-14  
 最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T23-25-07-313Z/report.md`
 最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md`
+最新重连/观战 smoke：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`
 最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T22-59-21-950Z/report.md`
 
 ## 结论
@@ -14,7 +15,7 @@
 
 - 新手玩家 Agent：前三回合最缺“为什么这样结算”的白话摘要。提交后也要明确“你已提交什么，还差谁，一起亮招”。
 - 竞技玩家 Agent：读局层还缺上一招、HP/饼 delta、目标线、威胁阈值和动画加速；有 target 的 cue 必须映射到座位或目标线。
-- 开发商/QA Agent：GitHub Actions 已补基础 CI、UI agents 夜间 workflow 和手动角色浏览器 workflow；应继续扩展多人、断线重连、复杂技能窗口和 release 体积预算。
+- 开发商/QA Agent：GitHub Actions 已补基础 CI、UI agents 夜间 workflow、手动角色浏览器 workflow 和手动重连/观战 smoke；应继续扩展多人集火、复杂技能窗口和 release 体积预算。
 - 美术总监 Agent：LOD0/LOD1 已有 first-pass blended skin、同名预览 clips 和 `skin-preview-*` QA，足够 WIP 管线验收；下一步是精修权重、动作过渡和 LOD 运行时切换。
 
 ## 2026-06-13 晚间子智能体复审
@@ -82,12 +83,13 @@
 - UI agent 已覆盖运行时 LOD 分流：390px 移动端加载 `*-lod1.glb`，1280px 桌面端加载 LOD0 `*.glb`。
 - UI agent 已覆盖公开战斗画面 Network 检查：不应再请求 `/assets/placeholders/`。
 - UI agent 已覆盖首屏 CTA：点击后必须进入玩家准备区并聚焦玩家名，不能直接跳过昵称/角色确认创建房间。
+- 重连/观战 smoke 已覆盖：房主出招前 reload、提交后 reload 保持 playerId 和已提交状态；观战者开局后加入、reload 后仍不能出招；另一名真人继续提交后广播推进。
 - `npm run test:character-browser` 已逐个验证 6 个角色：期望 GLB 与观察 GLB 一致，canvas 非空，console/page error 为无。
 
 缺口：
 
 - GitHub Actions 已补 `build + test:ci`、夜间 UI agents 和手动角色浏览器 workflow。
-- UI agent 已覆盖 2 玩家 3 回合 happy path 和一条复杂技能 smoke；仍未覆盖断线重连、多人集火、观战和公网 tunnel。
+- UI agent 已覆盖 2 玩家 3 回合 happy path、一条复杂技能 smoke 和基础重连/观战 smoke；仍未覆盖多人集火和公网 tunnel。
 - 6 个角色的浏览器加载验收已通过，LOD0/LOD1 GLB 均已具备可读取的预览动画 clips。
 - 角色资产仍是 WIP/blockout，未完成精细权重绘制、可播放动作和最终授权说明。
 
@@ -95,7 +97,7 @@
 
 - 保持小步 commit，不把半生成资产和代码混在一起。
 - 09:30 前优先做 README、交接文档、基础测试和最后 push。
-- 后续把复杂技能链、断线重连和多人集火放进可选浏览器 CI。
+- 后续把多人集火、公网 tunnel 和更多响应窗口链路放进可选浏览器 CI。
 
 ## 美术总监 Agent：UI 与动画方向
 

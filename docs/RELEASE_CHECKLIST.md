@@ -2,7 +2,7 @@
 
 日期：2026-06-13
 
-当前结论：项目适合受控公网试玩；正式公开发布前仍需补断线重连/多人集火浏览器门禁、安全白名单、持久化策略、许可证和资产权属。
+当前结论：项目适合受控公网试玩；正式公开发布前仍需补多人集火/公网 tunnel 浏览器门禁、安全白名单、持久化策略、许可证和资产权属。
 
 ## 0. 最新本地验证
 
@@ -12,9 +12,10 @@
 - `npm run test:release-assets:dist`
 - 默认 UI agent：`artifacts/playtests/ui-agents-2026-06-13T23-25-07-313Z/report.md`
 - 复杂技能 UI agent：`artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md`
+- 重连/观战 smoke：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`
 - 角色浏览器：`artifacts/playtests/character-runtime-2026-06-13T22-59-21-950Z/report.md`
 
-说明：`npm run verify:release` 已拆成“先 build 一次，再运行 `verify:release:run`”。日常单项命令仍会自行构建 client；发布或 CI 环境可以调用 `test:ui-agents:run`、`test:ui-agents:complex:run`、`test:character-browser:run` 复用已构建 dist，降低超时概率。
+说明：`npm run verify:release` 已拆成“先 build 一次，再运行 `verify:release:run`”。日常单项命令仍会自行构建 client；发布或 CI 环境可以调用 `test:ui-agents:run`、`test:ui-agents:complex:run`、`test:ui-agents:reconnect:run`、`test:character-browser:run` 复用已构建 dist，降低超时概率。
 
 ## 1. Clean Clone 验证
 
@@ -24,7 +25,7 @@
 - 运行 `npm run build`。
 - 运行 `npm run test:ci`。
 - 发布前运行 `npm run verify:release`，完整覆盖默认 UI、复杂技能、角色浏览器和发布资产边界；如果环境有严格超时，先 `npm run build`，再分段运行 `npm run verify:release:run` 中的子命令。
-- 本地需要浏览器验收时运行 `npm run test:ui-agents`、`npm run test:ui-agents:complex` 和 `npm run test:character-browser`。
+- 本地需要浏览器验收时运行 `npm run test:ui-agents`、`npm run test:ui-agents:complex`、`npm run test:ui-agents:reconnect` 和 `npm run test:character-browser`。
 - GitHub Actions 可夜间运行默认 UI agents 与复杂技能 smoke，并可手动运行角色浏览器验收；报告和截图会作为 artifacts 上传。
 
 通过标准：构建和测试均通过；Vite 大 chunk 警告可接受，但需要记录为后续性能优化项。
@@ -81,7 +82,7 @@ docker run -p 3001:3001 -v bing-data:/app/data bing-card-game
 - 明确角色 GLB、贴图、截图、技能表来源。
 - 保持公开战斗画面没有 `/assets/placeholders/` 网络请求。
 - 发布产物不得包含 `*.blend*` 或 `assets/characters/source/`；源场景只保留在 `tools/blender/source/`。
-- 扩展浏览器级 CI：复杂技能 smoke 已纳入夜间 workflow；继续把响应窗口、断线重连和多人集火加入可选 workflow，并上传报告和截图。
+- 扩展浏览器级 CI：复杂技能 smoke 已纳入夜间 workflow；重连/观战 smoke 已加入手动 workflow；继续把响应窗口和多人集火加入可选 workflow，并上传报告和截图。
 - 做一次移动端 360px/375px/390px/430px 截图 QA。
 
 通过标准：阻断项全部关闭后，才把项目描述从“受控试玩”改为“公开发布”。
