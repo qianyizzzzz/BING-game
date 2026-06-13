@@ -2,7 +2,7 @@
 
 日期：2026-06-13  
 最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T17-07-06-046Z/report.md`
-最新逐角色浏览器验收：`artifacts/playtests/character-runtime-2026-06-13T15-11-32-893Z/report.md`
+最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T17-16-00-934Z/report.md`
 
 ## 结论
 
@@ -13,14 +13,14 @@
 
 - 新手玩家 Agent：前三回合最缺“为什么这样结算”的白话摘要。提交后也要明确“你已提交什么，还差谁，一起亮招”。
 - 竞技玩家 Agent：读局层还缺上一招、HP/饼 delta、目标线、威胁阈值和动画加速；有 target 的 cue 必须映射到座位或目标线。
-- 开发商/QA Agent：GitHub Actions 已补基础 CI 和 UI agents 夜间 workflow；应继续扩展多人、断线重连、技能窗口、角色浏览器门禁和 release 体积预算。
+- 开发商/QA Agent：GitHub Actions 已补基础 CI、UI agents 夜间 workflow 和手动角色浏览器 workflow；应继续扩展多人、断线重连、复杂技能窗口和 release 体积预算。
 - 美术总监 Agent：LOD0/LOD1 已有 first-pass blended skin、同名预览 clips 和 `skin-preview-*` QA，足够 WIP 管线验收；下一步是精修权重、动作过渡和 LOD 运行时切换。
 
 ## 2026-06-13 晚间子智能体复审
 
 - 新手玩家 Agent：首屏主 CTA 直接建房仍可能跳过昵称/角色选择；移动端不能隐藏“现在该干什么”；本轮已把“动作 / 目标 / 结果”的新手结算摘要落到桌面，并由 UI agent 检查目标绑定。
 - 竞技玩家 Agent：行动 dock 在移动端仍像滚动表单，下一步应做固定底部主指令条；按钮字号和触控高度需要回到 13-14px / 44px 以上；复杂技能需要目标线、资源 delta 和更强锁定/亮招节拍。
-- 开发商 Agent：当前适合受控公网试玩，不适合正式公开发布；下一批工程项是角色浏览器 workflow、环境变量样例、安全白名单、数据备份和许可证/资产权属。
+- 开发商 Agent：当前适合受控公网试玩，不适合正式公开发布；下一批工程项是复杂技能浏览器门禁、安全白名单、数据备份和许可证/资产权属。
 - 美术总监 Agent：角色 GLB 管线已打通，但运行时角色仍偏小、剪影差异不足；下一批美术项是角色可读性、职业剪影、LOD 运行时策略、placeholder 清理和材质应用 QA。
 
 ## 玩家 Agent A：新手可用性
@@ -67,7 +67,7 @@
 当前通过项：
 
 - `npm run test:ui-agents` 最近一次通过，无 console error、无 failed action、无视觉 QA 告警。
-- `npm run test:ui-agents` 会先执行 `npm run build -w @bing/client`，避免 UI agent 使用过期 `apps/client/dist`。
+- `npm run test:ui-agents` 和 `npm run test:character-browser` 会先执行 `npm run build -w @bing/client`，避免浏览器验收使用过期 `apps/client/dist`。
 - 双端 canvas 正常渲染，并检测到运行时 LOD0 animated GLB 成功加载。
 - UI agent 已覆盖目标预览、沿用上回合、遮挡检查、结算 cue、cue target 到座位的映射。
 - UI agent 已覆盖行动 HUD：攻击模式下必须显示下一步、目标数、目标 id 和可提交状态。
@@ -80,7 +80,7 @@
 
 缺口：
 
-- GitHub Actions 已补 `build + test:ci` 和 Browser Playtest workflow；`test:character-browser` 仍在本地运行，未进入 CI。
+- GitHub Actions 已补 `build + test:ci`、夜间 UI agents 和手动角色浏览器 workflow。
 - UI agent 只覆盖 2 玩家 3 回合 happy path，没有覆盖断线重连、复杂技能链、多人集火、观战和公网 tunnel。
 - 6 个角色的浏览器加载验收已通过，LOD0/LOD1 GLB 均已具备可读取的预览动画 clips。
 - 角色资产仍是 WIP/blockout，未完成精细权重绘制、可播放动作和最终授权说明。
@@ -89,7 +89,7 @@
 
 - 保持小步 commit，不把半生成资产和代码混在一起。
 - 09:30 前优先做 README、交接文档、基础测试和最后 push。
-- 后续把 `test:character-browser` 和更丰富的 UI agent 场景放进可选 CI。
+- 后续把复杂技能链、断线重连和多人集火放进可选浏览器 CI。
 
 ## 美术总监 Agent：UI 与动画方向
 

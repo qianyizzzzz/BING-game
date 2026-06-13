@@ -27,7 +27,7 @@
     "test:assets": "tsx scripts/character-runtime-audit.ts",
     "test:turn-timeline": "tsx scripts/turn-timeline-check.ts",
     "test:ui-agents": "npm run build -w @bing/client && tsx scripts/ui-playtest-agents.ts",
-    "test:character-browser": "tsx scripts/character-runtime-browser-check.ts",
+    "test:character-browser": "npm run build -w @bing/client && tsx scripts/character-runtime-browser-check.ts",
     "import:skills": "python scripts/import-skills.py",
     "training:export": "node scripts/export-training-data.mjs",
     "training:selfplay": "tsx scripts/self-play-training.ts",

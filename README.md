@@ -36,9 +36,9 @@
 | --- | --- |
 | 可玩性 | 双玩家创建房间、加入房间、开始、出招、沿用上回合、攻击和结算 happy path 已通过 UI agent。 |
 | UI / HUD | 3D 牌桌、行动 HUD、底部命令区、目标预览、结算摘要和移动端 LOD 已落地。 |
-| 自动化验收 | `npm run test:ui-agents` 会先刷新 client dist，再运行双玩家浏览器 playtest。 |
+| 自动化验收 | `test:ui-agents` 和 `test:character-browser` 会先刷新 client dist，再运行浏览器 playtest。 |
 | 最新报告 | `artifacts/playtests/ui-agents-2026-06-13T17-07-06-046Z/report.md` |
-| 发布口径 | 可用于受控公网试玩；正式公开发布前仍需许可证、资产权属、角色浏览器门禁和备份策略。 |
+| 发布口径 | 可用于受控公网试玩；正式公开发布前仍需许可证、资产权属、复杂技能浏览器门禁和备份策略。 |
 
 ## 项目简介
 
@@ -120,7 +120,7 @@ npm run serve
 | `npm run test:ci` | 运行 typecheck、角色资产审计、规则回归和 turn timeline 检查。 |
 | `npm run verify` | 构建项目并运行核心检查与 UI agents。 |
 | `npm run test:assets` | 检查 6 个角色的 GLB、头像、QA 图和 PBR 贴图资源。 |
-| `npm run test:character-browser` | 逐个创建角色房间，用真实浏览器验证 animated GLB 加载和 3D canvas。 |
+| `npm run test:character-browser` | 先构建 client，再逐个创建角色房间，用真实浏览器验证 animated GLB 加载和 3D canvas。 |
 | `npm run test:rules` | 运行规则回归测试。 |
 | `npm run test:turn-timeline` | 检查事件日志到动画 beat 的映射。 |
 | `npm run test:ui-agents` | 先构建 client，再启动双玩家 UI agent，生成截图和 Markdown 报告。 |

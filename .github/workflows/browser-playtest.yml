@@ -37,3 +37,36 @@ jobs:
           name: ui-playtest-agents
           path: artifacts/playtests/
           if-no-files-found: ignore
+
+  character-runtime:
+    name: Character runtime
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run character runtime browser check
+        run: npm run test:character-browser
+
+      - name: Upload character runtime artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: character-runtime-browser
+          path: artifacts/playtests/
+          if-no-files-found: ignore
