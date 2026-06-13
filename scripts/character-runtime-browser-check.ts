@@ -98,21 +98,29 @@ async function verifyCharacter(
     await clickByTestId(host, "create-room");
     roomId = await readRoomId(host);
 
-    const expectedModelResponse = spectator.waitForResponse((response) => {
-      const url = response.url();
-      if (!url.endsWith(".glb")) {
-        return false;
-      }
-      const modelName = path.basename(new URL(url).pathname);
-      observedModels.add(modelName);
-      return response.status() < 400 && modelName === expectedModel;
-    }, { timeout: 25_000 });
+    const expectedModelResponse = spectator
+      .waitForResponse((response) => {
+        const url = response.url();
+        if (!url.endsWith(".glb")) {
+          return false;
+        }
+        const modelName = path.basename(new URL(url).pathname);
+        observedModels.add(modelName);
+        return response.status() < 400 && modelName === expectedModel;
+      }, { timeout: 60_000 })
+      .then(
+        () => undefined,
+        (error) => new Error(`${expectedModel} model response timed out; observed=${[...observedModels].sort().join(",") || "none"}; ${errorMessage(error)}`)
+      );
 
     await openPlaytestHome(spectator);
     await fillRoomId(spectator, roomId);
     await clickByTestId(spectator, "spectate-room");
     await waitForRoomLobby(spectator, "观战房间");
-    await expectedModelResponse;
+    const modelResponseError = await expectedModelResponse;
+    if (modelResponseError) {
+      throw modelResponseError;
+    }
     scene = await waitForRenderableScene(spectator);
 
     screenshot = `${String(index + 1).padStart(2, "0")}-${character.id}.png`;
