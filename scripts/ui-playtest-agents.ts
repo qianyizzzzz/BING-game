@@ -997,6 +997,16 @@ async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: str
         if (!command.selectedAction || !command.text.includes("下一步") || !command.text.includes("状态")) {
           throw new Error(`行动 HUD 摘要不完整：${JSON.stringify(command)}`);
         }
+        const board = await readActionBoardState(page);
+        if (board.readyState !== "ready" || board.submitReady !== "true" || board.canSubmit !== "true") {
+          throw new Error(`行动面板 data 状态未进入可提交：${JSON.stringify(board)}`);
+        }
+        if (!board.viewerId || !board.selectedAction.includes(command.selectedAction)) {
+          throw new Error(`行动面板 data 缺少 viewer 或当前选择：${JSON.stringify({ board, command })}`);
+        }
+        const boardMessage = `${label}: 行动面板 data 状态可测（viewer=${board.viewerId}, ready=${board.readyState}, submitReady=${board.submitReady}, round=${board.roundNumber}/${board.roundTurnNumber}）。`;
+        visualChecks.push(boardMessage);
+        agent.observations.push(boardMessage);
         const footer = await readActionCommandFooter(page);
         if (footer.readyState !== "ready") {
           throw new Error(`底部命令区未进入可提交状态：${JSON.stringify(footer)}`);
@@ -1052,6 +1062,32 @@ async function readActionCommandStrip(page: Page): Promise<{
     targetCount: element.getAttribute("data-target-count") ?? "",
     targetIds: element.getAttribute("data-target-ids") ?? "",
     text: element.textContent?.replace(/\s+/g, " ").trim() ?? ""
+  }));
+}
+
+async function readActionBoardState(page: Page): Promise<{
+  actionInvalid: string;
+  alreadySubmitted: string;
+  canSubmit: string;
+  lockedAction: string;
+  readyState: string;
+  roundNumber: string;
+  roundTurnNumber: string;
+  selectedAction: string;
+  submitReady: string;
+  viewerId: string;
+}> {
+  return page.getByTestId("action-board").first().evaluate((element) => ({
+    actionInvalid: element.getAttribute("data-action-invalid") ?? "",
+    alreadySubmitted: element.getAttribute("data-already-submitted") ?? "",
+    canSubmit: element.getAttribute("data-can-submit") ?? "",
+    lockedAction: element.getAttribute("data-locked-action") ?? "",
+    readyState: element.getAttribute("data-ready-state") ?? "",
+    roundNumber: element.getAttribute("data-round-number") ?? "",
+    roundTurnNumber: element.getAttribute("data-round-turn-number") ?? "",
+    selectedAction: element.getAttribute("data-selected-action") ?? "",
+    submitReady: element.getAttribute("data-submit-ready") ?? "",
+    viewerId: element.getAttribute("data-viewer-id") ?? ""
   }));
 }
 

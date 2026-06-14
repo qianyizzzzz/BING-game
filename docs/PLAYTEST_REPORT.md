@@ -1,7 +1,7 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-14  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-14T03-07-49-922Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-14T03-28-17-336Z/report.md`
 最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-14T01-15-06-505Z/report.md`
 最新重连/观战 smoke：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`
 最新短限时 smoke：`artifacts/playtests/timeout-fallback-2026-06-14T01-21-25-786Z/report.md`
