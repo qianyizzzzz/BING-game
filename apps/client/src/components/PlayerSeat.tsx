@@ -72,7 +72,10 @@ export function PlayerSeat({
         "--seat-shift-y": `${cardOffset.y}px`
       } as CSSProperties}
       data-director-role={directorRole ?? ""}
+      data-player-cakes={player.cakes}
+      data-player-hp={player.hp}
       data-player-id={player.id}
+      data-player-name={player.name}
     >
       <div className="seat-identity-row">
         <CharacterAvatar
