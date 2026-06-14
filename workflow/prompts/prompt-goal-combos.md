@@ -146,6 +146,63 @@ Commit:
 整理成文档后 commit：Document multi-agent design review
 ```
 
+## Codex 侧边栏子智能体模板
+
+适合你截图里那种真实子智能体：让主 Agent 继续推进代码，把评审或旁路调查交给子智能体。
+
+```text
+Goal:
+用 Codex 子智能体从 4 个角色并行评审 BING-game，并把结论转成可执行修改方案。
+
+Context:
+- 工作区：C:\Users\haoyu\Desktop\bing\bing(1)\bing
+- 主 Agent 继续负责代码、测试、commit、push。
+- 子智能体只读评审，不要改文件，避免和主 Agent 冲突。
+- 角色：新手玩家、竞技玩家、开发商 / QA、美术总监。
+
+Task:
+1. 新手玩家 Agent：评审首次开房、加入、第一轮吃饼、读懂结算。
+2. 竞技玩家 Agent：评审多人集火、技能/反制、资源读局、重复操作速度。
+3. 开发商 / QA Agent：评审 CI、browser smoke、公网试玩、socket 同步、release gate。
+4. 美术总监 Agent：评审角色存在感、HUD 层级、动效节奏、移动端拥挤、风格统一。
+5. 主 Agent 汇总到 docs/UI_DESIGN_PLAN.md，并把能做的项拆进 workflow/tasks。
+
+Acceptance:
+- 每个子智能体至少给出 3 条发现。
+- 汇总必须包含 P0/P1/P2、涉及文件、验收方式。
+- 如果某个 smoke 不稳定，要写清楚“为什么暂不进 CI”和下一步可测性改造。
+
+Commit:
+文档更新后 commit：Document subagent design review update
+```
+
+## Focus-fire 自动化任务模板
+
+```text
+Goal:
+把 4 真人 browser context 的“3 人集火 1 人”场景做成手动 smoke，并生成可读报告。
+
+Context:
+- 不放默认 CI，先作为手动 release gate。
+- 相关文件：ActionPanel、PlayerSeat、scripts/ui-playtest-agents.ts、workflow/tasks/TASK-005-release-playtest-expansion.md。
+- 已知风险：选择器、按钮 enabled 状态、表单 submit、短限时兜底会互相干扰。
+
+Task:
+1. 先给 ActionPanel 暴露稳定 data 状态：viewer、canSubmit、alreadySubmitted、selectedAction、submitReady。
+2. 写 2 人最小 smoke，确认真实点击能锁定行动。
+3. 扩成 4 人：第一轮全员吃饼，第二轮 3 人杀同一目标。
+4. report 记录目标 HP/饼变化、资源原因、console/page error 和截图。
+
+Acceptance:
+- 不依赖超时兜底推进。
+- 每次提交后能读到 locked action 或 battle summary。
+- 目标座位 `data-player-hp` 降到预期值。
+- 失败报告能指出卡在选择器、点击、socket 同步、响应窗口还是结算摘要。
+
+Commit:
+先提交可测性属性，再提交 smoke 脚本，最后提交文档报告。
+```
+
 ## 美术 / Blender 模板
 
 ```text

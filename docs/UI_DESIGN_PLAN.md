@@ -58,6 +58,26 @@
 | 开发商 / QA Agent | 公开 demo 前要处理生产 Origin、public 资产边界、LICENSE/资产权属、持久化备份和发布产物审计。 | Browser Playtest workflow 已加入 complex smoke 和手动重连/观战 smoke；下一步做多人集火、公网 tunnel 和响应窗口场景。 |
 | 美术总监 Agent | 桌面中心仍被网页卡片感挤压，角色存在感还不够像游戏舞台。 | 目标线/落点 VFX 与角色 BBox 已纳入 smoke；下一步做桌面中心遮挡预算和中帧动画截图。 |
 
+## 2026-06-14 上午子智能体与多人 smoke 更新
+
+本轮继续按 4 个运行态子智能体分工推进：新手玩家、竞技玩家、开发商 / QA、美术总监。它们对应 Codex 侧边栏里的子智能体，而不是脚本里的 mock persona。当前主流程已经把“座位可测性”补齐：`PlayerSeat` 暴露 `data-player-id`、`data-player-name`、`data-player-hp`、`data-player-cakes`，后续多人/集火 smoke 可以直接断言目标座位和资源变化。
+
+### focus-fire smoke 当前发现
+
+尝试新增 4 个真实 browser context 的集火 smoke 时，已验证这些事实：
+
+- 4 个真实玩家可以创建房间、加入房间、进入开局。
+- 第一轮“全员吃饼”在 UI 上可见，但脚本定位提交控件时会出现 `data-testid`、按钮 enabled 状态、表单 submit 事件不一致的问题。
+- 如果脚本等待过久，服务端短限时兜底会推进到后续回合，导致测试看似进入第 2/3/6 回合但并非真实点击提交。
+- 因此 focus-fire 暂不进入 npm scripts 或 CI，避免把不稳定自动化当成通过门禁。
+
+### 下一步测试设计
+
+1. 先补一个“行动提交可测性”小任务：在 `ActionPanel` 根节点暴露 `data-can-submit`、`data-viewer-id`、`data-already-submitted`、`data-selected-action`，提交按钮暴露稳定 `data-submit-ready`。
+2. 用 2 人真实 browser context 重新写最小 smoke：只验证开局后第一个玩家真实点击提交，另一个玩家收到“等待名单”变化。
+3. 再扩成 4 人：第一轮全员吃饼、第二轮 3 人攻击同一目标、目标吃饼或防御。
+4. 最后把 focus-fire 作为手动 workflow，不放默认 CI；验收时必须生成 report、截图、console/page error、目标 HP/饼变化和资源原因。
+
 ## 1. UI 优化方法
 
 ### 已有优势
