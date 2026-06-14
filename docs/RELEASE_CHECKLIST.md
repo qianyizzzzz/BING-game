@@ -13,7 +13,7 @@
 - 默认 UI agent：`artifacts/playtests/ui-agents-2026-06-14T01-01-35-676Z/report.md`
 - 复杂技能 UI agent：`artifacts/playtests/ui-agents-2026-06-14T01-15-06-505Z/report.md`
 - 重连/观战 smoke：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`
-- 短限时自动兜底 smoke：`artifacts/playtests/timeout-fallback-2026-06-14T00-33-52-581Z/report.md`
+- 短限时自动兜底 smoke：`artifacts/playtests/timeout-fallback-2026-06-14T01-21-25-786Z/report.md`
 - 角色浏览器：`artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md`
 
 说明：`npm run verify:release` 已拆成“先 build 一次，再运行 `verify:release:run`”。日常单项命令仍会自行构建 client；发布或 CI 环境可以调用 `test:ui-agents:run`、`test:ui-agents:complex:run`、`test:ui-agents:reconnect:run`、`test:ui-agents:timeout:run`、`test:character-browser:run` 复用已构建 dist，降低超时概率。

@@ -4,11 +4,12 @@
 最新自动化报告：`artifacts/playtests/ui-agents-2026-06-14T01-01-35-676Z/report.md`
 最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-14T01-15-06-505Z/report.md`
 最新重连/观战 smoke：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`
+最新短限时 smoke：`artifacts/playtests/timeout-fallback-2026-06-14T01-21-25-786Z/report.md`
 最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md`
 
 ## 结论
 
-当前版本的双玩家 happy path 可以跑通：首屏 CTA 准备流程、创建房间、加入房间、开始游戏、吃饼、沿用上回合、攻击、目标预览、行动 HUD 下一步提示、底部命令区固定可见、BattleDirector cue、3D canvas、GLB 加载、移动端 LOD1/桌面 LOD0 分流、placeholder 网络请求检查、遮挡检查、console 检查和新手结算摘要门禁均通过。结算摘要现在会暴露行动者、动作、目标、结果以及血/饼变化。
+当前版本的双玩家 happy path 可以跑通：首屏 CTA 准备流程、创建房间、加入房间、开始游戏、吃饼、沿用上回合、攻击、目标预览、行动 HUD 下一步提示、底部命令区固定可见、BattleDirector cue、3D canvas、GLB 加载、移动端 LOD1/桌面 LOD0 分流、placeholder 网络请求检查、遮挡检查、console 检查和新手结算摘要门禁均通过。结算摘要现在会暴露行动者、动作、目标、结果以及血/饼变化原因。
 但这还不是“新玩家一眼就懂、竞技玩家愿意反复玩”的状态。下一阶段重点应该放在：竞技读局层、复杂技能中帧验证、运行时角色 LOD/可读性、技能参数抽屉和平衡数据。
 
 ## 2026-06-13 午间子智能体复审

@@ -42,7 +42,7 @@
 | 最新报告 | `artifacts/playtests/ui-agents-2026-06-14T01-01-35-676Z/report.md` |
 | 复杂技能报告 | `artifacts/playtests/ui-agents-2026-06-14T01-15-06-505Z/report.md` |
 | 重连/观战报告 | `artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md` |
-| 短限时报告 | `artifacts/playtests/timeout-fallback-2026-06-14T00-33-52-581Z/report.md` |
+| 短限时报告 | `artifacts/playtests/timeout-fallback-2026-06-14T01-21-25-786Z/report.md` |
 | 角色浏览器报告 | `artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md` |
 | 发布口径 | 可用于受控公网试玩；正式公开发布前仍需许可证、资产权属、多人集火/公网 tunnel 门禁和备份策略。 |
 
