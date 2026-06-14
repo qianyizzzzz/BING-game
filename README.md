@@ -36,11 +36,13 @@
 
 | 项目 | 当前状态 |
 | --- | --- |
-| 可玩性 | 双玩家创建房间、加入房间、开始、出招、沿用上回合、攻击和结算 happy path 已通过 UI agent；复杂技能 smoke 已覆盖火箭双目标。 |
-| UI / HUD | 3D 牌桌、行动 HUD、底部命令区、目标预览、结算摘要、血/饼变化摘要和移动端 LOD 已落地。 |
-| 自动化验收 | `test:ui-agents`、`test:ui-agents:complex` 和 `test:character-browser` 会先刷新 client dist，再运行浏览器 playtest。 |
-| 最新报告 | `artifacts/playtests/ui-agents-2026-06-14T00-14-42-679Z/report.md` |
+| 可玩性 | 双玩家创建房间、加入房间、开始、出招、沿用上回合、攻击和结算 happy path 已通过 UI agent；复杂技能 smoke 已覆盖火箭双目标；短限时 smoke 已覆盖未操作兜底。 |
+| UI / HUD | 3D 牌桌、行动 HUD、底部命令区、目标预览、结算摘要、血/饼变化摘要、变化原因和移动端 LOD 已落地。 |
+| 自动化验收 | `test:ui-agents`、`test:ui-agents:complex`、`test:ui-agents:reconnect`、`test:ui-agents:timeout` 和 `test:character-browser` 会先刷新 client dist，再运行浏览器 playtest。 |
+| 最新报告 | `artifacts/playtests/ui-agents-2026-06-14T01-01-35-676Z/report.md` |
 | 复杂技能报告 | `artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md` |
+| 重连/观战报告 | `artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md` |
+| 短限时报告 | `artifacts/playtests/timeout-fallback-2026-06-14T00-33-52-581Z/report.md` |
 | 角色浏览器报告 | `artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md` |
 | 发布口径 | 可用于受控公网试玩；正式公开发布前仍需许可证、资产权属、多人集火/公网 tunnel 门禁和备份策略。 |
 
@@ -55,7 +57,7 @@
 - React 游戏客户端：3D 牌桌、玩家座位、技能特效、行动面板、结算日志、新手教程和复盘入口。
 - 比赛记录与复盘：服务端保存对局，支持复盘页面、文本报告和训练样本导出。
 - 公网联机脚本：通过 Cloudflare Tunnel 临时生成 HTTPS 地址，让不同网络的玩家直接加入。
-- Playtest agents：自动开房、双玩家出招、复杂技能 smoke、截图、检查 canvas、遮挡、目标预览、行动 HUD、底部命令区和沿用上回合。
+- Playtest agents：自动开房、双玩家出招、复杂技能 smoke、重连/观战 smoke、短限时自动兜底 smoke、截图、检查 canvas、遮挡、目标预览、行动 HUD、底部命令区和沿用上回合。
 - 本地角色资产：6 个默认角色已有 Blender blockout、LOD0/LOD1 skinned/animated GLB、portrait、mobile-avatar、turnaround、table-scale、rig-guide、动作剪影和材质审计。
 
 ## 截图
@@ -134,6 +136,9 @@ npm run serve
 | `npm run test:ui-agents:run` | 复用已构建的 client dist，直接运行默认 UI agent。 |
 | `npm run test:ui-agents:complex:run` | 复用已构建的 client dist，直接运行复杂技能 UI agent。 |
 | `npm run test:ui-agents:reconnect` | 先构建 client，再验证房间恢复、提交后 reload、观战加入与观战 reload。 |
+| `npm run test:ui-agents:reconnect:run` | 复用已构建的 client dist，直接运行重连/观战 smoke。 |
+| `npm run test:ui-agents:timeout` | 先构建 client，再验证 5 秒限时下真人未提交会被服务端自动记为吃饼。 |
+| `npm run test:ui-agents:timeout:run` | 复用已构建的 client dist，直接运行短限时自动兜底 smoke。 |
 | `npm run import:skills` | 从技能表导入技能数据。 |
 | `npm run training:export` | 导出比赛训练数据。 |
 | `npm run training:selfplay` | 运行自博弈训练脚本。 |
@@ -144,7 +149,7 @@ npm run serve
 - 6 个默认角色已具备 `idle / attack / defend / skill / hit / down` 动作剪影 QA 图。
 - 逐角色浏览器验收已覆盖 6 个默认角色的选择、房间状态、animated GLB 请求、3D canvas 采样和角色屏幕 BBox。
 - 初版 BattleDirector 已统一结算 cue、牌桌 metadata 和 3D 镜头脉冲。
-- UI agent 已覆盖双玩家 3 回合 happy path 和复杂技能 smoke，并检查 canvas、GLB 加载、目标预览、行动 HUD、底部命令区、遮挡、console error 和失败动作。
+- UI agent 已覆盖双玩家 3 回合 happy path、复杂技能 smoke、重连/观战 smoke 和短限时自动兜底 smoke，并检查 canvas、GLB 加载、目标预览、行动 HUD、底部命令区、血/饼变化原因、遮挡、console error 和失败动作。
 - 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、精细权重绘制和精修运行时动画。
 - 下一阶段重点是竞技读局层、复杂技能参数抽屉、多人集火/公网 tunnel playtest、6 角色 runtime 精修和更完整的平衡测试。
 
