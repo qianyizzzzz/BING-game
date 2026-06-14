@@ -6,11 +6,11 @@
 
 ## 0. 最新本地验证
 
-2026-06-14 07:08 本地拆分门禁已通过：
+2026-06-14 11:40 本地拆分门禁已通过：
 
 - `npm run test:ci`
 - `npm run test:release-assets:dist`
-- 默认 UI agent：`artifacts/playtests/ui-agents-2026-06-14T01-01-35-676Z/report.md`
+- 默认 UI agent：`artifacts/playtests/ui-agents-2026-06-14T03-28-17-336Z/report.md`
 - 复杂技能 UI agent：`artifacts/playtests/ui-agents-2026-06-14T01-15-06-505Z/report.md`
 - 重连/观战 smoke：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`
 - 短限时自动兜底 smoke：`artifacts/playtests/timeout-fallback-2026-06-14T01-21-25-786Z/report.md`
