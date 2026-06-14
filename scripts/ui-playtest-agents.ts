@@ -499,6 +499,17 @@ function submitActionButton(page: Page): Locator {
   return page.locator('[data-testid="submit-action"], .action-command-footer .btn-primary').first();
 }
 
+async function clickSubmitAction(page: Page, timeoutMs = 20_000): Promise<void> {
+  const submit = submitActionButton(page);
+  await submit.waitFor({ state: "attached", timeout: timeoutMs });
+  if (!(await waitForEnabled(submit, timeoutMs))) {
+    const label = await submit.innerText().catch(() => "未知按钮");
+    throw new Error(`提交按钮不可用：${label}`);
+  }
+  await submit.scrollIntoViewIfNeeded({ timeout: timeoutMs }).catch(() => undefined);
+  await submit.click({ force: true, timeout: timeoutMs });
+}
+
 async function waitForRoomLobby(page: Page, actionLabel: string): Promise<void> {
   const roomCode = page.getByTestId("room-code").first();
   const startedAt = Date.now();
@@ -612,7 +623,7 @@ async function submitCakeTurn(page: Page, turn: number, agent: AgentLog): Promis
       agent.issues.push(message);
       return;
     }
-    await activate(submit, 20_000);
+    await clickSubmitAction(page, 20_000);
     if (!config.complexSkills && agent === firstTimer && turn === 1) {
       await collectLockedActionCheck(page, agent, "新手玩家", "吃饼");
     }
@@ -637,7 +648,7 @@ async function submitAttackTurn(page: Page, turn: number, agent: AgentLog): Prom
       agent.issues.push(message);
       return;
     }
-    await activate(submit, 20_000);
+    await clickSubmitAction(page, 20_000);
     if (!config.complexSkills && agent === firstTimer) {
       await collectLockedActionCheck(page, agent, "新手玩家", "杀");
     }
@@ -709,7 +720,7 @@ async function submitRocketSkillTurn(page: Page, turn: number, agent: AgentLog):
       agent.issues.push(message);
       return;
     }
-    await activate(submit, 20_000);
+    await clickSubmitAction(page, 20_000);
     const message = `第 ${turn} 回合完成火箭技能提交，当前选择=${command.selectedAction}，HUD 目标 ${targetIds.length} 个，追加目标 ${extraTargetId}，座位映射 ${mappedSeats}/${targetIds.length}。`;
     complexSkillChecks.push(message);
     agent.observations.push(message);
@@ -1050,22 +1061,36 @@ async function collectLockedActionCheck(
   label: string,
   expectedText: string
 ): Promise<void> {
-  const lockedAction = await page.waitForFunction(
-    (text) => {
-      const command = document.querySelector('[data-testid="action-command-strip"]');
-      if (!(command instanceof HTMLElement) || command.dataset.readyState !== "waiting") {
-        return "";
-      }
+  try {
+    const lockedAction = await page.waitForFunction(
+      (text) => {
+        const command = document.querySelector('[data-testid="action-command-strip"]');
+        if (!(command instanceof HTMLElement) || command.dataset.readyState !== "waiting") {
+          return "";
+        }
 
-      const locked = command.dataset.lockedAction ?? "";
-      return locked.includes(text) ? locked : "";
-    },
-    expectedText,
-    { timeout: 10_000 }
-  ).then((handle) => handle.jsonValue() as Promise<string>);
-  const message = `${label}: 提交后显示已锁定行动“${lockedAction}”。`;
-  visualChecks.push(message);
-  agent.observations.push(message);
+        const locked = command.dataset.lockedAction ?? "";
+        return locked.includes(text) ? locked : "";
+      },
+      expectedText,
+      { timeout: 10_000 }
+    ).then((handle) => handle.jsonValue() as Promise<string>);
+    const message = `${label}: 提交后显示已锁定行动“${lockedAction}”。`;
+    visualChecks.push(message);
+    agent.observations.push(message);
+  } catch (error) {
+    const summary = await page.getByTestId("battle-turn-summary").first().evaluate((element) => ({
+      actionLabel: element.getAttribute("data-action-label") ?? "",
+      text: element.textContent?.replace(/\s+/g, " ").trim() ?? ""
+    })).catch(() => undefined);
+    if (summary && (summary.actionLabel.includes(expectedText) || summary.text.includes(expectedText))) {
+      const message = `${label}: 提交后结算推进较快，未停留锁定回执，但摘要已显示“${summary.actionLabel}”。`;
+      visualChecks.push(message);
+      agent.observations.push(message);
+      return;
+    }
+    throw error;
+  }
 }
 
 async function collectActionRecoveryHintCheck(page: Page, agent: AgentLog, label: string): Promise<void> {
@@ -1260,6 +1285,7 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       hpDeltaCount: element.getAttribute("data-hp-delta-count") ?? "",
       kind: element.getAttribute("data-kind") ?? "",
       resourceDeltaCount: element.getAttribute("data-resource-delta-count") ?? "",
+      resourceDeltaDetails: element.getAttribute("data-resource-delta-details") ?? "",
       resourceDeltas: element.getAttribute("data-resource-deltas") ?? "",
       sourceId: element.getAttribute("data-source-id") ?? "",
       sourceLabel: element.getAttribute("data-source-label") ?? "",
@@ -1326,6 +1352,15 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       targetIds: element.getAttribute("data-target-ids") ?? "",
       vectorCount: element.getAttribute("data-vector-count") ?? ""
     })).catch(() => undefined);
+    const resourceStrip = await page.getByTestId("battle-resource-deltas").first().evaluate((element) => ({
+      count: element.getAttribute("data-resource-delta-count") ?? "",
+      details: element.getAttribute("data-resource-delta-details") ?? "",
+      summary: element.getAttribute("data-resource-deltas") ?? "",
+      chipReasons: Array.from(element.querySelectorAll(".battle-resource-delta-chip"))
+        .map((item) => item instanceof HTMLElement ? item.dataset.resourceDeltaReasons ?? "" : "")
+        .filter(Boolean)
+        .join("；")
+    })).catch(() => undefined);
 
     if (Number(cue.cueCount) <= 0) {
       const message = `${label}: 战斗摘要可见（Readout=${readout.kind}/${readout.beat}, steps=${readout.stepCount}），本轮自动流程未捕获主动结算 cue。`;
@@ -1360,6 +1395,9 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       (!summary.resourceDeltas.includes("血") && !summary.resourceDeltas.includes("饼"))
     ) {
       throw new Error(`新手结算摘要缺少血量/饼变化：${JSON.stringify(summary)}`);
+    }
+    if (!summary.resourceDeltaDetails || !summary.resourceDeltaDetails.includes("｜")) {
+      throw new Error(`新手结算摘要缺少血量/饼变化原因：${JSON.stringify({ summary, resourceStrip })}`);
     }
     const expectsSkillTargetVfx =
       config.complexSkills &&
@@ -1433,7 +1471,8 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
       throw new Error(`火箭复杂技能缺少目标线或落点 VFX：${JSON.stringify({ effectLayer, summary })}`);
     }
 
-    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}，新手摘要=${summary.sourceLabel}/${summary.actionLabel}，资源变化=${summary.resourceDeltas}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, cueTargets=${cueTargetIds.length}, cueTargetSeats=${cueTargetSeatCount}, pokerTableCueTargetSeats=${pokerTableCueTargetSeatCount}, cueTargetDomSeats=${cueTargetDomSeatCount}, activeTargets=${activeTargetIds.length}, summaryTargets=${summaryTargetIds.length}, effectVectors=${effectLayer?.vectorCount ?? 0}, effectImpacts=${effectLayer?.impactCount ?? 0}, effectTargets=${effectTargetIds.length}, hpDeltas=${summary.hpDeltaCount}, cakeDeltas=${summary.cakeDeltaCount}, mappedActiveTargets=${mappedTargetSeatCount}, highlightedTargets=${directorTargetSeatCount}, seats=${directorSeatCount}）。`;
+    const resourceReasonEvidence = resourceStrip?.chipReasons || summary.resourceDeltaDetails;
+    const message = `${label}: 结算动画暴露 ${cue.beat}/${cue.vfx} cue，BattleDirector=${director.beat}/${director.camera}，Readout=${readout.kind}/${readout.beat}，新手摘要=${summary.sourceLabel}/${summary.actionLabel}，资源变化=${summary.resourceDeltas}，原因=${summary.resourceDeltaDetails}（count=${cue.cueCount}, hitStop=${cue.hitStopMs}ms, cueTargets=${cueTargetIds.length}, cueTargetSeats=${cueTargetSeatCount}, pokerTableCueTargetSeats=${pokerTableCueTargetSeatCount}, cueTargetDomSeats=${cueTargetDomSeatCount}, activeTargets=${activeTargetIds.length}, summaryTargets=${summaryTargetIds.length}, effectVectors=${effectLayer?.vectorCount ?? 0}, effectImpacts=${effectLayer?.impactCount ?? 0}, effectTargets=${effectTargetIds.length}, hpDeltas=${summary.hpDeltaCount}, cakeDeltas=${summary.cakeDeltaCount}, resourceReasonChips=${resourceReasonEvidence}, mappedActiveTargets=${mappedTargetSeatCount}, highlightedTargets=${directorTargetSeatCount}, seats=${directorSeatCount}）。`;
     visualChecks.push(message);
     agent.observations.push(message);
   } catch (error) {

@@ -78,6 +78,7 @@ export function PokerTableGame({
     [director.broadcast?.events, state]
   );
   const readoutResourceDeltaText = formatResourceDeltaSummary(readoutResourceDeltas);
+  const readoutResourceDeltaDetails = formatResourceDeltaDetails(readoutResourceDeltas);
   const readoutHpDeltaCount = readoutResourceDeltas.filter((delta) => delta.hpDelta !== 0).length;
   const readoutCakeDeltaCount = readoutResourceDeltas.filter((delta) => delta.cakeDelta !== 0).length;
   const readoutProgress =
@@ -328,6 +329,7 @@ export function PokerTableGame({
                 data-amount={summaryStep?.amount ?? ""}
                 data-kind={summaryStep?.kind ?? "idle"}
                 data-resource-delta-count={readoutResourceDeltas.length}
+                data-resource-delta-details={readoutResourceDeltaDetails}
                 data-resource-deltas={readoutResourceDeltaText}
                 data-cake-delta-count={readoutCakeDeltaCount}
                 data-hp-delta-count={readoutHpDeltaCount}
@@ -372,6 +374,7 @@ export function PokerTableGame({
                 data-amount=""
                 data-kind="idle"
                 data-resource-delta-count="0"
+                data-resource-delta-details="等待结算原因"
                 data-resource-deltas="等待结算变化"
                 data-cake-delta-count="0"
                 data-hp-delta-count="0"
@@ -474,6 +477,7 @@ function ResourceDeltaStrip({
   summary: string;
 }) {
   const visibleDeltas = deltas.slice(0, 4);
+  const details = formatResourceDeltaDetails(deltas);
   return (
     <div
       className={[
@@ -482,6 +486,7 @@ function ResourceDeltaStrip({
       ].join(" ")}
       data-testid="battle-resource-deltas"
       data-resource-delta-count={deltas.length}
+      data-resource-delta-details={details}
       data-resource-deltas={summary}
       title={summary}
     >
@@ -493,6 +498,11 @@ function ResourceDeltaStrip({
               delta.hpDelta < 0 ? "battle-resource-delta-danger" : "",
               delta.hpDelta > 0 || delta.cakeDelta > 0 ? "battle-resource-delta-good" : ""
             ].join(" ")}
+            data-cake-delta={delta.cakeDelta}
+            data-hp-delta={delta.hpDelta}
+            data-resource-delta-name={delta.name}
+            data-resource-delta-player-id={delta.playerId}
+            data-resource-delta-reasons={formatResourceDeltaReasons(delta)}
             key={delta.playerId}
             title={formatResourceDeltaDetail(delta)}
           >
@@ -675,13 +685,25 @@ function formatResourceDeltaSummary(deltas: ResourceDelta[]): string {
   return deltas.map(formatResourceDelta).join("；");
 }
 
+function formatResourceDeltaDetails(deltas: ResourceDelta[]): string {
+  if (deltas.length === 0) {
+    return "本轮没有血量/饼变化原因";
+  }
+
+  return deltas.map(formatResourceDeltaDetail).join("；");
+}
+
 function formatResourceDelta(delta: ResourceDelta): string {
   return `${delta.name} ${formatDeltaParts(delta)}`;
 }
 
 function formatResourceDeltaDetail(delta: ResourceDelta): string {
-  const reasonText = Array.from(new Set(delta.reasons)).join("、");
+  const reasonText = formatResourceDeltaReasons(delta);
   return reasonText ? `${formatResourceDelta(delta)}｜${reasonText}` : formatResourceDelta(delta);
+}
+
+function formatResourceDeltaReasons(delta: ResourceDelta): string {
+  return Array.from(new Set(delta.reasons)).join("、");
 }
 
 function formatDeltaParts(delta: ResourceDelta): string {

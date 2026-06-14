@@ -80,6 +80,7 @@
 - UI agent 已覆盖底部命令区：移动端和桌面端提交按钮保持可见，触控高度不低于 44px。
 - UI agent 已覆盖新手结算摘要：当 readout 已播放到系统步骤时，摘要仍要保留本轮真实动作、目标绑定和目标座位映射。
 - UI agent 已覆盖血/饼变化摘要：默认 happy path 报告显示“资源变化=新手玩家 饼-3；竞技玩家 血-1 / 饼-3”，复杂技能报告显示“资源变化=AI 1 血-6；AI 2 血-6；新手玩家 饼-2”。
+- UI agent 已覆盖血/饼变化原因：默认 happy path 报告显示“原因=新手玩家 饼-3｜招式消耗、轮结束清零；竞技玩家 血-1 / 饼-3｜出饼、杀、轮结束清零”。
 - UI agent 已覆盖目标线/落点 VFX：火箭复杂技能 smoke 验证 `effectVectors=6`、`effectImpacts=6`、`effectTargets=2`。
 - UI agent 已覆盖运行时 LOD 分流：390px 移动端加载 `*-lod1.glb`，1280px 桌面端加载 LOD0 `*.glb`。
 - UI agent 已覆盖公开战斗画面 Network 检查：不应再请求 `/assets/placeholders/`。
