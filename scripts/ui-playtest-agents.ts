@@ -1424,7 +1424,7 @@ async function collectBattlePresentationCueCheck(page: Page, agent: AgentLog, la
     if (
       Number.isFinite(readoutStepCount) &&
       Number.isFinite(summaryStepCount) &&
-      Math.abs(readoutStepCount - summaryStepCount) > 1
+      readoutStepCount - summaryStepCount > 1
     ) {
       throw new Error(`新手结算摘要与 Battle readout 步数不一致：${JSON.stringify({ readout, summary })}`);
     }

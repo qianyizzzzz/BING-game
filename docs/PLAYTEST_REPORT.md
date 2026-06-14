@@ -2,7 +2,7 @@
 
 日期：2026-06-14  
 最新自动化报告：`artifacts/playtests/ui-agents-2026-06-14T01-01-35-676Z/report.md`
-最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md`
+最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-14T01-15-06-505Z/report.md`
 最新重连/观战 smoke：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`
 最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md`
 

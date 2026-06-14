@@ -40,7 +40,7 @@
 | UI / HUD | 3D 牌桌、行动 HUD、底部命令区、目标预览、结算摘要、血/饼变化摘要、变化原因和移动端 LOD 已落地。 |
 | 自动化验收 | `test:ui-agents`、`test:ui-agents:complex`、`test:ui-agents:reconnect`、`test:ui-agents:timeout` 和 `test:character-browser` 会先刷新 client dist，再运行浏览器 playtest。 |
 | 最新报告 | `artifacts/playtests/ui-agents-2026-06-14T01-01-35-676Z/report.md` |
-| 复杂技能报告 | `artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md` |
+| 复杂技能报告 | `artifacts/playtests/ui-agents-2026-06-14T01-15-06-505Z/report.md` |
 | 重连/观战报告 | `artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md` |
 | 短限时报告 | `artifacts/playtests/timeout-fallback-2026-06-14T00-33-52-581Z/report.md` |
 | 角色浏览器报告 | `artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md` |

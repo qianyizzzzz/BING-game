@@ -9,7 +9,7 @@
 2026-06-14 进展：
 
 - 默认 UI agents 已通过：`artifacts/playtests/ui-agents-2026-06-14T01-01-35-676Z/report.md`。
-- 复杂技能 smoke 已通过：`artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md`。
+- 复杂技能 smoke 已通过：`artifacts/playtests/ui-agents-2026-06-14T01-15-06-505Z/report.md`。
 - 重连/观战 smoke 已通过：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`。
 - 短限时自动兜底 smoke 已通过：`artifacts/playtests/timeout-fallback-2026-06-14T00-33-52-581Z/report.md`。
 - 角色浏览器 BBox smoke 已通过：`artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md`。
