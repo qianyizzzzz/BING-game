@@ -36,6 +36,8 @@
     "test:ui-agents:complex:run": "tsx scripts/ui-playtest-agents.ts --complex-skills",
     "test:ui-agents:reconnect": "npm run build -w @bing/client && npm run test:ui-agents:reconnect:run",
     "test:ui-agents:reconnect:run": "tsx scripts/reconnect-spectator-smoke.ts",
+    "test:ui-agents:timeout": "npm run build -w @bing/client && npm run test:ui-agents:timeout:run",
+    "test:ui-agents:timeout:run": "tsx scripts/timeout-fallback-smoke.ts",
     "test:character-browser": "npm run build -w @bing/client && npm run test:character-browser:run",
     "test:character-browser:run": "tsx scripts/character-runtime-browser-check.ts",
     "import:skills": "python scripts/import-skills.py",

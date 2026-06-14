@@ -115,3 +115,39 @@ jobs:
           name: reconnect-spectator-smoke
           path: artifacts/playtests/
           if-no-files-found: ignore
+
+  timeout-fallback:
+    name: Timeout fallback smoke
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build client dist
+        run: npm run build
+
+      - name: Run timeout fallback smoke
+        run: npm run test:ui-agents:timeout:run
+
+      - name: Upload timeout fallback artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: timeout-fallback-smoke
+          path: artifacts/playtests/
+          if-no-files-found: ignore

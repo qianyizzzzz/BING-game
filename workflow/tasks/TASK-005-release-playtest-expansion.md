@@ -11,13 +11,14 @@
 - 默认 UI agents 已通过：`artifacts/playtests/ui-agents-2026-06-14T00-14-42-679Z/report.md`。
 - 复杂技能 smoke 已通过：`artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md`。
 - 重连/观战 smoke 已通过：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`。
+- 短限时自动兜底 smoke 已通过：`artifacts/playtests/timeout-fallback-2026-06-14T00-33-52-581Z/report.md`。
 - 角色浏览器 BBox smoke 已通过：`artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md`。
 - `verify:release` 已拆成 build 一次后复用 `:run` 命令，降低重复构建导致的本地超时风险。
 
 ## Priority
 
 1. 多真人 / 集火场景：4 个真实 Browser context 同时提交，覆盖 2-4 人集火同一目标、1 人防御/反弹、结算死亡或濒死。
-2. 响应窗口链路：固定触发反弹、变招、转移伤害、复活窗口，验证进入、跳过、继续结算和 readout。
+2. 响应窗口链路：固定触发反弹、变招、转移伤害、复活窗口，验证进入、跳过、继续结算和 readout。已先补短限时自动兜底 smoke，用 5 秒限时覆盖“真人不操作时服务端自动吃饼、训练样本不丢、页面继续推进”的基础风险。
 3. 公网 tunnel smoke：在 `npm run public` 或外部 URL 下跑一条轻量 join/start/submit 检查，验证 Socket.IO origin 与 public link。
 4. 动画中帧截图：复杂技能在 250ms / 600ms / 900ms 捕捉锁定、飞行线、落点爆发，避免只看结算后的 DOM 元数据。
 5. 遮挡预算：结合角色 BBox、battle readout、行动 dock、目标线，检查桌面/390px 移动端没有关键元素互相遮挡。
@@ -28,6 +29,7 @@
 
 - `scripts/ui-playtest-agents.ts`
 - `scripts/reconnect-spectator-smoke.ts`
+- `scripts/timeout-fallback-smoke.ts`
 - `scripts/character-runtime-browser-check.ts`
 - `apps/client/src/components/PokerTableGame.tsx`
 - `apps/client/src/components/SkillEffectLayer.tsx`
@@ -51,6 +53,7 @@ npm run test:ci
 npm run test:ui-agents
 npm run test:ui-agents:complex
 npm run test:ui-agents:reconnect
+npm run test:ui-agents:timeout
 npm run test:character-browser
 ```
 

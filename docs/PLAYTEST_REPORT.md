@@ -85,6 +85,7 @@
 - UI agent 已覆盖公开战斗画面 Network 检查：不应再请求 `/assets/placeholders/`。
 - UI agent 已覆盖首屏 CTA：点击后必须进入玩家准备区并聚焦玩家名，不能直接跳过昵称/角色确认创建房间。
 - 重连/观战 smoke 已覆盖：房主出招前 reload、提交后 reload 保持 playerId 和已提交状态；观战者开局后加入、reload 后仍不能出招；另一名真人继续提交后广播推进。
+- 短限时自动兜底 smoke 已覆盖：5 秒限时下真人不提交会被服务端自动记录为 `gain_cake`，训练样本不丢失，页面推进到后续回合。
 - `npm run test:character-browser` 已逐个验证 6 个角色：期望 GLB 与观察 GLB 一致，canvas 非空，角色 BBox 元数据存在，最小屏幕高度约 15%，最小可见比例 100%，console/page error 为无。
 
 缺口：
