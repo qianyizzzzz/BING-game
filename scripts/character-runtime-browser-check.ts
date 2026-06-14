@@ -12,6 +12,10 @@ interface RunConfig {
 }
 
 interface SceneSample {
+  characterCount: number;
+  characterMinHeightRatio: number;
+  characterMinVisibleRatio: number;
+  characterScreenBboxes: string;
   clientHeight: number;
   clientWidth: number;
   colorBuckets: number;
@@ -145,6 +149,12 @@ async function verifyCharacter(
 
     if (!scene || scene.clientWidth < 300 || scene.clientHeight < 180) {
       failures.push(`${character.id}: 3D canvas size is too small`);
+    } else if (scene.characterCount < 1) {
+      failures.push(`${character.id}: character runtime bbox metadata missing`);
+    } else if (scene.characterMinHeightRatio < 0.12) {
+      failures.push(`${character.id}: character screen height ratio is too small (${scene.characterMinHeightRatio})`);
+    } else if (scene.characterMinVisibleRatio < 0.55) {
+      failures.push(`${character.id}: character bbox is heavily clipped (${scene.characterMinVisibleRatio})`);
     } else if (scene.pixelCheck === "screenshot" && (scene.visibleRatio <= 0.04 || scene.colorBuckets < 6)) {
       failures.push(`${character.id}: 3D scene screenshot sample looks blank`);
     }
@@ -295,11 +305,25 @@ async function readStatusMessage(page: Page): Promise<string> {
 async function waitForRenderableScene(page: Page): Promise<SceneSample> {
   const scene = page.locator(".table-scene-3d").first();
   await scene.waitFor({ state: "visible", timeout: 20_000 });
+  await page.waitForFunction(
+    () => {
+      const element = document.querySelector(".table-scene-3d");
+      return element instanceof HTMLElement && Number(element.dataset.characterRuntimeCount ?? "0") > 0;
+    },
+    undefined,
+    { timeout: 20_000 }
+  );
   await page.waitForTimeout(900);
   const box = await scene.boundingBox();
   if (!box) {
     throw new Error("未找到 3D scene bounding box");
   }
+  const runtimeMetrics = await scene.evaluate((element) => ({
+    characterCount: Number(element.getAttribute("data-character-runtime-count") ?? "0"),
+    characterMinHeightRatio: Number(element.getAttribute("data-character-min-height-ratio") ?? "0"),
+    characterMinVisibleRatio: Number(element.getAttribute("data-character-min-visible-ratio") ?? "0"),
+    characterScreenBboxes: element.getAttribute("data-character-screen-bboxes") ?? ""
+  }));
 
   try {
     const image = await scene.screenshot({
@@ -308,6 +332,7 @@ async function waitForRenderableScene(page: Page): Promise<SceneSample> {
     });
     const analysis = analyzePng(image);
     return {
+      ...runtimeMetrics,
       clientHeight: Math.round(box.height),
       clientWidth: Math.round(box.width),
       colorBuckets: analysis.uniqueBuckets,
@@ -317,6 +342,7 @@ async function waitForRenderableScene(page: Page): Promise<SceneSample> {
     };
   } catch {
     return {
+      ...runtimeMetrics,
       clientHeight: Math.round(box.height),
       clientWidth: Math.round(box.width),
       colorBuckets: 0,
@@ -607,7 +633,7 @@ function renderReport(): string {
 
   for (const result of results) {
     const sceneText = result.scene
-      ? `${result.scene.clientWidth}x${result.scene.clientHeight}, visible=${Math.round(result.scene.visibleRatio * 100)}%, samples=${result.scene.opaquePixels}, buckets=${result.scene.colorBuckets}, ${result.scene.pixelCheck}`
+      ? `${result.scene.clientWidth}x${result.scene.clientHeight}, visible=${Math.round(result.scene.visibleRatio * 100)}%, samples=${result.scene.opaquePixels}, buckets=${result.scene.colorBuckets}, characters=${result.scene.characterCount}, minHeight=${Math.round(result.scene.characterMinHeightRatio * 100)}%, minVisible=${Math.round(result.scene.characterMinVisibleRatio * 100)}%, ${result.scene.pixelCheck}`
       : "未采样";
     lines.push(
       `- ${result.characterName} (${result.characterId})`,
@@ -615,6 +641,7 @@ function renderReport(): string {
       `  - 期望模型: ${result.expectedModel}`,
       `  - 观察到模型: ${result.observedModels.length > 0 ? result.observedModels.join(", ") : "无"}`,
       `  - Canvas: ${sceneText}`,
+      `  - BBox: ${result.scene?.characterScreenBboxes || "无"}`,
       `  - 截图: ${result.screenshot ? `\`${result.screenshot}\`` : "无"}`,
       `  - Console/Page Error: ${result.consoleIssues.length > 0 ? result.consoleIssues.length : "无"}`,
       ""

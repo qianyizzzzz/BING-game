@@ -4,7 +4,7 @@
 最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T23-25-07-313Z/report.md`
 最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md`
 最新重连/观战 smoke：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`
-最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T22-59-21-950Z/report.md`
+最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md`
 
 ## 结论
 
@@ -84,7 +84,7 @@
 - UI agent 已覆盖公开战斗画面 Network 检查：不应再请求 `/assets/placeholders/`。
 - UI agent 已覆盖首屏 CTA：点击后必须进入玩家准备区并聚焦玩家名，不能直接跳过昵称/角色确认创建房间。
 - 重连/观战 smoke 已覆盖：房主出招前 reload、提交后 reload 保持 playerId 和已提交状态；观战者开局后加入、reload 后仍不能出招；另一名真人继续提交后广播推进。
-- `npm run test:character-browser` 已逐个验证 6 个角色：期望 GLB 与观察 GLB 一致，canvas 非空，console/page error 为无。
+- `npm run test:character-browser` 已逐个验证 6 个角色：期望 GLB 与观察 GLB 一致，canvas 非空，角色 BBox 元数据存在，最小屏幕高度约 15%，最小可见比例 100%，console/page error 为无。
 
 缺口：
 
@@ -143,4 +143,5 @@ UI 优化方法：
 - 不可提交状态已显示“原因 + 补救动作”，UI agent 已验证“饼不足，不能反弹 -> 先改选吃饼或降低消耗”。
 - 桌面结算摘要已增加“行动者”和血/饼变化 chip；默认 UI agents 与火箭复杂技能 smoke 都已把资源变化纳入门禁。
 - `SkillEffectLayer` 已暴露目标线/落点元数据，复杂技能 smoke 会检查多目标技能的 vector、impact 和 target 数量。
+- `TableScene3D` 已暴露角色运行时 BBox 元数据；角色浏览器报告会记录 `characters`、`minHeight`、`minVisible` 和每个角色的屏幕 BBox。
 - 夜间 Browser Playtest workflow 已加入 `npm run test:ui-agents:complex`。

@@ -41,6 +41,17 @@ type LoadedCharacterRuntime = {
 
 type CharacterLodTier = "lod0" | "lod1";
 
+interface CharacterScreenMetric {
+  height: number;
+  heightRatio: number;
+  playerId: PlayerId;
+  visibleRatio: number;
+  width: number;
+  widthRatio: number;
+  x: number;
+  y: number;
+}
+
 type OrganicSection = {
   offsetX?: number;
   offsetZ?: number;
@@ -131,6 +142,7 @@ export function TableScene3D({
     const loadedCharacters: LoadedCharacterRuntime[] = [];
     const characterLodTier = selectRuntimeCharacterLodTier();
     container.dataset.characterLod = characterLodTier;
+    container.dataset.characterRuntimeCount = "0";
     let disposed = false;
 
     players.forEach((player, index) => {
@@ -252,6 +264,7 @@ export function TableScene3D({
           object.position.y = object.userData.basePositionY + Math.sin(time * 0.74 + object.userData.phase) * 0.004;
         }
       });
+      updateCharacterScreenMetrics(container, camera, loadedCharacters);
       renderer.render(scene, camera);
       frameId = window.requestAnimationFrame(render);
     };
@@ -288,6 +301,89 @@ export function TableScene3D({
       data-director-intensity={directorCue?.intensity ?? 0}
     />
   );
+}
+
+function updateCharacterScreenMetrics(
+  container: HTMLDivElement,
+  camera: THREE.Camera,
+  runtimes: LoadedCharacterRuntime[]
+): void {
+  const width = Math.max(1, container.clientWidth);
+  const height = Math.max(1, container.clientHeight);
+  const metrics = runtimes
+    .map((runtime) => projectCharacterScreenMetric(runtime, camera, width, height))
+    .filter((metric): metric is CharacterScreenMetric => Boolean(metric));
+
+  container.dataset.characterRuntimeCount = String(metrics.length);
+  container.dataset.characterScreenBboxes = metrics
+    .map((metric) =>
+      [
+        metric.playerId,
+        Math.round(metric.x),
+        Math.round(metric.y),
+        Math.round(metric.width),
+        Math.round(metric.height),
+        metric.heightRatio.toFixed(3),
+        metric.visibleRatio.toFixed(3)
+      ].join(":")
+    )
+    .join("|");
+  container.dataset.characterMinHeightRatio =
+    metrics.length > 0 ? Math.min(...metrics.map((metric) => metric.heightRatio)).toFixed(3) : "0";
+  container.dataset.characterMinVisibleRatio =
+    metrics.length > 0 ? Math.min(...metrics.map((metric) => metric.visibleRatio)).toFixed(3) : "0";
+}
+
+function projectCharacterScreenMetric(
+  runtime: LoadedCharacterRuntime,
+  camera: THREE.Camera,
+  viewportWidth: number,
+  viewportHeight: number
+): CharacterScreenMetric | undefined {
+  const box = new THREE.Box3().setFromObject(runtime.root);
+  if (box.isEmpty()) {
+    return undefined;
+  }
+
+  const corners = [
+    new THREE.Vector3(box.min.x, box.min.y, box.min.z),
+    new THREE.Vector3(box.min.x, box.min.y, box.max.z),
+    new THREE.Vector3(box.min.x, box.max.y, box.min.z),
+    new THREE.Vector3(box.min.x, box.max.y, box.max.z),
+    new THREE.Vector3(box.max.x, box.min.y, box.min.z),
+    new THREE.Vector3(box.max.x, box.min.y, box.max.z),
+    new THREE.Vector3(box.max.x, box.max.y, box.min.z),
+    new THREE.Vector3(box.max.x, box.max.y, box.max.z)
+  ];
+  const projected = corners.map((corner) => corner.project(camera));
+  if (projected.some((corner) => !Number.isFinite(corner.x) || !Number.isFinite(corner.y))) {
+    return undefined;
+  }
+
+  const xs = projected.map((corner) => ((corner.x + 1) / 2) * viewportWidth);
+  const ys = projected.map((corner) => ((1 - corner.y) / 2) * viewportHeight);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const width = Math.max(0, maxX - minX);
+  const height = Math.max(0, maxY - minY);
+  if (width <= 0 || height <= 0) {
+    return undefined;
+  }
+
+  const visibleWidth = Math.max(0, Math.min(maxX, viewportWidth) - Math.max(minX, 0));
+  const visibleHeight = Math.max(0, Math.min(maxY, viewportHeight) - Math.max(minY, 0));
+  return {
+    height,
+    heightRatio: height / viewportHeight,
+    playerId: runtime.playerId,
+    visibleRatio: (visibleWidth * visibleHeight) / (width * height),
+    width,
+    widthRatio: width / viewportWidth,
+    x: minX,
+    y: minY
+  };
 }
 
 function applyDirectorCameraPulse(

@@ -34,7 +34,7 @@
 ## 运行时验收
 
 - 静态资产审计：`npm run test:assets`，覆盖 LOD0/LOD1 GLB、LOD0/LOD1 skinned mesh、LOD0/LOD1 动画命名、动作图、骨骼驱动蒙皮 QA、移动头像、turnaround、table-scale、face-detail、rig-guide、material QA 和 PBR 贴图包。
-- 浏览器逐角色验收：`npm run test:character-browser`，创建角色房间并用观战视角验证 LOD0 animated GLB 请求和 3D canvas 采样。
+- 浏览器逐角色验收：`npm run test:character-browser`，创建角色房间并用观战视角验证 LOD0 animated GLB 请求、3D canvas 采样和角色屏幕 BBox；最新报告 `artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md` 显示 6 个角色 minHeight 约 15%、minVisible 100%。
 - 当前运行时 `TableScene3D` 加载 LOD0 skinned/animated GLB，并按 battle director cue 播放 `idle / attack / defend / skill / hit / down` 预览 clips；LOD1 已导出同名 skinned/animated clips，可作为后续性能档动态切换目标。
 
 ## 下一步 P0
@@ -45,5 +45,5 @@
 
 ## 下一步 P1
 
-- 用桌面距离 QA 图继续校准 `TableScene3D` 的相机、灯光和座位遮挡。
+- 继续扩展 `TableScene3D` 的相机、灯光和座位遮挡门禁：当前已有运行时 BBox，高级门禁还需要结合 readout、行动 dock 和 390px 移动端遮挡预算。
 - 把 first-pass blended skin weights 升级为精细权重绘制，让当前关键帧预览变成可播放的高质量蒙皮动画；每次改动后先看 `skin-preview-*`，再扩展死亡/倒地后的结算动作。

@@ -20,6 +20,7 @@
 | P1 目标线/落点 VFX | 已落地 | `SkillEffectLayer` 暴露 vector、impact 和 target 元数据；火箭复杂技能 smoke 验证多目标目标线与落点 |
 | P1 多目标当前选择摘要 | 已落地 | 火箭双目标在提交前显示“火箭 -> AI 1 + AI 2”，UI agent 检查技能名、两个目标名、HUD 目标数和座位映射一致 |
 | P1 运行时 LOD 分流 | 已落地 | 移动/低性能设备加载 LOD1，桌面加载 LOD0；UI agent 同时检查 390px 移动端和 1280px 桌面端 GLB |
+| P1 角色运行时 BBox | 已落地 | `TableScene3D` 暴露角色屏幕投影框；角色浏览器报告验证 6 角色 minHeight 约 15%、minVisible 100% |
 | P1 placeholder 请求清理 | 已落地 | 牌桌、牌背、弃牌改为 CSS 深渊纹理；UI agent 检查 Network 不出现 `/assets/placeholders/` |
 | P0 首屏 CTA 准备门禁 | 已落地 | 首屏按钮进入玩家准备区并聚焦玩家名，不再直接创建房间；UI agent 防回归 |
 | P1 行动 HUD 下一步提示 | 已落地 | 行动面板顶部显示“下一步 / 目标 / 状态”，并暴露 ready、目标数和目标 id 给 UI agent 验收 |
@@ -45,7 +46,7 @@
 | 新手玩家 Agent | 移动端必须保留“现在该干什么”；结算后需要白话因果摘要。 | 已落地首屏 CTA 准备门禁、结算摘要、行动 HUD、底部命令区和 UI agent 门禁；下一步压缩技能参数。 |
 | 竞技玩家 Agent | 移动端行动 dock 像长表单；按钮字号与触控高度偏紧；提交后缺少锁定/亮招节拍；复杂技能目标感不足。 | 底部主指令条已落地；下一步做竞技读局层、资源 delta、目标线和高级参数二级抽屉。 |
 | 开发商 Agent | 当前适合受控公网试玩，不适合正式公开发布；浏览器 CI、发布清单、环境变量、Node 版本、安全白名单、备份和许可证仍缺。 | 下一步新增 `docs/RELEASE_CHECKLIST.md`，统一 `.env.example` 和 Node 版本口径。 |
-| 美术总监 Agent | 角色运行时偏小、剪影差异不足。 | 已落地运行时 LOD 选择和 placeholder 网络请求清理；下一步做角色尺寸/遮挡验收。 |
+| 美术总监 Agent | 角色运行时偏小、剪影差异不足。 | 已落地运行时 LOD 选择、placeholder 网络请求清理和角色 BBox 门禁；下一步做遮挡预算和中帧动画截图。 |
 
 ## 2026-06-14 凌晨子智能体追加评审
 
@@ -54,7 +55,7 @@
 | 新手玩家 Agent | 可行动阶段不能写成“正在收招”；技能提交和结算摘要必须保留技能名、目标、补救动作和资源变化。 | 已改为“请选择行动 / 等待亮招”，技能提交显示“提交：火箭”等具体名称；不可提交补救动作和前三回合 HP/饼 delta 已纳入 UI agent 门禁。 |
 | 竞技玩家 Agent | 火箭等目标型技能在提交、亮招、摘要和 VFX 任一阶段丢 target，都会破坏竞技读局。 | 已让 `ActionPanel`、`tableFeedback`、`BattleDirector` / readout / summary 消费技能 `targetIds`；复杂 smoke 已验证当前选择、cueTargets=2、summaryTargets=2 和目标线/落点。 |
 | 开发商 / QA Agent | 公开 demo 前要处理生产 Origin、public 资产边界、LICENSE/资产权属、持久化备份和发布产物审计。 | Browser Playtest workflow 已加入 complex smoke 和手动重连/观战 smoke；下一步做多人集火、公网 tunnel 和响应窗口场景。 |
-| 美术总监 Agent | 桌面中心仍被网页卡片感挤压，角色存在感还不够像游戏舞台。 | 目标线/落点 VFX 已纳入 smoke；下一步做角色 bbox 尺寸门禁、桌面中心遮挡预算和 6 角色浏览器报告口径。 |
+| 美术总监 Agent | 桌面中心仍被网页卡片感挤压，角色存在感还不够像游戏舞台。 | 目标线/落点 VFX 与角色 BBox 已纳入 smoke；下一步做桌面中心遮挡预算和中帧动画截图。 |
 
 ## 1. UI 优化方法
 

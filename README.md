@@ -41,7 +41,7 @@
 | 自动化验收 | `test:ui-agents`、`test:ui-agents:complex` 和 `test:character-browser` 会先刷新 client dist，再运行浏览器 playtest。 |
 | 最新报告 | `artifacts/playtests/ui-agents-2026-06-13T23-25-07-313Z/report.md` |
 | 复杂技能报告 | `artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md` |
-| 角色浏览器报告 | `artifacts/playtests/character-runtime-2026-06-13T22-59-21-950Z/report.md` |
+| 角色浏览器报告 | `artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md` |
 | 发布口径 | 可用于受控公网试玩；正式公开发布前仍需许可证、资产权属、多人集火/公网 tunnel 门禁和备份策略。 |
 
 ## 项目简介
@@ -142,7 +142,7 @@ npm run serve
 
 - 桌面端已接入 LOD0 animated GLB 角色展示；加载失败时会回退到程序化 3D 角色。
 - 6 个默认角色已具备 `idle / attack / defend / skill / hit / down` 动作剪影 QA 图。
-- 逐角色浏览器验收已覆盖 6 个默认角色的选择、房间状态、animated GLB 请求和 3D canvas 采样。
+- 逐角色浏览器验收已覆盖 6 个默认角色的选择、房间状态、animated GLB 请求、3D canvas 采样和角色屏幕 BBox。
 - 初版 BattleDirector 已统一结算 cue、牌桌 metadata 和 3D 镜头脉冲。
 - UI agent 已覆盖双玩家 3 回合 happy path 和复杂技能 smoke，并检查 canvas、GLB 加载、目标预览、行动 HUD、底部命令区、遮挡、console error 和失败动作。
 - 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、精细权重绘制和精修运行时动画。
