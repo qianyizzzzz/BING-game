@@ -24,6 +24,7 @@
 | P1 placeholder 请求清理 | 已落地 | 牌桌、牌背、弃牌改为 CSS 深渊纹理；UI agent 检查 Network 不出现 `/assets/placeholders/` |
 | P0 首屏 CTA 准备门禁 | 已落地 | 首屏按钮进入玩家准备区并聚焦玩家名，不再直接创建房间；UI agent 防回归 |
 | P1 行动 HUD 下一步提示 | 已落地 | 行动面板顶部显示“下一步 / 目标 / 状态”，并暴露 ready、目标数和目标 id 给 UI agent 验收 |
+| P1 提交后锁定回执 | 已落地 | 提交后显示已锁定行动，例如“吃饼 +1”或“杀 -> 竞技玩家”；默认 UI agent 已纳入门禁 |
 | P1 底部命令区 | 已落地 | “沿用上回合 / 提交”通过 portal 固定在视窗内；UI agent 检查移动端和桌面端按钮可见与 44px 触控高度 |
 | Phase D 生产质感 | 进行中 | 需要继续做角色资产、音效资源、性能 profiling 和可访问性 |
 | Phase E Blender 角色生产 | 进行中 | 已有角色 blockout、LOD0/LOD1 skinned/animated GLB、PBR、动作剪影、face-detail 和浏览器加载验收；仍需最终高模、精细权重、手工/烘焙贴图和精修动画 |
@@ -52,7 +53,7 @@
 
 | 视角 | P0 / P1 发现 | 已处理 / 下一步 |
 | --- | --- | --- |
-| 新手玩家 Agent | 可行动阶段不能写成“正在收招”；技能提交和结算摘要必须保留技能名、目标、补救动作和资源变化。 | 已改为“请选择行动 / 等待亮招”，技能提交显示“提交：火箭”等具体名称；不可提交补救动作和前三回合 HP/饼 delta 已纳入 UI agent 门禁。 |
+| 新手玩家 Agent | 可行动阶段不能写成“正在收招”；技能提交和结算摘要必须保留技能名、目标、补救动作、锁定回执和资源变化。 | 已改为“请选择行动 / 等待亮招”，提交后显示已锁定行动，技能提交显示“提交：火箭”等具体名称；不可提交补救动作和前三回合 HP/饼 delta 已纳入 UI agent 门禁。 |
 | 竞技玩家 Agent | 火箭等目标型技能在提交、亮招、摘要和 VFX 任一阶段丢 target，都会破坏竞技读局。 | 已让 `ActionPanel`、`tableFeedback`、`BattleDirector` / readout / summary 消费技能 `targetIds`；复杂 smoke 已验证当前选择、cueTargets=2、summaryTargets=2 和目标线/落点。 |
 | 开发商 / QA Agent | 公开 demo 前要处理生产 Origin、public 资产边界、LICENSE/资产权属、持久化备份和发布产物审计。 | Browser Playtest workflow 已加入 complex smoke 和手动重连/观战 smoke；下一步做多人集火、公网 tunnel 和响应窗口场景。 |
 | 美术总监 Agent | 桌面中心仍被网页卡片感挤压，角色存在感还不够像游戏舞台。 | 目标线/落点 VFX 与角色 BBox 已纳入 smoke；下一步做桌面中心遮挡预算和中帧动画截图。 |

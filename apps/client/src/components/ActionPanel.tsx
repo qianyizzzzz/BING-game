@@ -758,6 +758,11 @@ export function ActionPanel({
     state,
     totalAttackCost: attackCost
   });
+  const lockedActionSummary =
+    alreadySubmitted && lastActionSubmission
+      ? summarizeSubmittedAction(lastActionSubmission, state)
+      : "";
+  const actionDisplaySummary = lockedActionSummary || selectedActionSummary;
   const selectedActionCost =
     mode === "attack" ? attackCost : mode === "skill" ? skillCost : mode === "defense" && defense === "rebound" ? 1 : 0;
   const previewTargetIds = useMemo(() => {
@@ -845,7 +850,9 @@ export function ActionPanel({
       ? "blocked"
       : "ready";
   const actionCommandLabel = alreadySubmitted
-    ? "等待全部玩家亮招"
+    ? lockedActionSummary
+      ? `已锁定：${lockedActionSummary}`
+      : "等待全部玩家亮招"
     : actionReadyState === "ready"
       ? "点击提交，锁定本回合"
       : "先处理提示，再提交";
@@ -2035,7 +2042,8 @@ export function ActionPanel({
         data-target-count={previewTargetIds.length}
         data-target-ids={previewTargetKey}
         data-next-action-hint={actionRecoveryHint ?? ""}
-        data-selected-action={selectedActionSummary}
+        data-selected-action={actionDisplaySummary}
+        data-locked-action={lockedActionSummary}
         aria-live="polite"
       >
         <div>
@@ -2464,8 +2472,8 @@ export function ActionPanel({
           ].join(" ")}
         >
           <div>
-            <span>当前选择</span>
-            <strong>{selectedActionSummary}</strong>
+            <span>{lockedActionSummary ? "已锁定" : "当前选择"}</span>
+            <strong>{actionDisplaySummary}</strong>
           </div>
           <div className="action-summary-meta">
             <span>{readinessLabel}</span>
@@ -3012,6 +3020,53 @@ function summarizeActionSelection({
             "未选目标"
           );
       return `${name}${stacks} -> ${target}`;
+    })
+    .join(" / ");
+}
+
+function summarizeSubmittedAction(submission: ActionSubmission, state: PublicGameState): string {
+  return actionSubmissionToActions(submission)
+    .map((action) => {
+      if (action.type === "gain_cake") {
+        return "吃饼 +1";
+      }
+
+      if (action.type === "defense") {
+        const targetNames = repeatActionTargetIds(action)
+          .map((targetId) => getPlayerName(state, targetId))
+          .filter(Boolean);
+        const target = targetNames.length > 0 ? ` -> ${formatTargetNames(targetNames)}` : "";
+        return `防御：${DEFENSE_LABELS[action.defense]}${target}`;
+      }
+
+      if (action.type === "attack") {
+        const attack = BASE_ATTACKS[action.attackId];
+        const stacks = action.stacks > 1 ? ` x${action.stacks}` : "";
+        const target = attack.isArea
+          ? "全体"
+          : formatTargetNames(
+              repeatActionTargetIds(action).map((targetId) => getPlayerName(state, targetId)).filter(Boolean),
+              "未选目标"
+            );
+        return `${attack.name}${stacks} -> ${target}`;
+      }
+
+      if (action.type === "skill") {
+        const skill = getSkill(action.skillId);
+        const play = getSkillPlay(action.skillId);
+        const stacks = action.stacks > 1 ? ` x${action.stacks}` : "";
+        const targetNames = repeatActionTargetIds(action)
+          .map((targetId) => getPlayerName(state, targetId))
+          .filter(Boolean);
+        const target = play?.targetMode === "all"
+          ? " -> 全体"
+          : targetNames.length > 0
+            ? ` -> ${formatTargetNames(targetNames)}`
+            : "";
+        return `${skill?.name ?? "技能"}${stacks}${target}`;
+      }
+
+      return "丢弃技能";
     })
     .join(" / ");
 }

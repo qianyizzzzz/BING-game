@@ -1,7 +1,7 @@
 # BING Playtest 子智能体报告
 
 日期：2026-06-14  
-最新自动化报告：`artifacts/playtests/ui-agents-2026-06-13T23-25-07-313Z/report.md`
+最新自动化报告：`artifacts/playtests/ui-agents-2026-06-14T00-14-42-679Z/report.md`
 最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-13T23-20-33-679Z/report.md`
 最新重连/观战 smoke：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`
 最新角色浏览器 smoke：`artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md`
@@ -75,6 +75,7 @@
 - 双端 canvas 正常渲染，并检测到运行时 LOD0 animated GLB 成功加载。
 - UI agent 已覆盖目标预览、沿用上回合、遮挡检查、结算 cue、cue target 到座位的映射。
 - UI agent 已覆盖行动 HUD：攻击模式下必须显示下一步、目标数、目标 id 和可提交状态。
+- UI agent 已覆盖提交后锁定回执：新手玩家提交后必须显示“吃饼 +1”或“杀 -> 竞技玩家”等已锁定行动。
 - UI agent 已覆盖多目标当前选择摘要：火箭双目标提交前必须显示“火箭 -> AI 1 + AI 2”，并与 HUD 目标数、座位映射一致。
 - UI agent 已覆盖底部命令区：移动端和桌面端提交按钮保持可见，触控高度不低于 44px。
 - UI agent 已覆盖新手结算摘要：当 readout 已播放到系统步骤时，摘要仍要保留本轮真实动作、目标绑定和目标座位映射。

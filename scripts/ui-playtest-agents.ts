@@ -613,6 +613,9 @@ async function submitCakeTurn(page: Page, turn: number, agent: AgentLog): Promis
       return;
     }
     await activate(submit, 20_000);
+    if (!config.complexSkills && agent === firstTimer && turn === 1) {
+      await collectLockedActionCheck(page, agent, "新手玩家", "吃饼");
+    }
     agent.observations.push(`第 ${turn} 回合完成“吃饼”提交。`);
   } catch (error) {
     const message = `第 ${turn} 回合提交失败：${String(error)}`;
@@ -635,6 +638,9 @@ async function submitAttackTurn(page: Page, turn: number, agent: AgentLog): Prom
       return;
     }
     await activate(submit, 20_000);
+    if (!config.complexSkills && agent === firstTimer) {
+      await collectLockedActionCheck(page, agent, "新手玩家", "杀");
+    }
     agent.observations.push(`第 ${turn} 回合完成“攻击”提交。`);
   } catch (error) {
     const message = `第 ${turn} 回合攻击提交失败：${String(error)}`;
@@ -1016,6 +1022,7 @@ async function collectTargetPreviewCheck(page: Page, agent: AgentLog, label: str
 
 async function readActionCommandStrip(page: Page): Promise<{
   blockReason: string;
+  lockedAction: string;
   nextActionHint: string;
   nextStep: string;
   readyState: string;
@@ -1026,6 +1033,7 @@ async function readActionCommandStrip(page: Page): Promise<{
 }> {
   return page.getByTestId("action-command-strip").first().evaluate((element) => ({
     blockReason: element.getAttribute("data-block-reason") ?? "",
+    lockedAction: element.getAttribute("data-locked-action") ?? "",
     nextActionHint: element.getAttribute("data-next-action-hint") ?? "",
     nextStep: element.getAttribute("data-next-step") ?? "",
     readyState: element.getAttribute("data-ready-state") ?? "",
@@ -1034,6 +1042,30 @@ async function readActionCommandStrip(page: Page): Promise<{
     targetIds: element.getAttribute("data-target-ids") ?? "",
     text: element.textContent?.replace(/\s+/g, " ").trim() ?? ""
   }));
+}
+
+async function collectLockedActionCheck(
+  page: Page,
+  agent: AgentLog,
+  label: string,
+  expectedText: string
+): Promise<void> {
+  const lockedAction = await page.waitForFunction(
+    (text) => {
+      const command = document.querySelector('[data-testid="action-command-strip"]');
+      if (!(command instanceof HTMLElement) || command.dataset.readyState !== "waiting") {
+        return "";
+      }
+
+      const locked = command.dataset.lockedAction ?? "";
+      return locked.includes(text) ? locked : "";
+    },
+    expectedText,
+    { timeout: 10_000 }
+  ).then((handle) => handle.jsonValue() as Promise<string>);
+  const message = `${label}: 提交后显示已锁定行动“${lockedAction}”。`;
+  visualChecks.push(message);
+  agent.observations.push(message);
 }
 
 async function collectActionRecoveryHintCheck(page: Page, agent: AgentLog, label: string): Promise<void> {
