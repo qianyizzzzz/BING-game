@@ -863,6 +863,7 @@ export function ActionPanel({
     viewerId: viewer?.id
   });
   const canRepeatAction = Boolean(lastActionSubmission && !repeatActionError && !submitting);
+  const submitReady = canAct && !submitting && !actionInvalid;
 
   useEffect(() => {
     if (enemies[0] && !enemies.some((enemy) => enemy.id === targetId)) {
@@ -2015,7 +2016,20 @@ export function ActionPanel({
   }
 
   return (
-    <section className="surface-card action-board p-5">
+    <section
+      className="surface-card action-board p-5"
+      data-action-invalid={actionInvalid ? "true" : "false"}
+      data-already-submitted={alreadySubmitted ? "true" : "false"}
+      data-can-submit={submitReady ? "true" : "false"}
+      data-locked-action={lockedActionSummary}
+      data-ready-state={actionReadyState}
+      data-round-number={state.roundNumber}
+      data-round-turn-number={state.roundTurnNumber}
+      data-selected-action={actionDisplaySummary}
+      data-submit-ready={submitReady ? "true" : "false"}
+      data-testid="action-board"
+      data-viewer-id={viewer?.id ?? ""}
+    >
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-black text-gray-950">出招</h2>
@@ -2509,7 +2523,8 @@ export function ActionPanel({
             className="btn-primary action-submit-button w-full justify-center py-3 disabled:cursor-not-allowed disabled:bg-gray-300"
             data-testid="submit-action"
             data-submit-label={submitLabel}
-            disabled={!canAct || submitting || actionInvalid}
+            data-submit-ready={submitReady ? "true" : "false"}
+            disabled={!submitReady}
             type="submit"
           >
             {submitting ? (
