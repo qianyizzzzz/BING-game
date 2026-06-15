@@ -22,7 +22,7 @@ export function EventLog({ state }: EventLogProps) {
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ScrollText className="h-5 w-5 text-teal-700" aria-hidden="true" />
-          <h2 className="text-base font-semibold text-gray-900">结算日志</h2>
+          <h2 className="text-base font-semibold text-gray-900">牌桌记录</h2>
         </div>
         <span className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-bold text-gray-500">
           {events.length}
@@ -30,7 +30,7 @@ export function EventLog({ state }: EventLogProps) {
       </div>
       <div className="max-h-[130px] space-y-2 overflow-auto pr-1">
         {events.length === 0 ? (
-          <p className="text-sm text-gray-500">暂无事件</p>
+          <p className="text-sm text-gray-500">还没有牌桌记录</p>
         ) : (
           events.map((event) => {
             const beat = battleBeatForEvent(event, state);
@@ -52,7 +52,7 @@ export function EventLog({ state }: EventLogProps) {
                         : "border-gray-200 bg-gray-50 text-gray-500"
                     ].join(" ")}
                   >
-                    {beat ? battleBeatLabel(beat) : "记录"}
+                    {beat ? battleBeatLabel(beat) : "牌桌"}
                   </span>
                 </div>
               </div>

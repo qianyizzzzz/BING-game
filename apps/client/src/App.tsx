@@ -198,15 +198,15 @@ export function App() {
         : busy
           ? "正在处理，请稍候"
           : missingStartPlayers > 0
-            ? `还差 ${missingStartPlayers} 名玩家。可以分享房号，也可以先补一名电脑玩家开练。`
+            ? `还差 ${missingStartPlayers} 名玩家。可以分享房号，也可以先补一名 AI 入席。`
             : "";
   const lobbyHint =
     state?.phase !== "lobby"
       ? ""
       : isOwner
         ? missingStartPlayers > 0
-          ? `下一步：补 ${missingStartPlayers} 名电脑玩家或分享房号，凑齐 ${MIN_PLAYERS} 人后开始。`
-          : "下一步：确认设置后点击“开始”，进入第一回合。"
+          ? `出牌提示：补 ${missingStartPlayers} 名 AI 或分享房号，凑齐 ${MIN_PLAYERS} 人后开始。`
+          : "出牌提示：确认设置后点击“开始”，进入第一回合。"
         : `你已在房间中，等待房主 ${ownerName} 调整设置并开始游戏。`;
   const activeDeadline =
     state?.phase === "action_window"
@@ -774,7 +774,7 @@ export function App() {
               onClick={focusJourneyConsole}
               variant="glass"
             >
-              进入大厅
+              去开一桌
             </Button>
           </nav>
 
@@ -791,7 +791,7 @@ export function App() {
                 className="animate-fade-rise hero-title max-w-7xl text-5xl font-black leading-[0.95] text-foreground sm:text-7xl md:text-8xl"
                 style={{ fontFamily: "'Instrument Serif', serif" }}
               >
-                同桌藏招，亮牌见分晓。
+                先悄悄出牌，再一起揭晓。
               </h1>
               <p className="animate-fade-rise-delay mt-8 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
                 邀请 2-6 名玩家入席，在同一回合暗中选择行动。吃饼、防御、攻击、反弹与技能会在亮招时统一结算。
@@ -821,7 +821,7 @@ export function App() {
                 <div className="hero-panel-heading">
                   <span>
                     <BadgeCheck className="h-4 w-4" aria-hidden="true" />
-                    入席信息
+                    你的座位
                   </span>
                   <strong>{selectedCharacter.archetype}</strong>
                 </div>
@@ -840,7 +840,7 @@ export function App() {
                     <img alt={`${selectedCharacter.name} 头像`} src={accountAvatarUrl} />
                   </div>
                   <div className="account-summary min-w-0 flex-1 text-left">
-                    <div className="text-sm font-black text-foreground">你的身份</div>
+                    <div className="text-sm font-black text-foreground">你的名片</div>
                     <p className="mt-1 truncate text-xs text-muted-foreground">{account.id}</p>
                   </div>
                   <label className="btn-secondary cursor-pointer">
@@ -860,7 +860,7 @@ export function App() {
                     type="button"
                   >
                     <UserPen className="h-4 w-4" aria-hidden="true" />
-                    保存身份
+                    保存名片
                   </button>
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
@@ -973,7 +973,7 @@ export function App() {
                     />
                     <StatusMetric
                       icon={<Timer className="h-4 w-4" />}
-                      label={state.phase === "lobby" ? "状态" : "限时"}
+                      label={state.phase === "lobby" ? "牌面状态" : "限时"}
                       value={state.phase === "lobby" ? "等待房主" : deadlineSeconds === null ? "未开启" : `${deadlineSeconds} 秒`}
                     />
                   </div>
@@ -1035,7 +1035,7 @@ export function App() {
                           type="button"
                         >
                           <Bot className="h-4 w-4" aria-hidden="true" />
-                          加电脑玩家
+                          补 AI 入席
                         </button>
                         <button
                           className="btn-primary"
@@ -1433,14 +1433,14 @@ function quickHintForState(
   if (state.phase === "lobby") {
     return {
       title: "准备开局",
-      body: "房主可以加电脑玩家或分享房号；其他玩家只需要确认名字、角色和技能，等待开局。"
+      body: "房主可以补 AI 入席或分享房号；其他玩家只需要确认名字、角色和技能，等待开局。"
     };
   }
 
   if (state.phase === "finished") {
     return {
       title: "对局结束",
-      body: "查看复盘建议、结算日志和胜者状态，再决定是否重新开房或继续调整规则。"
+      body: "查看复盘建议、牌桌记录和胜者状态，再决定是否重新开房或继续调整规则。"
     };
   }
 
@@ -1449,10 +1449,10 @@ function quickHintForState(
       viewerPlayerId && state.actionWindowPassPlayerIds.includes(viewerPlayerId)
     );
     return {
-      title: alreadyPassed ? "等待阶段结算" : "处理阶段行动",
+      title: alreadyPassed ? "等待牌面处理" : "处理牌面",
       body: viewerIsActive && !alreadyPassed
         ? "如果有可用技能，先确认目标和消耗；没有要处理的动作时可以结束本阶段。"
-        : "等待仍在处理阶段行动的玩家，全部完成后会继续结算。"
+        : "等待仍在处理牌面的玩家，全部完成后会继续结算。"
     };
   }
 

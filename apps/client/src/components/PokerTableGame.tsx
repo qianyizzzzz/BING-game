@@ -191,7 +191,7 @@ export function PokerTableGame({
               : state.phase === "finished"
                 ? "对局结束"
                 : state.phase === "action_window"
-                  ? "阶段行动"
+                  ? "处理牌面"
                   : "同时行动"}
           </div>
           <div className="poker-table-stats">
@@ -250,15 +250,15 @@ export function PokerTableGame({
           <div className="abyss-hud-readouts">
             <span>
               <Gauge className="h-3.5 w-3.5" aria-hidden="true" />
-              深度 {depthMeters}m
+              第 {state.roundNumber} 轮
             </span>
             <span>
               <Compass className="h-3.5 w-3.5" aria-hidden="true" />
-              第 {layerNumberLabel} 层
+              第 {state.roundTurnNumber} 回合
             </span>
             <span>
               <RadioTower className="h-3.5 w-3.5" aria-hidden="true" />
-              遗物信号 {signalLabel}
+              亮牌信号 {signalLabel}
             </span>
           </div>
         </div>
@@ -362,11 +362,11 @@ export function PokerTableGame({
             </>
           ) : (
             <>
-              <h3>暂无结算</h3>
+              <h3>牌还没亮</h3>
               <div className="battle-readout-route">
-                <b>桌面</b>
+                <b>牌桌</b>
                 <span aria-hidden="true">→</span>
-                <b>等待</b>
+                <b>等人</b>
               </div>
               <div
                 className="battle-turn-summary battle-turn-summary-idle"
@@ -375,8 +375,8 @@ export function PokerTableGame({
                 data-amount=""
                 data-kind="idle"
                 data-resource-delta-count="0"
-                data-resource-delta-details="等待结算原因"
-                data-resource-deltas="等待结算变化"
+                data-resource-delta-details="等待亮牌"
+                data-resource-deltas="暂无血量 / 饼变化"
                 data-cake-delta-count="0"
                 data-hp-delta-count="0"
                 data-source-id=""
@@ -402,7 +402,7 @@ export function PokerTableGame({
                   <strong>{readoutSummaryResult}</strong>
                 </div>
               </div>
-              <ResourceDeltaStrip deltas={[]} summary="等待结算变化" />
+              <ResourceDeltaStrip deltas={[]} summary="暂无血量 / 饼变化" />
               <p>等待所有玩家亮招。</p>
             </>
           )}
@@ -530,7 +530,7 @@ function phaseLabel(state: PublicGameState): string {
   }
 
   if (state.phase === "action_window") {
-    return state.activeTimingPhase === "revival_action" ? "复活窗口" : "阶段行动";
+    return state.activeTimingPhase === "revival_action" ? "复活判定" : "处理牌面";
   }
 
   return "同时行动";
@@ -538,7 +538,7 @@ function phaseLabel(state: PublicGameState): string {
 
 function getTablePrompt(state: PublicGameState, viewerNeedsAction: boolean): string {
   if (state.phase === "lobby") {
-    return "等待房主开始，玩家可以调整角色和技能。";
+    return "等房主开局，玩家可以先调好角色和技能。";
   }
 
   if (state.phase === "finished") {
@@ -547,12 +547,12 @@ function getTablePrompt(state: PublicGameState, viewerNeedsAction: boolean): str
 
   if (viewerNeedsAction) {
     return state.phase === "action_window"
-      ? "轮到你处理阶段行动。"
+      ? "轮到你处理牌面。"
       : "请选择本回合行动并提交。";
   }
 
   if (state.phase === "action_window") {
-    return "你已结束阶段行动，等待其他玩家。";
+    return "你已处理完牌面，等待其他玩家。";
   }
 
   return "你已提交，等待所有玩家亮招。";

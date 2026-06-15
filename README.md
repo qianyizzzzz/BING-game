@@ -51,11 +51,11 @@
 
 | 模块 | 状态 |
 | --- | --- |
-| 核心玩法 | 双玩家创建房间、加入房间、开局、出招、沿用上回合、攻击和结算 happy path 已通过 UI agent。 |
+| 核心玩法 | 双玩家创建房间、加入房间、开局、出招、照上一手、攻击和结算主流程已通过自动化试玩。 |
 | UI / HUD | 3D 牌桌、行动面板、目标预览、结算摘要、血量 / 饼变化和技能画廊已接入；仍在继续打磨轻薄度、油画感和信息层级。 |
-| 角色资产 | 6 个默认角色已有手绘动物头像、移动端头像和动作姿态图；GLB 仍是 WIP / blockout，不能视为最终美术资产。 |
-| 特效资产 | `docs/EFFECT_ANIMATION_PROMPTS.json` 已覆盖 120 个技能、480 条关键帧 prompt 和 120 条 Seedance prompt；实际 mp4 / webm 动画仍未批量生成。 |
-| 自动化验收 | 覆盖规则回归、角色资产审计、turn timeline、UI agents、复杂技能、重连、超时和提交 metadata smoke。 |
+| 角色资产 | 6 个默认角色已有手绘动物头像、移动端头像和动作姿态图；GLB 仍是占位版本，不能视为最终美术资产。 |
+| 特效资产 | `docs/EFFECT_ANIMATION_PROMPTS.json` 已覆盖 120 个技能、480 条关键帧提示词和 120 条 Seedance 提示词；实际 mp4 / webm 动画仍未批量生成。 |
+| 自动化验收 | 覆盖规则回归、角色资产审计、回合时间线、UI 自动化试玩、复杂技能、重连、超时和提交信息基础检查。 |
 | 发布边界 | 当前是私有项目。公开发布前需要确认素材来源、授权、长期部署方案和公网联机门禁。 |
 
 ## 快速开始
@@ -113,7 +113,7 @@ npm run public:no-build
 仓库使用功能命名的 BING 子智能体，而不是泛名角色。当前核心职责包括：
 
 - 美术总监：检查油画感、字体、透明度、色彩、头像和整体美术一致性。
-- 动画设计：拆解技能关键帧、Seedance prompt、节奏、遮挡和 reduced-motion 回退。
+- 动画设计：拆解技能关键帧、Seedance 提示词、节奏、遮挡和 reduced-motion 回退。
 - 文学总监：修正界面文案、README、引导文本和气质表达，不修改技能名和原机制。
 - 产品经理：检查主流程、信息层级、可理解性和发布优先级。
 - 新手玩家 / 竞技玩家：分别从学习成本和对抗读局角度做 playtest。
@@ -132,10 +132,10 @@ npm run public:no-build
 | `npm run public` | 构建并打开临时公网联机地址。 |
 | `npm run typecheck` | 对所有 workspace 运行 TypeScript 检查。 |
 | `npm run test:ci` | 运行 typecheck、资产审计、规则回归和 turn timeline 检查。 |
-| `npm run verify` | 构建后运行核心检查和默认 UI agents。 |
+| `npm run verify` | 构建后运行核心检查和默认 UI 自动化试玩。 |
 | `npm run verify:release` | 发布前完整门禁。 |
 | `npm run test:assets` | 检查 6 个角色的 GLB、头像、QA 图和 PBR 贴图资源。 |
-| `npm run test:effect-spec` | 检查 120 个技能的特效文档、关键帧 prompt 和 Seedance prompt。 |
+| `npm run test:effect-spec` | 检查 120 个技能的特效文档、关键帧提示词和 Seedance 提示词。 |
 | `npm run test:effect-assets` | 检查 120 个技能的关键帧、poster、webm 和 mp4 是否齐全且格式有效。 |
 | `npm run test:ui-agents` | 构建 client 后运行默认双玩家浏览器 playtest。 |
 | `npm run test:ui-agents:complex` | 运行复杂技能 smoke。 |
@@ -157,7 +157,7 @@ packages/
 docs/              架构、部署、公网联机、AI 训练、UI 方案、资产说明
 scripts/           公网隧道、规则检查、playtest、Seedance、训练工具
 tools/             Blender / MCP 辅助脚本
-workflow/          制作流程、任务、prompts、review 和 playtest 模板
+workflow/          制作流程、任务、提示词、审查和试玩模板
 ```
 
 ## 文档入口

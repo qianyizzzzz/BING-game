@@ -116,16 +116,16 @@ export function SkillPanel({ state }: SkillPanelProps) {
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-teal-700" aria-hidden="true" />
           <div>
-            <h2 className="text-base font-black text-gray-950">技能画廊</h2>
+            <h2 className="text-base font-black text-gray-950">技能卡册</h2>
             <p className="mt-0.5 text-xs font-semibold text-gray-500">
               {showingPlayerSkills
                 ? "本局技能像展签一样陈列；刚触发的卡片会出现颜料高亮。"
-                : "本局未开启技能，先展示一组技能图录预览。"}
+                : "本局未开启技能，先翻一页卡册预览。"}
             </p>
           </div>
         </div>
         <span className="skill-panel-count">
-          {showingPlayerSkills ? `${viewer.skills.length} 张展品` : "图录预览"}
+          {showingPlayerSkills ? `${viewer.skills.length} 张卡` : "卡册预览"}
         </span>
       </div>
 
@@ -158,7 +158,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
               </div>
             ) : null}
             <p className="skill-gallery-feature-description">
-              {selectedEntry.skill?.description ?? "技能效果待接入。"}
+              {selectedEntry.skill?.description ?? "这张卡的效果会在合适时机显现。"}
             </p>
             <div className="skill-gallery-feature-meta">
               {selectedEntry.playSummary ? <span>{selectedEntry.playSummary}</span> : null}
@@ -169,7 +169,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
         </article>
       ) : null}
 
-      <div className="skill-gallery" aria-label="本局技能画廊">
+      <div className="skill-gallery" aria-label="本局技能卡册">
         {skillEntries.map(({ phaseLabels, playSummary, skill, skillId, visual }) => (
             <button
               type="button"
@@ -231,7 +231,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
               ) : null}
 
               <p className="skill-relic-description mt-2">
-                {skill?.description ?? "技能效果待接入。"}
+                {skill?.description ?? "这张卡的效果会在合适时机显现。"}
               </p>
 
               {playSummary ? (
@@ -254,7 +254,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
                 </p>
               ) : !skill?.implemented ? (
                 <p className="skill-relic-note skill-relic-note-muted">
-                  展示阶段，复杂效果会逐步接入结算引擎。
+                  这类效果会在特定时机自动生效。
                 </p>
               ) : null}
             </button>

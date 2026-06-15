@@ -40,13 +40,13 @@ export function formatEvent(event: GameEvent, state: PublicGameState): string {
     case "settings_updated":
       return "房主更新了房间设置";
     case "skill_revealed":
-      return `${playerName(state, event.playerId)} 暴露了 ${event.skillName}（${event.reason}）`;
+      return `${playerName(state, event.playerId)} 亮出了 ${event.skillName}（${event.reason}）`;
     case "skill_used":
-      return `${playerName(state, event.playerId)} 触发 ${event.skillName}（${event.reason}）`;
+      return `${playerName(state, event.playerId)} 的 ${event.skillName} 生效（${event.reason}）`;
     case "system":
       return event.message;
     case "action_submitted":
-      return `${playerName(state, event.playerId)} 已提交出招`;
+      return `${playerName(state, event.playerId)} 已锁定出牌`;
     case "action_switched":
       return `${playerName(state, event.playerId)} 使用 ${event.skillName} 将 ${getActionLabel(event.before)} 切换为 ${getActionLabel(event.after)}，消耗 ${event.cost} 饼`;
     case "turn_revealed": {

@@ -849,7 +849,7 @@ function renderReplayTextEvent(
     case "game_created":
       return [`${time} 房间已创建：${event.gameId}`];
     case "action_submitted":
-      return [`${time} ${playerLabel(players, event.playerId)} 已提交出招。`];
+      return [`${time} ${playerLabel(players, event.playerId)} 已锁定出牌。`];
     case "action_switched":
       return [`${time} ${playerLabel(players, event.playerId)} 使用 ${event.skillName} 将 ${getActionLabel(event.before)} 切换为 ${getActionLabel(event.after)}，消耗 ${event.cost} 饼。`];
     case "player_ready":
@@ -1073,7 +1073,7 @@ function renderReplayEvent(event: RecordedEvent, players: Map<string, string>): 
         "turn",
         "技",
         time,
-        `${playerLabel(players, event.playerId)} 暴露了 ${event.skillName}`,
+        `${playerLabel(players, event.playerId)} 亮出了 ${event.skillName}`,
         event.reason
       );
     case "cake_changed":

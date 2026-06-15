@@ -274,7 +274,7 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
       sourceAvatarUrl: source.avatarUrl,
       targetName: targetLabel,
       label: event.skillName,
-      description: `${source.name} 暴露了 ${event.skillName}（${event.reason}）`
+      description: `${source.name} 亮出了 ${event.skillName}（${event.reason}）`
     };
   }
 

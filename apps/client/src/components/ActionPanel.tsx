@@ -827,7 +827,7 @@ export function ActionPanel({
       ? "已提交，等待亮招"
       : actionInvalid
         ? "还差一步"
-      : "可以提交";
+      : "可以锁定";
   const actionBlockReason = !viewer
     ? "请选择座位后再出招"
     : alreadySubmitted
@@ -843,7 +843,7 @@ export function ActionPanel({
     ? actionRecoveryHint
       ? `${actionBlockReason} · ${actionRecoveryHint}`
       : actionBlockReason
-    : "可以提交";
+    : "可以锁定";
   const actionReadyState = alreadySubmitted
     ? "waiting"
     : actionBlockReason
@@ -2061,7 +2061,7 @@ export function ActionPanel({
         aria-live="polite"
       >
         <div>
-          <span>下一步</span>
+          <span>出牌提示</span>
           <strong>{actionCommandLabel}</strong>
         </div>
         <div>
@@ -2069,7 +2069,7 @@ export function ActionPanel({
           <strong>{previewTargetLabel}</strong>
         </div>
         <div>
-          <span>状态</span>
+          <span>牌面状态</span>
           <strong>{actionStatusLabel}</strong>
         </div>
       </div>
@@ -2512,11 +2512,11 @@ export function ActionPanel({
                 onSubmit(lastActionSubmission);
               }
             }}
-            title={repeatActionError || "沿用上回合"}
+            title={repeatActionError || "照上一手出牌"}
             type="button"
           >
             <FastForward className="h-4 w-4" aria-hidden="true" />
-            沿用上回合
+            照上一手
           </button>
 
           <button

@@ -10265,3 +10265,116 @@ select {
   box-shadow: 0 5px 12px rgba(48, 42, 30, 0.06) !important;
   font-weight: 580 !important;
 }
+
+/* Animal sticker art pass: one visual language for avatars and room entry. */
+.hero-shell .account-card,
+.account-card,
+.hero-shell .character-select-panel,
+.character-select-panel {
+  border-width: 1px !important;
+  border-color: rgba(36, 31, 25, 0.12) !important;
+  border-radius: 14px 11px 15px 12px !important;
+  background:
+    repeating-linear-gradient(101deg, rgba(48, 42, 30, 0.012) 0 1px, transparent 1px 13px),
+    radial-gradient(ellipse at 16% 10%, rgba(255, 252, 235, 0.64), transparent 46%),
+    linear-gradient(180deg, rgba(255, 249, 230, 0.68), rgba(235, 223, 196, 0.34)) !important;
+  box-shadow:
+    0 12px 26px rgba(48, 42, 30, 0.055),
+    inset 0 1px 0 rgba(255, 253, 241, 0.42) !important;
+}
+
+.hero-shell .character-option,
+.character-option {
+  border-width: 1px !important;
+  border-color: rgba(36, 31, 25, 0.14) !important;
+  border-radius: 12px 9px 13px 10px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 249, 228, 0.48), rgba(236, 222, 190, 0.22)) !important;
+  box-shadow: none !important;
+}
+
+.hero-shell .character-option:hover,
+.hero-shell .character-option-active,
+.character-option:hover,
+.character-option-active {
+  border-color: rgba(36, 31, 25, 0.28) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 245, 211, 0.64), rgba(229, 210, 170, 0.3)) !important;
+  box-shadow: 0 7px 16px rgba(48, 42, 30, 0.055) !important;
+  transform: translateY(-1px) rotate(-0.15deg) !important;
+}
+
+.character-avatar-shell {
+  display: grid !important;
+  place-items: center;
+  width: 46px !important;
+  height: 52px !important;
+}
+
+.character-avatar-sticker,
+.character-portrait-badge,
+.character-select-portrait,
+.player-avatar,
+.account-avatar {
+  border-width: 1.5px !important;
+  border-color: rgba(28, 25, 20, 0.38) !important;
+  border-radius: 48% 44% 45% 42% / 45% 47% 40% 43% !important;
+  background:
+    radial-gradient(circle at 44% 26%, rgba(255, 247, 219, 0.4), transparent 35%),
+    linear-gradient(180deg, rgba(245, 226, 183, 0.64), rgba(218, 198, 158, 0.28)) !important;
+  box-shadow:
+    0 6px 12px rgba(48, 42, 30, 0.07),
+    inset 0 0 0 1px rgba(255, 252, 236, 0.25) !important;
+}
+
+.character-avatar-sticker {
+  width: 42px !important;
+  height: 46px !important;
+  transform: rotate(-1.2deg);
+}
+
+.character-select-painted-portrait {
+  width: 112px !important;
+  height: 120px !important;
+  transform: rotate(-1deg);
+}
+
+.character-option-painted-portrait {
+  width: 38px !important;
+  height: 42px !important;
+}
+
+.character-portrait-image,
+.account-avatar img,
+.player-avatar img {
+  filter: saturate(0.9) contrast(1.02) brightness(1.01) !important;
+  object-position: 50% 33% !important;
+}
+
+.character-avatar-shadow {
+  display: block !important;
+  width: 34px !important;
+  height: 8px !important;
+  margin-top: -5px;
+  border-radius: 999px;
+  background: rgba(36, 31, 25, 0.08);
+  filter: blur(2px);
+}
+
+.hero-shell .btn-primary,
+.hero-shell .btn-secondary,
+.account-card .btn-secondary,
+.character-select-panel .btn-primary {
+  border-width: 1px !important;
+  border-color: rgba(36, 31, 25, 0.14) !important;
+  border-radius: 10px 8px 11px 9px !important;
+  background:
+    linear-gradient(180deg, rgba(222, 196, 136, 0.58), rgba(191, 151, 82, 0.38)) !important;
+  box-shadow: 0 7px 16px rgba(48, 42, 30, 0.055) !important;
+}
+
+.hero-shell .btn-secondary,
+.account-card .btn-secondary {
+  background:
+    linear-gradient(180deg, rgba(255, 252, 239, 0.56), rgba(236, 224, 198, 0.28)) !important;
+}
