@@ -410,12 +410,15 @@ function buildBudgetSummary(taskCount: number, opts: BatchOptions): {
   allowOverBudget: boolean;
   estimatedCnyPerTask: number;
   estimatedTotalCny: number;
+  requiresPermission: boolean;
   spendLimitCny: number;
 } {
+  const estimatedTotalCny = taskCount * opts.estimatedCnyPerTask;
   return {
     allowOverBudget: opts.allowOverBudget,
     estimatedCnyPerTask: opts.estimatedCnyPerTask,
-    estimatedTotalCny: taskCount * opts.estimatedCnyPerTask,
+    estimatedTotalCny,
+    requiresPermission: estimatedTotalCny >= opts.cnySpendLimit,
     spendLimitCny: opts.cnySpendLimit
   };
 }

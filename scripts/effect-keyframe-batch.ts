@@ -30,6 +30,8 @@ interface EffectPromptKeyframe {
 }
 
 interface KeyframeBatchOptions {
+  cnySpendLimit: number;
+  estimatedCnyPerFrame: number;
   limitFrames: number;
   limitSkills: number;
   offsetFrames: number;
@@ -73,6 +75,7 @@ fs.writeFileSync(
   planPath,
   JSON.stringify(
     {
+      budget: buildBudgetSummary(tasks.length, options),
       count: tasks.length,
       generatedAt: new Date().toISOString(),
       options,
@@ -106,6 +109,12 @@ fs.writeFileSync(
 
 console.log(`planned ${tasks.length} keyframe image tasks -> ${planPath}`);
 console.log(`wrote jsonl -> ${jsonlPath}`);
+const budget = buildBudgetSummary(tasks.length, options);
+if (budget.requiresPermission) {
+  console.warn(
+    `estimated keyframe spend ${budget.estimatedTotalCny.toFixed(2)} RMB reaches or exceeds ${budget.spendLimitCny.toFixed(2)} RMB; ask the user for permission before paid generation.`
+  );
+}
 
 function buildSkillTasks(skill: EffectPromptSkill): KeyframeTask[] {
   return skill.keyframes
@@ -129,6 +138,11 @@ function buildSkillTasks(skill: EffectPromptSkill): KeyframeTask[] {
 
 function readOptions(): KeyframeBatchOptions {
   return {
+    cnySpendLimit: decimalArg("--cny-spend-limit", 10),
+    estimatedCnyPerFrame: decimalArg(
+      "--estimated-cny-per-frame",
+      Number(process.env.IMAGEGEN_ESTIMATED_CNY_PER_FRAME ?? 0)
+    ),
     limitFrames: numberArg("--limit-frames", Number.MAX_SAFE_INTEGER),
     limitSkills: numberArg("--limit-skills", 5),
     offsetFrames: numberArg("--offset-frames", 0),
@@ -136,6 +150,24 @@ function readOptions(): KeyframeBatchOptions {
     onlyMissing: !process.argv.includes("--include-existing"),
     outDir: stringArg("--out-dir", "artifacts/effects"),
     promptManifest: stringArg("--prompt-manifest", "docs/EFFECT_ANIMATION_PROMPTS.json")
+  };
+}
+
+function buildBudgetSummary(
+  taskCount: number,
+  opts: KeyframeBatchOptions
+): {
+  estimatedCnyPerFrame: number;
+  estimatedTotalCny: number;
+  requiresPermission: boolean;
+  spendLimitCny: number;
+} {
+  const estimatedTotalCny = taskCount * opts.estimatedCnyPerFrame;
+  return {
+    estimatedCnyPerFrame: opts.estimatedCnyPerFrame,
+    estimatedTotalCny,
+    requiresPermission: estimatedTotalCny >= opts.cnySpendLimit,
+    spendLimitCny: opts.cnySpendLimit
   };
 }
 
@@ -149,6 +181,18 @@ function numberArg(name: string, fallback: number): number {
     throw new Error(`${name} must be a non-negative number`);
   }
   return Math.floor(value);
+}
+
+function decimalArg(name: string, fallback: number): number {
+  const raw = stringArg(name, "");
+  if (!raw) {
+    return fallback;
+  }
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative number`);
+  }
+  return value;
 }
 
 function stringArg(name: string, fallback: string): string {
