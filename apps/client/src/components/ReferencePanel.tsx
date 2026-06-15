@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Gem, Search, Sparkles } from "lucide-react";
 import {
   ATTACK_ORDER,
   BASE_ATTACKS,
   DEFENSE_LABELS,
   DEFENSE_TAG_LABELS,
+  SKILL_TIMING_PHASE_LABELS,
   SkillCategory,
   getAllSkills
 } from "@bing/shared";
@@ -28,6 +29,7 @@ export function ReferencePanel() {
   const [tab, setTab] = useState<Tab>("attacks");
   const [query, setQuery] = useState("");
   const [skillCategory, setSkillCategory] = useState<SkillCategoryFilter>("all");
+  const [selectedSkillId, setSelectedSkillId] = useState("");
   const skills = useMemo(() => getAllSkills(), []);
   const filteredSkills = useMemo(() => {
     const normalized = query.trim();
@@ -40,6 +42,18 @@ export function ReferencePanel() {
         return `${skill.name} ${skill.description} ${skill.tags.join(" ")} ${skill.typeTags.join(" ")}`.includes(normalized);
       });
   }, [query, skillCategory, skills]);
+  const selectedSkill =
+    filteredSkills.find((skill) => skill.id === selectedSkillId) ?? preferredFeaturedSkill(filteredSkills);
+
+  useEffect(() => {
+    if (filteredSkills.length === 0) {
+      setSelectedSkillId("");
+      return;
+    }
+    if (!filteredSkills.some((skill) => skill.id === selectedSkillId)) {
+      setSelectedSkillId(preferredFeaturedSkill(filteredSkills)!.id);
+    }
+  }, [filteredSkills, selectedSkillId]);
 
   return (
     <section className="surface-card reference-panel p-4">
@@ -118,9 +132,15 @@ export function ReferencePanel() {
               </button>
             ))}
           </div>
+          {selectedSkill ? <ReferenceSkillFeature skill={selectedSkill} /> : null}
           <div className="reference-skill-gallery mt-3 max-h-[34rem] overflow-auto pr-1">
             {filteredSkills.map((skill) => (
-              <ReferenceSkillCard key={skill.id} skill={skill} />
+              <ReferenceSkillCard
+                active={selectedSkill?.id === skill.id}
+                key={skill.id}
+                onSelect={() => setSelectedSkillId(skill.id)}
+                skill={skill}
+              />
             ))}
             {filteredSkills.length === 0 ? (
               <div className="reference-empty-state">没有匹配的技能。</div>
@@ -162,19 +182,78 @@ function tabClass(active: boolean): string {
   ].join(" ");
 }
 
-function ReferenceSkillCard({ skill }: { skill: ReturnType<typeof getAllSkills>[number] }) {
+function preferredFeaturedSkill(skills: ReturnType<typeof getAllSkills>): ReturnType<typeof getAllSkills>[number] | undefined {
+  return skills.find((skill) => skill.name !== "空") ?? skills[0];
+}
+
+function ReferenceSkillFeature({ skill }: { skill: ReturnType<typeof getAllSkills>[number] }) {
   const visual = getSkillVisualProfile(skill, skill.id);
 
   return (
     <article
       className={[
-        "skill-list-item",
-        "skill-relic-card",
-        "reference-skill-card",
+        "skill-gallery-feature",
+        "reference-skill-feature",
         `skill-affinity-${visual.affinity}`,
         skillToneClass(skill)
       ].join(" ")}
       style={skillCardStyle(visual)}
+    >
+      <div className="skill-gallery-feature-art" aria-hidden="true">
+        <span className="skill-relic-etch skill-relic-etch-a" />
+        <span className="skill-relic-etch skill-relic-etch-b" />
+        <span className="skill-relic-halo" />
+        <span className="skill-gallery-feature-sigil">{visual.sigil}</span>
+      </div>
+      <div className="skill-gallery-feature-copy">
+        <div className="skill-relic-topline">
+          <span>{visual.label}</span>
+          <span className="skill-power-badge">{skillPowerLabel(skill)}</span>
+        </div>
+        <h3 className="skill-gallery-feature-name">{skill.name}</h3>
+        <div className="skill-relic-tags reference-feature-tags">
+          <span>{categoryLabel(skill.category)}</span>
+          <span>{playLabel(skill)}</span>
+          {skill.timingPhases.slice(0, 2).map((phase) => (
+            <span key={phase}>{SKILL_TIMING_PHASE_LABELS[phase]}</span>
+          ))}
+        </div>
+        <p className="skill-gallery-feature-description">{skill.description || "无描述"}</p>
+        <div className="skill-gallery-feature-meta">
+          <span>编号 #{skill.sourceRow}</span>
+          {skill.fusion.trim() ? <span>融合：{skill.fusion}</span> : null}
+          {skill.timing ? <span>{skill.timing}</span> : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ReferenceSkillCard({
+  active,
+  onSelect,
+  skill
+}: {
+  active: boolean;
+  onSelect: () => void;
+  skill: ReturnType<typeof getAllSkills>[number];
+}) {
+  const visual = getSkillVisualProfile(skill, skill.id);
+
+  return (
+    <button
+      aria-pressed={active}
+      className={[
+        "skill-list-item",
+        "skill-relic-card",
+        "reference-skill-card",
+        active ? "reference-skill-card-active" : "",
+        `skill-affinity-${visual.affinity}`,
+        skillToneClass(skill)
+      ].join(" ")}
+      onClick={onSelect}
+      style={skillCardStyle(visual)}
+      type="button"
     >
       <div className="skill-relic-topline">
         <span>{visual.label}</span>
@@ -211,7 +290,7 @@ function ReferenceSkillCard({ skill }: { skill: ReturnType<typeof getAllSkills>[
         <span>#{skill.sourceRow}</span>
       </div>
       <p className="skill-relic-description">{skill.description || "无描述"}</p>
-    </article>
+    </button>
   );
 }
 

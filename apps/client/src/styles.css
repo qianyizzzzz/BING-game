@@ -5301,6 +5301,19 @@ select {
   margin-top: 10px;
 }
 
+.reference-skill-feature {
+  margin-top: 14px;
+  margin-bottom: 12px;
+}
+
+.reference-skill-feature .skill-gallery-feature-description {
+  max-width: 68ch;
+}
+
+.reference-feature-tags {
+  margin-top: 10px;
+}
+
 .reference-filter-chip {
   border: 0;
   border-bottom: 1px solid rgba(0, 145, 151, 0.16);
@@ -5342,6 +5355,27 @@ select {
 
 .reference-skill-card {
   min-height: 250px;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  appearance: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.reference-skill-card:focus-visible {
+  outline: 2px solid rgba(0, 145, 151, 0.28);
+  outline-offset: 2px;
+}
+
+.reference-skill-card-active {
+  border-color: rgba(0, 145, 151, 0.24) !important;
+  box-shadow:
+    0 10px 24px rgba(82, 72, 59, 0.04),
+    inset 0 -2px 0 rgba(0, 145, 151, 0.26) !important;
+  transform: translateY(-1px);
 }
 
 .reference-skill-card .skill-relic-description {
