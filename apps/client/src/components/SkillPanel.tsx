@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Gem, Sparkles } from "lucide-react";
 import {
   PublicGameState,
   SKILL_TIMING_PHASE_LABELS,
+  getAllSkills,
   getSkill
 } from "@bing/shared";
 import { getSkillVisualProfile, skillCardStyle, skillCostPipCount } from "../lib/skillVisuals";
@@ -16,7 +17,58 @@ type Skill = NonNullable<ReturnType<typeof getSkill>>;
 export function SkillPanel({ state }: SkillPanelProps) {
   const viewer = state.players.find((player) => player.id === state.viewerPlayerId);
   const [activeSkillIds, setActiveSkillIds] = useState<Set<string>>(() => new Set());
+  const [selectedSkillId, setSelectedSkillId] = useState<string>("");
   const lastFlashEventId = useRef<string | null>(null);
+  const gallerySkillIds = useMemo(() => {
+    if (!viewer) {
+      return [];
+    }
+    if (viewer.skills.length > 0) {
+      return viewer.skills;
+    }
+    return getAllSkills()
+      .filter(
+        (skill) =>
+          skill.implemented &&
+          skill.name !== "空" &&
+          (Boolean(skill.play) || skill.description.length > 10)
+      )
+      .slice(0, 6)
+      .map((skill) => skill.id);
+  }, [viewer?.skills, viewer]);
+  const skillEntries = useMemo(
+    () =>
+      gallerySkillIds.map((skillId) => {
+        const skill = getSkill(skillId);
+        const visual = getSkillVisualProfile(skill, skillId);
+        const phaseLabels =
+          skill?.timingPhases
+            .slice(0, 3)
+            .map((phase) => SKILL_TIMING_PHASE_LABELS[phase]) ?? [];
+        const playSummary = skill ? formatPlaySummary(skill) : "";
+
+        return {
+          phaseLabels,
+          playSummary,
+          skill,
+          skillId,
+          visual
+        };
+      }),
+    [gallerySkillIds]
+  );
+  const selectedEntry =
+    skillEntries.find((entry) => entry.skillId === selectedSkillId) ?? skillEntries[0];
+
+  useEffect(() => {
+    if (skillEntries.length === 0) {
+      setSelectedSkillId("");
+      return;
+    }
+    if (!skillEntries.some((entry) => entry.skillId === selectedSkillId)) {
+      setSelectedSkillId(skillEntries[0]!.skillId);
+    }
+  }, [selectedSkillId, skillEntries]);
 
   useEffect(() => {
     if (!viewer) {
@@ -52,9 +104,11 @@ export function SkillPanel({ state }: SkillPanelProps) {
     return () => window.clearTimeout(timeout);
   }, [state.eventLog, viewer]);
 
-  if (!viewer || viewer.skills.length === 0) {
+  if (!viewer || skillEntries.length === 0) {
     return null;
   }
+
+  const showingPlayerSkills = viewer.skills.length > 0;
 
   return (
     <section className="surface-card skill-card skill-gallery-panel p-4">
@@ -64,31 +118,71 @@ export function SkillPanel({ state }: SkillPanelProps) {
           <div>
             <h2 className="text-base font-black text-gray-950">技能画廊</h2>
             <p className="mt-0.5 text-xs font-semibold text-gray-500">
-              本局技能像展签一样陈列；刚触发的卡片会出现颜料高亮。
+              {showingPlayerSkills
+                ? "本局技能像展签一样陈列；刚触发的卡片会出现颜料高亮。"
+                : "本局未开启技能，先展示一组技能图录预览。"}
             </p>
           </div>
         </div>
-        <span className="skill-panel-count">{viewer.skills.length} 张展品</span>
+        <span className="skill-panel-count">
+          {showingPlayerSkills ? `${viewer.skills.length} 张展品` : "图录预览"}
+        </span>
       </div>
 
-      <div className="skill-gallery">
-        {viewer.skills.map((skillId) => {
-          const skill = getSkill(skillId);
-          const visual = getSkillVisualProfile(skill, skillId);
-          const phaseLabels =
-            skill?.timingPhases
-              .slice(0, 3)
-              .map((phase) => SKILL_TIMING_PHASE_LABELS[phase]) ?? [];
-          const playSummary = skill ? formatPlaySummary(skill) : "";
+      {selectedEntry ? (
+        <article
+          className={[
+            "skill-gallery-feature",
+            `skill-affinity-${selectedEntry.visual.affinity}`,
+            selectedEntry.skill ? skillToneClass(selectedEntry.skill) : ""
+          ].join(" ")}
+          style={skillCardStyle(selectedEntry.visual)}
+        >
+          <div className="skill-gallery-feature-art" aria-hidden="true">
+            <span className="skill-relic-etch skill-relic-etch-a" />
+            <span className="skill-relic-etch skill-relic-etch-b" />
+            <span className="skill-relic-halo" />
+            <span className="skill-gallery-feature-sigil">{selectedEntry.visual.sigil}</span>
+          </div>
+          <div className="skill-gallery-feature-copy">
+            <div className="skill-relic-topline">
+              <span>{selectedEntry.visual.label}</span>
+              {selectedEntry.skill ? <span className="skill-power-badge">{skillPowerLabel(selectedEntry.skill)}</span> : null}
+            </div>
+            <h3 className="skill-gallery-feature-name">{selectedEntry.skill?.name ?? selectedEntry.skillId}</h3>
+            {selectedEntry.phaseLabels.length > 0 ? (
+              <div className="skill-stage-strip mt-2">
+                {selectedEntry.phaseLabels.map((label) => (
+                  <span key={label}>{label}</span>
+                ))}
+              </div>
+            ) : null}
+            <p className="skill-gallery-feature-description">
+              {selectedEntry.skill?.description ?? "技能效果待接入。"}
+            </p>
+            <div className="skill-gallery-feature-meta">
+              {selectedEntry.playSummary ? <span>{selectedEntry.playSummary}</span> : null}
+              {selectedEntry.skill?.timing ? <span>{selectedEntry.skill.timing}</span> : null}
+              {selectedEntry.skill ? <span>#{selectedEntry.skill.sourceRow}</span> : null}
+            </div>
+          </div>
+        </article>
+      ) : null}
 
-          return (
-            <article
+      <div className="skill-gallery" aria-label="本局技能画廊">
+        {skillEntries.map(({ phaseLabels, playSummary, skill, skillId, visual }) => (
+            <button
+              type="button"
               key={skillId}
+              aria-pressed={selectedEntry?.skillId === skillId}
+              onClick={() => setSelectedSkillId(skillId)}
               className={[
                 "skill-list-item",
                 "skill-relic-card",
+                "skill-gallery-thumb",
                 `skill-affinity-${visual.affinity}`,
                 skill ? skillToneClass(skill) : "",
+                selectedEntry?.skillId === skillId ? "skill-gallery-thumb-active" : "",
                 activeSkillIds.has(skillId) ? "skill-used-flash" : ""
               ].join(" ")}
               style={skillCardStyle(visual)}
@@ -163,9 +257,8 @@ export function SkillPanel({ state }: SkillPanelProps) {
                   展示阶段，复杂效果会逐步接入结算引擎。
                 </p>
               ) : null}
-            </article>
-          );
-        })}
+            </button>
+          ))}
       </div>
     </section>
   );
