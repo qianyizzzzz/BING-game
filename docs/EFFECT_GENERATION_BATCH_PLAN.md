@@ -41,12 +41,12 @@ npm.cmd run test:effect-assets -- --json
 计划命令：
 
 ```powershell
-npm.cmd run seedance:effects:plan -- --offset=76 --limit=1 --estimated-cny-per-task=3
+npm.cmd run seedance:effects:plan -- --provider=volcengine --offset=76 --limit=1 --estimated-cny-per-task=3
 ```
 
 提交前必须确认：
 
-- API provider 是 AceDataCloud 还是火山引擎官方。
+- API provider 使用火山引擎 Ark 官方接口：`--provider=volcengine`。
 - token 已配置在 PowerShell / 用户环境变量中。
 - 预计费用没有达到 10 RMB；达到或超过时先问用户。
 
@@ -131,7 +131,7 @@ npm.cmd run test:ui-agents:run
 
 每批必须记录：
 
-- provider：AceDataCloud 或火山引擎官方。
+- provider：火山引擎 Ark 官方接口，除非明确切回 AceDataCloud。
 - 任务 id。
 - 估算费用和实际费用。
 - 生成文件路径。

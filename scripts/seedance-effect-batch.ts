@@ -17,6 +17,9 @@ interface EffectPromptSpec {
 
 interface BatchOptions {
   allowOverBudget: boolean;
+  apiBaseUrl: string;
+  apiProvider: ApiProvider;
+  apiToken: string;
   cnySpendLimit: number;
   dryRun: boolean;
   estimatedCnyPerTask: number;
@@ -31,9 +34,12 @@ interface BatchOptions {
   serviceTier: string;
 }
 
+type ApiProvider = "acedata" | "volcengine";
+
 interface SubmittedTask {
   estimatedCny?: number;
   payload: Record<string, unknown>;
+  provider: ApiProvider;
   response?: unknown;
   skillId: string;
   skillName: string;
@@ -48,8 +54,6 @@ interface SkippedTask {
 }
 
 const asyncCallbackUrl = "https://api.acedata.cloud/health";
-const apiBaseUrl = process.env.ACEDATACLOUD_API_BASE_URL ?? "https://api.acedata.cloud";
-const apiToken = process.env.ACEDATACLOUD_API_TOKEN ?? "";
 const specPath = path.resolve("docs/EFFECT_ANIMATION_SPEC.md");
 const promptManifestPath = path.resolve("docs/EFFECT_ANIMATION_PROMPTS.json");
 
@@ -89,15 +93,16 @@ for (const spec of selected) {
   const task: SubmittedTask = {
     estimatedCny: options.estimatedCnyPerTask > 0 ? options.estimatedCnyPerTask : undefined,
     payload,
+    provider: options.apiProvider,
     skillId: spec.skillId,
     skillName: spec.skillName
   };
 
   if (!options.dryRun) {
-    if (!apiToken) {
-      throw new Error("ACEDATACLOUD_API_TOKEN is required when using --submit");
+    if (!options.apiToken) {
+      throw new Error(tokenErrorMessage(options.apiProvider));
     }
-    task.response = await submitSeedanceTask(payload);
+    task.response = await submitSeedanceTask(payload, options);
     task.submittedAt = new Date().toISOString();
   }
 
@@ -112,12 +117,13 @@ fs.writeFileSync(
   manifestPath,
   JSON.stringify(
     {
-      apiBaseUrl,
+      apiBaseUrl: options.apiBaseUrl,
+      apiProvider: options.apiProvider,
       budget: buildBudgetSummary(tasks.length, options),
       count: tasks.length,
       dryRun: options.dryRun,
       generatedAt: new Date().toISOString(),
-      options,
+      options: publicOptions(options),
       skipped,
       sourceSpec: fs.existsSync(promptManifestPath) ? promptManifestPath : specPath,
       totalSpecs: specs.length,
@@ -217,23 +223,32 @@ function extractSeedancePrompt(section: string): string | undefined {
 
 function buildPayload(spec: EffectPromptSpec, opts: BatchOptions): Record<string, unknown> {
   const keyframeInputs = buildKeyframeInputs(spec, opts);
+  const content = [
+    {
+      text: spec.prompt,
+      type: "text"
+    },
+    ...keyframeInputs
+      .filter((input) => input.url)
+      .map((input) => ({
+        image_url: {
+          url: input.url
+        },
+        type: "image_url"
+      }))
+  ];
+
+  if (opts.apiProvider === "volcengine") {
+    return {
+      content,
+      model: opts.model
+    };
+  }
+
   return {
     callback_url: asyncCallbackUrl,
     camerafixed: true,
-    content: [
-      {
-        text: spec.prompt,
-        type: "text"
-      },
-      ...keyframeInputs
-        .filter((input) => input.url)
-        .map((input) => ({
-          image_url: {
-            url: input.url
-          },
-          type: "image_url"
-        }))
-    ],
+    content,
     execution_expires_after: 172800,
     frames: 29,
     metadata: {
@@ -255,12 +270,16 @@ function buildPayload(spec: EffectPromptSpec, opts: BatchOptions): Record<string
   };
 }
 
-async function submitSeedanceTask(payload: Record<string, unknown>): Promise<unknown> {
-  const response = await fetch(`${apiBaseUrl}/seedance/videos`, {
+async function submitSeedanceTask(payload: Record<string, unknown>, opts: BatchOptions): Promise<unknown> {
+  const url =
+    opts.apiProvider === "volcengine"
+      ? `${opts.apiBaseUrl.replace(/\/$/, "")}/contents/generations/tasks`
+      : `${opts.apiBaseUrl.replace(/\/$/, "")}/seedance/videos`;
+  const response = await fetch(url, {
     body: JSON.stringify(payload),
     headers: {
       accept: "application/json",
-      authorization: `Bearer ${apiToken}`,
+      authorization: `Bearer ${opts.apiToken}`,
       "content-type": "application/json"
     },
     method: "POST"
@@ -285,8 +304,12 @@ async function readJsonOrText(response: Response): Promise<unknown> {
 
 function readOptions(): BatchOptions {
   const submit = process.argv.includes("--submit");
+  const apiProvider = apiProviderArg("--provider");
   return {
     allowOverBudget: process.argv.includes("--allow-over-budget"),
+    apiBaseUrl: stringArg("--api-base-url", defaultApiBaseUrl(apiProvider)),
+    apiProvider,
+    apiToken: defaultApiToken(apiProvider),
     cnySpendLimit: numberArg("--cny-spend-limit", 10),
     dryRun: !submit,
     estimatedCnyPerTask: decimalArg(
@@ -296,13 +319,56 @@ function readOptions(): BatchOptions {
     includeMissingKeyframes: process.argv.includes("--include-missing-keyframes"),
     keyframeInputMode: keyframeInputModeArg("--keyframe-input-mode", "data-url"),
     limit: numberArg("--limit", 5),
-    model: stringArg("--model", "doubao-seedance-1-0-pro-fast-251015"),
+    model: stringArg("--model", defaultModel(apiProvider)),
     offset: numberArg("--offset", 0),
     outDir: stringArg("--out-dir", "artifacts/seedance"),
     ratio: stringArg("--ratio", "16:9"),
     resolution: stringArg("--resolution", "480p"),
     serviceTier: stringArg("--service-tier", "flex")
   };
+}
+
+function apiProviderArg(name: string): ApiProvider {
+  const explicit = stringArg(name, process.env.SEEDANCE_PROVIDER ?? "");
+  const inferred =
+    explicit ||
+    (process.env.ARK_API_KEY || process.env.VOLCENGINE_ARK_API_KEY ? "volcengine" : "acedata");
+  if (inferred !== "acedata" && inferred !== "volcengine") {
+    throw new Error(`${name} must be acedata or volcengine`);
+  }
+  return inferred;
+}
+
+function defaultApiBaseUrl(provider: ApiProvider): string {
+  if (provider === "volcengine") {
+    return (
+      process.env.VOLCENGINE_ARK_API_BASE_URL ??
+      process.env.SEEDANCE_API_BASE_URL ??
+      "https://ark.cn-beijing.volces.com/api/v3"
+    );
+  }
+  return process.env.ACEDATACLOUD_API_BASE_URL ?? "https://api.acedata.cloud";
+}
+
+function defaultApiToken(provider: ApiProvider): string {
+  if (provider === "volcengine") {
+    return process.env.VOLCENGINE_ARK_API_KEY ?? process.env.ARK_API_KEY ?? "";
+  }
+  return process.env.ACEDATACLOUD_API_TOKEN ?? "";
+}
+
+function defaultModel(provider: ApiProvider): string {
+  if (provider === "volcengine") {
+    return process.env.SEEDANCE_DEFAULT_MODEL ?? "doubao-seedance-2-0-260128";
+  }
+  return process.env.SEEDANCE_DEFAULT_MODEL ?? "doubao-seedance-1-0-pro-fast-251015";
+}
+
+function tokenErrorMessage(provider: ApiProvider): string {
+  if (provider === "volcengine") {
+    return "ARK_API_KEY or VOLCENGINE_ARK_API_KEY is required when using --submit --provider=volcengine";
+  }
+  return "ACEDATACLOUD_API_TOKEN is required when using --submit --provider=acedata";
 }
 
 function numberArg(name: string, fallback: number): number {
@@ -420,6 +486,14 @@ function buildBudgetSummary(taskCount: number, opts: BatchOptions): {
     estimatedTotalCny,
     requiresPermission: estimatedTotalCny >= opts.cnySpendLimit,
     spendLimitCny: opts.cnySpendLimit
+  };
+}
+
+function publicOptions(opts: BatchOptions): Omit<BatchOptions, "apiToken"> & { apiTokenConfigured: boolean } {
+  const { apiToken, ...rest } = opts;
+  return {
+    ...rest,
+    apiTokenConfigured: apiToken.length > 0
   };
 }
 

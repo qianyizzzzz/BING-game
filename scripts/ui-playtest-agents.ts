@@ -12,8 +12,11 @@ interface AgentLog {
 }
 
 interface RunConfig {
+  allowWarnings: boolean;
   autoServe: boolean;
   complexSkills: boolean;
+  smokeOnly: boolean;
+  turnCount: number;
   url: string;
   outDir: string;
 }
@@ -119,7 +122,13 @@ try {
     producer.observations.push("房主能从大厅进入战斗桌面，行动 dock 已出现。");
     await collectActionRecoveryHintCheck(playerA, firstTimer, "新手玩家");
 
-    for (let turn = 1; turn <= 3; turn += 1) {
+    if (config.smokeOnly) {
+      const message = "Quick UI smoke stopped after the action dock became visible; turn submission and turn-3 reveal checks were intentionally skipped.";
+      runNotes.push(message);
+      producer.observations.push(message);
+    }
+
+    for (let turn = 1; !config.smokeOnly && turn <= config.turnCount; turn += 1) {
       logStep(`turn ${turn} begin`);
       if (config.complexSkills && turn > 1) {
         const skippedWindows = await resolveActionWindows(activePages);
@@ -210,7 +219,7 @@ console.log(`UI playtest agent report written to ${reportPath}`);
 if (fatalError) {
   throw fatalError;
 }
-if (visualIssues.length > 0 || consoleErrors.length > 0 || failedActions.length > 0) {
+if (!config.allowWarnings && (visualIssues.length > 0 || consoleErrors.length > 0 || failedActions.length > 0)) {
   throw new Error(
     `UI playtest reported issues: visual=${visualIssues.length}, console=${consoleErrors.length}, failed=${failedActions.length}`
   );
@@ -1852,6 +1861,9 @@ function renderReport(): string {
     `- Room: ${roomId || "未读取"}`,
     `- Time: ${new Date().toLocaleString("zh-CN")}`,
     `- Server: ${config.autoServe ? "auto" : "external"}`,
+    `- Smoke only: ${config.smokeOnly ? "yes" : "no"}`,
+    `- Allow warnings: ${config.allowWarnings ? "yes" : "no"}`,
+    `- Turns: ${config.turnCount}`,
     "",
     "## Run Notes",
     "",
@@ -1905,10 +1917,29 @@ function readConfig(): RunConfig {
   const outArg = process.argv.find((arg) => arg.startsWith("--out="));
   const noServer = process.argv.includes("--no-server");
   const complexSkills = process.argv.includes("--complex-skills");
+  const smokeOnly = process.argv.includes("--smoke-only");
+  const allowWarnings = process.argv.includes("--allow-warnings");
+  const turnCount = numberArg("--turns", 3);
   return {
+    allowWarnings,
     autoServe: !noServer && !urlArg,
     complexSkills,
+    smokeOnly,
+    turnCount,
     url: urlArg?.slice("--url=".length) || process.env.BING_PLAYTEST_URL || "http://localhost:3001",
     outDir: outArg?.slice("--out=".length) || path.resolve("artifacts", "playtests")
   };
+}
+
+function numberArg(name: string, fallback: number): number {
+  const prefix = `${name}=`;
+  const raw = process.argv.find((arg) => arg.startsWith(prefix))?.slice(prefix.length);
+  if (!raw) {
+    return fallback;
+  }
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 1) {
+    throw new Error(`${name} must be a positive number`);
+  }
+  return Math.floor(value);
 }

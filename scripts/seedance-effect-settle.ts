@@ -3,6 +3,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 interface GenerationManifest {
+  apiProvider?: ApiProvider;
   tasks: GenerationTask[];
 }
 
@@ -28,8 +29,8 @@ interface DownloadResult {
   warnings: string[];
 }
 
-const apiBaseUrl = process.env.ACEDATACLOUD_API_BASE_URL ?? "https://api.acedata.cloud";
-const apiToken = process.env.ACEDATACLOUD_API_TOKEN ?? "";
+type ApiProvider = "acedata" | "volcengine";
+
 const showHelp = process.argv.includes("--help") || process.argv.includes("-h");
 const manifestPath = path.resolve(
   stringArg("--manifest", "artifacts/seedance/effect-generation-tasks.json")
@@ -46,11 +47,13 @@ if (showHelp) {
   process.exit(0);
 }
 
-if (!apiToken) {
-  throw new Error("ACEDATACLOUD_API_TOKEN is required to settle Seedance tasks");
-}
-
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8")) as GenerationManifest;
+const apiProvider = apiProviderArg("--provider", manifest.apiProvider);
+const apiBaseUrl = stringArg("--api-base-url", defaultApiBaseUrl(apiProvider));
+const apiToken = defaultApiToken(apiProvider);
+if (!apiToken) {
+  throw new Error(tokenErrorMessage(apiProvider));
+}
 const settled: SettledTask[] = [];
 
 for (const task of manifest.tasks) {
@@ -129,7 +132,22 @@ async function waitForTask(taskId: string): Promise<unknown> {
 }
 
 async function queryTask(taskId: string): Promise<unknown> {
-  const response = await fetch(`${apiBaseUrl}/seedance/tasks`, {
+  if (apiProvider === "volcengine") {
+    const response = await fetch(`${apiBaseUrl.replace(/\/$/, "")}/contents/generations/tasks/${taskId}`, {
+      headers: {
+        accept: "application/json",
+        authorization: `Bearer ${apiToken}`
+      },
+      method: "GET"
+    });
+    const data = await readJsonOrText(response);
+    if (!response.ok) {
+      throw new Error(`Seedance task API ${response.status}: ${JSON.stringify(data)}`);
+    }
+    return data;
+  }
+
+  const response = await fetch(`${apiBaseUrl.replace(/\/$/, "")}/seedance/tasks`, {
     body: JSON.stringify({
       action: "retrieve",
       id: taskId
@@ -358,6 +376,42 @@ function numberArg(name: string, fallback: number): number {
   return Math.floor(value);
 }
 
+function apiProviderArg(name: string, fallback?: ApiProvider): ApiProvider {
+  const explicit = stringArg(name, process.env.SEEDANCE_PROVIDER ?? fallback ?? "");
+  const inferred =
+    explicit ||
+    (process.env.ARK_API_KEY || process.env.VOLCENGINE_ARK_API_KEY ? "volcengine" : "acedata");
+  if (inferred !== "acedata" && inferred !== "volcengine") {
+    throw new Error(`${name} must be acedata or volcengine`);
+  }
+  return inferred;
+}
+
+function defaultApiBaseUrl(provider: ApiProvider): string {
+  if (provider === "volcengine") {
+    return (
+      process.env.VOLCENGINE_ARK_API_BASE_URL ??
+      process.env.SEEDANCE_API_BASE_URL ??
+      "https://ark.cn-beijing.volces.com/api/v3"
+    );
+  }
+  return process.env.ACEDATACLOUD_API_BASE_URL ?? "https://api.acedata.cloud";
+}
+
+function defaultApiToken(provider: ApiProvider): string {
+  if (provider === "volcengine") {
+    return process.env.VOLCENGINE_ARK_API_KEY ?? process.env.ARK_API_KEY ?? "";
+  }
+  return process.env.ACEDATACLOUD_API_TOKEN ?? "";
+}
+
+function tokenErrorMessage(provider: ApiProvider): string {
+  if (provider === "volcengine") {
+    return "ARK_API_KEY or VOLCENGINE_ARK_API_KEY is required to settle Seedance tasks";
+  }
+  return "ACEDATACLOUD_API_TOKEN is required to settle Seedance tasks";
+}
+
 function stringArg(name: string, fallback: string): string {
   const prefix = `${name}=`;
   return process.argv.find((arg) => arg.startsWith(prefix))?.slice(prefix.length) ?? fallback;
@@ -371,6 +425,8 @@ Usage:
 
 Options:
   --manifest=<path>       Seedance generation manifest.
+  --provider=<name>       acedata or volcengine. Defaults to manifest/env inference.
+  --api-base-url=<url>    Override the provider API base URL.
   --out-dir=<path>        Effect asset output directory.
   --poll                  Poll until each task succeeds/fails.
   --max-polls=<count>     Maximum poll attempts.
