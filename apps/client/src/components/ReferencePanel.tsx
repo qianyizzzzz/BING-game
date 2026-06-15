@@ -5,56 +5,57 @@ import {
   BASE_ATTACKS,
   DEFENSE_LABELS,
   DEFENSE_TAG_LABELS,
+  SkillCategory,
   getAllSkills
 } from "@bing/shared";
 import { getSkillVisualProfile, skillCardStyle, skillCostPipCount } from "../lib/skillVisuals";
 
 type Tab = "attacks" | "skills" | "attributes";
+type SkillCategoryFilter = SkillCategory | "all";
+
+const SKILL_CATEGORY_FILTERS: Array<{ id: SkillCategoryFilter; label: string }> = [
+  { id: "all", label: "全部" },
+  { id: "attack", label: "攻击" },
+  { id: "control", label: "控制" },
+  { id: "limited", label: "限定" },
+  { id: "locked", label: "锁定" },
+  { id: "passive", label: "被动" },
+  { id: "king_card", label: "王牌" },
+  { id: "raw", label: "原始" }
+];
 
 export function ReferencePanel() {
   const [tab, setTab] = useState<Tab>("attacks");
   const [query, setQuery] = useState("");
+  const [skillCategory, setSkillCategory] = useState<SkillCategoryFilter>("all");
   const skills = useMemo(() => getAllSkills(), []);
   const filteredSkills = useMemo(() => {
     const normalized = query.trim();
-    if (!normalized) {
-      return skills.slice(0, 12);
-    }
-
     return skills
-      .filter((skill) =>
-        `${skill.name} ${skill.description} ${skill.tags.join(" ")}`.includes(normalized)
-      )
-      .slice(0, 20);
-  }, [query, skills]);
+      .filter((skill) => skillCategory === "all" || skill.category === skillCategory)
+      .filter((skill) => {
+        if (!normalized) {
+          return true;
+        }
+        return `${skill.name} ${skill.description} ${skill.tags.join(" ")} ${skill.typeTags.join(" ")}`.includes(normalized);
+      });
+  }, [query, skillCategory, skills]);
 
   return (
-    <section className="surface-card p-4">
+    <section className="surface-card reference-panel p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-teal-700" aria-hidden="true" />
           <h2 className="text-base font-semibold text-gray-900">资料</h2>
         </div>
         <div className="segmented-control">
-          <button
-            className={tabClass(tab === "attacks")}
-            onClick={() => setTab("attacks")}
-            type="button"
-          >
+          <button className={tabClass(tab === "attacks")} onClick={() => setTab("attacks")} type="button">
             招式
           </button>
-          <button
-            className={tabClass(tab === "skills")}
-            onClick={() => setTab("skills")}
-            type="button"
-          >
+          <button className={tabClass(tab === "skills")} onClick={() => setTab("skills")} type="button">
             技能
           </button>
-          <button
-            className={tabClass(tab === "attributes")}
-            onClick={() => setTab("attributes")}
-            type="button"
-          >
+          <button className={tabClass(tab === "attributes")} onClick={() => setTab("attributes")} type="button">
             属性
           </button>
         </div>
@@ -79,7 +80,7 @@ export function ReferencePanel() {
                   <span>等级 {attack.level}</span>
                 </div>
                 <p>
-                  需要用 {DEFENSE_TAG_LABELS[attack.defenseTag]} 处理。出招时先看饼耗，再看攻与级的对撞关系。
+                  需要用 {DEFENSE_TAG_LABELS[attack.defenseTag]} 处理。出招时先看饼耗，再看攻击与等级的对撞关系。
                 </p>
               </article>
             );
@@ -87,22 +88,43 @@ export function ReferencePanel() {
         </div>
       ) : tab === "skills" ? (
         <div>
-          <label className="relative block">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-              aria-hidden="true"
-            />
-            <input
-              className="soft-input search-input w-full text-sm"
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={`搜索 ${skills.length} 个技能`}
-              value={query}
-            />
-          </label>
+          <div className="reference-skill-toolbar">
+            <label className="reference-skill-search relative block">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                aria-hidden="true"
+              />
+              <input
+                className="soft-input search-input w-full text-sm"
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={`搜索 ${skills.length} 个技能`}
+                value={query}
+              />
+            </label>
+            <span className="reference-skill-count">
+              {filteredSkills.length}/{skills.length}
+            </span>
+          </div>
+          <div className="reference-skill-filter" aria-label="技能分类">
+            {SKILL_CATEGORY_FILTERS.map((filter) => (
+              <button
+                aria-pressed={skillCategory === filter.id}
+                className={skillCategory === filter.id ? "reference-filter-chip reference-filter-chip-active" : "reference-filter-chip"}
+                key={filter.id}
+                onClick={() => setSkillCategory(filter.id)}
+                type="button"
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
           <div className="reference-skill-gallery mt-3 max-h-[34rem] overflow-auto pr-1">
             {filteredSkills.map((skill) => (
               <ReferenceSkillCard key={skill.id} skill={skill} />
             ))}
+            {filteredSkills.length === 0 ? (
+              <div className="reference-empty-state">没有匹配的技能。</div>
+            ) : null}
           </div>
         </div>
       ) : (
@@ -166,9 +188,7 @@ function ReferenceSkillCard({ skill }: { skill: ReturnType<typeof getAllSkills>[
           <Gem className="skill-relic-gem" />
           <span className="skill-relic-crest-mark" />
         </span>
-        <span className="skill-relic-specimen">
-          SPEC-{skill.sourceRow}
-        </span>
+        <span className="skill-relic-specimen">SPEC-{skill.sourceRow}</span>
         <span className="skill-relic-cost-track">
           {Array.from({ length: skillCostPipCount(skill) }).map((_, index) => (
             <span key={index} className="skill-relic-cost-pip" />
@@ -190,7 +210,7 @@ function ReferenceSkillCard({ skill }: { skill: ReturnType<typeof getAllSkills>[
         <span>{playLabel(skill)}</span>
         <span>#{skill.sourceRow}</span>
       </div>
-      <p className="skill-relic-description">{skill.description || "无"}</p>
+      <p className="skill-relic-description">{skill.description || "无描述"}</p>
     </article>
   );
 }
@@ -259,21 +279,21 @@ function categoryLabel(category: ReturnType<typeof getAllSkills>[number]["catego
   const labels = {
     attack: "攻击",
     control: "控制",
-    king_card: "王者",
+    king_card: "王牌",
     limited: "限定",
     locked: "锁定",
     passive: "被动",
-    raw: "普通"
+    raw: "原始"
   } satisfies Record<ReturnType<typeof getAllSkills>[number]["category"], string>;
   return labels[category];
 }
 
 function playLabel(skill: ReturnType<typeof getAllSkills>[number]): string {
   if (skill.play?.kind === "attack") {
-    return `可施放 · ${skill.play.cost}饼`;
+    return `可施放 / ${skill.play.cost}饼`;
   }
   if (skill.play?.kind === "resource") {
-    return `资源 · ${skill.play.cost}饼`;
+    return `资源 / ${skill.play.cost}饼`;
   }
   return skill.implemented ? "自动生效" : "待接入";
 }

@@ -2,9 +2,9 @@
 
 日期：2026-06-15
 
-这份文档固定 BING-game 的子智能体分工。当前只保留和项目职责直接对应的功能型子智能体；不再使用 Kuhn、Fermat、Noether、Sagan、Planck、Darwin、Descartes、Rawls、Plato、Volta、Huygens、James、Hume、Bernoulli、Lovelace、Ptolemy、Godel、Bacon、Gibbs、Erdos、Dewey、Kant 这类泛名角色。
+这份文档固定 BING-game 的子智能体分工。当前只保留和项目职责直接对应的功能型子智能体；不再使用 Kuhn、Fermat、Noether、Sagan、Planck、Darwin、Descartes、Rawls、Plato、Volta、Huygens、James、Hume、Bernoulli、Lovelace、Ptolemy、Godel、Bacon、Gibbs、Erdos、Dewey、Kant 这类泛命名角色。
 
-主线程负责整合结论、改文件、跑测试和提交。评审型子智能体默认只读，只有主线程明确分配写入范围时才可以修改文件。
+主线程负责整合结论、修改文件、跑测试和提交。评审型子智能体默认只读；只有主线程明确分配写入范围时才可以修改文件。
 
 ## 当前保留角色
 

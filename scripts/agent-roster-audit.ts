@@ -54,6 +54,19 @@ const requiredDocs = [
   "workflow/docs/03-agent-rules.md"
 ];
 const interfaceDocs = [".agents/openai.yaml"];
+const auditedFiles = [
+  ...expectedAgents.map((fileName) => path.join(agentRoot, fileName)),
+  ...requiredDocs,
+  ...interfaceDocs
+];
+
+const mojibakePatterns = [
+  /[\uFFFD]/,
+  /[锟斤拷]{2,}/,
+  /[æçåéèäöüï]{2,}/i,
+  /[娑閻閳閺閹濡]{2,}/,
+  /[缇庢湳鏂囧鍔ㄧ敾瀛愭櫤鑳介€氬父]{4,}/
+];
 
 const failures: string[] = [];
 const actualAgents = fs
@@ -65,18 +78,12 @@ if (JSON.stringify(actualAgents) !== JSON.stringify([...expectedAgents].sort()))
   failures.push(`unexpected .agents markdown files: ${actualAgents.join(", ")}`);
 }
 
-for (const filePath of [
-  ...expectedAgents.map((fileName) => path.join(agentRoot, fileName)),
-  ...requiredDocs,
-  ...interfaceDocs
-]) {
+for (const filePath of auditedFiles) {
   const text = fs.readFileSync(filePath, "utf8");
-  if (text.includes("\uFFFD")) {
-    failures.push(`${filePath}: contains replacement character`);
-  }
-  for (const token of ["涓", "鐨", "鈫", "鏂", "鎶", "妗"]) {
-    if (text.includes(token)) {
-      failures.push(`${filePath}: contains likely mojibake token ${token}`);
+  for (const pattern of mojibakePatterns) {
+    if (pattern.test(text)) {
+      failures.push(`${filePath}: contains likely mojibake (${pattern})`);
+      break;
     }
   }
 }
@@ -100,6 +107,18 @@ for (const filePath of interfaceDocs) {
 for (const fileName of actualAgents) {
   if (forbiddenNames.some((name) => fileName.toLowerCase().includes(name.toLowerCase()))) {
     failures.push(`${fileName}: forbidden generic person-name agent file`);
+  }
+}
+
+for (const filePath of auditedFiles) {
+  const text = fs.readFileSync(filePath, "utf8");
+  for (const name of forbiddenNames) {
+    if (filePath.endsWith(".agents")) {
+      continue;
+    }
+    if (text.includes(`# ${name}`) || text.includes(`| ${name} |`)) {
+      failures.push(`${filePath}: forbidden generic person-name agent ${name}`);
+    }
   }
 }
 

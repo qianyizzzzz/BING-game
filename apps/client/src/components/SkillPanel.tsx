@@ -11,6 +11,8 @@ interface SkillPanelProps {
   state: PublicGameState;
 }
 
+type Skill = NonNullable<ReturnType<typeof getSkill>>;
+
 export function SkillPanel({ state }: SkillPanelProps) {
   const viewer = state.players.find((player) => player.id === state.viewerPlayerId);
   const [activeSkillIds, setActiveSkillIds] = useState<Set<string>>(() => new Set());
@@ -62,7 +64,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
           <div>
             <h2 className="text-base font-black text-gray-950">技能画廊</h2>
             <p className="mt-0.5 text-xs font-semibold text-gray-500">
-              本局技能像展签一样陈列，刚触发的卡会出现颜料高亮。
+              本局技能像展签一样陈列；刚触发的卡片会出现颜料高亮。
             </p>
           </div>
         </div>
@@ -169,7 +171,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
   );
 }
 
-function formatPlaySummary(skill: NonNullable<ReturnType<typeof getSkill>>): string {
+function formatPlaySummary(skill: Skill): string {
   const play = skill.play;
   if (!play) {
     return "";
@@ -191,7 +193,7 @@ function formatPlaySummary(skill: NonNullable<ReturnType<typeof getSkill>>): str
   return parts.join(" / ");
 }
 
-function skillToneClass(skill: NonNullable<ReturnType<typeof getSkill>>): string {
+function skillToneClass(skill: Skill): string {
   const score = skillPowerScore(skill);
   if (score >= 7) {
     return "skill-tone-legendary";
@@ -205,7 +207,7 @@ function skillToneClass(skill: NonNullable<ReturnType<typeof getSkill>>): string
   return "skill-tone-common";
 }
 
-function skillPowerLabel(skill: NonNullable<ReturnType<typeof getSkill>>): string {
+function skillPowerLabel(skill: Skill): string {
   const score = skillPowerScore(skill);
   if (score >= 7) {
     return "传说";
@@ -219,7 +221,7 @@ function skillPowerLabel(skill: NonNullable<ReturnType<typeof getSkill>>): strin
   return "基础";
 }
 
-function skillPowerScore(skill: NonNullable<ReturnType<typeof getSkill>>): number {
+function skillPowerScore(skill: Skill): number {
   let score = 0;
   if (skill.play?.kind === "attack") {
     score += (skill.play.power ?? 0) + Math.ceil((skill.play.level ?? 0) / 2);

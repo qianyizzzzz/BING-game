@@ -5276,6 +5276,70 @@ select {
   gap: 12px;
 }
 
+.reference-skill-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.reference-skill-search {
+  min-width: 0;
+}
+
+.reference-skill-count {
+  color: rgba(32, 38, 51, 0.56);
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.reference-skill-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.reference-filter-chip {
+  border: 0;
+  border-bottom: 1px solid rgba(0, 145, 151, 0.16);
+  border-radius: 0;
+  background: transparent;
+  color: rgba(32, 38, 51, 0.56);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 4px 2px;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.reference-filter-chip:hover,
+.reference-filter-chip:focus-visible {
+  border-color: rgba(0, 145, 151, 0.38);
+  color: rgba(20, 38, 36, 0.82);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.reference-filter-chip-active {
+  border-color: rgba(0, 145, 151, 0.58);
+  color: #10211f;
+}
+
+.reference-empty-state {
+  border: 1px dashed rgba(32, 38, 51, 0.12);
+  border-radius: 6px;
+  color: rgba(32, 38, 51, 0.56);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 18px;
+  text-align: center;
+}
+
 .reference-skill-card {
   min-height: 250px;
 }

@@ -9,20 +9,23 @@
 - `scripts/focus-fire-smoke.ts`
 - `scripts/action-submit-smoke.ts`
 - `packages/shared/src/engine/`
-- `packages/shared/src/skills/registry.ts`
+- `packages/shared/src/skills/`
 
 ## 关注点
 
-- 目标线、资源变化、上一招、威胁阈值是否清楚。
-- 多人集火、反制、复杂技能窗口是否可读。
-- 动画是否拖慢或遮挡判断。
-- 重复操作是否足够快。
+- 高频出招是否顺手。
+- 目标线、资源变化、伤害归因是否清楚。
+- 复杂技能是否能被快速理解。
+- 动画是否妨碍读局和操作。
+- 结算报告是否能帮助玩家复盘。
 
 ## 输出格式
 
 ```text
-读局阻塞：
-节奏阻塞：
-平衡/规则风险：
-建议增加的 smoke：
+范围：
+当前是否达标：
+P0：
+P1：
+P2：
+下一步：
 ```

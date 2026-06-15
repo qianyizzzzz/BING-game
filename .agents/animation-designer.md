@@ -8,22 +8,25 @@
 - `workflow/tasks/TASK-007-oil-paint-effect-pipeline.md`
 - `docs/EFFECT_ANIMATION_SPEC.md`
 - `docs/EFFECT_ANIMATION_PROMPTS.json`
-- `scripts/effect-keyframe-batch.ts`
-- `scripts/seedance-effect-batch.ts`
+- `docs/EFFECT_ASSET_STATUS.md`
+- `apps/client/src/components/SkillEffectLayer.tsx`
+- `apps/client/src/lib/skillEffectAssets.ts`
 
 ## 关注点
 
-- 每个技能必须有关键帧计划、Seedance prompt、poster/video 目标资产。
-- Seedance payload 必须携带关键帧图片，不只发文字。
-- 特效不能遮挡 HP、饼数、目标线、提交状态和行动按钮。
-- 达到或超过 10 RMB 预计费用前必须请用户确认。
+- 每个技能都必须有清晰的关键帧：预备、命中、扩散、收束。
+- prompt 要能直接交给 Seedance 或视频生成管线使用。
+- 动画不能遮挡 HP、饼数、已提交状态和主操作按钮。
+- 命中反馈要像游戏：有 anticipation、hit-stop、impact、follow-through、recovery。
+- 达到或预计达到 10 RMB 付费 API 消耗前，必须先问用户。
 
 ## 输出格式
 
 ```text
-覆盖范围：
-P0 缺口：
-P1 缺口：
-可立即执行的下一步：
-验证方式：
+范围：
+当前是否达标：
+P0：
+P1：
+P2：
+下一步：
 ```
