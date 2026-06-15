@@ -53,27 +53,33 @@ const requiredDocs = [
   "docs/SUBAGENT_ROSTER.md",
   "workflow/docs/03-agent-rules.md"
 ];
+const readableDocs = [
+  "README.md"
+];
 const interfaceDocs = [".agents/openai.yaml"];
 const auditedFiles = [
   ...expectedAgents.map((fileName) => path.join(agentRoot, fileName)),
   ...requiredDocs,
+  ...readableDocs,
   ...interfaceDocs
 ];
 
 const mojibakePatterns = [
   /[\uFFFD]/,
-  /[锟斤拷]{2,}/,
+  /[\u951f\u65a4\u62f7]{2,}/,
   /[æçåéèäöüï]{2,}/i,
-  /[娑閻閳閺閹濡]{2,}/,
-  /[缇庢湳鏂囧鍔ㄧ敾瀛愭櫤鑳介€氬父]{4,}/,
-  /瀛愭櫤/,
-  /缇庢湳/,
-  /鏂囧/,
-  /鍔ㄧ敾/,
-  /浜у搧/,
-  /绔炴妧/,
-  /鍏綉/
+  /[\u5a11\u95bb\u95b3\u95ba\u95b9\u6fe1]{2,}/,
+  /[\u7f07\u5ea2\u6e73\u93c2\u56e7\u3127\u657e\u701b\u612d\u6ae4\u9473\u20ac\u6c2b]{4,}/
 ];
+const mojibakeNeedles = [
+  [0x701b, 0x612d, 0x6ae4],
+  [0x7f07, 0x5ea2, 0x6e73],
+  [0x93c2, 0x56e7],
+  [0x9354, 0x3127, 0x657e],
+  [0x6d5c, 0x0443, 0x6427],
+  [0x7ed4, 0x70b4, 0x59a7],
+  [0x934f, 0xe102, 0x7d89]
+].map((codes) => String.fromCharCode(...codes));
 
 const failures: string[] = [];
 const actualAgents = fs
@@ -90,6 +96,12 @@ for (const filePath of auditedFiles) {
   for (const pattern of mojibakePatterns) {
     if (pattern.test(text)) {
       failures.push(`${filePath}: contains likely mojibake (${pattern})`);
+      break;
+    }
+  }
+  for (const needle of mojibakeNeedles) {
+    if (text.includes(needle)) {
+      failures.push(`${filePath}: contains likely mojibake sample`);
       break;
     }
   }
