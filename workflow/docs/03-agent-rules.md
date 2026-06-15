@@ -1,82 +1,83 @@
 # Agent Rules
 
-这份文件定义 Codex、Claude、Figma 和你自己的协作边界。
+这份文档定义 Codex、Claude、Figma、Blender 和 BING 专用子智能体的协作边界。
 
 ## Source of Truth
 
 | Area | Source |
 | --- | --- |
-| Game direction | `docs/00-game-pillars.md` |
-| Visual direction | `docs/01-visual-bible.md` |
-| Production plan | `docs/02-roadmap.md` |
-| Task scope | `tasks/TASK-XXX.md` |
-| Visual layout | Figma frame |
+| Game direction | `workflow/docs/00-game-pillars.md` |
+| Visual direction | `workflow/docs/01-visual-bible.md` |
+| Production plan | `workflow/docs/02-roadmap.md` |
+| Subagent roster | `docs/SUBAGENT_ROSTER.md` and `.agents/agent-roster.md` |
+| Task scope | `workflow/tasks/TASK-XXX.md` |
+| Visual layout | Figma frame, when provided |
 | Character 3D source | Blender `.blend` files |
 | Implementation | Codebase |
 
 ## Role Split
 
-项目固定子智能体名册见 `docs/SUBAGENT_ROSTER.md`。BING 任务不再使用 Kuhn、Fermat、Noether、Sagan、Planck、Darwin、Descartes、Rawls、Plato、Volta、Huygens、James、Hume、Bernoulli、Lovelace、Ptolemy、Godel、Bacon、Gibbs、Erdos、Dewey、Kant 这类无职责泛名；新开子智能体必须按职能命名。
+### User
 
-### You
-
-- Final decision maker
-- Approves taste, scope, and tradeoffs
-- Plays builds and records feedback
+- Final decision maker.
+- Approves taste, scope, public links, paid API spend, and tradeoffs.
+- Plays builds and records feedback.
 
 ### Codex
 
-- Implements code
-- Integrates assets
-- Runs builds and tests
-- Fixes bugs
-- Verifies UI with screenshots when possible
+- Implements code.
+- Integrates assets.
+- Runs builds and tests.
+- Fixes bugs.
+- Verifies UI with screenshots when possible.
+- Owns staging, commit, and push only when requested or already authorized.
 
 ### Claude
 
-- Writes specs
-- Reviews design and implementation
-- Finds product, UX, and gameplay risks
-- Helps prepare Steam copy and communication
+- Writes specs.
+- Reviews design and implementation.
+- Finds product, UX, gameplay, and writing risks.
+- Defaults to review/specification instead of direct code edits.
 
 ### Figma
 
-- Provides visual source of truth
-- Defines layout, component states, color, typography, and spacing
-- Stores UI variants for small screens and controller focus
+- Provides visual source of truth when a Figma URL or Figma task exists.
+- Defines layout, component states, color, typography, spacing, small-screen variants, and focus states.
 
-### Blender / Art Director Agent
+### Blender / 美术总监
 
-- Owns 3D character modeling, material polish, turnarounds, and game-readability checks.
-- Uses Blender MCP when available.
-- Follows `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md` and `workflow/docs/01-visual-bible.md`.
-- Treats primitive blockout / simple geometry characters as technical placeholders only. If a model still looks like joined spheres, cylinders, boxes, or capsules, it must be reported as a P0 art failure.
-- Requires human-proportioned semi-realistic characters for public-demo quality: believable face planes, five-finger hands, clothing thickness, material layers, rig readiness, and playable animation evidence.
+- Owns 3D character modeling, material polish, turnarounds, and game-readability checks when Blender MCP is available.
+- Follows `.agents/art-director-blender.md`, `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`, and `workflow/docs/01-visual-bible.md`.
+- Treats primitive blockout / simple geometry characters as technical placeholders only.
+- Current visual target is the latest Visual Bible direction: Shared Dining / oil-paint installation UI plus hand-drawn goofy animal characters, unless the user explicitly changes direction again.
 - Reports missing Blender MCP instead of pretending that model work has been completed.
-- Exports `.blend`, `.glb`, portrait crops, and art review reports for each approved character task.
 
-### BING Specialist Subagents
+## BING Specialist Subagents
 
-- Art Director: owns taste review for UI, portraits, player frames, character quality, VFX language, and style consistency.
-- Animation Designer: owns keyframe coverage, Seedance prompt readiness, VFX timing, poster/video asset gaps, and UI readability during effects.
-- Literary Director: owns Chinese copy quality for onboarding, room flow, action panel, battle readout, README, and public-facing text; it must not rename skills or alter mechanics.
-- Product Manager: owns priority, scope, release blockers, acceptance criteria, and commit cadence.
-- New Player: reviews first-room, first-turn, first-settlement comprehension.
-- Competitive Player: reviews repeated actions, target reading, resource deltas, response windows, and whether animation blocks play.
-- Developer / QA: reviews tests, CI, socket behavior, browser smoke, release gates, and regression risk.
-- Public Deployment: owns local/public runbook checks, tunnel notes, and deployment docs.
+Use only the functional names below. Do not use Kuhn, Fermat, Noether, Sagan, Planck, Darwin, Descartes, Rawls, Plato, Volta, Huygens, James, Hume, Bernoulli, Lovelace, Ptolemy, Godel, Bacon, Gibbs, Erdos, Dewey, Kant, or other generic person-name agents for BING tasks.
+
+| Role | Entry | Responsibility |
+| --- | --- | --- |
+| 美术总监 | `.agents/art-director-blender.md` | UI taste, portraits, player frames, character quality, VFX language, style consistency |
+| 动画设计 | `.agents/animation-designer.md` | Keyframe coverage, Seedance prompt readiness, VFX timing, video/poster asset gaps |
+| 文学总监 | `.agents/literary-director.md` | Chinese copy for onboarding, room flow, action panel, battle readout, README |
+| 产品经理 | `.agents/product-manager.md` | Priority, scope, release blockers, acceptance criteria, commit cadence |
+| 新手玩家 | `.agents/new-player.md` | First-room, first-turn, first-settlement comprehension |
+| 竞技玩家 | `.agents/competitive-player.md` | Repeated actions, target reading, resource deltas, response windows, animation interference |
+| 开发商 / QA | `.agents/developer-qa.md` | Tests, CI, socket behavior, browser smoke, release gates, regression risk |
+| 公网部署 | `.agents/public-deployment.md` | Local/public runbook checks, tunnel notes, deployment docs |
 
 ## Ownership Rules
 
-- One agent should own one task at a time.
+- One writable task should have one owner.
 - Do not let two agents edit the same core file at the same time.
-- Core files such as `GameManager`, `PlayerController`, `SaveSystem`, and `UIManager` need explicit ownership.
-- Claude should default to review and specification instead of direct code edits.
-- Codex should default to implementation and verification.
+- Review agents are read-only unless the main thread gives them an explicit write scope.
+- Codex owns integration, verification, and commit.
+- For paid image/video/API generation, stop and ask when estimated spend reaches or exceeds 10 RMB.
 
 ## Task Rules
 
-Every task must include:
+Every task should include:
 
 - Goal
 - Why it matters
@@ -86,21 +87,19 @@ Every task must include:
 - Acceptance criteria
 - Verification command or manual verification steps
 
-Do not start implementation if:
+Do not claim implementation is complete if:
 
 - The target behavior is unclear.
 - The task has no acceptance criteria.
-- The Figma source is missing for a visual task.
-- Blender MCP is missing for a task that requires actual Blender scene edits or model export.
-- The allowed file scope is unclear for risky systems.
+- A required Figma source is missing for a Figma-driven visual task.
+- Blender MCP is missing for a task that specifically requires live Blender scene edits or model export.
+- The work only updates documentation while the requested runtime behavior is still absent.
 
-## Review Rules
+## Review Severity
 
-Reviews should be ordered by severity:
-
-- P0: Blocks playability or release
-- P1: Clearly damages player experience
-- P2: Should be fixed before public demo
-- P3: Nice to have later
+- P0: Blocks playability, public-demo quality, user trust, or paid-generation safety.
+- P1: Clearly damages player experience.
+- P2: Should be fixed before public demo.
+- P3: Nice to have later.
 
 Codex should fix P0, P1, and selected P2 issues first. P3 items should not derail the milestone.
