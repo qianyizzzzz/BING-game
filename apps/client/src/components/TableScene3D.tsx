@@ -153,6 +153,7 @@ export function TableScene3D({
 
       const profile = getCharacterByAvatarUrl(player.avatarUrl) ?? getCharacterBySeatIndex(index);
       const character = createCharacterMesh({
+        avatarUrl: profile.avatarUrl,
         color: profile.accent ?? CHARACTER_COLORS[index % CHARACTER_COLORS.length]!,
         isDead: player.status === "dead",
         name: player.name
@@ -750,10 +751,12 @@ function createTableEtchings(): THREE.Group {
 }
 
 function createCharacterMesh({
+  avatarUrl,
   color,
   isDead,
   name
 }: {
+  avatarUrl?: string;
   color: string;
   isDead: boolean;
   name: string;
@@ -1097,8 +1100,81 @@ function createCharacterMesh({
   aura.rotation.x = Math.PI / 2;
   group.add(aura);
 
+  if (avatarUrl) {
+    group.add(createPaintedPortraitStand(avatarUrl, isDead));
+  }
+
   group.scale.setScalar(0.83);
   return group;
+}
+
+function createPaintedPortraitStand(avatarUrl: string, isDead: boolean): THREE.Group {
+  const stand = new THREE.Group();
+  stand.name = "painted portrait stand";
+
+  const portraitTexture = new THREE.TextureLoader().load(avatarUrl);
+  portraitTexture.colorSpace = THREE.SRGBColorSpace;
+  portraitTexture.anisotropy = 4;
+
+  const backPlate = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.58, 0.68),
+    new THREE.MeshStandardMaterial({
+      color: isDead ? "#dde2e6" : "#f2dfb8",
+      map: createProceduralTexture("fabric"),
+      roughness: 0.86,
+      metalness: 0.02,
+      transparent: true,
+      opacity: isDead ? 0.76 : 0.96
+    })
+  );
+  backPlate.position.set(0, 1.34, -0.385);
+  backPlate.castShadow = true;
+  stand.add(backPlate);
+
+  const portrait = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.49, 0.55),
+    new THREE.MeshBasicMaterial({
+      map: portraitTexture,
+      transparent: true,
+      opacity: isDead ? 0.54 : 0.94,
+      toneMapped: false
+    })
+  );
+  portrait.position.set(0, 1.355, -0.392);
+  portrait.renderOrder = 3;
+  stand.add(portrait);
+
+  const frameMaterial = new THREE.MeshStandardMaterial({
+    color: isDead ? "#9ca3af" : "#d3aa63",
+    emissive: isDead ? "#111827" : "#5c3b14",
+    emissiveIntensity: isDead ? 0.02 : 0.08,
+    roughness: 0.48,
+    metalness: 0.18
+  });
+
+  const topRail = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.024, 0.018), frameMaterial);
+  topRail.position.set(0, 1.7, -0.398);
+  stand.add(topRail);
+
+  const bottomRail = topRail.clone();
+  bottomRail.position.y = 1.0;
+  stand.add(bottomRail);
+
+  [-1, 1].forEach((side) => {
+    const sideRail = new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.68, 0.018), frameMaterial);
+    sideRail.position.set(side * 0.31, 1.35, -0.398);
+    stand.add(sideRail);
+  });
+
+  const easel = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.012, 0.016, 0.58, 8),
+    new THREE.MeshStandardMaterial({ color: "#5b3a22", roughness: 0.72 })
+  );
+  easel.position.set(0, 0.77, -0.02);
+  easel.rotation.x = 0.34;
+  stand.add(easel);
+
+  return stand;
 }
 
 function createFirstPersonRig(): THREE.Group {

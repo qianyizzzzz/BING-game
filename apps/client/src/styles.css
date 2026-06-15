@@ -25,6 +25,167 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Art director pass: lighter oil-paint UI, less plastic chrome. */
+.app-shell {
+  background:
+    linear-gradient(115deg, rgba(255, 252, 241, 0.9), rgba(229, 232, 218, 0.72) 48%, rgba(246, 238, 216, 0.82)),
+    repeating-linear-gradient(105deg, rgba(64, 73, 65, 0.026) 0 1px, transparent 1px 30px),
+    #f3efe2;
+}
+
+.surface-card,
+.hero-lobby-panel,
+.character-select-panel,
+.table-action-dock .action-board,
+.side-panel-stack > .surface-card,
+.battle-grid > .surface-card {
+  border-color: rgba(92, 83, 66, 0.13);
+  background:
+    radial-gradient(ellipse at 18% 8%, rgba(255, 250, 235, 0.72), transparent 44%),
+    linear-gradient(180deg, rgba(255, 253, 245, 0.82), rgba(232, 226, 209, 0.56)),
+    rgba(250, 247, 235, 0.72);
+  color: #2d2a24;
+  box-shadow:
+    0 18px 44px rgba(64, 54, 38, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.64);
+  backdrop-filter: blur(18px) saturate(0.92);
+  -webkit-backdrop-filter: blur(18px) saturate(0.92);
+}
+
+.surface-card::before,
+.hero-lobby-panel::before,
+.table-action-dock .action-board::before,
+.side-panel-stack .surface-card::before {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(80, 176, 167, 0.34), rgba(205, 164, 86, 0.28), transparent);
+  opacity: 0.62;
+}
+
+.brand-mark,
+.hero-brand-symbol,
+.app-shell:not(.hero-shell) .brand-mark {
+  border: 1px solid rgba(64, 54, 38, 0.16);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 26%, rgba(255, 255, 255, 0.62) 0 12%, transparent 28%),
+    linear-gradient(145deg, #e7d6aa, #bb8b45 62%, #5e4b2e);
+  color: #22201c;
+  box-shadow:
+    0 10px 26px rgba(83, 68, 40, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+}
+
+.btn-primary,
+.hero-shell .btn-primary,
+.battle-grid .command-center .btn-primary {
+  border-color: rgba(123, 96, 49, 0.26);
+  background:
+    linear-gradient(180deg, rgba(221, 196, 141, 0.9), rgba(187, 139, 69, 0.86));
+  color: #241b10;
+  box-shadow: 0 10px 24px rgba(123, 96, 49, 0.16);
+}
+
+.btn-primary:hover:not(:disabled),
+.hero-shell .btn-primary:hover:not(:disabled),
+.battle-grid .command-center .btn-primary:hover:not(:disabled) {
+  background:
+    linear-gradient(180deg, rgba(229, 209, 161, 0.94), rgba(197, 151, 80, 0.88));
+}
+
+.btn-secondary,
+.hero-shell .btn-secondary,
+.battle-grid .command-center .btn-secondary,
+.surface-card button:not(.btn-primary),
+.action-board button:not(.action-submit-button) {
+  border-color: rgba(75, 69, 56, 0.12);
+  background: rgba(255, 253, 246, 0.58);
+  color: #38352e;
+  box-shadow:
+    0 8px 18px rgba(64, 54, 38, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.btn-secondary:hover:not(:disabled),
+.hero-shell .btn-secondary:hover:not(:disabled),
+.battle-grid .command-center .btn-secondary:hover:not(:disabled),
+.surface-card button:hover:not(:disabled) {
+  border-color: rgba(75, 69, 56, 0.18);
+  background: rgba(255, 254, 250, 0.78);
+}
+
+.player-card-shell {
+  border-color: rgba(91, 80, 60, 0.12);
+  background:
+    radial-gradient(ellipse at 14% 10%, rgba(255, 255, 255, 0.68), transparent 36%),
+    linear-gradient(180deg, rgba(250, 247, 235, 0.82), rgba(226, 218, 195, 0.56));
+  box-shadow:
+    0 14px 34px rgba(64, 54, 38, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+}
+
+.player-avatar,
+.account-avatar,
+.character-select-portrait {
+  border-color: rgba(255, 251, 235, 0.82);
+  background:
+    radial-gradient(ellipse at 40% 22%, rgba(255, 255, 255, 0.56), transparent 36%),
+    linear-gradient(145deg, rgba(220, 190, 128, 0.92), rgba(84, 118, 111, 0.58));
+  box-shadow:
+    0 0 0 1px rgba(69, 60, 42, 0.12),
+    0 12px 24px rgba(64, 54, 38, 0.14);
+}
+
+.table-action-dock .action-board {
+  border-radius: 10px;
+  color: #28251f;
+}
+
+.action-command-strip,
+.action-summary-panel,
+.table-action-dock .action-board .rounded-lg.border-amber-200,
+.table-action-dock .action-board .rounded-lg.border-rose-200,
+.table-action-dock .action-board .rounded-lg.border-teal-200 {
+  border-color: rgba(75, 69, 56, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 246, 0.64), rgba(239, 232, 212, 0.42));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
+}
+
+.action-command-strip div,
+.action-summary-meta span,
+.quick-hint-grid div,
+.mode-button,
+.side-panel-tab,
+.resource-card,
+.status-chip {
+  border-color: rgba(75, 69, 56, 0.1);
+  background: rgba(255, 253, 246, 0.44);
+}
+
+.mode-button-active,
+.side-panel-tab-active {
+  border-color: rgba(73, 161, 153, 0.34);
+  background: rgba(218, 242, 234, 0.46);
+  color: #226a62;
+}
+
+.action-command-footer {
+  border-top-color: rgba(75, 69, 56, 0.1);
+  background:
+    linear-gradient(180deg, rgba(250, 247, 235, 0), rgba(250, 247, 235, 0.82) 30%),
+    rgba(250, 247, 235, 0.78);
+}
+
+.poker-table-board .battle-readout {
+  border-color: rgba(75, 69, 56, 0.12);
+  background:
+    linear-gradient(180deg, rgba(253, 248, 229, 0.72), rgba(225, 215, 190, 0.48));
+  color: #29241d;
+  box-shadow:
+    0 12px 30px rgba(36, 30, 20, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -9230,4 +9391,115 @@ select {
     width: min(330px, calc(100% - 32px)) !important;
     bottom: 190px !important;
   }
+}
+
+/* Final art-director sweep: keep the whole game lighter, quieter, and portrait-led. */
+.app-shell {
+  background:
+    linear-gradient(120deg, rgba(255, 252, 241, 0.94), rgba(226, 231, 220, 0.72) 48%, rgba(246, 238, 218, 0.84)) !important,
+    repeating-linear-gradient(105deg, rgba(64, 73, 65, 0.026) 0 1px, transparent 1px 30px) !important,
+    #f3efe2 !important;
+}
+
+.surface-card,
+.hero-lobby-panel,
+.hero-shell .character-select-panel,
+.character-select-panel,
+.side-panel-stack > .surface-card,
+.battle-grid > .surface-card,
+.table-action-dock .action-board {
+  border-color: rgba(64, 55, 39, 0.12) !important;
+  background:
+    radial-gradient(ellipse at 17% 6%, rgba(255, 255, 250, 0.78), transparent 42%),
+    linear-gradient(180deg, rgba(255, 253, 245, 0.84), rgba(230, 224, 207, 0.5)),
+    rgba(250, 247, 235, 0.74) !important;
+  color: #28251f !important;
+  box-shadow:
+    0 16px 38px rgba(64, 54, 38, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62) !important;
+  backdrop-filter: blur(18px) saturate(0.88) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(0.88) !important;
+}
+
+.surface-card::before,
+.hero-lobby-panel::before,
+.hero-shell .character-select-panel::before,
+.table-action-dock .action-board::before,
+.side-panel-stack .surface-card::before {
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, rgba(70, 150, 142, 0.3), rgba(182, 139, 69, 0.22), transparent) !important;
+  opacity: 0.58 !important;
+}
+
+.btn-primary,
+.hero-shell .btn-primary,
+.battle-grid .command-center .btn-primary {
+  border-color: rgba(121, 92, 43, 0.24) !important;
+  background: linear-gradient(180deg, rgba(220, 196, 143, 0.9), rgba(183, 137, 68, 0.84)) !important;
+  color: #241b10 !important;
+  box-shadow: 0 9px 20px rgba(121, 92, 43, 0.14) !important;
+}
+
+.btn-secondary,
+.hero-shell .btn-secondary,
+.battle-grid .command-center .btn-secondary,
+.surface-card button:not(.btn-primary),
+.action-board button:not(.action-submit-button) {
+  border-color: rgba(67, 60, 47, 0.12) !important;
+  background: rgba(255, 253, 246, 0.54) !important;
+  color: #36322a !important;
+  box-shadow:
+    0 8px 18px rgba(64, 54, 38, 0.052),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58) !important;
+}
+
+.action-command-strip,
+.action-summary-panel,
+.action-command-strip div,
+.mode-button,
+.side-panel-tab,
+.resource-card,
+.status-chip,
+.room-code,
+.lobby-next-step,
+.lobby-start-reason,
+.table-action-dock .action-board .rounded-lg {
+  border-color: rgba(67, 60, 47, 0.1) !important;
+  background: rgba(255, 253, 246, 0.42) !important;
+  color: #36322a !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+.mode-button-active,
+.side-panel-tab-active {
+  border-color: rgba(64, 150, 141, 0.28) !important;
+  background: rgba(218, 242, 234, 0.44) !important;
+  color: #24675f !important;
+}
+
+.player-card-shell {
+  border-color: rgba(64, 55, 39, 0.12) !important;
+  background:
+    radial-gradient(ellipse at 14% 10%, rgba(255, 255, 255, 0.68), transparent 36%),
+    linear-gradient(180deg, rgba(250, 247, 235, 0.82), rgba(226, 218, 195, 0.56)) !important;
+  box-shadow:
+    0 14px 32px rgba(64, 54, 38, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.64) !important;
+}
+
+.character-portrait-badge,
+.character-select-portrait,
+.player-avatar,
+.account-avatar {
+  border-color: rgba(255, 251, 235, 0.82) !important;
+  box-shadow:
+    0 0 0 1px rgba(69, 60, 42, 0.12),
+    0 12px 24px rgba(64, 54, 38, 0.13) !important;
+}
+
+.character-portrait-image {
+  display: block !important;
+  object-fit: cover !important;
+  object-position: 50% 34% !important;
+  filter: saturate(0.98) contrast(1.03) brightness(1.01) !important;
 }
