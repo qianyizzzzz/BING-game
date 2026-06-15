@@ -30,6 +30,7 @@
     "verify:release": "npm run build && npm run verify:release:run",
     "verify:release:run": "npm run test:ci && npm run test:release-assets:dist && npm run test:ui-agents:run && npm run test:ui-agents:submit-ready:run && npm run test:ui-agents:complex:run && npm run test:character-browser:run",
     "test:rules": "tsx scripts/rule-regression-check.ts",
+    "test:agents": "tsx scripts/agent-roster-audit.ts",
     "test:assets": "tsx scripts/character-runtime-audit.ts",
     "test:effect-assets": "tsx scripts/effect-asset-audit.ts",
     "test:release-assets": "tsx scripts/release-asset-audit.ts",

@@ -9,7 +9,7 @@
 | Game direction | `workflow/docs/00-game-pillars.md` |
 | Visual direction | `workflow/docs/01-visual-bible.md` |
 | Production plan | `workflow/docs/02-roadmap.md` |
-| Subagent roster | `docs/SUBAGENT_ROSTER.md` and `.agents/agent-roster.md` |
+| Subagent roster | `docs/SUBAGENT_ROSTER.md` |
 | Task scope | `workflow/tasks/TASK-XXX.md` |
 | Visual layout | Figma frame, when provided |
 | Character 3D source | Blender `.blend` files |
@@ -49,7 +49,7 @@
 - Owns 3D character modeling, material polish, turnarounds, and game-readability checks when Blender MCP is available.
 - Follows `.agents/art-director-blender.md`, `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`, and `workflow/docs/01-visual-bible.md`.
 - Treats primitive blockout / simple geometry characters as technical placeholders only.
-- Current visual target is the latest Visual Bible direction: Shared Dining / oil-paint installation UI plus hand-drawn goofy animal characters, unless the user explicitly changes direction again.
+- Current visual target is Shared Dining / oil-paint installation UI plus hand-drawn goofy animal characters, unless the user explicitly changes direction again.
 - Reports missing Blender MCP instead of pretending that model work has been completed.
 
 ## BING Specialist Subagents

@@ -2,15 +2,15 @@
 
 日期：2026-06-15
 
-这份文档固定 BING-game 的子智能体分工。之后不再使用 Kuhn、Fermat、Noether、Sagan、Planck、Darwin、Descartes、Rawls、Plato、Volta、Huygens、James、Hume、Bernoulli、Lovelace、Ptolemy、Godel、Bacon、Gibbs、Erdos、Dewey、Kant 这类和项目职责无关的泛名。旧线程只保留为历史记录，不再派发 BING 任务。
+这份文档固定 BING-game 的子智能体分工。当前只保留和项目职责直接对应的功能型子智能体；不再使用 Kuhn、Fermat、Noether、Sagan、Planck、Darwin、Descartes、Rawls、Plato、Volta、Huygens、James、Hume、Bernoulli、Lovelace、Ptolemy、Godel、Bacon、Gibbs、Erdos、Dewey、Kant 这类泛名角色。
 
-当前 repo 的实际入口在 `.agents/`。主线程负责整合结论、改文件、跑测试和 commit；评审型子智能体默认只读。
+主线程负责整合结论、改文件、跑测试和提交。评审型子智能体默认只读，只有主线程明确分配写入范围时才可以修改文件。
 
-## 保留角色
+## 当前保留角色
 
 | 子智能体 | 入口 | 类型 | 默认权限 | 负责范围 |
 | --- | --- | --- | --- | --- |
-| 美术总监 | `.agents/art-director-blender.md` | 评审 / 资产方向 / Blender 执行 | 默认只读；明确分配资产任务时可写 | UI 质感、头像、玩家信息框、角色、牌桌、风格统一、油画/手绘/怪趣动物方向 |
+| 美术总监 | `.agents/art-director-blender.md` | 评审 / 资产方向 / Blender 执行 | 默认只读；明确分配资产任务时可写 | UI 质感、头像、玩家信息框、角色、牌桌、风格统一、油画/手绘/搞怪动物方向 |
 | 动画设计 | `.agents/animation-designer.md` | 评审 / 特效管线 | 默认只读；明确分配特效任务时可写 | 全技能关键帧、Seedance prompt、VFX 遮挡、节奏、poster/video 资产 |
 | 文学总监 | `.agents/literary-director.md` | 评审 | 只读；文案由主线程改 | 封面、房间、行动面板、结算、README 的中文表达；不改技能名和机制 |
 | 产品经理 | `.agents/product-manager.md` | 评审 / 优先级 | 只读 | P0/P1/P2、发布阻塞、验收方式、任务拆分、commit 节奏 |
@@ -21,7 +21,7 @@
 
 ## 已移除 / 不再使用
 
-以下角色名没有项目职责，容易造成“看起来很多 agent，实际无人负责”的状态：
+以下角色名没有项目职责，容易造成“看起来很多 agent，实际没有 owner”的状态：
 
 - 纯人名、哲学家名或科学家名：Kuhn、Fermat、Noether、Sagan、Planck、Darwin、Descartes、Rawls、Plato、Volta、Huygens、James、Hume、Bernoulli、Lovelace、Ptolemy、Godel、Bacon、Gibbs、Erdos、Dewey、Kant。
 - 只有模型/模式差异、没有项目职责的重复 agent。
@@ -51,13 +51,6 @@
 - 评审型子智能体只读，不做 commit。
 - 主线程负责整合结论、修改文件、跑测试、commit。
 - 美术总监可以否决“塑料感、几何拼装感、风格不统一”的资产。
-- 文学总监只能改展示文案方向，不改技能名、数值和机制设定。
+- 文学总监只调整展示文案方向，不改技能名、数值和机制设定。
 - 动画设计必须遵守 10 RMB Seedance 费用阈值，达到或超过阈值前先征得用户确认。
 - 产品经理负责提醒哪些目标是 P0，不能用小修小补假装目标完成。
-
-## 本轮建议并行组合
-
-1. 美术总监 + 动画设计：检查 UI/VFX 是否仍有生硬框、塑料感和遮挡。
-2. 文学总监 + 新手玩家：检查首屏、房间和行动面板文案是否自然。
-3. 竞技玩家 + 开发商 / QA：检查高频操作、目标绑定、复杂技能 smoke。
-4. 产品经理：把以上结论收敛为 1-3 个下一步提交。
