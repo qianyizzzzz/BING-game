@@ -1345,7 +1345,7 @@ export function ActionPanel({
               type="button"
             >
               <FastForward className="h-4 w-4" aria-hidden="true" />
-              跳过到下一次出招
+              跳到下次出招
             </button>
           </div>
         ) : (
@@ -1562,7 +1562,7 @@ export function ActionPanel({
                   ) : isWindowShunshouSteal ? (
                     shunshouChoiceOptions.length > 0 ? (
                       <label className="block text-sm font-medium text-gray-700">
-                        可牵技能
+                        可获得技能
                         <select
                           className="soft-input mt-1 w-full"
                           value={windowTargetSkillId}
@@ -1879,7 +1879,7 @@ export function ActionPanel({
               type="button"
             >
               <FastForward className="h-4 w-4" aria-hidden="true" />
-              跳过到下一次出招
+              跳到下次出招
             </button>
           </div>
         )}

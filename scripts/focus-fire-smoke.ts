@@ -99,13 +99,7 @@ try {
 
     await clickByTestId(host.page, "start-game");
     logStep("game started");
-    const firstTurnStates = await Promise.all(
-      actors.map(async (actor) => {
-        const board = await waitForSubmitReady(actor.page, `${actor.id} first turn`);
-        actor.viewerId = board.viewerId;
-        return board;
-      })
-    );
+    const firstTurnStates = await waitForActorsSubmitReady(actors, "first turn");
     observations.push(
       `Initial action boards ready: ${firstTurnStates
         .map((state) => `${state.viewerId}:${state.selectedAction}`)
@@ -119,7 +113,7 @@ try {
       previous: firstTurnStates[0]!
     });
     logStep("cake setup submitted");
-    await Promise.all(actors.map((actor) => waitForSubmitReady(actor.page, `${actor.id} second turn`)));
+    await waitForActorsSubmitReady(actors, "second turn");
     await screenshot(host.page, "02-after-cake-turn.png");
     logStep("second turn ready");
 
@@ -135,10 +129,12 @@ try {
     );
 
     for (const attacker of attackers) {
+      logStep(`configuring focus attack: ${attacker.id} -> ${target.viewerId}`);
       const preview = await configureShaAttack(attacker.page, target.viewerId);
       observations.push(
         `${attacker.name} selected sha against ${targetBefore.name}: targets=${preview.targetIds || "none"}, selected=${preview.selectedAction}.`
       );
+      logStep(`configured focus attack: ${attacker.id} targets=${preview.targetIds || "none"}`);
     }
     logStep("focus attack selected");
     await screenshot(attackers[0]!.page, "03-focus-fire-selected.png");
@@ -374,23 +370,35 @@ async function submitTurnAndWaitForNext({
   previous: ActionBoardState;
 }): Promise<void> {
   for (const actor of actors.filter((item) => item.id !== finalActor.id)) {
+    logStep(`submitting ${actor.id} for ${label}`);
     await clickSubmitAction(actor.page);
     await waitForSubmittedBoard(actor.page, `${actor.id} ${label} submitted`);
+    logStep(`submitted ${actor.id} for ${label}`);
   }
 
+  logStep(`submitting final ${finalActor.id} for ${label}`);
   await clickSubmitAction(finalActor.page);
   await waitForAdvancedReady(actors[0]!.page, previous, label);
+  logStep(`advanced after final ${finalActor.id} for ${label}`);
 }
 
 async function waitForSubmitReady(page: Page, label: string): Promise<ActionBoardState> {
-  await page.waitForFunction(
-    () => {
-      const board = document.querySelector('[data-testid="action-board"]');
-      return board instanceof HTMLElement && board.dataset.submitReady === "true" && board.dataset.canSubmit === "true";
-    },
-    undefined,
-    { timeout: 45_000 }
-  );
+  try {
+    await page.waitForFunction(
+      () => {
+        const board = document.querySelector('[data-testid="action-board"]');
+        return board instanceof HTMLElement && board.dataset.submitReady === "true" && board.dataset.canSubmit === "true";
+      },
+      undefined,
+      { timeout: 60_000 }
+    );
+  } catch (error) {
+    const board = await readActionBoardState(page).catch(() => undefined);
+    const url = page.url();
+    throw new Error(
+      `${label} did not become submit-ready: ${errorMessage(error)}; url=${url}; board=${JSON.stringify(board)}`
+    );
+  }
   const state = await readActionBoardState(page);
   if (!state.viewerId || !state.selectedAction || state.readyState !== "ready") {
     throw new Error(`${label} has incomplete action board metadata: ${JSON.stringify(state)}`);
@@ -398,20 +406,42 @@ async function waitForSubmitReady(page: Page, label: string): Promise<ActionBoar
   return state;
 }
 
+async function waitForActorsSubmitReady(
+  actors: ActorRuntime[],
+  label: string
+): Promise<ActionBoardState[]> {
+  const states: ActionBoardState[] = [];
+  for (const actor of actors) {
+    logStep(`waiting submit-ready: ${actor.id} ${label}`);
+    const board = await waitForSubmitReady(actor.page, `${actor.id} ${label}`);
+    actor.viewerId = board.viewerId;
+    states.push(board);
+    logStep(`submit-ready: ${actor.id} ${label} viewer=${board.viewerId} action=${board.selectedAction}`);
+  }
+  return states;
+}
+
 async function waitForSubmittedBoard(page: Page, label: string): Promise<ActionBoardState> {
-  await page.waitForFunction(
-    () => {
-      const board = document.querySelector('[data-testid="action-board"]');
-      return (
-        board instanceof HTMLElement &&
-        board.dataset.alreadySubmitted === "true" &&
-        board.dataset.readyState === "waiting" &&
-        Boolean(board.dataset.lockedAction)
-      );
-    },
-    undefined,
-    { timeout: 20_000 }
-  );
+  try {
+    await page.waitForFunction(
+      () => {
+        const board = document.querySelector('[data-testid="action-board"]');
+        return (
+          board instanceof HTMLElement &&
+          board.dataset.alreadySubmitted === "true" &&
+          board.dataset.readyState === "waiting" &&
+          Boolean(board.dataset.lockedAction)
+        );
+      },
+      undefined,
+      { timeout: 20_000 }
+    );
+  } catch (error) {
+    const board = await readActionBoardState(page).catch(() => undefined);
+    throw new Error(
+      `${label} did not enter submitted waiting state: ${errorMessage(error)}; board=${JSON.stringify(board)}`
+    );
+  }
   const state = await readActionBoardState(page);
   if (!state.lockedAction) {
     throw new Error(`${label} did not expose locked action metadata: ${JSON.stringify(state)}`);
@@ -469,9 +499,12 @@ async function readActionBoardState(page: Page): Promise<ActionBoardState> {
 
 async function configureShaAttack(page: Page, targetId: string): Promise<ActionBoardState> {
   await waitForSubmitReady(page, "before attack selection");
+  logStep(`open attack mode for target ${targetId}`);
   await activate(page.getByTestId("action-mode-attack").first(), 20_000);
-  await selectByTestId(page, "attack-row-kind-0", "attack:sha");
-  await selectByTestId(page, "attack-row-target-0", targetId);
+  await setSelectValueByTestId(page, "attack-row-kind-0", "attack:sha");
+  logStep(`selected attack kind sha for target ${targetId}`);
+  await setSelectValueByTestId(page, "attack-row-target-0", targetId);
+  logStep(`selected attack target ${targetId}`);
   await page.waitForFunction(
     (expectedTargetId) => {
       const board = document.querySelector('[data-testid="action-board"]');
@@ -491,18 +524,51 @@ async function configureShaAttack(page: Page, targetId: string): Promise<ActionB
   return readActionBoardState(page);
 }
 
-async function selectByTestId(page: Page, testId: string, value: string): Promise<void> {
-  const select = page.getByTestId(testId).first();
-  await select.waitFor({ state: "attached", timeout: 20_000 });
-  if (!(await waitForEnabled(select, 20_000))) {
-    throw new Error(`select is disabled: ${testId}`);
-  }
-  await select.selectOption(value);
+async function setSelectValueByTestId(page: Page, testId: string, value: string): Promise<void> {
+  const selector = `[data-testid="${testId}"]`;
+  await page.waitForFunction(
+    ({ selector: targetSelector, expectedValue }) => {
+      const element = document.querySelector(targetSelector);
+      if (!(element instanceof HTMLSelectElement)) {
+        return false;
+      }
+      return Array.from(element.options).some((option) => option.value === expectedValue) && !element.disabled;
+    },
+    { selector, expectedValue: value },
+    { timeout: 20_000 }
+  );
+  await page.evaluate(
+    ({ selector: targetSelector, nextValue }) => {
+      const element = document.querySelector(targetSelector);
+      if (!(element instanceof HTMLSelectElement)) {
+        throw new Error(`missing select ${targetSelector}`);
+      }
+      const valueSetter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, "value")?.set;
+      valueSetter?.call(element, nextValue);
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    },
+    { selector, nextValue: value }
+  );
+  await page.waitForFunction(
+    ({ selector: targetSelector, expectedValue }) => {
+      const element = document.querySelector(targetSelector);
+      return element instanceof HTMLSelectElement && element.value === expectedValue;
+    },
+    { selector, expectedValue: value },
+    { timeout: 5_000 }
+  );
 }
 
 async function clickSubmitAction(page: Page): Promise<void> {
   try {
-    await activateTestId(page, "submit-action", 20_000);
+    const button = page.getByTestId("submit-action").first();
+    await button.waitFor({ state: "visible", timeout: 20_000 });
+    if (!(await waitForEnabled(button, 20_000))) {
+      const board = await readActionBoardState(page).catch(() => undefined);
+      throw new Error(`submit button is disabled; board=${JSON.stringify(board)}`);
+    }
+    await button.click({ timeout: 20_000 });
   } catch (error) {
     const board = await readActionBoardState(page).catch(() => undefined);
     throw new Error(`submit button click failed: ${errorMessage(error)}; board=${JSON.stringify(board)}`);

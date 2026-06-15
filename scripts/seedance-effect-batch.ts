@@ -33,6 +33,10 @@ const specPath = path.resolve("docs/EFFECT_ANIMATION_SPEC.md");
 
 const options = readOptions();
 const specs = parseEffectPrompts(fs.readFileSync(specPath, "utf-8"));
+if (specs.length === 0) {
+  throw new Error(`No Seedance prompts found in ${specPath}`);
+}
+
 const selected = specs.slice(options.offset, options.offset + options.limit);
 const outDir = path.resolve(options.outDir);
 fs.mkdirSync(outDir, { recursive: true });
@@ -86,7 +90,7 @@ console.log(
 );
 
 function parseEffectPrompts(markdown: string): EffectPromptSpec[] {
-  const headingPattern = /^### ([^：\s]+)：(.+)$/gm;
+  const headingPattern = /^### ([^:\uFF1A\s]+)[:\uFF1A](.+)$/gm;
   const headings = Array.from(markdown.matchAll(headingPattern));
   const specs: EffectPromptSpec[] = [];
 
@@ -96,8 +100,7 @@ function parseEffectPrompts(markdown: string): EffectPromptSpec[] {
     const start = heading.index ?? 0;
     const end = nextHeading?.index ?? markdown.length;
     const section = markdown.slice(start, end);
-    const promptMatch = section.match(/#### Seedance 动画 prompt\s+```text\s+([\s\S]*?)```/);
-    const prompt = promptMatch?.[1]?.trim();
+    const prompt = extractSeedancePrompt(section);
     if (!prompt) {
       continue;
     }
@@ -110,6 +113,27 @@ function parseEffectPrompts(markdown: string): EffectPromptSpec[] {
   }
 
   return specs;
+}
+
+function extractSeedancePrompt(section: string): string | undefined {
+  const markerIndex = section.indexOf("#### Seedance");
+  if (markerIndex < 0) {
+    return undefined;
+  }
+
+  const promptSection = section.slice(markerIndex);
+  const fenceStart = promptSection.indexOf("```text");
+  if (fenceStart < 0) {
+    return undefined;
+  }
+
+  const promptStart = fenceStart + "```text".length;
+  const fenceEnd = promptSection.indexOf("```", promptStart);
+  if (fenceEnd < 0) {
+    return undefined;
+  }
+
+  return promptSection.slice(promptStart, fenceEnd).trim();
 }
 
 function buildPayload(spec: EffectPromptSpec, opts: BatchOptions): Record<string, unknown> {
@@ -144,19 +168,21 @@ async function submitSeedanceTask(payload: Record<string, unknown>): Promise<unk
     method: "POST"
   });
 
-  const text = await response.text();
-  let data: unknown;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    data = text;
-  }
-
+  const data = await readJsonOrText(response);
   if (!response.ok) {
     throw new Error(`Seedance API ${response.status}: ${JSON.stringify(data)}`);
   }
 
   return data;
+}
+
+async function readJsonOrText(response: Response): Promise<unknown> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 function readOptions(): BatchOptions {

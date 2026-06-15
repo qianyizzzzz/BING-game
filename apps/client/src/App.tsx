@@ -779,21 +779,21 @@ export function App() {
             <div className="hero-copy flex flex-1 flex-col items-center justify-center">
               <div className="hero-eyebrow animate-fade-rise">
                 <Sparkles className="h-4 w-4" aria-hidden="true" />
-                BING / 饼 · 多人实时牌桌
+                BING / 饼 · 同步出招牌桌
               </div>
               <h1
                 className="animate-fade-rise hero-title max-w-7xl text-5xl font-black leading-[0.95] text-foreground sm:text-7xl md:text-8xl"
                 style={{ fontFamily: "'Instrument Serif', serif" }}
               >
-                同时出招，藏住你的饼。
+                同桌藏招，亮牌见分晓。
               </h1>
               <p className="animate-fade-rise-delay mt-8 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                创建房间、邀请朋友、同一回合暗中选择行动。吃饼、防御、攻击、反弹和技能会在亮招瞬间一起结算。
+                邀请 2-6 名玩家入席，在同一回合暗中选择行动。吃饼、防御、攻击、反弹与技能会在亮招时统一结算。
               </p>
               <div className="hero-proof-row animate-fade-rise-delay">
                 <span>2-6 人实时房间</span>
-                <span>Socket.IO 同步</span>
-                <span>3D 桌面与复盘</span>
+                <span>实时同步</span>
+                <span>3D 牌桌 / 对局复盘</span>
               </div>
               <Button
                 className="mt-12 rounded-full px-14 py-5 text-base hover:scale-[1.03]"
@@ -802,7 +802,7 @@ export function App() {
                 onClick={focusJourneyConsole}
                 variant="glass"
               >
-                确认身份后开房
+                入席开房
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>

@@ -60,9 +60,9 @@ export function SkillPanel({ state }: SkillPanelProps) {
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-amber-200" aria-hidden="true" />
           <div>
-            <h2 className="text-base font-black text-amber-50">深渊遗物技能牌</h2>
+            <h2 className="text-base font-black text-amber-50">展台技能牌</h2>
             <p className="mt-0.5 text-xs font-semibold text-amber-100/70">
-              First-person relic loadout
+              你的本局技能陈列
             </p>
           </div>
         </div>

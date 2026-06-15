@@ -727,11 +727,11 @@ function validateFlashDodgeUse(
   }
 
   if (timingPhase !== "turn_change_action") {
-    return invalid("闂幇鍙兘鍦ㄥ彉鎷涢樁娈典娇鐢?");
+    return invalid("闪现只能在变招阶段使用");
   }
 
   if (countActiveCooldowns(player, FLASH_DODGE_COOLDOWN_BUFF_ID, roundNumber) >= getActiveSkillCount(player, FLASH_DODGE_SKILL_ID)) {
-    return invalid("闂幇3杞檺1娆?");
+    return invalid("闪现 3 轮限用 1 次");
   }
 
   return valid();
@@ -748,11 +748,11 @@ function validateSixStarUse(
   }
 
   if (timingPhase !== "turn_damage_modify") {
-    return invalid("鍏姃鏄熷彧鑳藉湪鍙樹激闃舵浣跨敤");
+    return invalid("六芒星只能在变伤阶段使用");
   }
 
   if (!getHighestPendingDamageItem(state, playerId)) {
-    return invalid("鍏姃鏄熼渶瑕佷綘褰撳墠鏈夊嵆灏嗘壙鍙楃殑浼ゅ");
+    return invalid("六芒星需要你当前有即将承受的伤害");
   }
 
   return valid();

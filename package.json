@@ -21,6 +21,7 @@
     "public:tunnel": "node scripts/public-play.mjs --tunnel-only --skip-build",
     "seedance:effects:plan": "tsx scripts/seedance-effect-batch.ts --limit=5",
     "seedance:effects:submit": "tsx scripts/seedance-effect-batch.ts --submit --limit=5",
+    "seedance:effects:settle": "tsx scripts/seedance-effect-settle.ts --poll",
     "build": "npm run build -w @bing/shared && npm run build -w @bing/server && npm run build -w @bing/client",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test:ci": "npm run typecheck && npm run test:assets && npm run test:release-assets && npm run test:rules && npm run test:turn-timeline",

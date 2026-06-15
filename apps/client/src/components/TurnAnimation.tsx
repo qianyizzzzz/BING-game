@@ -99,7 +99,7 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
             <div className="text-sm font-medium text-gray-500">
               第 {broadcast.reveal.roundNumber} 轮 · 第 {broadcast.reveal.turnNumber} 回合
             </div>
-            <h2 className="text-xl font-black text-gray-950">招式结算动画</h2>
+            <h2 className="text-xl font-black text-gray-950">亮招结算</h2>
           </div>
           <div className="rounded-lg bg-teal-700 px-3 py-1 text-sm font-bold text-white">
             {battleSteps.length > 0 ? `${activeStepIndex + 1}/${battleSteps.length}` : "结算中"}
@@ -120,7 +120,7 @@ export function TurnAnimation({ state }: TurnAnimationProps) {
         <div className="mt-4 grid gap-2">
           {!visibleStep ? (
             <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 text-sm font-medium text-gray-600">
-              本回合无人受伤，博弈继续。
+              无人受伤，牌桌继续。
             </div>
           ) : (
             <BattleLane key={visibleStep.id} cue={visibleCue} index={0} step={visibleStep} />
