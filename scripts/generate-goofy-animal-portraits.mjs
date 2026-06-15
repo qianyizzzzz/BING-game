@@ -106,7 +106,7 @@ for (const character of characters) {
   await writePortrait(page, character, path.join(dir, "mobile-avatar.png"), 768, "mobile", character.mood);
   await fs.writeFile(
     path.join(dir, "source", "goofy-animal-portrait.svg"),
-    portraitSvg(character, 512, "portrait", character.mood),
+    cleanSvg(portraitSvg(character, 512, "portrait", character.mood)),
     "utf-8"
   );
 
@@ -130,9 +130,9 @@ function portraitSvg(character, size, variant, mood, markColor = "#d1953a") {
   const scale = size / 512;
   const isAction = variant !== "portrait" && variant !== "mobile";
   const bodyY = isAction ? 323 : 333;
-  const headTilt = mood === "startled" ? -14 : mood === "flat" ? 7 : variant === "skill" ? -17 : mood === "worried" ? 6 : -12;
-  const headSkew = mood === "side-eye" ? -9 : mood === "double-stare" ? 7 : character.name.length % 2 === 0 ? 6 : -7;
-  const squash = isAction ? "scale(1.15 .86)" : "scale(1.22 .82)";
+  const headTilt = mood === "startled" ? -22 : mood === "flat" ? 13 : variant === "skill" ? -25 : mood === "worried" ? 11 : -18;
+  const headSkew = mood === "side-eye" ? -16 : mood === "double-stare" ? 13 : character.name.length % 2 === 0 ? 12 : -13;
+  const squash = isAction ? "scale(1.24 .78)" : "scale(1.34 .72)";
   const mouth = mouthPath(mood);
   const eyes = eyesForMood(mood, character);
 
@@ -163,16 +163,17 @@ function portraitSvg(character, size, variant, mood, markColor = "#d1953a") {
   <g filter="url(#wobble)" transform="rotate(${headTilt} 256 246) translate(-30 27) skewX(${headSkew}) ${squash}">
     ${backMarks(character, markColor, isAction)}
     ${ears(character)}
-    <path d="M127 205 C115 101 208 46 306 78 C391 106 404 161 383 243 C356 338 285 377 207 347 C154 327 129 282 127 205 Z"
+    <path d="M125 204 C112 112 197 50 307 70 C386 84 415 146 392 238 C375 307 333 358 256 363 C174 368 126 304 125 204 Z"
       fill="${character.base}" stroke="${character.dark}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M160 239 C198 301 313 307 365 245 C343 320 296 358 232 351 C183 346 151 306 160 239 Z"
-      fill="${character.belly}" opacity="0.84"/>
+    <path d="M152 247 C195 313 318 317 371 246 C350 323 300 361 231 354 C178 348 145 306 152 247 Z"
+      fill="${character.belly}" opacity="0.76"/>
     ${animalMarks(character)}
     ${hairTuft(character)}
     ${eyes}
-    <path d="M250 214 C270 199 292 205 302 219 C286 236 262 233 250 214 Z" fill="${character.dark}" opacity="0.92"/>
+    ${snout(character)}
     ${mouth}
     ${goofyDetails(character)}
+    ${uglyCuteDetails(character, mood)}
     ${prop(character)}
   </g>
   <g filter="url(#wobble)">
@@ -217,12 +218,12 @@ function eyesForMood(mood, character) {
   const ears = character.ears;
   if (mood === "derpy") {
     return `
-      <ellipse cx="204" cy="205" rx="45" ry="34" fill="#fff8e8" stroke="#1d1a16" stroke-width="7"/>
-      <ellipse cx="322" cy="212" rx="24" ry="39" fill="#fff8e8" stroke="#1d1a16" stroke-width="7"/>
-      <circle cx="191" cy="214" r="8" fill="#171411"/>
-      <circle cx="333" cy="199" r="7" fill="#171411"/>
-      <path d="M169 178 C200 160 235 166 266 186" fill="none" stroke="#1d1a16" stroke-width="8" stroke-linecap="round"/>
-      <path d="M294 186 C323 166 361 176 385 199" fill="none" stroke="#1d1a16" stroke-width="8" stroke-linecap="round"/>`;
+      <ellipse cx="195" cy="204" rx="54" ry="31" fill="#fff8e8" stroke="#1d1a16" stroke-width="8"/>
+      <ellipse cx="326" cy="213" rx="22" ry="45" fill="#fff8e8" stroke="#1d1a16" stroke-width="8"/>
+      <circle cx="176" cy="217" r="7" fill="#171411"/>
+      <circle cx="338" cy="190" r="6" fill="#171411"/>
+      <path d="M157 175 C194 151 237 160 273 187" fill="none" stroke="#1d1a16" stroke-width="9" stroke-linecap="round"/>
+      <path d="M288 188 C323 158 365 174 392 202" fill="none" stroke="#1d1a16" stroke-width="9" stroke-linecap="round"/>`;
   }
   if (mood === "stuffed") {
     return `
@@ -244,28 +245,28 @@ function eyesForMood(mood, character) {
   }
   if (mood === "lopsided") {
     return `
-      <path d="M169 203 C204 221 240 212 260 190" fill="#fff8e8" stroke="#1d1a16" stroke-width="6"/>
-      <ellipse cx="326" cy="208" rx="39" ry="25" fill="#fff8e8" stroke="#1d1a16" stroke-width="6"/>
-      <circle cx="237" cy="207" r="7" fill="#171411"/>
-      <circle cx="312" cy="214" r="9" fill="#171411"/>
-      <path d="M166 181 C195 163 229 166 266 188" fill="none" stroke="#1d1a16" stroke-width="8" stroke-linecap="round"/>
-      <path d="M292 184 C329 176 362 184 388 205" fill="none" stroke="#1d1a16" stroke-width="8" stroke-linecap="round"/>`;
+      <path d="M158 205 C199 229 244 216 267 187" fill="#fff8e8" stroke="#1d1a16" stroke-width="7"/>
+      <ellipse cx="329" cy="210" rx="45" ry="22" fill="#fff8e8" stroke="#1d1a16" stroke-width="7"/>
+      <circle cx="244" cy="204" r="7" fill="#171411"/>
+      <circle cx="302" cy="218" r="10" fill="#171411"/>
+      <path d="M152 177 C189 154 232 161 272 188" fill="none" stroke="#1d1a16" stroke-width="9" stroke-linecap="round"/>
+      <path d="M287 181 C331 171 369 184 397 207" fill="none" stroke="#1d1a16" stroke-width="9" stroke-linecap="round"/>`;
   }
   if (character.quirk === "side-eye") {
     return `
-      <path d="M169 201 C202 178 240 188 264 211" fill="#fff8e8" stroke="#1d1a16" stroke-width="6"/>
-      <path d="M294 204 C326 187 361 194 378 214" fill="#fff8e8" stroke="#1d1a16" stroke-width="6"/>
-      <circle cx="252" cy="202" r="8" fill="#171411"/>
-      <circle cx="364" cy="208" r="7" fill="#171411"/>
+      <path d="M158 201 C197 172 245 184 271 213" fill="#fff8e8" stroke="#1d1a16" stroke-width="7"/>
+      <path d="M286 204 C323 184 367 192 389 216" fill="#fff8e8" stroke="#1d1a16" stroke-width="7"/>
+      <circle cx="262" cy="201" r="8" fill="#171411"/>
+      <circle cx="377" cy="209" r="7" fill="#171411"/>
       <path d="M173 178 C202 159 236 165 263 185" fill="none" stroke="#1d1a16" stroke-width="8" stroke-linecap="round"/>
       <path d="M299 183 C333 169 366 174 386 197" fill="none" stroke="#1d1a16" stroke-width="8" stroke-linecap="round"/>`;
   }
   if (character.quirk === "double-stare") {
     return `
-      <circle cx="211" cy="205" r="42" fill="#fff8e8" stroke="#1d1a16" stroke-width="7"/>
-      <circle cx="309" cy="201" r="31" fill="#fff8e8" stroke="#1d1a16" stroke-width="7"/>
-      <circle cx="224" cy="214" r="8" fill="#171411"/>
-      <circle cx="297" cy="191" r="7" fill="#171411"/>
+      <circle cx="205" cy="205" r="48" fill="#fff8e8" stroke="#1d1a16" stroke-width="8"/>
+      <circle cx="317" cy="198" r="28" fill="#fff8e8" stroke="#1d1a16" stroke-width="8"/>
+      <circle cx="225" cy="222" r="8" fill="#171411"/>
+      <circle cx="302" cy="184" r="7" fill="#171411"/>
       <path d="M169 250 C190 237 220 238 242 254" fill="none" stroke="#1d1a16" stroke-width="5" stroke-linecap="round" opacity="0.44"/>`;
   }
   if (mood === "startled") {
@@ -302,7 +303,7 @@ function eyesForMood(mood, character) {
 
 function mouthPath(mood) {
   if (mood === "derpy") {
-    return `<path d="M219 259 C248 300 310 296 339 253" fill="#5b2722" stroke="#1d1a16" stroke-width="6" stroke-linejoin="round"/><path d="M242 263 L255 302 L271 263" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M292 263 L307 285 L319 256" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M279 291 C302 312 331 293 337 266" fill="#df8177" opacity="0.9"/><path d="M335 286 C351 296 357 311 350 326" fill="none" stroke="#5b2722" stroke-width="5" stroke-linecap="round" opacity="0.55"/>`;
+    return `<path d="M213 259 C245 309 319 298 346 248" fill="#5b2722" stroke="#1d1a16" stroke-width="7" stroke-linejoin="round"/><path d="M236 263 L249 309 L270 262" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M291 264 L309 291 L326 256" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M276 293 C302 318 336 297 343 267" fill="#df8177" opacity="0.9"/><path d="M342 286 C362 299 366 319 354 337" fill="none" stroke="#5b2722" stroke-width="6" stroke-linecap="round" opacity="0.55"/><path d="M210 292 C225 307 244 313 266 310" fill="none" stroke="#1d1a16" stroke-width="4" stroke-linecap="round" opacity="0.36"/>`;
   }
   if (mood === "stuffed") {
     return `<path d="M218 265 C250 287 294 288 333 262" fill="#5b2722" stroke="#1d1a16" stroke-width="6" stroke-linejoin="round"/><circle cx="264" cy="277" r="10" fill="#c68632" stroke="#1d1a16" stroke-width="3"/><path d="M300 274 C315 282 329 275 337 257" fill="#e79083" opacity="0.78"/>`;
@@ -311,7 +312,7 @@ function mouthPath(mood) {
     return `<path d="M229 276 C257 248 301 250 327 283" fill="none" stroke="#1d1a16" stroke-width="8" stroke-linecap="round"/><path d="M245 296 C271 307 301 303 322 288" fill="none" stroke="#1d1a16" stroke-width="4" stroke-linecap="round" opacity="0.36"/>`;
   }
   if (mood === "lopsided") {
-    return `<path d="M226 259 C253 301 309 289 333 244" fill="#5b2722" stroke="#1d1a16" stroke-width="6" stroke-linejoin="round"/><path d="M251 263 L263 294 L278 260" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M296 266 L307 284 L318 259" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M286 286 C303 300 324 289 331 263" fill="#df8177" opacity="0.86"/><path d="M220 250 C207 242 199 234 197 221" fill="none" stroke="#1d1a16" stroke-width="5" stroke-linecap="round" opacity="0.45"/>`;
+    return `<path d="M220 258 C249 309 320 290 340 239" fill="#5b2722" stroke="#1d1a16" stroke-width="7" stroke-linejoin="round"/><path d="M244 262 L257 300 L277 259" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M298 266 L310 289 L325 256" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M286 287 C308 306 332 291 338 261" fill="#df8177" opacity="0.86"/><path d="M216 250 C201 241 192 232 190 218" fill="none" stroke="#1d1a16" stroke-width="5" stroke-linecap="round" opacity="0.45"/><circle cx="345" cy="301" r="4" fill="#5b2722" opacity="0.6"/>`;
   }
   if (mood === "startled") {
     return `<ellipse cx="270" cy="263" rx="29" ry="37" fill="#5b2722" stroke="#1d1a16" stroke-width="6"/><path d="M252 286 C267 302 291 292 294 273" fill="#d88678" opacity="0.9"/><circle cx="249" cy="260" r="4" fill="#fff8e8"/>`;
@@ -325,9 +326,18 @@ function mouthPath(mood) {
   return `<path d="M218 263 C247 303 305 287 334 246" fill="#5b2722" stroke="#1d1a16" stroke-width="6" stroke-linejoin="round"/><path d="M248 261 L263 293 L279 260" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M294 265 L304 284 L316 258" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M284 286 C304 302 329 289 334 260" fill="#df8177" opacity="0.86"/><path d="M226 300 C255 311 293 306 323 284" fill="none" stroke="#1d1a16" stroke-width="4" stroke-linecap="round" opacity="0.34"/>`;
 }
 
+function snout(character) {
+  return `
+    <path d="M237 218 C261 195 303 202 320 225 C300 250 261 247 237 218 Z" fill="${character.dark}" opacity="0.92"/>
+    <circle cx="270" cy="226" r="4" fill="#f2d9b0" opacity="0.52"/>
+    <circle cx="299" cy="224" r="3.5" fill="#f2d9b0" opacity="0.42"/>
+    <path d="M280 236 C271 246 258 251 244 247" fill="none" stroke="${character.dark}" stroke-width="4" stroke-linecap="round" opacity="0.58"/>
+  `;
+}
+
 function goofyDetails(character) {
-  const cheek = `<circle cx="178" cy="255" r="13" fill="#d98270" opacity="0.24"/><circle cx="349" cy="244" r="8" fill="#d98270" opacity="0.18"/>`;
-  const whiskerMistake = `<path d="M106 276 C139 257 164 263 184 281" fill="none" stroke="${character.dark}" stroke-width="4" stroke-linecap="round" opacity="0.72"/><path d="M351 273 C386 250 418 251 448 272" fill="none" stroke="${character.dark}" stroke-width="4" stroke-linecap="round" opacity="0.72"/><path d="M116 244 C143 243 162 250 176 263" fill="none" stroke="${character.dark}" stroke-width="3" stroke-linecap="round" opacity="0.46"/>`;
+  const cheek = `<circle cx="176" cy="259" r="16" fill="#d98270" opacity="0.19"/><circle cx="354" cy="246" r="10" fill="#d98270" opacity="0.14"/>`;
+  const whiskerMistake = `<path d="M88 278 C129 253 162 260 187 284" fill="none" stroke="${character.dark}" stroke-width="5" stroke-linecap="round" opacity="0.74"/><path d="M353 274 C393 247 430 249 462 274" fill="none" stroke="${character.dark}" stroke-width="5" stroke-linecap="round" opacity="0.72"/><path d="M102 242 C136 240 161 249 180 267" fill="none" stroke="${character.dark}" stroke-width="3" stroke-linecap="round" opacity="0.48"/>`;
   const scribble = `<path d="M198 321 C213 314 229 318 238 330 C222 327 211 331 202 341" fill="none" stroke="${character.dark}" stroke-width="4" stroke-linecap="round" opacity="0.28"/><path d="M334 313 C350 307 363 312 370 326" fill="none" stroke="${character.dark}" stroke-width="4" stroke-linecap="round" opacity="0.24"/>`;
   if (character.quirk === "sleepy-cheek") {
     return `${cheek}<path d="M194 232 C205 251 224 250 236 235" fill="none" stroke="${character.dark}" stroke-width="4" stroke-linecap="round" opacity="0.58"/><path d="M150 310 C174 297 194 301 209 321" fill="none" stroke="${character.dark}" stroke-width="5" stroke-linecap="round" opacity="0.42"/>${whiskerMistake}${scribble}`;
@@ -342,6 +352,23 @@ function goofyDetails(character) {
     return `${cheek}<g transform="rotate(-13 336 171)"><rect x="305" y="159" width="66" height="20" rx="9" fill="#f0d7bf" stroke="${character.dark}" stroke-width="4"/><path d="M327 162 L323 180 M349 161 L345 179" stroke="#b9896e" stroke-width="3"/></g>${scribble}`;
   }
   return `${cheek}${whiskerMistake}${scribble}`;
+}
+
+function uglyCuteDetails(character, mood) {
+  const seed = character.id.length + mood.length;
+  const extraDotX = 202 + (seed % 33);
+  const extraDotY = 292 + (seed % 21);
+  const snot =
+    mood === "derpy" || mood === "worried"
+      ? `<path d="M301 240 C313 257 308 276 294 283" fill="none" stroke="#b9ddd2" stroke-width="5" stroke-linecap="round" opacity="0.72"/><circle cx="294" cy="286" r="5" fill="#b9ddd2" opacity="0.62"/>`
+      : "";
+  return `
+    ${snot}
+    <circle cx="${extraDotX}" cy="${extraDotY}" r="3.5" fill="${character.dark}" opacity="0.42"/>
+    <circle cx="${extraDotX + 21}" cy="${extraDotY + 9}" r="2.5" fill="${character.dark}" opacity="0.32"/>
+    <path d="M174 331 C188 323 204 326 214 338" fill="none" stroke="${character.dark}" stroke-width="4" stroke-linecap="round" opacity="0.28"/>
+    <path d="M353 319 C369 314 382 320 389 333" fill="none" stroke="${character.dark}" stroke-width="4" stroke-linecap="round" opacity="0.24"/>
+  `;
 }
 
 function animalMarks(character) {
@@ -422,4 +449,8 @@ function paperSpeckles(seed) {
     dots.push(`<circle cx="${x}" cy="${y}" r="${r.toFixed(1)}" fill="#7c6746" opacity="0.10"/>`);
   }
   return `<g>${dots.join("")}</g>`;
+}
+
+function cleanSvg(svg) {
+  return `${svg.replace(/[ \t]+$/gm, "").trim()}\n`;
 }

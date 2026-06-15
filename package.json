@@ -52,6 +52,7 @@
     "test:character-browser": "npm run build -w @bing/client && npm run test:character-browser:run",
     "test:character-browser:run": "tsx scripts/character-runtime-browser-check.ts",
     "effects:spec": "tsx scripts/generate-effect-animation-spec.ts",
+    "effects:status": "tsx scripts/update-effect-asset-status.ts",
     "effects:keyframes:plan": "tsx scripts/effect-keyframe-batch.ts",
     "characters:goofy-portraits": "node scripts/generate-goofy-animal-portraits.mjs",
     "import:skills": "python scripts/import-skills.py",
