@@ -1786,12 +1786,14 @@ select {
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(94, 234, 212, 0.2);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(236, 253, 245, 0.76)),
-    #f8fafc;
-  box-shadow: 0 22px 46px rgba(15, 23, 42, 0.1);
+    linear-gradient(180deg, rgba(14, 23, 21, 0.96), rgba(4, 10, 9, 0.98)),
+    #06110f;
+  box-shadow:
+    0 32px 70px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   overflow: hidden;
 }
 
@@ -1805,19 +1807,23 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.1);
-  background: rgba(255, 255, 255, 0.86);
+  border-bottom: 1px solid rgba(94, 234, 212, 0.14);
+  background:
+    linear-gradient(90deg, rgba(20, 184, 166, 0.12), transparent 38%),
+    rgba(6, 17, 15, 0.9);
   padding: 12px 14px;
+  backdrop-filter: blur(14px);
 }
 
 .poker-table-phase {
-  border: 1px solid rgba(15, 118, 110, 0.2);
+  border: 1px solid rgba(94, 234, 212, 0.28);
   border-radius: 8px;
-  background: #f0fdfa;
+  background: rgba(20, 184, 166, 0.13);
   padding: 5px 10px;
-  color: #0f766e;
+  color: #ccfbf1;
   font-size: 12px;
   font-weight: 900;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .poker-table-stats {
@@ -1825,7 +1831,7 @@ select {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
-  color: #475569;
+  color: #d7d2ba;
   font-size: 13px;
   font-weight: 900;
 }
@@ -1834,10 +1840,11 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  border: 1px solid rgba(203, 213, 225, 0.88);
+  border: 1px solid rgba(215, 210, 186, 0.13);
   border-radius: 8px;
-  background: #ffffff;
+  background: rgba(2, 8, 7, 0.72);
   padding: 6px 9px;
+  color: #f7f3df;
 }
 
 .poker-table-board {
@@ -1858,9 +1865,9 @@ select {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at center, transparent 0 34%, rgba(255, 255, 255, 0.18) 72%, rgba(255, 255, 255, 0.62) 100%),
-    linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+    radial-gradient(ellipse at center, transparent 0 34%, rgba(94, 234, 212, 0.1) 72%, rgba(4, 8, 7, 0.72) 100%),
+    linear-gradient(rgba(94, 234, 212, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 234, 212, 0.038) 1px, transparent 1px);
   background-size: auto, 34px 34px, 34px 34px;
 }
 
@@ -1909,19 +1916,19 @@ select {
   position: absolute;
   inset: 16% 8% 13%;
   z-index: 1;
-  border: 22px solid #8b4513;
+  border: 22px solid #4a2d19;
   border-radius: 999px;
   background:
-    radial-gradient(ellipse at 50% 42%, rgba(34, 197, 94, 0.22), transparent 58%),
-    radial-gradient(ellipse at center, rgba(255, 255, 255, 0.12), transparent 42%),
-    linear-gradient(135deg, #0f766e, #064e3b 62%, #14532d);
+    radial-gradient(ellipse at 50% 42%, rgba(94, 234, 212, 0.18), transparent 58%),
+    radial-gradient(ellipse at center, rgba(247, 243, 223, 0.08), transparent 42%),
+    linear-gradient(135deg, #123b35, #08221f 62%, #111a12);
   box-shadow:
-    0 0 0 8px rgba(255, 255, 255, 0.52),
-    0 0 0 14px rgba(15, 23, 42, 0.08),
-    inset 0 0 0 7px rgba(255, 255, 255, 0.08),
-    inset 0 26px 54px rgba(255, 255, 255, 0.08),
-    inset 0 -30px 58px rgba(15, 23, 42, 0.28),
-    0 34px 70px rgba(15, 23, 42, 0.28);
+    0 0 0 8px rgba(247, 243, 223, 0.16),
+    0 0 0 14px rgba(4, 8, 7, 0.58),
+    inset 0 0 0 7px rgba(94, 234, 212, 0.07),
+    inset 0 26px 54px rgba(247, 243, 223, 0.05),
+    inset 0 -30px 58px rgba(0, 0, 0, 0.38),
+    0 34px 70px rgba(0, 0, 0, 0.42);
 }
 
 .table-rail {
@@ -1956,11 +1963,13 @@ select {
 }
 
 .table-stack {
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(94, 234, 212, 0.22);
   border-radius: 8px;
-  background: rgba(6, 78, 59, 0.72);
-  color: #ecfeff;
-  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.2);
+  background: rgba(4, 12, 11, 0.82);
+  color: #f7f3df;
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(8px);
 }
 
@@ -2052,11 +2061,15 @@ select {
   z-index: 5;
   width: clamp(104px, 10.5vw, 136px);
   min-height: 0;
-  border: 1px solid rgba(203, 213, 225, 0.92);
+  border: 1px solid rgba(215, 210, 186, 0.22);
   border-radius: 7px;
-  background: rgba(255, 255, 255, 0.9);
+  background:
+    linear-gradient(180deg, rgba(23, 31, 26, 0.94), rgba(7, 12, 10, 0.92)),
+    rgba(7, 12, 10, 0.92);
   padding: 5px;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transform:
     translate(-50%, -50%)
     translate(var(--seat-shift-x, 0px), var(--seat-shift-y, 0px));
@@ -2195,7 +2208,7 @@ select {
 
 .seat-name-line strong {
   overflow: hidden;
-  color: #111827;
+  color: #f7f3df;
   font-size: 12px;
   font-weight: 900;
   text-overflow: ellipsis;
@@ -2205,9 +2218,9 @@ select {
 .seat-name-line span {
   flex: 0 0 auto;
   border-radius: 6px;
-  background: #fef3c7;
+  background: rgba(245, 176, 65, 0.18);
   padding: 1px 4px;
-  color: #92400e;
+  color: #f7d38b;
   font-size: 10.5px;
   font-weight: 900;
 }
@@ -2217,7 +2230,7 @@ select {
   align-items: center;
   gap: 4px;
   margin-top: 1px;
-  color: #64748b;
+  color: #b9b49d;
   font-size: 11px;
   font-weight: 800;
 }
@@ -2245,11 +2258,11 @@ select {
   min-width: 0;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(215, 210, 186, 0.16);
   border-radius: 7px;
-  background: #f8fafc;
+  background: rgba(0, 0, 0, 0.24);
   padding: 3px 4px;
-  color: #475569;
+  color: #b9b49d;
   font-size: 10px;
   font-weight: 800;
 }
@@ -2259,7 +2272,7 @@ select {
 }
 
 .seat-resource strong {
-  color: #111827;
+  color: #f7f3df;
   font-size: 12px;
   line-height: 1;
 }
@@ -2671,11 +2684,16 @@ select {
   overflow: hidden;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  border: 1px solid rgba(20, 184, 166, 0.32);
+  border: 1px solid rgba(94, 234, 212, 0.3);
   border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 20, 0.96), rgba(4, 8, 7, 0.97)),
+    #06110f;
   box-shadow:
-    0 26px 50px rgba(15, 23, 42, 0.24),
-    0 0 0 4px rgba(20, 184, 166, 0.1);
+    0 28px 56px rgba(0, 0, 0, 0.46),
+    0 0 0 4px rgba(20, 184, 166, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
 }
 
 .table-action-dock .action-board {
@@ -2695,19 +2713,21 @@ select {
   top: 0;
   z-index: 1;
   margin: -10px -10px 0;
-  border-bottom: 1px solid rgba(203, 213, 225, 0.72);
-  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid rgba(94, 234, 212, 0.14);
+  background: rgba(6, 17, 15, 0.92);
   padding: 9px 10px 7px;
   backdrop-filter: blur(10px);
 }
 
 .table-action-dock .action-board h2 {
+  color: #f7f3df;
   font-size: 14px;
 }
 
 .table-action-dock .action-board p,
 .table-action-dock .action-board label,
 .table-action-dock .action-board .text-sm {
+  color: #d7d2ba;
   font-size: 11px;
   line-height: 1.35;
 }
@@ -2744,11 +2764,16 @@ select {
 }
 
 .table-action-dock .soft-input {
+  border-color: rgba(215, 210, 186, 0.18);
+  background: rgba(247, 243, 223, 0.08);
+  color: #f7f3df;
   padding: 6px 8px;
   font-size: 11px;
 }
 
 .table-action-dock .action-row {
+  border-color: rgba(94, 234, 212, 0.12);
+  background: rgba(0, 0, 0, 0.18);
   padding: 8px;
 }
 
