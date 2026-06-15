@@ -65,9 +65,9 @@ function buildAdvice(state: PublicGameState): string[] {
 
   const advice = [resultLine];
   if (damageTaken > damageDone) {
-    advice.push(`你的承伤 ${damageTaken} 高于输出 ${damageDone}，建议在对手有 2-4 饼时优先考虑油条，5 饼以上提高石头或反弹的权重。`);
+    advice.push(`这一局你挨得比打得多。对手有 2-4 饼时先留意油条，5 饼以上可以多看石头或反弹。`);
   } else {
-    advice.push(`你的输出 ${damageDone} 不低，下一步可以练习多目标出招，避免把所有压力都压在同一个目标上。`);
+    advice.push(`你这一局打得够凶。下一步可以试着分散目标，别把所有压力都压在同一个人身上。`);
   }
 
   if (cakeTurns < 2 && revealEvents.length >= 4) {

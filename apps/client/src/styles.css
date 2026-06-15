@@ -10378,3 +10378,101 @@ select {
   background:
     linear-gradient(180deg, rgba(255, 252, 239, 0.56), rgba(236, 224, 198, 0.28)) !important;
 }
+
+/* Art director cleanup: resources, actions, and skill cards should feel like table notes. */
+.poker-table-board .seat-resource-grid,
+.seat-resource-grid {
+  display: flex !important;
+  align-items: center;
+  gap: 7px !important;
+  margin-top: 8px !important;
+  border: 0 !important;
+}
+
+.poker-table-board .seat-resource,
+.seat-resource {
+  min-height: 20px !important;
+  flex: 0 0 auto;
+  gap: 3px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.seat-resource svg {
+  width: 13px !important;
+  height: 13px !important;
+  opacity: 0.56;
+  stroke-width: 2.4;
+}
+
+.seat-resource span {
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.seat-resource strong,
+.seat-resource-value {
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+.table-action-dock .action-command-strip,
+.poker-table-board .table-action-dock .action-command-strip {
+  border-bottom-style: dashed !important;
+  background:
+    linear-gradient(90deg, rgba(0, 145, 151, 0.055), transparent 72%) !important;
+}
+
+.table-action-dock .action-command-strip div {
+  border-right-style: dashed !important;
+}
+
+.table-action-dock .mode-button,
+.action-board .action-mode-grid .mode-button {
+  border-bottom-style: dashed !important;
+  font-weight: 650 !important;
+}
+
+.table-action-dock .mode-button-active,
+.action-board .action-mode-grid .mode-button-active {
+  background:
+    linear-gradient(180deg, transparent 42%, rgba(0, 145, 151, 0.12) 43% 76%, transparent 77%) !important;
+}
+
+.table-action-dock .action-submit-button {
+  border-color: rgba(121, 92, 43, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(222, 201, 151, 0.36), rgba(190, 153, 91, 0.24)) !important;
+}
+
+.skill-gallery-feature,
+.skill-gallery-thumb {
+  border-color: rgba(36, 31, 25, 0.13) !important;
+  background:
+    repeating-linear-gradient(103deg, rgba(48, 42, 30, 0.012) 0 1px, transparent 1px 12px),
+    linear-gradient(180deg, rgba(255, 250, 232, 0.62), rgba(237, 224, 196, 0.28)) !important;
+  box-shadow:
+    0 10px 22px rgba(48, 42, 30, 0.045),
+    inset 0 1px 0 rgba(255, 253, 241, 0.36) !important;
+}
+
+.skill-gallery-feature-art {
+  border: 0 !important;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 145, 151, 0.14), transparent 58%) !important;
+  box-shadow: none !important;
+}
+
+.skill-gallery-feature-meta span {
+  border-radius: 999px !important;
+  border-style: dashed !important;
+  background: rgba(255, 253, 244, 0.42) !important;
+}
+
+.skill-gallery-thumb-active {
+  transform: translateY(-1px) rotate(-0.2deg) !important;
+}

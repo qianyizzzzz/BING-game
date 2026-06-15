@@ -44,7 +44,7 @@ type SidePanelTab = "hint" | "log" | "skills" | "rules";
 
 const SIDE_PANEL_TABS: Array<{ id: SidePanelTab; label: string }> = [
   { id: "hint", label: "提示" },
-  { id: "log", label: "日志" },
+  { id: "log", label: "记录" },
   { id: "skills", label: "技能" },
   { id: "rules", label: "规则" }
 ];

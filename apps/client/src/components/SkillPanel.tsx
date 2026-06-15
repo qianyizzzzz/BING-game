@@ -119,7 +119,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
             <h2 className="text-base font-black text-gray-950">技能卡册</h2>
             <p className="mt-0.5 text-xs font-semibold text-gray-500">
               {showingPlayerSkills
-                ? "本局技能像展签一样陈列；刚触发的卡片会出现颜料高亮。"
+                ? "本局技能像卡页一样摊开；刚触发的卡片会出现颜料高亮。"
                 : "本局未开启技能，先翻一页卡册预览。"}
             </p>
           </div>
