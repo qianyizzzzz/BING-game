@@ -3,6 +3,11 @@ import path from "node:path";
 
 interface EffectPromptSpec {
   assetDir?: string;
+  currentAssets?: {
+    complete: boolean;
+    existing: string[];
+    missing: string[];
+  };
   keyframes?: Array<{ file: string; phase: string; prompt: string }>;
   prompt: string;
   skillId: string;
@@ -10,7 +15,11 @@ interface EffectPromptSpec {
 }
 
 interface BatchOptions {
+  allowOverBudget: boolean;
+  cnySpendLimit: number;
   dryRun: boolean;
+  estimatedCnyPerTask: number;
+  includeMissingKeyframes: boolean;
   limit: number;
   model: string;
   offset: number;
@@ -21,11 +30,19 @@ interface BatchOptions {
 }
 
 interface SubmittedTask {
+  estimatedCny?: number;
   payload: Record<string, unknown>;
   response?: unknown;
   skillId: string;
   skillName: string;
   submittedAt?: string;
+}
+
+interface SkippedTask {
+  missingKeyframes: string[];
+  reason: string;
+  skillId: string;
+  skillName: string;
 }
 
 const asyncCallbackUrl = "https://api.acedata.cloud/health";
@@ -40,7 +57,26 @@ if (specs.length === 0) {
   throw new Error(`No Seedance prompts found in ${promptManifestPath} or ${specPath}`);
 }
 
-const selected = specs.slice(options.offset, options.offset + options.limit);
+const candidateSpecs = specs.slice(options.offset, options.offset + options.limit);
+const skipped: SkippedTask[] = [];
+const selected = candidateSpecs.filter((spec) => {
+  const missingKeyframes = missingRequiredKeyframes(spec);
+  if (options.includeMissingKeyframes || missingKeyframes.length === 0) {
+    return true;
+  }
+  skipped.push({
+    missingKeyframes,
+    reason: "missing_keyframes",
+    skillId: spec.skillId,
+    skillName: spec.skillName
+  });
+  return false;
+});
+
+if (!options.dryRun && selected.length > 0) {
+  enforceBudgetGate(selected.length, options);
+}
+
 const outDir = path.resolve(options.outDir);
 fs.mkdirSync(outDir, { recursive: true });
 
@@ -49,6 +85,7 @@ const tasks: SubmittedTask[] = [];
 for (const spec of selected) {
   const payload = buildPayload(spec, options);
   const task: SubmittedTask = {
+    estimatedCny: options.estimatedCnyPerTask > 0 ? options.estimatedCnyPerTask : undefined,
     payload,
     skillId: spec.skillId,
     skillName: spec.skillName
@@ -74,10 +111,12 @@ fs.writeFileSync(
   JSON.stringify(
     {
       apiBaseUrl,
+      budget: buildBudgetSummary(tasks.length, options),
       count: tasks.length,
       dryRun: options.dryRun,
       generatedAt: new Date().toISOString(),
       options,
+      skipped,
       sourceSpec: fs.existsSync(promptManifestPath) ? promptManifestPath : specPath,
       totalSpecs: specs.length,
       tasks
@@ -89,7 +128,7 @@ fs.writeFileSync(
 );
 
 console.log(
-  `${options.dryRun ? "planned" : "submitted"} ${tasks.length} Seedance effect tasks -> ${manifestPath}`
+  `${options.dryRun ? "planned" : "submitted"} ${tasks.length} Seedance effect tasks, skipped ${skipped.length} -> ${manifestPath}`
 );
 
 function parseEffectPrompts(markdown: string): EffectPromptSpec[] {
@@ -123,6 +162,11 @@ function readEffectPromptSpecs(): EffectPromptSpec[] {
     const manifest = JSON.parse(fs.readFileSync(promptManifestPath, "utf-8")) as {
       skills?: Array<{
         assetDir?: string;
+        currentAssets?: {
+          complete: boolean;
+          existing: string[];
+          missing: string[];
+        };
         keyframes?: Array<{ file: string; phase: string; prompt: string }>;
         name?: string;
         seedancePrompt?: string;
@@ -134,6 +178,7 @@ function readEffectPromptSpecs(): EffectPromptSpec[] {
         ?.filter((skill) => skill.skillId && skill.name && skill.seedancePrompt)
         .map((skill) => ({
           assetDir: skill.assetDir,
+          currentAssets: skill.currentAssets,
           keyframes: skill.keyframes,
           prompt: skill.seedancePrompt!,
           skillId: skill.skillId!,
@@ -182,7 +227,9 @@ function buildPayload(spec: EffectPromptSpec, opts: BatchOptions): Record<string
     frames: 29,
     metadata: {
       assetDir: spec.assetDir,
+      estimatedCny: opts.estimatedCnyPerTask > 0 ? opts.estimatedCnyPerTask : undefined,
       expectedKeyframes: spec.keyframes?.map((keyframe) => keyframe.file),
+      spendLimitCny: opts.cnySpendLimit,
       skillId: spec.skillId,
       skillName: spec.skillName
     },
@@ -226,7 +273,14 @@ async function readJsonOrText(response: Response): Promise<unknown> {
 function readOptions(): BatchOptions {
   const submit = process.argv.includes("--submit");
   return {
+    allowOverBudget: process.argv.includes("--allow-over-budget"),
+    cnySpendLimit: numberArg("--cny-spend-limit", 10),
     dryRun: !submit,
+    estimatedCnyPerTask: decimalArg(
+      "--estimated-cny-per-task",
+      Number(process.env.SEEDANCE_ESTIMATED_CNY_PER_TASK ?? 0)
+    ),
+    includeMissingKeyframes: process.argv.includes("--include-missing-keyframes"),
     limit: numberArg("--limit", 5),
     model: stringArg("--model", "doubao-seedance-1-0-pro-fast-251015"),
     offset: numberArg("--offset", 0),
@@ -247,6 +301,59 @@ function numberArg(name: string, fallback: number): number {
     throw new Error(`${name} must be a non-negative number`);
   }
   return Math.floor(value);
+}
+
+function decimalArg(name: string, fallback: number): number {
+  const raw = stringArg(name, "");
+  if (!raw) {
+    return fallback;
+  }
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative number`);
+  }
+  return value;
+}
+
+function missingRequiredKeyframes(spec: EffectPromptSpec): string[] {
+  const keyframes = spec.keyframes ?? [];
+  if (!spec.assetDir || keyframes.length === 0) {
+    return ["keyframe-01.png", "keyframe-02.png", "keyframe-03.png", "keyframe-04.png"];
+  }
+
+  return keyframes
+    .map((keyframe) => keyframe.file)
+    .filter((fileName) => /^keyframe-\d+\.png$/i.test(fileName))
+    .filter((fileName) => !fs.existsSync(path.resolve(spec.assetDir!, fileName)));
+}
+
+function enforceBudgetGate(taskCount: number, opts: BatchOptions): void {
+  if (opts.estimatedCnyPerTask <= 0) {
+    throw new Error(
+      "--estimated-cny-per-task is required when using --submit so the 10 RMB spend gate can be enforced"
+    );
+  }
+
+  const estimatedTotal = taskCount * opts.estimatedCnyPerTask;
+  if (!opts.allowOverBudget && estimatedTotal >= opts.cnySpendLimit) {
+    throw new Error(
+      `Seedance submit blocked: estimated spend ${estimatedTotal.toFixed(2)} RMB reaches or exceeds ${opts.cnySpendLimit.toFixed(2)} RMB. Ask the user for permission before continuing, then rerun with --allow-over-budget if approved.`
+    );
+  }
+}
+
+function buildBudgetSummary(taskCount: number, opts: BatchOptions): {
+  allowOverBudget: boolean;
+  estimatedCnyPerTask: number;
+  estimatedTotalCny: number;
+  spendLimitCny: number;
+} {
+  return {
+    allowOverBudget: opts.allowOverBudget,
+    estimatedCnyPerTask: opts.estimatedCnyPerTask,
+    estimatedTotalCny: taskCount * opts.estimatedCnyPerTask,
+    spendLimitCny: opts.cnySpendLimit
+  };
 }
 
 function stringArg(name: string, fallback: string): string {

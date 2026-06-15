@@ -123,8 +123,8 @@ npm run serve
 | `npm run build` | 构建 shared、server 和 client。 |
 | `npm run serve` | 启动生产模式服务。 |
 | `npm run public` | 构建、启动服务并打开临时公网隧道。 |
-| `npm run seedance:effects:plan` | 从全技能特效规格生成前 5 个 Seedance 任务 payload，不调用 API。 |
-| `npm run seedance:effects:submit` | 使用 `ACEDATACLOUD_API_TOKEN` 提交前 5 个 Seedance 技能动画任务。 |
+| `npm run seedance:effects:plan` | 从全技能特效规格生成前 5 个关键帧齐全的 Seedance 任务 payload，不调用 API。 |
+| `npm run seedance:effects:submit -- --estimated-cny-per-task=单价` | 使用 `ACEDATACLOUD_API_TOKEN` 提交关键帧齐全的 Seedance 技能动画任务；预计费用达到 10 元人民币会自动停止，需要先征得确认。 |
 | `npm run seedance:effects:settle` | 轮询已提交的 Seedance 任务，下载视频和海报到技能特效资产目录。 |
 | `npm run typecheck` | 对所有 workspace 运行 TypeScript 检查。 |
 | `npm run test:ci` | 运行 typecheck、角色资产审计、规则回归和 turn timeline 检查。 |
