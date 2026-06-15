@@ -1,15 +1,15 @@
 # BING 全技能特效动画生成规格
 
-生成时间：2026-06-15T11:01:32.955Z
+生成时间：2026-06-15T15:15:31.165Z
 
-本文件由 `scripts/generate-effect-animation-spec.ts` 从真实技能注册表生成，覆盖全部技能，而不是只覆盖可主动播放的技能。
+本文档由 `scripts/generate-effect-animation-spec.ts` 从真实技能注册表生成，覆盖全部技能，而不是只覆盖可主动播放的技能。
 
 ## 目标
 
 - 为全部技能建立 imagegen 关键帧提示词与 Seedance 补帧动画提示词。
 - 主动技能、攻击技能、资源技能、控制技能必须进入正式特效资产生产。
 - 未接入 `play` 的锁定/被动技能也必须有触发提示、状态印记或无效反馈动画，避免技能表现缺口。
-- 所有资产统一为油画感、透明亚克力装置、共餐实验装置风格，替换现有硬几何图形和浮层素材。
+- 所有资产统一为油画感、透明亚克力装置、共餐实验装置风格，替换硬几何图形和粗糙浮层素材。
 
 ## 全局风格
 
@@ -25,6 +25,7 @@
 - Codex 用户配置已新增 `mcp_servers.seedance`，使用 `uvx mcp-seedance` 启动。
 - 运行前需要在系统环境变量中提供 `ACEDATACLOUD_API_TOKEN`。
 - 配置变更通常需要重启 Codex 或新开会话，工具列表才会刷新出 Seedance MCP。
+- 付费 API 消耗达到或预计达到 10 RMB 前必须先询问用户。
 
 ## 资产目录规范
 
@@ -44,7 +45,7 @@ apps/client/public/assets/effects/{skillId}/effect.mp4
 
 | 技能 | 名称 | 分类 | 播放状态 | 视觉原型 | 资产状态 | 资产目录 |
 | --- | --- | --- | --- | --- | --- | --- |
-| `skill_2_8724` | 空 | raw | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 中性无效波纹 | 0/7 | `apps/client/public/assets/effects/skill_2_8724/` |
+| `skill_2_8724` | 空 | raw | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 中性反馈波纹 | 0/7 | `apps/client/public/assets/effects/skill_2_8724/` |
 | `skill_3_56718` | 再来一次 | raw | 已接入 play，可由技能播放系统直接触发 | 重获颜料旋涡 | 0/7 | `apps/client/public/assets/effects/skill_3_56718/` |
 | `skill_4_65637` | 沙子 | raw | 已接入 play，可由技能播放系统直接触发 | 沙化变形 | 0/7 | `apps/client/public/assets/effects/skill_4_65637/` |
 | `skill_5_34881` | 封印 | locked | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_5_34881/` |
@@ -177,7 +178,7 @@ apps/client/public/assets/effects/{skillId}/effect.mp4
 - 玩法摘要：visual-only / phases=passive_check
 - 触发表现：在系统判断技能生效、失效或无效果时播放轻量反馈。
 - 机制视觉线索：无效果
-- 视觉原型：中性无效波纹
+- 视觉原型：中性反馈波纹
 - 色彩：乳白、灰蓝、少量淡金
 - 材质：薄油膜、透明玻璃反光、柔软画布颗粒
 - 运动：浅色油膜轻轻展开后收束，不制造强攻击感，作为无直接效果或空技能反馈
@@ -194,7 +195,7 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_2_8724 空
 Gameplay meaning: visual-only / phases=passive_check.
 Mechanic-specific cue: 无效果.
-Primary request: 中性无效波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 中性反馈波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "空" motif first appears as a small oil-paint emblem; subtle system feedback near the skill card; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 乳白、灰蓝、少量淡金.
@@ -213,7 +214,7 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_2_8724 空
 Gameplay meaning: visual-only / phases=passive_check.
 Mechanic-specific cue: 无效果.
-Primary request: 中性无效波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Primary request: 中性反馈波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
 Frame direction: the "空" motif reaches the strongest readable silhouette; 浅色油膜轻轻展开后收束，不制造强攻击感，作为无直接效果或空技能反馈; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 乳白、灰蓝、少量淡金.
@@ -232,7 +233,7 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_2_8724 空
 Gameplay meaning: visual-only / phases=passive_check.
 Mechanic-specific cue: 无效果.
-Primary request: 中性无效波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 中性反馈波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through subtle system feedback near the skill card; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 乳白、灰蓝、少量淡金.
@@ -251,7 +252,7 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_2_8724 空
 Gameplay meaning: visual-only / phases=passive_check.
 Mechanic-specific cue: 无效果.
-Primary request: 中性无效波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 中性反馈波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "空" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 乳白、灰蓝、少量淡金.
@@ -2955,7 +2956,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 视觉原型：红色油彩冲击
 - 色彩：深红、赭石、少量黑色
 - 材质：厚涂红色油彩、刮刀痕、画布颗粒
-- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点
 - 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_27_23816/`
 
@@ -2989,7 +2990,7 @@ Skill: skill_27_23816 全力一击
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=999 / level=-1.
 Mechanic-specific cue: 技能攻击，0饼，攻无限，-1级，任意防，被防住则你-3血; cost 0, target single; power 999; level -1; defense any.
 Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "全力一击" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize high-impact.
+Frame direction: the "全力一击" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点; emphasize high-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 深红、赭石、少量黑色.
 Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
@@ -3045,7 +3046,7 @@ Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, key
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=999 / level=-1. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，0饼，攻无限，-1级，任意防，被防住则你-3血; cost 0, target single; power 999; level -1; defense any.
 Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -3946,11 +3947,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 名称：电击法术
 - 分类：limited
 - 时机：出招
-- 描述：限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，电系；命中后使其麻痹1回合
+- 描述：限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，命中后使其麻痹1回合；麻痹：若目标被麻痹时出招为防御，则固定此防御作为出招；若目标出招为饼，则固定饼作为出招，但是不会加饼；其他情况下，视为没有出招
 - 播放状态：已接入 play，可由技能播放系统直接触发
 - 玩法摘要：kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=1
 - 触发表现：在技能确认或效果结算时播放，优先跟随技能卡和目标线。
-- 机制视觉线索：限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，电系；命中后使其麻痹1回合; cost 0, target single; limited 1 use(s)
+- 机制视觉线索：限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，命中后使其麻痹1回合；麻痹：若目标被麻痹时出招为防御，则固定此防御作为出招；若目标出招为饼，则固定饼作为出招，但是不会加饼；其他情况下，视为没有出招; cost 0, target single; limited 1 use(s)
 - 视觉原型：透明防御波纹
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
@@ -3967,7 +3968,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_36_14343 电击法术
 Gameplay meaning: kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=1.
-Mechanic-specific cue: 限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，电系；命中后使其麻痹1回合; cost 0, target single; limited 1 use(s).
+Mechanic-specific cue: 限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，命中后使其麻痹1回合；麻痹：若目标被麻痹时出招为防御，则固定此防御作为出招；若目标出招为饼，则固定饼作为出招，但是不会加饼；其他情况下，视为没有出招; cost 0, target single; limited 1 use(s).
 Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "电击法术" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -3986,7 +3987,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_36_14343 电击法术
 Gameplay meaning: kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=1.
-Mechanic-specific cue: 限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，电系；命中后使其麻痹1回合; cost 0, target single; limited 1 use(s).
+Mechanic-specific cue: 限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，命中后使其麻痹1回合；麻痹：若目标被麻痹时出招为防御，则固定此防御作为出招；若目标出招为饼，则固定饼作为出招，但是不会加饼；其他情况下，视为没有出招; cost 0, target single; limited 1 use(s).
 Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
 Frame direction: the "电击法术" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -4005,7 +4006,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_36_14343 电击法术
 Gameplay meaning: kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=1.
-Mechanic-specific cue: 限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，电系；命中后使其麻痹1回合; cost 0, target single; limited 1 use(s).
+Mechanic-specific cue: 限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，命中后使其麻痹1回合；麻痹：若目标被麻痹时出招为防御，则固定此防御作为出招；若目标出招为饼，则固定饼作为出招，但是不会加饼；其他情况下，视为没有出招; cost 0, target single; limited 1 use(s).
 Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -4024,7 +4025,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_36_14343 电击法术
 Gameplay meaning: kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=1.
-Mechanic-specific cue: 限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，电系；命中后使其麻痹1回合; cost 0, target single; limited 1 use(s).
+Mechanic-specific cue: 限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，命中后使其麻痹1回合；麻痹：若目标被麻痹时出招为防御，则固定此防御作为出招；若目标出招为饼，则固定饼作为出招，但是不会加饼；其他情况下，视为没有出招; cost 0, target single; limited 1 use(s).
 Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "电击法术" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -4042,7 +4043,7 @@ Avoid: hard vector shapes, neon sci-fi HUD, black panels, plastic toy look, simp
 Create a 0.8-1.6 second game VFX animation for BING-game skill skill_36_14343 "电击法术".
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=1. Trigger behavior: 在技能确认或效果结算时播放，优先跟随技能卡和目标线。
-Mechanic-specific cue: 限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，电系；命中后使其麻痹1回合; cost 0, target single; limited 1 use(s).
+Mechanic-specific cue: 限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，命中后使其麻痹1回合；麻痹：若目标被麻痹时出招为防御，则固定此防御作为出招；若目标出招为饼，则固定饼作为出招，但是不会加饼；其他情况下，视为没有出招; cost 0, target single; limited 1 use(s).
 Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
 Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
@@ -4398,7 +4399,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 视觉原型：红色油彩冲击
 - 色彩：深红、赭石、少量黑色
 - 材质：厚涂红色油彩、刮刀痕、画布颗粒
-- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点
 - 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_40_27274/`
 
@@ -4432,7 +4433,7 @@ Skill: skill_40_27274 碎石掌
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=3 / level=2.
 Mechanic-specific cue: 技能攻击，3饼，攻3，2级，小防防，目标出石头时攻击变为6; cost 3, target single; power 3; level 2; defense small.
 Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "碎石掌" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize medium-impact.
+Frame direction: the "碎石掌" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点; emphasize medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 深红、赭石、少量黑色.
 Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
@@ -4488,7 +4489,7 @@ Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, key
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=3 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，3饼，攻3，2级，小防防，目标出石头时攻击变为6; cost 3, target single; power 3; level 2; defense small.
 Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -4509,7 +4510,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 视觉原型：红色油彩冲击
 - 色彩：深红、赭石、少量黑色
 - 材质：厚涂红色油彩、刮刀痕、画布颗粒
-- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点
 - 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_41_43495/`
 
@@ -4543,7 +4544,7 @@ Skill: skill_41_43495 裂山拳
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=2 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻2，3级，油条防，目标出石头时攻击变为4; cost 3, target single; power 2; level 3; defense youtiao.
 Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "裂山拳" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize medium-impact.
+Frame direction: the "裂山拳" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点; emphasize medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 深红、赭石、少量黑色.
 Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
@@ -4599,7 +4600,7 @@ Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, key
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=2 / level=3. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，3饼，攻2，3级，油条防，目标出石头时攻击变为4; cost 3, target single; power 2; level 3; defense youtiao.
 Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -4945,11 +4946,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 名称：毁灭之力
 - 分类：control
 - 时机：变招阶段
-- 描述：控制技，2轮限1次，变招阶段，当你攻击时，可以选择1项：攻击+1等级-1、攻击-1等级+1、攻击+2等级-2、攻击-2等级+2、攻击×3等级变为0、攻击变为0等级×4
+- 描述：控制技，2轮限1次，当你攻击时，可以将该攻击的攻击+1、等级-1；攻击-1、等级+1；攻击+2、等级-2；攻击-2、等级+2；攻击变为0、等级×4；攻击×3、等级变为0
 - 播放状态：已接入 play，可由技能播放系统直接触发
 - 玩法摘要：kind=effect / cost=0 / target=none / effect=no_direct_effect
 - 触发表现：在技能确认或效果结算时播放，优先跟随技能卡和目标线。
-- 机制视觉线索：控制技，2轮限1次，变招阶段，当你攻击时，可以选择1项：攻击+1等级-1、攻击-1等级+1、攻击+2等级-2、攻击-2等级+2、攻击×3等级变为0、攻击变为0等级×4; cost 0, target none
+- 机制视觉线索：控制技，2轮限1次，当你攻击时，可以将该攻击的攻击+1、等级-1；攻击-1、等级+1；攻击+2、等级-2；攻击-2、等级+2；攻击变为0、等级×4；攻击×3、等级变为0; cost 0, target none
 - 视觉原型：石墨线控场
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
@@ -4966,7 +4967,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_45_30424 毁灭之力
 Gameplay meaning: kind=effect / cost=0 / target=none / effect=no_direct_effect.
-Mechanic-specific cue: 控制技，2轮限1次，变招阶段，当你攻击时，可以选择1项：攻击+1等级-1、攻击-1等级+1、攻击+2等级-2、攻击-2等级+2、攻击×3等级变为0、攻击变为0等级×4; cost 0, target none.
+Mechanic-specific cue: 控制技，2轮限1次，当你攻击时，可以将该攻击的攻击+1、等级-1；攻击-1、等级+1；攻击+2、等级-2；攻击-2、等级+2；攻击变为0、等级×4；攻击×3、等级变为0; cost 0, target none.
 Primary request: 石墨线控场; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "毁灭之力" motif first appears as a small oil-paint emblem; centered system mark with no target lane; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -4985,7 +4986,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_45_30424 毁灭之力
 Gameplay meaning: kind=effect / cost=0 / target=none / effect=no_direct_effect.
-Mechanic-specific cue: 控制技，2轮限1次，变招阶段，当你攻击时，可以选择1项：攻击+1等级-1、攻击-1等级+1、攻击+2等级-2、攻击-2等级+2、攻击×3等级变为0、攻击变为0等级×4; cost 0, target none.
+Mechanic-specific cue: 控制技，2轮限1次，当你攻击时，可以将该攻击的攻击+1、等级-1；攻击-1、等级+1；攻击+2、等级-2；攻击-2、等级+2；攻击变为0、等级×4；攻击×3、等级变为0; cost 0, target none.
 Primary request: 石墨线控场; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
 Frame direction: the "毁灭之力" motif reaches the strongest readable silhouette; 石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -5004,7 +5005,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_45_30424 毁灭之力
 Gameplay meaning: kind=effect / cost=0 / target=none / effect=no_direct_effect.
-Mechanic-specific cue: 控制技，2轮限1次，变招阶段，当你攻击时，可以选择1项：攻击+1等级-1、攻击-1等级+1、攻击+2等级-2、攻击-2等级+2、攻击×3等级变为0、攻击变为0等级×4; cost 0, target none.
+Mechanic-specific cue: 控制技，2轮限1次，当你攻击时，可以将该攻击的攻击+1、等级-1；攻击-1、等级+1；攻击+2、等级-2；攻击-2、等级+2；攻击变为0、等级×4；攻击×3、等级变为0; cost 0, target none.
 Primary request: 石墨线控场; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through centered system mark with no target lane; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -5023,7 +5024,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_45_30424 毁灭之力
 Gameplay meaning: kind=effect / cost=0 / target=none / effect=no_direct_effect.
-Mechanic-specific cue: 控制技，2轮限1次，变招阶段，当你攻击时，可以选择1项：攻击+1等级-1、攻击-1等级+1、攻击+2等级-2、攻击-2等级+2、攻击×3等级变为0、攻击变为0等级×4; cost 0, target none.
+Mechanic-specific cue: 控制技，2轮限1次，当你攻击时，可以将该攻击的攻击+1、等级-1；攻击-1、等级+1；攻击+2、等级-2；攻击-2、等级+2；攻击变为0、等级×4；攻击×3、等级变为0; cost 0, target none.
 Primary request: 石墨线控场; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "毁灭之力" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -5041,7 +5042,7 @@ Avoid: hard vector shapes, neon sci-fi HUD, black panels, plastic toy look, simp
 Create a 0.8-1.6 second game VFX animation for BING-game skill skill_45_30424 "毁灭之力".
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=effect / cost=0 / target=none / effect=no_direct_effect. Trigger behavior: 在技能确认或效果结算时播放，优先跟随技能卡和目标线。
-Mechanic-specific cue: 控制技，2轮限1次，变招阶段，当你攻击时，可以选择1项：攻击+1等级-1、攻击-1等级+1、攻击+2等级-2、攻击-2等级+2、攻击×3等级变为0、攻击变为0等级×4; cost 0, target none.
+Mechanic-specific cue: 控制技，2轮限1次，当你攻击时，可以将该攻击的攻击+1、等级-1；攻击-1、等级+1；攻击+2、等级-2；攻击-2、等级+2；攻击变为0、等级×4；攻击×3、等级变为0; cost 0, target none.
 Visual language: graphite linework and thin metal rods constricting, transparent installation control effect; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
 Motion: 石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
@@ -8941,15 +8942,15 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 名称：撸
 - 分类：attack
 - 时机：出招
-- 描述：技能攻击，1饼，攻1，1级，小防防
+- 描述：技能攻击，1饼，攻1，1级，小防防，每次命中后你的单个撸的攻等永久+1，上限为4
 - 播放状态：已接入 play，可由技能播放系统直接触发
 - 玩法摘要：kind=attack / cost=1 / target=single / element=physical / power=1 / level=1
 - 触发表现：在出招、目标确认、命中结算三段中播放。
-- 机制视觉线索：技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small
+- 机制视觉线索：技能攻击，1饼，攻1，1级，小防防，每次命中后你的单个撸的攻等永久+1，上限为4; cost 1, target single; power 1; level 1; defense small
 - 视觉原型：红色油彩冲击
 - 色彩：深红、赭石、少量黑色
 - 材质：厚涂红色油彩、刮刀痕、画布颗粒
-- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点
 - 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_81_59663/`
 
@@ -8962,7 +8963,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_81_59663 撸
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
-Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small.
+Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防，每次命中后你的单个撸的攻等永久+1，上限为4; cost 1, target single; power 1; level 1; defense small.
 Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "撸" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -8981,9 +8982,9 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_81_59663 撸
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
-Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small.
+Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防，每次命中后你的单个撸的攻等永久+1，上限为4; cost 1, target single; power 1; level 1; defense small.
 Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "撸" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
+Frame direction: the "撸" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 深红、赭石、少量黑色.
 Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
@@ -9000,7 +9001,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_81_59663 撸
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
-Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small.
+Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防，每次命中后你的单个撸的攻等永久+1，上限为4; cost 1, target single; power 1; level 1; defense small.
 Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -9019,7 +9020,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_81_59663 撸
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
-Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small.
+Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防，每次命中后你的单个撸的攻等永久+1，上限为4; cost 1, target single; power 1; level 1; defense small.
 Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "撸" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -9037,9 +9038,9 @@ Avoid: hard vector shapes, neon sci-fi HUD, black panels, plastic toy look, simp
 Create a 0.8-1.6 second game VFX animation for BING-game skill skill_81_59663 "撸".
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
-Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small.
+Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防，每次命中后你的单个撸的攻等永久+1，上限为4; cost 1, target single; power 1; level 1; defense small.
 Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9060,7 +9061,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 视觉原型：红色油彩冲击
 - 色彩：深红、赭石、少量黑色
 - 材质：厚涂红色油彩、刮刀痕、画布颗粒
-- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点
 - 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_82_45540/`
 
@@ -9094,7 +9095,7 @@ Skill: skill_82_45540 日
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，油条防; cost 1, target single; power 1; level 2; defense youtiao.
 Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "日" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
+Frame direction: the "日" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 深红、赭石、少量黑色.
 Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
@@ -9150,7 +9151,7 @@ Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, key
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，油条防; cost 1, target single; power 1; level 2; defense youtiao.
 Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9171,7 +9172,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 视觉原型：红色油彩冲击
 - 色彩：深红、赭石、少量黑色
 - 材质：厚涂红色油彩、刮刀痕、画布颗粒
-- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点
 - 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_83_32356/`
 
@@ -9205,7 +9206,7 @@ Skill: skill_83_32356 丁
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
 Mechanic-specific cue: 技能攻击，1饼，攻1，饼防，与攻击对撞则完全抵消，与抠对撞则你被退游; cost 1, target single; power 1; level 1; defense cake.
 Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "丁" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
+Frame direction: the "丁" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 深红、赭石、少量黑色.
 Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
@@ -9261,7 +9262,7 @@ Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, key
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，1饼，攻1，饼防，与攻击对撞则完全抵消，与抠对撞则你被退游; cost 1, target single; power 1; level 1; defense cake.
 Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9282,7 +9283,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 视觉原型：红色油彩冲击
 - 色彩：深红、赭石、少量黑色
 - 材质：厚涂红色油彩、刮刀痕、画布颗粒
-- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点
 - 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_84_6114/`
 
@@ -9316,7 +9317,7 @@ Skill: skill_84_6114 抠
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=3.
 Mechanic-specific cue: 技能攻击：2饼，攻1，3级，石头防，若目标出招为反弹，且反弹对象包含你，则你受到3点伤害，若与丁对撞，则使目标退游; cost 2, target single; power 1; level 3; defense stone.
 Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "抠" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize medium-impact.
+Frame direction: the "抠" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点; emphasize medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 深红、赭石、少量黑色.
 Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
@@ -9372,7 +9373,7 @@ Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, key
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=3. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击：2饼，攻1，3级，石头防，若目标出招为反弹，且反弹对象包含你，则你受到3点伤害，若与丁对撞，则使目标退游; cost 2, target single; power 1; level 3; defense stone.
 Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9393,7 +9394,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 视觉原型：红色油彩冲击
 - 色彩：深红、赭石、少量黑色
 - 材质：厚涂红色油彩、刮刀痕、画布颗粒
-- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点
 - 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_85_26345/`
 
@@ -9427,7 +9428,7 @@ Skill: skill_85_26345 钟
 Gameplay meaning: kind=attack / cost=1 / target=single / effect=zhong_shield / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，小防防，命中则获得1个对目标的“金钟罩”护盾，对同一名玩家的“金钟罩”最多持有1个；你受到来自他人的攻击时，若你未防住，且你有对他的“金钟罩”，则消耗这个金钟罩，抵挡这次攻击; cost 1, target single; power 1; level 2; defense small.
 Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "钟" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
+Frame direction: the "钟" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 深红、赭石、少量黑色.
 Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
@@ -9483,7 +9484,7 @@ Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, key
 Gameplay meaning: kind=attack / cost=1 / target=single / effect=zhong_shield / element=physical / power=1 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，小防防，命中则获得1个对目标的“金钟罩”护盾，对同一名玩家的“金钟罩”最多持有1个；你受到来自他人的攻击时，若你未防住，且你有对他的“金钟罩”，则消耗这个金钟罩，抵挡这次攻击; cost 1, target single; power 1; level 2; defense small.
 Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9504,7 +9505,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 视觉原型：红色油彩冲击
 - 色彩：深红、赭石、少量黑色
 - 材质：厚涂红色油彩、刮刀痕、画布颗粒
-- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点
 - 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_86_14131/`
 
@@ -9538,7 +9539,7 @@ Skill: skill_86_14131 梵
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，石头防，破弹; cost 2, target single; power 1; level 2; defense stone.
 Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "梵" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
+Frame direction: the "梵" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 深红、赭石、少量黑色.
 Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
@@ -9594,7 +9595,7 @@ Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, key
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，石头防，破弹; cost 2, target single; power 1; level 2; defense stone.
 Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9615,7 +9616,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 视觉原型：红色油彩冲击
 - 色彩：深红、赭石、少量黑色
 - 材质：厚涂红色油彩、刮刀痕、画布颗粒
-- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点
 - 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_87_44771/`
 
@@ -9649,7 +9650,7 @@ Skill: skill_87_44771 连爆
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=lian_bao_free / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，油条防，命中则获得1次免费“连爆”; cost 2, target single; power 1; level 2; defense youtiao.
 Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "连爆" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
+Frame direction: the "连爆" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 深红、赭石、少量黑色.
 Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
@@ -9705,7 +9706,7 @@ Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, key
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=lian_bao_free / element=physical / power=1 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，油条防，命中则获得1次免费“连爆”; cost 2, target single; power 1; level 2; defense youtiao.
 Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -10051,11 +10052,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 名称：级换
 - 分类：control
 - 时机：变招阶段
-- 描述：控制技，变招阶段，你可以将你的出招的攻击和等级交换
+- 描述：控制技，你可以将你的出招的攻击和等级交换
 - 播放状态：已接入 play，可由技能播放系统直接触发
 - 玩法摘要：kind=effect / cost=0 / target=none / effect=no_direct_effect
 - 触发表现：在技能确认或效果结算时播放，优先跟随技能卡和目标线。
-- 机制视觉线索：控制技，变招阶段，你可以将你的出招的攻击和等级交换; cost 0, target none
+- 机制视觉线索：控制技，你可以将你的出招的攻击和等级交换; cost 0, target none
 - 视觉原型：石墨线控场
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
@@ -10072,7 +10073,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_91_89631 级换
 Gameplay meaning: kind=effect / cost=0 / target=none / effect=no_direct_effect.
-Mechanic-specific cue: 控制技，变招阶段，你可以将你的出招的攻击和等级交换; cost 0, target none.
+Mechanic-specific cue: 控制技，你可以将你的出招的攻击和等级交换; cost 0, target none.
 Primary request: 石墨线控场; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "级换" motif first appears as a small oil-paint emblem; centered system mark with no target lane; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -10091,7 +10092,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_91_89631 级换
 Gameplay meaning: kind=effect / cost=0 / target=none / effect=no_direct_effect.
-Mechanic-specific cue: 控制技，变招阶段，你可以将你的出招的攻击和等级交换; cost 0, target none.
+Mechanic-specific cue: 控制技，你可以将你的出招的攻击和等级交换; cost 0, target none.
 Primary request: 石墨线控场; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
 Frame direction: the "级换" motif reaches the strongest readable silhouette; 石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -10110,7 +10111,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_91_89631 级换
 Gameplay meaning: kind=effect / cost=0 / target=none / effect=no_direct_effect.
-Mechanic-specific cue: 控制技，变招阶段，你可以将你的出招的攻击和等级交换; cost 0, target none.
+Mechanic-specific cue: 控制技，你可以将你的出招的攻击和等级交换; cost 0, target none.
 Primary request: 石墨线控场; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through centered system mark with no target lane; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -10129,7 +10130,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_91_89631 级换
 Gameplay meaning: kind=effect / cost=0 / target=none / effect=no_direct_effect.
-Mechanic-specific cue: 控制技，变招阶段，你可以将你的出招的攻击和等级交换; cost 0, target none.
+Mechanic-specific cue: 控制技，你可以将你的出招的攻击和等级交换; cost 0, target none.
 Primary request: 石墨线控场; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "级换" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -10147,7 +10148,7 @@ Avoid: hard vector shapes, neon sci-fi HUD, black panels, plastic toy look, simp
 Create a 0.8-1.6 second game VFX animation for BING-game skill skill_91_89631 "级换".
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=effect / cost=0 / target=none / effect=no_direct_effect. Trigger behavior: 在技能确认或效果结算时播放，优先跟随技能卡和目标线。
-Mechanic-specific cue: 控制技，变招阶段，你可以将你的出招的攻击和等级交换; cost 0, target none.
+Mechanic-specific cue: 控制技，你可以将你的出招的攻击和等级交换; cost 0, target none.
 Visual language: graphite linework and thin metal rods constricting, transparent installation control effect; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
 Motion: 石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
@@ -10384,11 +10385,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 名称：斗转星移
 - 分类：limited
 - 时机：变伤阶段
-- 描述：限定技，一局限2次，变伤阶段，选取你即将承受的1个不超过3的伤害，将其转移给选定玩家；可转移攻击伤害与法术伤害
+- 描述：限定技，一局限2次，受到≤3的伤害时，选定一名玩家，将该伤害转移给该玩家
 - 播放状态：已接入 play，可由技能播放系统直接触发
 - 玩法摘要：kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=2
 - 触发表现：在技能确认或效果结算时播放，优先跟随技能卡和目标线。
-- 机制视觉线索：限定技，一局限2次，变伤阶段，选取你即将承受的1个不超过3的伤害，将其转移给选定玩家；可转移攻击伤害与法术伤害; cost 0, target single; limited 2 use(s)
+- 机制视觉线索：限定技，一局限2次，受到≤3的伤害时，选定一名玩家，将该伤害转移给该玩家; cost 0, target single; limited 2 use(s)
 - 视觉原型：石墨线控场
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
@@ -10405,7 +10406,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_94_627 斗转星移
 Gameplay meaning: kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=2.
-Mechanic-specific cue: 限定技，一局限2次，变伤阶段，选取你即将承受的1个不超过3的伤害，将其转移给选定玩家；可转移攻击伤害与法术伤害; cost 0, target single; limited 2 use(s).
+Mechanic-specific cue: 限定技，一局限2次，受到≤3的伤害时，选定一名玩家，将该伤害转移给该玩家; cost 0, target single; limited 2 use(s).
 Primary request: 石墨线控场; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "斗转星移" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -10424,7 +10425,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_94_627 斗转星移
 Gameplay meaning: kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=2.
-Mechanic-specific cue: 限定技，一局限2次，变伤阶段，选取你即将承受的1个不超过3的伤害，将其转移给选定玩家；可转移攻击伤害与法术伤害; cost 0, target single; limited 2 use(s).
+Mechanic-specific cue: 限定技，一局限2次，受到≤3的伤害时，选定一名玩家，将该伤害转移给该玩家; cost 0, target single; limited 2 use(s).
 Primary request: 石墨线控场; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
 Frame direction: the "斗转星移" motif reaches the strongest readable silhouette; 石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -10443,7 +10444,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_94_627 斗转星移
 Gameplay meaning: kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=2.
-Mechanic-specific cue: 限定技，一局限2次，变伤阶段，选取你即将承受的1个不超过3的伤害，将其转移给选定玩家；可转移攻击伤害与法术伤害; cost 0, target single; limited 2 use(s).
+Mechanic-specific cue: 限定技，一局限2次，受到≤3的伤害时，选定一名玩家，将该伤害转移给该玩家; cost 0, target single; limited 2 use(s).
 Primary request: 石墨线控场; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -10462,7 +10463,7 @@ Use case: game VFX keyframe
 Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_94_627 斗转星移
 Gameplay meaning: kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=2.
-Mechanic-specific cue: 限定技，一局限2次，变伤阶段，选取你即将承受的1个不超过3的伤害，将其转移给选定玩家；可转移攻击伤害与法术伤害; cost 0, target single; limited 2 use(s).
+Mechanic-specific cue: 限定技，一局限2次，受到≤3的伤害时，选定一名玩家，将该伤害转移给该玩家; cost 0, target single; limited 2 use(s).
 Primary request: 石墨线控场; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "斗转星移" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
@@ -10480,7 +10481,7 @@ Avoid: hard vector shapes, neon sci-fi HUD, black panels, plastic toy look, simp
 Create a 0.8-1.6 second game VFX animation for BING-game skill skill_94_627 "斗转星移".
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=effect / cost=0 / target=single / effect=no_direct_effect / uses=2. Trigger behavior: 在技能确认或效果结算时播放，优先跟随技能卡和目标线。
-Mechanic-specific cue: 限定技，一局限2次，变伤阶段，选取你即将承受的1个不超过3的伤害，将其转移给选定玩家；可转移攻击伤害与法术伤害; cost 0, target single; limited 2 use(s).
+Mechanic-specific cue: 限定技，一局限2次，受到≤3的伤害时，选定一名玩家，将该伤害转移给该玩家; cost 0, target single; limited 2 use(s).
 Visual language: graphite linework and thin metal rods constricting, transparent installation control effect; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
 Motion: 石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
@@ -10503,7 +10504,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 视觉原型：红色油彩冲击
 - 色彩：深红、赭石、少量黑色
 - 材质：厚涂红色油彩、刮刀痕、画布颗粒
-- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点
 - 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_95_91337/`
 
@@ -10537,7 +10538,7 @@ Skill: skill_95_91337 卷子
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=100000 / level=100000 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻退游，等同，任意防，破弹; cost 0, target single; power 100000; level 100000; defense any; limited 1 use(s).
 Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "卷子" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize high-impact.
+Frame direction: the "卷子" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点; emphasize high-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
 Color palette: 深红、赭石、少量黑色.
 Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
@@ -10593,7 +10594,7 @@ Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, key
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=100000 / level=100000 / uses=1. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻退游，等同，任意防，破弹; cost 0, target single; power 100000; level 100000; defense any; limited 1 use(s).
 Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.

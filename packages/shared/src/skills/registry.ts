@@ -192,8 +192,6 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
   skill_36_14343: {
     category: "limited",
     implemented: true,
-    description:
-      "限定技，一局限1次，技能出招，选取1到2名玩家作为目标，等级无限，反弹防，电系；命中后使其麻痹1回合",
     play: {
       kind: "effect",
       cost: 0,
@@ -207,8 +205,6 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
   skill_45_30424: {
     category: "control",
     implemented: true,
-    description:
-      "控制技，2轮限1次，变招阶段，当你攻击时，可以选择1项：攻击+1等级-1、攻击-1等级+1、攻击+2等级-2、攻击-2等级+2、攻击×3等级变为0、攻击变为0等级×4",
     play: {
       kind: "effect",
       cost: 0,
@@ -688,7 +684,6 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
   skill_91_89631: {
     category: "control",
     implemented: true,
-    description: "控制技，变招阶段，你可以将你的出招的攻击和等级交换",
     play: {
       kind: "effect",
       cost: 0,
@@ -725,7 +720,6 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
   skill_94_627: {
     category: "limited",
     implemented: true,
-    description: "限定技，一局限2次，变伤阶段，选取你即将承受的1个不超过3的伤害，将其转移给选定玩家；可转移攻击伤害与法术伤害",
     play: {
       kind: "effect",
       cost: 0,
@@ -739,7 +733,6 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
   skill_81_59663: {
     category: "attack",
     implemented: true,
-    description: "技能攻击，1饼，攻1，1级，小防防",
     play: {
       kind: "attack",
       cost: 1,
@@ -1212,31 +1205,31 @@ function createSkillDefinition(
 function inferCategory(raw: RawSkillDefinition): SkillDefinition["category"] {
   const timing = raw.timing ?? "";
 
-  if (skillHasTypeTag(raw, "锁定技")) {
+  if (skillHasTypeTag(raw, "\u9501\u5b9a\u6280")) {
     return "locked";
   }
 
-  if (skillHasTypeTag(raw, "限定技")) {
+  if (skillHasTypeTag(raw, "\u9650\u5b9a\u6280")) {
     return "limited";
   }
 
-  if (skillHasTypeTag(raw, "控制技")) {
+  if (skillHasTypeTag(raw, "\u63a7\u5236\u6280")) {
     return "control";
   }
 
-  if (timing.includes("被动") || raw.description.includes("锁定技")) {
+  if (timing.includes("\u88ab\u52a8") || raw.description.includes("\u9501\u5b9a\u6280")) {
     return "locked";
   }
 
-  if (raw.description.includes("控制技")) {
+  if (raw.description.includes("\u63a7\u5236\u6280")) {
     return "control";
   }
 
-  if (raw.description.includes("限定技")) {
+  if (raw.description.includes("\u9650\u5b9a\u6280")) {
     return "limited";
   }
 
-  if (timing.includes("出招") && raw.description.includes("技能攻击")) {
+  if ((timing.includes("\u51fa\u62db") || raw.description.includes("\u6280\u80fd\u51fa\u62db")) && raw.description.includes("\u653b")) {
     return "attack";
   }
 
@@ -1245,7 +1238,7 @@ function inferCategory(raw: RawSkillDefinition): SkillDefinition["category"] {
 
 function inferPlay(raw: RawSkillDefinition): SkillPlayDefinition | undefined {
   const attackMatch = raw.description.match(
-    /(?:技能攻击[，,:：])?(?:(\d+)饼[，,])?攻([∞无限退游\d+]+)[，,](-?\d+)级[，,](小防|油条|石头|任意|饼|无法)防/
+    /(?:\u6280\u80fd(?:\u51fa\u62db|\u653b\u51fb)[:\uFF1A,\uFF0C]?\s*)?(?:(\d+)\u997c[,\uFF0C])?\s*(?:\u7fa4\u653b|\u653b)([\u221e\u65e0\u9650\u9000\u6e38\d+]+)[,\uFF0C]\s*(-?\d+)\u7ea7[,\uFF0C]\s*(\u5c0f\u9632|\u6cb9\u6761|\u77f3\u5934|\u4efb\u610f|\u997c|\u65e0\u6cd5)\u9632?/
   );
   if (attackMatch) {
     const cost = attackMatch[1] ? Number(attackMatch[1]) : parseCost(raw.description) ?? 0;
@@ -1253,7 +1246,7 @@ function inferPlay(raw: RawSkillDefinition): SkillPlayDefinition | undefined {
     const level = Number(attackMatch[3]);
     const defenseTag = parseDefenseTag(attackMatch[4]);
     const traits: AttackTrait[] = ["skill"];
-    if (raw.description.includes("破弹")) {
+    if (raw.description.includes("\u7834\u5f39")) {
       traits.push("pierce_rebound");
     }
     if (raw.attribute) {
@@ -1274,7 +1267,7 @@ function inferPlay(raw: RawSkillDefinition): SkillPlayDefinition | undefined {
     };
   }
 
-  const resourceMatch = raw.description.match(/^x饼，\+(\d+)x饼/);
+  const resourceMatch = raw.description.match(/^x\u997c[,\uFF0C]\+(\d+)x\u997c/);
   if (resourceMatch) {
     return {
       kind: "resource",
@@ -1282,36 +1275,6 @@ function inferPlay(raw: RawSkillDefinition): SkillPlayDefinition | undefined {
       maxStacks: 20,
       targetMode: "none",
       resourceGainPerStack: Number(resourceMatch[1]),
-      usesPerGame: parseUsesPerGame(raw.description)
-    };
-  }
-
-  const areaAttackMatch = raw.description.match(
-    /(?:(\d+)饼[，,])?群攻([∞无限退游\d+]+)[，,](-?\d+)级[，,](小防|油条|石头|任意|饼|无法)防/
-  );
-  if (areaAttackMatch) {
-    const cost = areaAttackMatch[1] ? Number(areaAttackMatch[1]) : parseCost(raw.description) ?? 2;
-    const power = parsePower(areaAttackMatch[2]);
-    const level = Number(areaAttackMatch[3]);
-    const defenseTag = parseDefenseTag(areaAttackMatch[4]);
-    const traits: AttackTrait[] = ["skill", "area"];
-    if (raw.description.includes("破弹")) {
-      traits.push("pierce_rebound");
-    }
-    if (raw.attribute) {
-      traits.push(raw.attribute);
-    }
-
-    return {
-      kind: "attack",
-      cost,
-      maxStacks: 20,
-      targetMode: "all",
-      power,
-      level,
-      defenseTag,
-      traits: Array.from(new Set(traits)),
-      element: inferElement(raw),
       usesPerGame: parseUsesPerGame(raw.description)
     };
   }
@@ -1327,7 +1290,7 @@ function inferPlay(raw: RawSkillDefinition): SkillPlayDefinition | undefined {
 function inferEffect(raw: RawSkillDefinition): SkillPlayDefinition | undefined {
   const usesPerGame = parseUsesPerGame(raw.description);
 
-  if (raw.description.includes("此回合无敌")) {
+  if (raw.description.includes("\u6b64\u56de\u5408\u65e0\u654c")) {
     return {
       kind: "effect",
       cost: parseCost(raw.description) ?? 0,
@@ -1339,189 +1302,71 @@ function inferEffect(raw: RawSkillDefinition): SkillPlayDefinition | undefined {
     };
   }
 
-  if (raw.description.includes("抵挡本回合受到的普通攻击")) {
-    return {
-      kind: "effect",
-      cost: parseCost(raw.description) ?? 0,
-      maxStacks: 1,
-      targetMode: "none",
-      usesPerGame,
-      effect: "shield_normal"
-    };
+  if (raw.description.includes("\u62b5\u6321\u672c\u56de\u5408\u53d7\u5230\u7684\u666e\u901a\u653b\u51fb")) {
+    return { kind: "effect", cost: parseCost(raw.description) ?? 0, maxStacks: 1, targetMode: "none", usesPerGame, effect: "shield_normal" };
   }
 
-  if (raw.description.includes("抵挡本回合受到的技能招式")) {
-    return {
-      kind: "effect",
-      cost: parseCost(raw.description) ?? 0,
-      maxStacks: 1,
-      targetMode: "none",
-      usesPerGame,
-      effect: "shield_skill"
-    };
+  if (raw.description.includes("\u62b5\u6321\u672c\u56de\u5408\u53d7\u5230\u7684\u6280\u80fd\u62db\u5f0f")) {
+    return { kind: "effect", cost: parseCost(raw.description) ?? 0, maxStacks: 1, targetMode: "none", usesPerGame, effect: "shield_skill" };
   }
 
-  if (raw.description.includes("免疫此回合") || raw.description.includes("闪避此回合")) {
-    return {
-      kind: "effect",
-      cost: parseCost(raw.description) ?? 0,
-      maxStacks: 1,
-      targetMode: "none",
-      usesPerGame,
-      selfHeal: parseSelfHeal(raw.description),
-      effect: "invulnerable_turn"
-    };
+  if (raw.description.includes("\u514d\u75ab\u6b64\u56de\u5408") || raw.description.includes("\u95ea\u907f\u6b64\u56de\u5408")) {
+    return { kind: "effect", cost: parseCost(raw.description) ?? 0, maxStacks: 1, targetMode: "none", usesPerGame, selfHeal: parseSelfHeal(raw.description), effect: "invulnerable_turn" };
   }
 
-  if (raw.description.includes("对当前生命取绝对值")) {
-    return {
-      kind: "effect",
-      cost: parseCost(raw.description) ?? 0,
-      maxStacks: 1,
-      targetMode: "none",
-      usesPerGame,
-      selfHeal: parseSelfHeal(raw.description),
-      effect: "abs_plus"
-    };
+  if (raw.description.includes("\u5bf9\u5f53\u524d\u751f\u547d\u53d6\u7edd\u5bf9\u503c")) {
+    return { kind: "effect", cost: parseCost(raw.description) ?? 0, maxStacks: 1, targetMode: "none", usesPerGame, selfHeal: parseSelfHeal(raw.description), effect: "abs_plus" };
   }
 
-  if (raw.description.includes("奇数血量的玩家-1血")) {
-    return {
-      kind: "effect",
-      cost: 0,
-      maxStacks: 1,
-      targetMode: "all",
-      usesPerGame,
-      targetDamage: 1,
-      effect: "odd_hp_damage"
-    };
+  if (raw.description.includes("\u5947\u6570\u8840\u91cf\u7684\u73a9\u5bb6-1\u8840")) {
+    return { kind: "effect", cost: 0, maxStacks: 1, targetMode: "all", usesPerGame, targetDamage: 1, effect: "odd_hp_damage" };
   }
 
-  if (raw.description.includes("偶数血量的玩家-1血")) {
-    return {
-      kind: "effect",
-      cost: 0,
-      maxStacks: 1,
-      targetMode: "all",
-      usesPerGame,
-      targetDamage: 1,
-      effect: "even_hp_damage"
-    };
+  if (raw.description.includes("\u5076\u6570\u8840\u91cf\u7684\u73a9\u5bb6-1\u8840")) {
+    return { kind: "effect", cost: 0, maxStacks: 1, targetMode: "all", usesPerGame, targetDamage: 1, effect: "even_hp_damage" };
   }
 
-  if (raw.description.includes("血量最多") && raw.description.includes("造成2点")) {
-    return {
-      kind: "effect",
-      cost: 0,
-      maxStacks: 1,
-      targetMode: "all",
-      usesPerGame,
-      selectedTargetCount: 2,
-      targetDamage: 2,
-      effect: "highest_hp_damage"
-    };
+  if (raw.description.includes("\u8840\u91cf\u6700\u9ad8") && raw.description.includes("\u9020\u62102\u70b9")) {
+    return { kind: "effect", cost: 0, maxStacks: 1, targetMode: "all", usesPerGame, selectedTargetCount: 2, targetDamage: 2, effect: "highest_hp_damage" };
   }
 
-  if (raw.description.includes("不超过3血的玩家退游")) {
-    return {
-      kind: "effect",
-      cost: 0,
-      maxStacks: 1,
-      targetMode: "all",
-      usesPerGame,
-      hpThreshold: 3,
-      targetDamage: 999,
-      effect: "low_hp_execute"
-    };
+  if (raw.description.includes("\u4e0d\u8d85\u8fc73\u8840\u7684\u73a9\u5bb6\u9000\u6e38")) {
+    return { kind: "effect", cost: 0, maxStacks: 1, targetMode: "all", usesPerGame, hpThreshold: 3, targetDamage: 999, effect: "low_hp_execute" };
   }
 
-  if (raw.description.includes("你+4血") || raw.description.includes("+4血")) {
-    const play: SkillPlayDefinition = {
-      kind: "effect",
-      cost: parseCost(raw.description) ?? 0,
-      maxStacks: 1,
-      targetMode: raw.description.includes("其余玩家") ? "all" : "none",
-      usesPerGame,
-      selfHeal: 4
-    };
-    if (
-      raw.description.includes("其余玩家+1血") ||
-      raw.description.includes("除你外所有人+1血")
-    ) {
+  if (raw.description.includes("\u4f7f\u4f60+4\u8840") || raw.description.includes("+4\u8840")) {
+    const play: SkillPlayDefinition = { kind: "effect", cost: parseCost(raw.description) ?? 0, maxStacks: 1, targetMode: raw.description.includes("\u5176\u4f59\u73a9\u5bb6") ? "all" : "none", usesPerGame, selfHeal: 4 };
+    if (raw.description.includes("\u5176\u4f59\u73a9\u5bb6+1\u8840") || raw.description.includes("\u9664\u4f60\u5916\u6240\u6709\u4eba+1\u8840")) {
       play.allEnemyDamage = -1;
     }
     return play;
   }
 
-  if (raw.description.includes("全场受到1点") || raw.description.includes("除你全场受到1点")) {
-    return {
-      kind: "effect",
-      cost: parseCost(raw.description) ?? 0,
-      maxStacks: 1,
-      targetMode: "all",
-      usesPerGame,
-      allEnemyDamage: 1
-    };
+  if (raw.description.includes("\u5168\u573a\u53d7\u52301\u70b9") || raw.description.includes("\u9664\u4f60\u5168\u573a\u53d7\u52301\u70b9")) {
+    return { kind: "effect", cost: parseCost(raw.description) ?? 0, maxStacks: 1, targetMode: "all", usesPerGame, allEnemyDamage: 1 };
   }
 
-  if (raw.description.includes("你-1血") && raw.description.includes("+4防御值")) {
-    return {
-      kind: "effect",
-      cost: parseCost(raw.description) ?? 0,
-      maxStacks: 1,
-      targetMode: "none",
-      usesPerGame,
-      selfDamage: 1,
-      effect: "invulnerable_turn"
-    };
+  if (raw.description.includes("\u4f60-1\u8840") && raw.description.includes("+4\u9632\u5fa1\u503c")) {
+    return { kind: "effect", cost: parseCost(raw.description) ?? 0, maxStacks: 1, targetMode: "none", usesPerGame, selfDamage: 1, effect: "invulnerable_turn" };
   }
 
-  if (
-    !raw.timing?.includes("被动") &&
-    (raw.description.includes("限定技") || raw.description.includes("控制技"))
-  ) {
-    return {
-      kind: "effect",
-      cost: parseCost(raw.description) ?? 0,
-      maxStacks: 1,
-      targetMode: inferEffectTargetMode(raw.description),
-      usesPerGame,
-      effect: "no_direct_effect"
-    };
+  if (!raw.timing?.includes("\u88ab\u52a8") && (raw.description.includes("\u9650\u5b9a\u6280") || raw.description.includes("\u63a7\u5236\u6280"))) {
+    return { kind: "effect", cost: parseCost(raw.description) ?? 0, maxStacks: 1, targetMode: inferEffectTargetMode(raw.description), usesPerGame, effect: "no_direct_effect" };
   }
 
-  if (
-    !raw.timing?.includes("被动") &&
-    (raw.timing?.includes("随时可用") ||
-      raw.timing?.includes("回合中") ||
-      raw.timing?.includes("出招"))
-  ) {
-    return {
-      kind: "effect",
-      cost: parseCost(raw.description) ?? 0,
-      maxStacks: 1,
-      targetMode: inferEffectTargetMode(raw.description),
-      usesPerGame,
-      effect: "no_direct_effect"
-    };
+  if (!raw.timing?.includes("\u88ab\u52a8") && (raw.timing?.includes("\u968f\u65f6\u53ef\u7528") || raw.timing?.includes("\u56de\u5408\u4e2d") || raw.timing?.includes("\u51fa\u62db"))) {
+    return { kind: "effect", cost: parseCost(raw.description) ?? 0, maxStacks: 1, targetMode: inferEffectTargetMode(raw.description), usesPerGame, effect: "no_direct_effect" };
   }
 
   return undefined;
 }
 
 function inferEffectTargetMode(description: string): "single" | "all" | "none" {
-  if (description.includes("全场") || description.includes("所有玩家") || description.includes("除你外所有人")) {
+  if (description.includes("\u5168\u573a") || description.includes("\u6240\u6709\u73a9\u5bb6") || description.includes("\u9664\u4f60\u5916\u6240\u6709\u4eba")) {
     return "all";
   }
 
-  if (
-    description.includes("目标") ||
-    description.includes("选择") ||
-    description.includes("选定") ||
-    description.includes("一名玩家") ||
-    description.includes("1人") ||
-    description.includes("对1")
-  ) {
+  if (description.includes("\u76ee\u6807") || description.includes("\u9009\u62e9") || description.includes("\u9009\u5b9a") || description.includes("\u4e00\u540d\u73a9\u5bb6") || description.includes("1\u4eba") || description.includes("\u5bf9")) {
     return "single";
   }
 
@@ -1530,60 +1375,40 @@ function inferEffectTargetMode(description: string): "single" | "all" | "none" {
 
 function parseDefenseTag(value: string | undefined): DefenseTag {
   switch (value) {
-    case "小防":
-      return "small";
-    case "油条":
-      return "youtiao";
-    case "石头":
-      return "stone";
-    case "任意":
-      return "any";
-    case "饼":
-      return "cake";
-    case "无法":
-      return "unblockable";
-    default:
-      return "any";
+    case "\u5c0f\u9632": return "small";
+    case "\u6cb9\u6761": return "youtiao";
+    case "\u77f3\u5934": return "stone";
+    case "\u4efb\u610f": return "any";
+    case "\u997c": return "cake";
+    case "\u65e0\u6cd5": return "unblockable";
+    default: return "any";
   }
 }
 
 function parsePower(value: string | undefined): number {
-  if (value?.includes("退游")) {
-    return RETIRE_EFFECT_POWER;
-  }
-
-  if (!value || value.includes("∞") || value.includes("无限")) {
-    return 999;
-  }
-
-  return value
-    .split("+")
-    .map((part) => Number(part))
-    .filter((part) => Number.isFinite(part))
-    .reduce((sum, part) => sum + part, 0);
+  if (value?.includes("\u9000\u6e38")) return RETIRE_EFFECT_POWER;
+  if (!value || value.includes("\u221e") || value.includes("\u65e0\u9650")) return 999;
+  return value.split("+").map((part) => Number(part.trim())).filter((part) => Number.isFinite(part)).reduce((sum, part) => sum + part, 0);
 }
 
 function parseUsesPerGame(description: string): number | undefined {
-  const match = description.match(/限(\d+)次/);
-  if (match) {
-    return Number(match[1]);
-  }
-
-  return description.includes("限定技") ? 1 : undefined;
+  const match = description.match(/\u9650(\d+)\u6b21/);
+  if (match) return Number(match[1]);
+  return description.includes("\u9650\u5b9a\u6280") ? 1 : undefined;
 }
 
 function parseCost(description: string): number | undefined {
-  const match = description.match(/(?:消耗)?(\d+)饼/);
+  const match = description.match(/(?:\u6d88\u8017)?(\d+)\u997c/);
   return match ? Number(match[1]) : undefined;
 }
 
 function parseSelfHeal(description: string): number | undefined {
-  const match = description.match(/\+(\d+)血/);
+  const match = description.match(/\+(\d+)\u8840/);
   return match ? Number(match[1]) : undefined;
 }
 
 function isAreaSkill(raw: RawSkillDefinition): boolean {
-  return raw.description.includes("全场") || raw.description.includes("群攻");
+  return raw.description.includes("\u5168\u573a") || raw.description.includes("\u7fa4\u653b");
 }
 
 function inferElement(raw: RawSkillDefinition): AttackElement {

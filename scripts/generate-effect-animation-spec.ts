@@ -38,9 +38,7 @@ const requiredAssetFiles = [
   "effect.mp4"
 ];
 
-const skills = getAllSkills().sort(
-  (a, b) => a.sourceRow - b.sourceRow || a.id.localeCompare(b.id)
-);
+const skills = getAllSkills().sort((a, b) => a.sourceRow - b.sourceRow || a.id.localeCompare(b.id));
 
 const archetypes: Record<string, EffectArchetype> = {
   attack_fire: {
@@ -48,112 +46,98 @@ const archetypes: Record<string, EffectArchetype> = {
     color: "镉红、朱砂橙、少量焦黑",
     texture: "厚涂油彩、热蜡裂纹、透明亚克力反光",
     motion: "红橙颜料从起点压缩后冲出，命中时溅成放射状油彩颗粒，末尾留下热色拖痕",
-    seedanceCore:
-      "fiery cadmium red and orange oil paint splash, painterly impasto, warm transparent acrylic reflections"
+    seedanceCore: "fiery cadmium red and orange oil paint splash, painterly impasto, warm transparent acrylic reflections"
   },
   attack_ice: {
     name: "冰霜蛋彩攻击",
     color: "雾蓝、灰白、淡青",
     texture: "冷色蛋彩、薄涂刮痕、冰晶状颜料边缘",
     motion: "淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂",
-    seedanceCore:
-      "pale blue ice-tempera paint streak, frost flower burst, delicate cold pigment scratches"
+    seedanceCore: "pale blue ice-tempera paint streak, frost flower burst, delicate cold pigment scratches"
   },
   attack_electric: {
     name: "电流金属线绘",
     color: "柠檬黄、钴蓝、石墨黑",
     texture: "细金属线、亮黄油彩点、透明导线反光",
     motion: "细线绷紧并抖动，黄色颜料沿线路跳跃，命中时产生短促星状飞溅",
-    seedanceCore:
-      "thin metal wire vibration with lemon yellow oil paint sparks and cobalt blue pigment"
+    seedanceCore: "thin metal wire vibration with lemon yellow oil paint sparks and cobalt blue pigment"
   },
   attack_poison: {
     name: "毒性绿墨腐蚀",
-    color: "铜绿、深青、暗黄",
+    color: "铜绿、深青、暗黑",
     texture: "稀释油墨、腐蚀边缘、潮湿透明颜料",
     motion: "绿黑颜料在桌面上蔓延并腐蚀边缘，命中后产生气泡状扩散，末尾沉积成暗色边线",
-    seedanceCore:
-      "verdigris green diluted oil ink corrosion, damp pigment bloom, translucent toxic edge"
+    seedanceCore: "verdigris green diluted oil ink corrosion, damp pigment bloom, translucent toxic edge"
   },
   attack_physical: {
     name: "红色油彩冲击",
     color: "深红、赭石、少量黑色",
     texture: "厚涂红色油彩、刮刀痕、画布颗粒",
-    motion: "红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射",
-    seedanceCore:
-      "deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation"
+    motion: "红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅点",
+    seedanceCore: "deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation"
   },
   defense: {
     name: "透明防御波纹",
     color: "青绿、乳白、透明灰",
     texture: "透明亚克力、水波、薄油膜",
     motion: "青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹",
-    seedanceCore:
-      "teal translucent acrylic ripple shield, soft oil film, museum installation lighting"
+    seedanceCore: "teal translucent acrylic ripple shield, soft oil film, museum installation lighting"
   },
   heal: {
     name: "暖白治愈晕染",
     color: "暖白、淡黄、浅粉",
     texture: "柔软油彩晕染、薄纱状透明颜料",
     motion: "暖白颜料从中心慢慢开花，淡黄光斑浮起，末尾融入画布",
-    seedanceCore:
-      "warm white and pale yellow oil paint bloom, gentle healing pigment spreading on canvas"
+    seedanceCore: "warm white and pale yellow oil paint bloom, gentle healing pigment spreading on canvas"
   },
   resource: {
     name: "餐桌资源沉积",
     color: "蜂蜜黄、面包金、浅棕",
     texture: "厚涂面包屑、蜂蜜状颜料、餐桌油彩",
     motion: "金色颜料像食物碎屑落入盘面，聚成一枚柔软资源印记",
-    seedanceCore:
-      "honey yellow oil paint crumbs settling into a shared dining plate, painterly resource gain"
+    seedanceCore: "honey yellow oil paint crumbs settling into a shared dining plate, painterly resource gain"
   },
   control: {
     name: "石墨线控场",
     color: "石墨黑、灰蓝、少量青绿",
     texture: "细金属支架线、铅笔线稿、透明胶片",
     motion: "石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开",
-    seedanceCore:
-      "graphite linework and thin metal rods constricting, transparent installation control effect"
+    seedanceCore: "graphite linework and thin metal rods constricting, transparent installation control effect"
   },
   void: {
     name: "墨色虚空裂隙",
     color: "蓝黑、紫灰、象牙白",
     texture: "稀释油墨、刮擦裂纹、半透明烟状颜料",
     motion: "蓝黑墨痕在画布上裂开，吸入周围颜料后迅速闭合",
-    seedanceCore:
-      "blue black diluted oil ink fissure, violet gray smoke pigment, canvas scratch texture"
+    seedanceCore: "blue black diluted oil ink fissure, violet gray smoke pigment, canvas scratch texture"
   },
   reroll: {
     name: "重获颜料旋涡",
     color: "青绿、红、黄、蓝混合",
     texture: "旋转调色盘、透明圆盘、油彩涡流",
     motion: "多色颜料绕透明圆盘旋转，重组为新的小色块，最后定格",
-    seedanceCore:
-      "multicolor oil paint whirlpool on transparent acrylic plate, reroll transformation"
+    seedanceCore: "multicolor oil paint whirlpool on transparent acrylic plate, reroll transformation"
   },
   transform: {
     name: "沙化变形",
     color: "沙黄、米白、赭石",
     texture: "砂质油彩、颗粒化笔触、半透明尘雾",
     motion: "米黄色颜料粒子从中心散开，重新聚合成新的纹理印记",
-    seedanceCore:
-      "sand colored oil paint particles dissolving and reforming, granular brush texture"
+    seedanceCore: "sand colored oil paint particles dissolving and reforming, granular brush texture"
   },
   passive: {
     name: "被动触发印记",
     color: "象牙白、石墨灰、低饱和青绿",
     texture: "薄涂标记、透明标签、细线装置",
     motion: "细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出",
-    seedanceCore:
-      "subtle passive trigger mark, ivory oil wash, graphite line label, translucent installation tag"
+    seedanceCore: "subtle passive trigger mark, ivory oil wash, graphite line label, translucent installation tag"
   },
   neutral: {
-    name: "中性无效波纹",
+    name: "中性反馈波纹",
     color: "乳白、灰蓝、少量淡金",
     texture: "薄油膜、透明玻璃反光、柔软画布颗粒",
     motion: "浅色油膜轻轻展开后收束，不制造强攻击感，作为无直接效果或空技能反馈",
-    seedanceCore:
-      "neutral ivory oil film ripple, translucent acrylic reflection, quiet painterly feedback"
+    seedanceCore: "neutral ivory oil film ripple, translucent acrylic reflection, quiet painterly feedback"
   }
 };
 
@@ -165,14 +149,14 @@ const doc = [
   "",
   `生成时间：${new Date().toISOString()}`,
   "",
-  "本文件由 `scripts/generate-effect-animation-spec.ts` 从真实技能注册表生成，覆盖全部技能，而不是只覆盖可主动播放的技能。",
+  "本文档由 `scripts/generate-effect-animation-spec.ts` 从真实技能注册表生成，覆盖全部技能，而不是只覆盖可主动播放的技能。",
   "",
   "## 目标",
   "",
   "- 为全部技能建立 imagegen 关键帧提示词与 Seedance 补帧动画提示词。",
   "- 主动技能、攻击技能、资源技能、控制技能必须进入正式特效资产生产。",
   "- 未接入 `play` 的锁定/被动技能也必须有触发提示、状态印记或无效反馈动画，避免技能表现缺口。",
-  "- 所有资产统一为油画感、透明亚克力装置、共餐实验装置风格，替换现有硬几何图形和浮层素材。",
+  "- 所有资产统一为油画感、透明亚克力装置、共餐实验装置风格，替换硬几何图形和粗糙浮层素材。",
   "",
   "## 全局风格",
   "",
@@ -188,6 +172,7 @@ const doc = [
   "- Codex 用户配置已新增 `mcp_servers.seedance`，使用 `uvx mcp-seedance` 启动。",
   "- 运行前需要在系统环境变量中提供 `ACEDATACLOUD_API_TOKEN`。",
   "- 配置变更通常需要重启 Codex 或新开会话，工具列表才会刷新出 Seedance MCP。",
+  "- 付费 API 消耗达到或预计达到 10 RMB 前必须先询问用户。",
   "",
   "## 资产目录规范",
   "",
@@ -226,12 +211,9 @@ const promptManifest = {
   generatedAt: new Date().toISOString(),
   source: "scripts/generate-effect-animation-spec.ts",
   style: {
-    avoid:
-      "hard vector shapes, neon sci-fi HUD, black panels, plastic toy look, simple geometry, cartoon particles",
-    medium:
-      "hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto",
-    readability:
-      "do not cover HP, resource counters, target lines, or submit status for more than 500ms"
+    avoid: "hard vector shapes, neon sci-fi HUD, black panels, plastic toy look, simple geometry, cartoon particles",
+    medium: "hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto",
+    readability: "do not cover HP, resource counters, target lines, or submit status for more than 500ms"
   },
   skills: skills.map((skill) => {
     const plan = planSkill(skill);
@@ -266,9 +248,7 @@ const promptManifest = {
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, `${doc}\n`, "utf-8");
 fs.writeFileSync(promptManifestPath, `${JSON.stringify(promptManifest, null, 2)}\n`, "utf-8");
-console.log(
-  `wrote ${outputPath} (${skills.length} skills, ${playableCount} playable, ${noPlayCount} visual-only)`
-);
+console.log(`wrote ${outputPath} (${skills.length} skills, ${playableCount} playable, ${noPlayCount} visual-only)`);
 console.log(`wrote ${promptManifestPath}`);
 
 function renderSkillSpec(skill: SkillDefinition): string[] {
@@ -336,21 +316,13 @@ function classifySkill(skill: SkillDefinition): EffectArchetype {
     if (play?.element === "ice") return archetypes.attack_ice;
     if (play?.element === "electric") return archetypes.attack_electric;
     if (play?.element === "poison") return archetypes.attack_poison;
-    if (includesAny(text, ["冰", "霜", "雪", "寒", "冬"])) {
-      return archetypes.attack_ice;
-    }
-    if (includesAny(text, ["电", "雷", "麻痹"])) {
-      return archetypes.attack_electric;
-    }
-    if (includesAny(text, ["毒", "腐蚀", "中毒"])) {
-      return archetypes.attack_poison;
-    }
-    if (includesAny(text, ["火", "焰", "炎", "熔", "朱雀"])) return archetypes.attack_fire;
+    if (includesAny(text, ["冰", "霜", "雪", "寒", "冻"])) return archetypes.attack_ice;
+    if (includesAny(text, ["电", "雷", "麻痹"])) return archetypes.attack_electric;
+    if (includesAny(text, ["毒", "腐蚀", "中毒"])) return archetypes.attack_poison;
+    if (includesAny(text, ["火", "焰", "烧", "熔", "朱雀"])) return archetypes.attack_fire;
     return archetypes.attack_physical;
   }
-  if (play?.selfHeal || text.includes("治疗") || text.includes("恢复") || text.includes("+4血")) {
-    return archetypes.heal;
-  }
+  if (play?.selfHeal || text.includes("治疗") || text.includes("恢复") || text.includes("+4血")) return archetypes.heal;
   if (
     play?.effect === "shield_normal" ||
     play?.effect === "shield_skill" ||
@@ -387,9 +359,7 @@ function classifySkill(skill: SkillDefinition): EffectArchetype {
   ) {
     return archetypes.void;
   }
-  if (skill.category === "locked" || skill.category === "passive" || text.includes("被动")) {
-    return archetypes.passive;
-  }
+  if (skill.category === "locked" || skill.category === "passive" || text.includes("被动")) return archetypes.passive;
   if (text.includes("无效果") || text.includes("空")) return archetypes.neutral;
   return archetypes.control;
 }
@@ -526,17 +496,10 @@ function targetMotionCue(targetMode: SkillPlayDefinition["targetMode"] | undefin
 
 function intensityCue(skill: SkillDefinition): string {
   const play = skill.play;
-  if (play?.level === "infinity" || play?.power === "infinity") {
-    return "mythic but still elegant, with a brief infinite-rank accent";
-  }
+  if (play?.level === "infinity" || play?.power === "infinity") return "mythic but still elegant, with a brief infinite-rank accent";
   const numericPower = typeof play?.power === "number" ? play.power : 0;
   const numericLevel = typeof play?.level === "number" ? play.level : 0;
-  const score =
-    numericPower +
-    numericLevel +
-    (play?.allEnemyDamage ?? 0) +
-    (play?.targetDamage ?? 0) +
-    (play?.usesPerGame ? 2 : 0);
+  const score = numericPower + numericLevel + (play?.allEnemyDamage ?? 0) + (play?.targetDamage ?? 0) + (play?.usesPerGame ? 2 : 0);
   if (score >= 8) return "high-impact";
   if (score >= 4) return "medium-impact";
   return "low-impact";
@@ -544,10 +507,7 @@ function intensityCue(skill: SkillDefinition): string {
 
 function symbolCue(name: string): string {
   const normalized = name.trim();
-  if (!normalized) {
-    return "the skill symbol";
-  }
-  return `the "${normalized}" motif`;
+  return normalized ? `the "${normalized}" motif` : "the skill symbol";
 }
 
 function safeCell(value: string): string {
@@ -559,9 +519,7 @@ function includesAny(value: string, needles: string[]): boolean {
 }
 
 function getEffectAssetStatus(skill: SkillDefinition): EffectAssetStatus {
-  const existing = requiredAssetFiles.filter((fileName) =>
-    fs.existsSync(path.join(effectRoot, skill.id, fileName))
-  );
+  const existing = requiredAssetFiles.filter((fileName) => fs.existsSync(path.join(effectRoot, skill.id, fileName)));
   return {
     complete: existing.length === requiredAssetFiles.length,
     existing,
@@ -570,11 +528,7 @@ function getEffectAssetStatus(skill: SkillDefinition): EffectAssetStatus {
 }
 
 function formatAssetStatus(status: EffectAssetStatus): string {
-  if (status.complete) {
-    return "齐全";
-  }
-  if (status.existing.length === 0) {
-    return `缺少全部 ${requiredAssetFiles.length} 个文件`;
-  }
+  if (status.complete) return "齐全";
+  if (status.existing.length === 0) return `缺少全部 ${requiredAssetFiles.length} 个文件`;
   return `已有 ${status.existing.join("、")}；缺少 ${status.missing.join("、")}`;
 }

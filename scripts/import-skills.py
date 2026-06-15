@@ -214,7 +214,7 @@ def cell(row: list[str], index: int) -> str:
 
 
 def split_tags(raw: str) -> list[str]:
-    return [tag.strip() for tag in re.split(r"[,，、/;；\n]", raw) if tag.strip()]
+    return [tag.strip() for tag in re.split(r"[,，、;；\n]", raw) if tag.strip()]
 
 
 def skill_attribute(tags: list[str]) -> str | None:
