@@ -25,7 +25,7 @@
     "seedance:effects:settle": "tsx scripts/seedance-effect-settle.ts --poll",
     "build": "npm run build -w @bing/shared && npm run build -w @bing/server && npm run build -w @bing/client",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test:ci": "npm run typecheck && npm run test:assets && npm run test:release-assets && npm run test:rules && npm run test:turn-timeline",
+    "test:ci": "npm run typecheck && npm run test:agents && npm run test:assets && npm run test:release-assets && npm run test:rules && npm run test:turn-timeline",
     "verify": "npm run build && npm run test:ci && npm run test:ui-agents:run",
     "verify:release": "npm run build && npm run verify:release:run",
     "verify:release:run": "npm run test:ci && npm run test:release-assets:dist && npm run test:ui-agents:run && npm run test:ui-agents:submit-ready:run && npm run test:ui-agents:complex:run && npm run test:character-browser:run",
