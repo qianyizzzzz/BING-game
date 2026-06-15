@@ -17,12 +17,12 @@ npm.cmd run test:effect-assets -- --json
 | 已覆盖关键帧 prompt 的技能 | 120 |
 | 关键帧 prompt 总数 | 480 |
 | 已覆盖 Seedance prompt 的技能 | 120 |
-| 已有完整动画资产的技能 | 0 |
+| 已有完整动画资产的技能 | 1 |
 | 已有 4 张关键帧和 poster 的技能 | 1 |
-| 缺失资产文件总数 | 835 |
+| 缺失资产文件总数 | 833 |
 | 坏文件 / 尺寸错误 | 0 |
 
-当前唯一可作为视频补帧样例的是 `skill_78_18866`（火球）：已有 `keyframe-01.png` 到 `keyframe-04.png` 和 `poster.png`，缺 `effect.mp4` / `effect.webm`。
+当前已经跑通完整视频闭环的是 `skill_78_18866`（火球）：已有 `keyframe-01.png` 到 `keyframe-04.png`、`poster.png`、`effect.mp4`、`effect.webm`。
 
 ## 生成顺序
 
@@ -125,6 +125,22 @@ npm.cmd run build
 
 ```powershell
 npm.cmd run test:ui-agents:run
+```
+
+## 自动批次选择
+
+关键帧计划脚本默认会跳过已经存在的关键帧，并在设置了 `--estimated-cny-per-frame` 时把计划控制在 10 RMB 以下；若确实要超过预算线，必须先得到用户许可，再显式加 `--allow-over-budget`。
+
+```powershell
+npm.cmd run effects:keyframes:plan -- --offset-skills=0 --limit-skills=10 --estimated-cny-per-frame=0.5
+```
+
+计划文件会记录 `selectedFramesBeforeBudgetCap`、`skippedByBudgetCap` 和 `budget.cappedForSpendLimit`，方便确认哪些关键帧只是因为预算闸门被延后，并不是 prompt 缺失。
+
+Seedance 提交脚本默认会跳过已经具备 `poster.png`、`effect.mp4`、`effect.webm` 的技能，并且火山 Ark 路线默认只发送第 1 张和第 4 张关键帧作为 `first_frame` / `last_frame`：
+
+```powershell
+npm.cmd run seedance:effects:plan -- --provider=volcengine --offset=0 --limit=3 --estimated-cny-per-task=3
 ```
 
 ## 记录要求

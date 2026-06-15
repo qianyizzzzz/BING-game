@@ -30,6 +30,7 @@ interface EffectPromptKeyframe {
 }
 
 interface KeyframeBatchOptions {
+  allowOverBudget: boolean;
   cnySpendLimit: number;
   estimatedCnyPerFrame: number;
   limitFrames: number;
@@ -62,9 +63,11 @@ const selectedSkills = manifest.skills.slice(
   options.offsetSkills + options.limitSkills
 );
 
-const tasks = selectedSkills
+const plannedTasks = selectedSkills
   .flatMap((skill) => buildSkillTasks(skill))
   .slice(options.offsetFrames, options.offsetFrames + options.limitFrames);
+const tasks = applyBudgetCap(plannedTasks, options);
+const budget = buildBudgetSummary(tasks.length, plannedTasks.length, options);
 
 const outDir = path.resolve(options.outDir);
 fs.mkdirSync(outDir, { recursive: true });
@@ -75,7 +78,7 @@ fs.writeFileSync(
   planPath,
   JSON.stringify(
     {
-      budget: buildBudgetSummary(tasks.length, options),
+      budget,
       count: tasks.length,
       generatedAt: new Date().toISOString(),
       options,
@@ -88,10 +91,14 @@ fs.writeFileSync(
           (sum, skill) => sum + skill.keyframes.length,
           0
         ),
+        missingFrameSkills: manifest.skills.filter((skill) => buildSkillTasks(skill).length > 0).length,
+        missingFrames: manifest.skills.reduce((sum, skill) => sum + buildSkillTasks(skill).length, 0),
         selectedFramesBeforeFrameLimit: selectedSkills.reduce(
           (sum, skill) => sum + buildSkillTasks(skill).length,
           0
         ),
+        selectedFramesBeforeBudgetCap: plannedTasks.length,
+        skippedByBudgetCap: plannedTasks.length - tasks.length,
         ...manifest.totals
       }
     },
@@ -109,7 +116,11 @@ fs.writeFileSync(
 
 console.log(`planned ${tasks.length} keyframe image tasks -> ${planPath}`);
 console.log(`wrote jsonl -> ${jsonlPath}`);
-const budget = buildBudgetSummary(tasks.length, options);
+if (budget.cappedForSpendLimit) {
+  console.warn(
+    `budget cap kept this plan under ${budget.spendLimitCny.toFixed(2)} RMB: ${budget.skippedByBudgetCap} keyframes skipped; use --allow-over-budget only after user permission.`
+  );
+}
 if (budget.requiresPermission) {
   console.warn(
     `estimated keyframe spend ${budget.estimatedTotalCny.toFixed(2)} RMB reaches or exceeds ${budget.spendLimitCny.toFixed(2)} RMB; ask the user for permission before paid generation.`
@@ -138,6 +149,7 @@ function buildSkillTasks(skill: EffectPromptSkill): KeyframeTask[] {
 
 function readOptions(): KeyframeBatchOptions {
   return {
+    allowOverBudget: process.argv.includes("--allow-over-budget"),
     cnySpendLimit: decimalArg("--cny-spend-limit", 10),
     estimatedCnyPerFrame: decimalArg(
       "--estimated-cny-per-frame",
@@ -153,20 +165,36 @@ function readOptions(): KeyframeBatchOptions {
   };
 }
 
+function applyBudgetCap(tasks: KeyframeTask[], opts: KeyframeBatchOptions): KeyframeTask[] {
+  if (opts.allowOverBudget || opts.estimatedCnyPerFrame <= 0) {
+    return tasks;
+  }
+  const maxTasksUnderLimit = Math.max(0, Math.ceil(opts.cnySpendLimit / opts.estimatedCnyPerFrame) - 1);
+  return tasks.slice(0, maxTasksUnderLimit);
+}
+
 function buildBudgetSummary(
   taskCount: number,
+  plannedTaskCount: number,
   opts: KeyframeBatchOptions
 ): {
+  cappedForSpendLimit: boolean;
   estimatedCnyPerFrame: number;
   estimatedTotalCny: number;
+  plannedBeforeBudgetCap: number;
   requiresPermission: boolean;
+  skippedByBudgetCap: number;
   spendLimitCny: number;
 } {
   const estimatedTotalCny = taskCount * opts.estimatedCnyPerFrame;
+  const skippedByBudgetCap = plannedTaskCount - taskCount;
   return {
+    cappedForSpendLimit: skippedByBudgetCap > 0,
     estimatedCnyPerFrame: opts.estimatedCnyPerFrame,
     estimatedTotalCny,
+    plannedBeforeBudgetCap: plannedTaskCount,
     requiresPermission: estimatedTotalCny >= opts.cnySpendLimit,
+    skippedByBudgetCap,
     spendLimitCny: opts.cnySpendLimit
   };
 }

@@ -34,6 +34,7 @@ interface BatchOptions {
   ratio: string;
   resolution: string;
   serviceTier: string;
+  skipCompleteAssets: boolean;
 }
 
 type ApiProvider = "acedata" | "volcengine";
@@ -65,7 +66,10 @@ if (specs.length === 0) {
   throw new Error(`No Seedance prompts found in ${promptManifestPath} or ${specPath}`);
 }
 
-const candidateSpecs = specs.slice(options.offset, options.offset + options.limit);
+const eligibleSpecs = options.skipCompleteAssets
+  ? specs.filter((spec) => !hasCompletePlayableAssets(spec))
+  : specs;
+const candidateSpecs = eligibleSpecs.slice(options.offset, options.offset + options.limit);
 const skipped: SkippedTask[] = [];
 const selected = candidateSpecs.filter((spec) => {
   const missingKeyframes = missingRequiredKeyframes(spec);
@@ -129,6 +133,7 @@ fs.writeFileSync(
       skipped,
       sourceSpec: fs.existsSync(promptManifestPath) ? promptManifestPath : specPath,
       totalSpecs: specs.length,
+      totalEligibleSpecs: eligibleSpecs.length,
       tasks
     },
     null,
@@ -339,8 +344,18 @@ function readOptions(): BatchOptions {
     outDir: stringArg("--out-dir", "artifacts/seedance"),
     ratio: stringArg("--ratio", "16:9"),
     resolution: stringArg("--resolution", "480p"),
-    serviceTier: stringArg("--service-tier", "flex")
+    serviceTier: stringArg("--service-tier", "flex"),
+    skipCompleteAssets: !process.argv.includes("--include-complete-assets")
   };
+}
+
+function hasCompletePlayableAssets(spec: EffectPromptSpec): boolean {
+  if (!spec.assetDir) {
+    return false;
+  }
+  return ["poster.png", "effect.mp4", "effect.webm"].every((fileName) =>
+    fs.existsSync(path.resolve(spec.assetDir!, fileName))
+  );
 }
 
 function apiProviderArg(name: string): ApiProvider {
