@@ -123,11 +123,14 @@ npm run serve
 | `npm run build` | 构建 shared、server 和 client。 |
 | `npm run serve` | 启动生产模式服务。 |
 | `npm run public` | 构建、启动服务并打开临时公网隧道。 |
+| `npm run seedance:effects:plan` | 从全技能特效规格生成前 5 个 Seedance 任务 payload，不调用 API。 |
+| `npm run seedance:effects:submit` | 使用 `ACEDATACLOUD_API_TOKEN` 提交前 5 个 Seedance 技能动画任务。 |
 | `npm run typecheck` | 对所有 workspace 运行 TypeScript 检查。 |
 | `npm run test:ci` | 运行 typecheck、角色资产审计、规则回归和 turn timeline 检查。 |
 | `npm run verify` | 构建一次后运行核心检查与 UI agents。 |
 | `npm run verify:release` | 构建一次后运行发布前完整门禁：CI、发布资产审计、默认 UI、提交 metadata、复杂技能和角色浏览器。 |
 | `npm run test:assets` | 检查 6 个角色的 GLB、头像、QA 图和 PBR 贴图资源。 |
+| `npm run test:effect-assets` | 检查 120 个技能的 4 张关键帧、poster、webm 和 mp4 特效资产是否齐全。 |
 | `npm run test:release-assets` | 检查 public 静态资源中没有 Blender 源文件或角色 source 目录。 |
 | `npm run test:character-browser` | 先构建 client，再逐个创建角色房间，用真实浏览器验证 animated GLB 加载和 3D canvas。 |
 | `npm run test:rules` | 运行规则回归测试。 |
@@ -142,6 +145,8 @@ npm run serve
 | `npm run test:ui-agents:timeout:run` | 复用已构建的 client dist，直接运行短限时自动兜底 smoke。 |
 | `npm run test:ui-agents:submit-ready` | 先构建 client，再验证两个真人 action-board metadata、真实提交锁定和下一回合 ready。 |
 | `npm run test:ui-agents:submit-ready:run` | 复用已构建的 client dist，直接运行提交 metadata smoke。 |
+| `npm run test:ui-agents:focus-fire` | 先构建 client，再运行 4 真人集火手动 smoke：第一轮攒饼，第二轮 3 人攻击同一目标。 |
+| `npm run test:ui-agents:focus-fire:run` | 复用已构建的 client dist，直接运行 4 真人集火 smoke。 |
 | `npm run import:skills` | 从技能表导入技能数据。 |
 | `npm run training:export` | 导出比赛训练数据。 |
 | `npm run training:selfplay` | 运行自博弈训练脚本。 |
@@ -152,7 +157,7 @@ npm run serve
 - 6 个默认角色已具备 `idle / attack / defend / skill / hit / down` 动作剪影 QA 图。
 - 逐角色浏览器验收已覆盖 6 个默认角色的选择、房间状态、animated GLB 请求、3D canvas 采样和角色屏幕 BBox。
 - 初版 BattleDirector 已统一结算 cue、牌桌 metadata 和 3D 镜头脉冲。
-- UI agent 已覆盖双玩家 3 回合 happy path、action-board 提交 metadata smoke、复杂技能 smoke、重连/观战 smoke 和短限时自动兜底 smoke，并检查 canvas、GLB 加载、目标预览、行动 HUD、底部命令区、血/饼变化原因、遮挡、console error 和失败动作。
+- UI agent 已覆盖双玩家 3 回合 happy path、action-board 提交 metadata smoke、4 真人集火手动 smoke、复杂技能 smoke、重连/观战 smoke 和短限时自动兜底 smoke，并检查 canvas、GLB 加载、目标预览、行动 HUD、底部命令区、血/饼变化原因、遮挡、console error 和失败动作。
 - 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、精细权重绘制和精修运行时动画。
 - 下一阶段重点是竞技读局层、复杂技能参数抽屉、多人集火/公网 tunnel playtest、6 角色 runtime 精修和更完整的平衡测试。
 

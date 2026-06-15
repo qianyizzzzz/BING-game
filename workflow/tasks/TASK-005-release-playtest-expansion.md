@@ -53,6 +53,7 @@
 npm run test:ci
 npm run test:ui-agents
 npm run test:ui-agents:submit-ready
+npm run test:ui-agents:focus-fire
 npm run test:ui-agents:complex
 npm run test:ui-agents:reconnect
 npm run test:ui-agents:timeout

@@ -1631,6 +1631,7 @@ function SettingsPanel({
         回合限时
         <input
           className="soft-input mt-1 w-full"
+          data-testid="settings-turn-time-limit"
           max={180}
           min={5}
           onChange={(event) =>

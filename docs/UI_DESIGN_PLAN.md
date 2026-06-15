@@ -76,8 +76,8 @@
 
 1. 已补“行动提交可测性”小任务：`ActionPanel` 根节点暴露 `data-can-submit`、`data-viewer-id`、`data-already-submitted`、`data-selected-action`，提交按钮暴露稳定 `data-submit-ready`。
 2. 已补 2 人真实 browser context 最小 smoke：验证开局后 host 真实点击提交、guest 仍保持可提交、双方提交后进入下一回合。
-3. 下一步扩成 4 人：第一轮全员吃饼，第二轮 3 人攻击同一目标，目标吃饼或防御。
-4. 最后把 focus-fire 作为手动 workflow，不放默认 CI；验收时必须生成 report、截图、console/page error、目标 HP/饼变化和资源原因。
+3. 已新增 4 人 focus-fire 手动 smoke：第一轮全员吃饼，第二轮 3 人攻击同一目标，目标吃饼，脚本校验目标 HP 下降并生成 report / 截图 / console/page error。
+4. 下一步把 focus-fire 扩展为可选 workflow，不放默认 CI；验收时必须保留目标 HP/饼变化、座位映射、资源原因和截图。
 
 ## 1. UI 优化方法
 

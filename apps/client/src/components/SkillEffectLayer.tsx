@@ -1,5 +1,6 @@
-import { CSSProperties } from "react";
+import { CSSProperties, useState } from "react";
 import { TableEffect } from "../lib/tableFeedback";
+import { getSkillEffectAssetManifest } from "../lib/skillEffectAssets";
 import { SeatPosition } from "./PlayerSeat";
 
 interface SkillEffectLayerProps {
@@ -138,20 +139,24 @@ export function SkillEffectLayer({
 
       {effectItems.map(({ dx, dy, effect, key, source, target }) => {
         const hasTravel = Math.hypot(dx, dy) >= 1.5;
+        const asset = getSkillEffectAssetManifest(effect.skillId);
         const style = {
           "--effect-color": effect.color,
           "--effect-duration": `${effect.duration}ms`,
           "--effect-x1": `${source.x}%`,
           "--effect-y1": `${source.y}%`,
           "--effect-x2": `${target.x}%`,
-          "--effect-y2": `${target.y}%`
+          "--effect-y2": `${target.y}%`,
+          "--effect-poster": asset ? `url(${asset.poster})` : "none"
         } as CSSProperties;
 
         return (
           <span
             key={key}
             className="table-effect-item"
+            data-effect-asset-dir={asset?.directory ?? ""}
             data-effect-type={effect.type}
+            data-skill-id={effect.skillId ?? ""}
             data-source-id={effect.sourceId ?? ""}
             data-target-count={effect.targetIds.length}
             data-target-ids={effect.targetIds.join(",")}
@@ -182,6 +187,7 @@ export function SkillEffectLayer({
                 effect.targetType === "all" ? "table-skill-effect-all" : ""
               ].join(" ")}
             >
+              {asset ? <EffectMedia mp4={asset.mp4} poster={asset.poster} webm={asset.webm} /> : null}
               <em className="table-target-lock" aria-hidden="true" />
               <em className="effect-depth-ring" aria-hidden="true" />
               {EFFECT_DUST.map((dust, dustIndex) => (
@@ -233,6 +239,44 @@ export function SkillEffectLayer({
         );
       })}
     </div>
+  );
+}
+
+function EffectMedia({
+  mp4,
+  poster,
+  webm
+}: {
+  mp4: string;
+  poster: string;
+  webm: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  if (failed) {
+    return null;
+  }
+
+  return (
+    <span
+      className={["table-effect-media", ready ? "table-effect-media-ready" : ""].join(" ")}
+      aria-hidden="true"
+    >
+      <video
+        autoPlay
+        loop={false}
+        muted
+        onCanPlay={() => setReady(true)}
+        onError={() => setFailed(true)}
+        playsInline
+        poster={poster}
+        preload="metadata"
+      >
+        <source src={webm} type="video/webm" />
+        <source src={mp4} type="video/mp4" />
+      </video>
+    </span>
   );
 }
 

@@ -49,6 +49,7 @@ export interface SeatFeedback {
 export interface TableEffect extends SkillEffectConfig {
   id: string;
   sourceId?: PlayerId | undefined;
+  skillId?: string | undefined;
   targetIds: PlayerId[];
   label?: string | undefined;
 }
@@ -396,6 +397,7 @@ export function buildTableEffects(state: PublicGameState): TableEffect[] {
           effects.push({
             ...config,
             id: `${event.id}-${sourceId}-${action.skillId}`,
+            skillId: action.skillId,
             sourceId,
             targetIds: targetIds.length > 0 ? targetIds : [sourceId],
             label: skill?.name ?? "技能"
