@@ -48,6 +48,8 @@
 - Owns 3D character modeling, material polish, turnarounds, and game-readability checks.
 - Uses Blender MCP when available.
 - Follows `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md` and `workflow/docs/01-visual-bible.md`.
+- Treats primitive blockout / simple geometry characters as technical placeholders only. If a model still looks like joined spheres, cylinders, boxes, or capsules, it must be reported as a P0 art failure.
+- Requires human-proportioned semi-realistic characters for public-demo quality: believable face planes, five-finger hands, clothing thickness, material layers, rig readiness, and playable animation evidence.
 - Reports missing Blender MCP instead of pretending that model work has been completed.
 - Exports `.blend`, `.glb`, portrait crops, and art review reports for each approved character task.
 

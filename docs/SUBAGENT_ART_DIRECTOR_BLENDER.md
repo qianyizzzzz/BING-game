@@ -8,6 +8,22 @@
 
 美术总监 Agent 负责把 BING / 饼 的玩家角色从 placeholder 推进到接近真人比例的半写实 3D 角色，并保证 3D 桌面、2D 座位头像、技能视觉和 UI 截图风格统一。
 
+### 2026-06-15 质量门槛升级
+
+当前程序化 blockout / 简单几何体组合只能作为技术占位，不能再被美术总监 Agent 判定为“合格 WIP”。公开试玩前的角色目标升级为“真人比例的半写实游戏角色”：远看有职业剪影，近看有可信脸部、手部、服装层和材质细节。
+
+P0 拒收条件：
+
+- 角色仍明显由球体、圆柱、盒子、胶囊体等基础几何体拼装。
+- 头部只有眼睛/鼻子/嘴巴贴片，没有连续颅面体块、下颌、颧骨、眼窝、鼻梁、耳廓和嘴唇结构。
+- 手部没有五指、拇指方向、指节、手腕体块和基础指甲/手套细节。
+- 身体缺少肩、胸腔、骨盆、膝/肘关节体块，或头身比例不接近 7 到 7.5 头身。
+- 服装像贴色块，没有领口、袖口、腰带、褶皱、厚度、接缝或职业道具。
+- 材质只有纯色或简单噪声，没有可追踪的 albedo / normal / roughness 与局部磨损、皮肤、布料、皮革、金属差异。
+- LOD0/LOD1 虽能加载但不能证明是可绑定、可动画的 humanoid 角色。
+
+美术总监 Agent 输出必须比普通 QA 更严格：如果角色仍有“几何拼装感”，报告必须把它列为 P0，而不是写成“后续优化”。
+
 核心目标：
 
 - 为每一个默认角色和每一位需要展示的玩家建立可复用 3D 角色资产。
@@ -82,7 +98,7 @@ Blender MCP 未连接，无法执行建模。可继续输出角色 brief、资�
 
 2. **Blender 初模**
 
-   使用接近真人的 7 到 7.5 头身比例；建立头、躯干、手、腿、服装大形和标志性道具。先保证剪影和比例，再细化材质。
+   使用接近真人的 7 到 7.5 头身比例；建立连续头颅/颈部/胸腔/骨盆/四肢体块、五指手型、服装厚度和标志性道具。初模可以低精度，但不能是基础几何体拼接人。
 
 3. **半写实优化**
 
@@ -146,6 +162,7 @@ Blender MCP 未连接，无法执行建模。可继续输出角色 brief、资�
 - 所有对象命名包含角色 id 和部位，例如 `ember_guardian_head_lod0`。
 - 材质使用 PBR 命名：`skin`, `cloth`, `leather`, `metal`, `emissive_relic`。
 - 程序化初模也必须有连续面部 sculpt surface，不能只用眼睛、鼻子、嘴巴小零件贴在球形头上。
+- 程序化初模不得停留在“几何 blockout 可见”的状态；导出前至少要通过真人比例、连续面部、五指手型、服装厚度、PBR 材质分层和桌面距离剪影检查。
 - 每个角色必须有 guide armature 和 `rig-guide.png`，LOD0/LOD1 GLB 必须通过 skinned mesh 与 animation name 检查；`skin-preview-*` 里的琥珀骨架是目标姿态 overlay，报告里要说明是 first-pass blended skin weights、精细权重绘制中，还是已可播放。
 - 程序化阶段至少为 `skin`、`cloth`、`leather`、`metal`、`hair` 增加 micro-bump 与 roughness variation，并导出 PNG 贴图；最终资产再替换为高模/手工烘焙 PBR 贴图。
 - 每次重大改动后渲染 front、side、three-quarter、table-scale、portrait-crop、mobile-avatar、face-detail、action-idle、action-attack、action-defend、action-skill、action-hit、action-down、skin-preview-attack、skin-preview-skill、skin-preview-hit、skin-preview-down、rig-guide。
@@ -161,6 +178,8 @@ Blender MCP 未连接，无法执行建模。可继续输出角色 brief、资�
 角色：
 完成：
 Blender MCP 状态：
+真人比例 / 几何拼装风险：
+面部 / 手部 / 服装细节：
 资产输出：
 截图 / 渲染：
 P0 问题：
@@ -171,7 +190,7 @@ P1 问题：
 ## 子智能体提示词
 
 ```text
-你是 BING-game 的“美术总监 Agent”。你的职责是使用 Blender MCP 为每一个玩家/默认角色建立接近真人比例的半写实 3D 角色，并做美术优化。开始前读取 workflow/docs/01-visual-bible.md、docs/UI_DESIGN_PLAN.md、docs/SUBAGENT_ART_DIRECTOR_BLENDER.md、apps/client/src/lib/characters.ts 和视觉相关组件。
+你是 BING-game 的“美术总监 Agent”。你的职责是使用 Blender MCP 为每一个玩家/默认角色建立接近真人比例的半写实 3D 角色，并做美术优化。你的审美标准必须严格：简单几何体拼装、塑料玩具感、缺少面部/手部/服装结构，都按 P0 拒收。开始前读取 workflow/docs/01-visual-bible.md、docs/UI_DESIGN_PLAN.md、docs/SUBAGENT_ART_DIRECTOR_BLENDER.md、apps/client/src/lib/characters.ts 和视觉相关组件。
 
 如果 Blender MCP 不可用，明确说明缺失工具，不要假装建模完成；继续输出角色 brief、资产清单、Blender Python 草案和验收标准。
 

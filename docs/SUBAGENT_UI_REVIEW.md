@@ -11,8 +11,8 @@
 - 新手玩家 Agent：第一次玩 BING / 饼，关注能不能创建房间、加入、开始、提交第一回合。
 - 竞技玩家 Agent：高频对局用户，关注重复出招速度、目标信息、资源读取、动画是否干扰判断。
 - 开发商 Agent：制作人 / QA / 技术负责人，关注计划完成度、测试闭环、性能、可访问性和发布风险。
-- 美术总监 Agent：关注 art direction、角色资产、技能视觉、动效节奏和真实游戏质感。
-- 美术总监 Blender Agent：在 Blender MCP 可用时，为每个默认角色/玩家建立接近真人比例的半写实 3D 角色，并输出 `.glb`、头像、turnaround 和美术验收报告。详细规范见 `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`。
+- 美术总监 Agent：关注 art direction、角色资产、技能视觉、动效节奏和真实游戏质感；对几何体拼装角色拥有 P0 拒收权。
+- 美术总监 Blender Agent：在 Blender MCP 可用时，为每个默认角色/玩家建立真人比例的半写实 3D 角色，并输出 `.glb`、头像、turnaround、face-detail、rig/skin QA 和美术验收报告。详细规范见 `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`。
 
 ## 总结判断
 
@@ -144,15 +144,19 @@
 - 已下载并安装 BlenderMCP add-on，Blender socket `localhost:9876` 已通过 `get_scene_info` 验证。
 - 已通过 `uvx blender-mcp` 安装/验证 MCP server 包。
 - 当前 Codex 会话仍未暴露正式 Blender MCP 工具；需要刷新 MCP 配置或重开会话后才能在工具栏中直接调用。
-- 已通过 BlenderMCP socket 生成第一版 6 角色 blockout，产物在 `apps/client/public/assets/characters/`，报告在 `artifacts/art/bing-character-blockouts-report.md`。
+- 已通过 BlenderMCP socket 生成第一版 6 角色 blockout，产物在 `apps/client/public/assets/characters/`，报告在 `artifacts/art/bing-character-blockouts-report.md`。这批资产只证明 GLB/LOD/头像/蒙皮/动画命名管线可运行，不再视为通过美术质量验收。
 
 建模验收：
 
 1. 默认 6 个角色各有 `.blend` 源文件、`.glb` 模型、头像和三视图。
-2. 模型符合 7 到 7.5 头身的半写实比例，材质避免塑料感。
-3. 在 3D 牌桌距离、座位卡头像、移动端头像三种尺寸下都可识别。
-4. 每个角色有独立剪影、主色、道具和状态表演方向。
-5. 每个角色有 LOD0 / LOD1 性能预算和 `artifacts/art/` 评审报告。
+2. 模型符合 7 到 7.5 头身的真人比例，头、颈、胸腔、骨盆、四肢关节和手腕结构连续。
+3. 面部必须有下颌、颧骨、眼窝、鼻梁、耳廓、嘴唇、眼球/虹膜/角膜层次；不能是球形头贴五官。
+4. 手部必须有五指、拇指方向、指节、手腕体块、指甲或手套细节。
+5. 服装必须有厚度、接缝、袖口、领口、褶皱和职业道具；不能只是贴色块。
+6. 材质必须有皮肤、布料、皮革、金属、头发等分层 PBR 证据，避免塑料感。
+7. 在 3D 牌桌距离、座位卡头像、移动端头像三种尺寸下都可识别。
+8. 每个角色有独立剪影、主色、道具和状态表演方向。
+9. 每个角色有 LOD0 / LOD1 性能预算、rig/skin QA、动作预览和 `artifacts/art/` 评审报告。
 
 ## 子智能体工作流
 
@@ -161,7 +165,7 @@
 1. 新手玩家 Agent：检查第一局路径和文案。
 2. 竞技玩家 Agent：检查高频操作效率和读局速度。
 3. 开发商 Agent：检查 bug、测试、性能、可访问性、发布风险。
-4. 美术总监 Agent：检查风格统一、资产质量、动效节奏和截图审美。
+4. 美术总监 Agent：检查风格统一、资产质量、动效节奏和截图审美；几何拼装感、塑料感、缺面部/手部/服装结构均按 P0。
 5. 美术总监 Blender Agent：在 Blender MCP 可用时建模/优化角色；不可用时输出角色 brief、资产清单和 Blender Python 草案。
 6. 主线程汇总意见，生成 `artifacts/playtests/` 或 `artifacts/art/` 报告，并更新本文件。
 
