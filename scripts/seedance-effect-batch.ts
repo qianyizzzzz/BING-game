@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 interface EffectPromptSpec {
+  assetDir?: string;
+  keyframes?: Array<{ file: string; phase: string; prompt: string }>;
   prompt: string;
   skillId: string;
   skillName: string;
@@ -30,11 +32,12 @@ const asyncCallbackUrl = "https://api.acedata.cloud/health";
 const apiBaseUrl = process.env.ACEDATACLOUD_API_BASE_URL ?? "https://api.acedata.cloud";
 const apiToken = process.env.ACEDATACLOUD_API_TOKEN ?? "";
 const specPath = path.resolve("docs/EFFECT_ANIMATION_SPEC.md");
+const promptManifestPath = path.resolve("docs/EFFECT_ANIMATION_PROMPTS.json");
 
 const options = readOptions();
-const specs = parseEffectPrompts(fs.readFileSync(specPath, "utf-8"));
+const specs = readEffectPromptSpecs();
 if (specs.length === 0) {
-  throw new Error(`No Seedance prompts found in ${specPath}`);
+  throw new Error(`No Seedance prompts found in ${promptManifestPath} or ${specPath}`);
 }
 
 const selected = specs.slice(options.offset, options.offset + options.limit);
@@ -75,7 +78,7 @@ fs.writeFileSync(
       dryRun: options.dryRun,
       generatedAt: new Date().toISOString(),
       options,
-      sourceSpec: specPath,
+      sourceSpec: fs.existsSync(promptManifestPath) ? promptManifestPath : specPath,
       totalSpecs: specs.length,
       tasks
     },
@@ -115,6 +118,35 @@ function parseEffectPrompts(markdown: string): EffectPromptSpec[] {
   return specs;
 }
 
+function readEffectPromptSpecs(): EffectPromptSpec[] {
+  if (fs.existsSync(promptManifestPath)) {
+    const manifest = JSON.parse(fs.readFileSync(promptManifestPath, "utf-8")) as {
+      skills?: Array<{
+        assetDir?: string;
+        keyframes?: Array<{ file: string; phase: string; prompt: string }>;
+        name?: string;
+        seedancePrompt?: string;
+        skillId?: string;
+      }>;
+    };
+    const specs =
+      manifest.skills
+        ?.filter((skill) => skill.skillId && skill.name && skill.seedancePrompt)
+        .map((skill) => ({
+          assetDir: skill.assetDir,
+          keyframes: skill.keyframes,
+          prompt: skill.seedancePrompt!,
+          skillId: skill.skillId!,
+          skillName: skill.name!
+        })) ?? [];
+    if (specs.length > 0) {
+      return specs;
+    }
+  }
+
+  return parseEffectPrompts(fs.readFileSync(specPath, "utf-8"));
+}
+
 function extractSeedancePrompt(section: string): string | undefined {
   const markerIndex = section.indexOf("#### Seedance");
   if (markerIndex < 0) {
@@ -148,6 +180,12 @@ function buildPayload(spec: EffectPromptSpec, opts: BatchOptions): Record<string
     ],
     execution_expires_after: 172800,
     frames: 29,
+    metadata: {
+      assetDir: spec.assetDir,
+      expectedKeyframes: spec.keyframes?.map((keyframe) => keyframe.file),
+      skillId: spec.skillId,
+      skillName: spec.skillName
+    },
     model: opts.model,
     ratio: opts.ratio,
     resolution: opts.resolution,
@@ -213,5 +251,6 @@ function numberArg(name: string, fallback: number): number {
 
 function stringArg(name: string, fallback: string): string {
   const prefix = `${name}=`;
-  return process.argv.find((arg) => arg.startsWith(prefix))?.slice(prefix.length) ?? fallback;
+  const matches = process.argv.filter((arg) => arg.startsWith(prefix));
+  return matches.at(-1)?.slice(prefix.length) ?? fallback;
 }

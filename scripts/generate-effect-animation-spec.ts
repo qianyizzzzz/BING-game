@@ -14,11 +14,13 @@ interface EffectArchetype {
 interface SkillVisualPlan {
   archetype: EffectArchetype;
   implementationStatus: string;
+  mechanicCue: string;
   playSummary: string;
   triggerSummary: string;
 }
 
 const outputPath = path.resolve("docs/EFFECT_ANIMATION_SPEC.md");
+const promptManifestPath = path.resolve("docs/EFFECT_ANIMATION_PROMPTS.json");
 
 const skills = getAllSkills().sort(
   (a, b) => a.sourceRow - b.sourceRow || a.id.localeCompare(b.id)
@@ -199,11 +201,65 @@ const doc = [
   ...skills.flatMap(renderSkillSpec)
 ].join("\n");
 
+const promptManifest = {
+  assetContract: {
+    files: [
+      "keyframe-01.png",
+      "keyframe-02.png",
+      "keyframe-03.png",
+      "keyframe-04.png",
+      "poster.png",
+      "effect.webm",
+      "effect.mp4"
+    ],
+    root: "apps/client/public/assets/effects/{skillId}/"
+  },
+  generatedAt: new Date().toISOString(),
+  source: "scripts/generate-effect-animation-spec.ts",
+  style: {
+    avoid:
+      "hard vector shapes, neon sci-fi HUD, black panels, plastic toy look, simple geometry, cartoon particles",
+    medium:
+      "hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto",
+    readability:
+      "do not cover HP, resource counters, target lines, or submit status for more than 500ms"
+  },
+  skills: skills.map((skill) => {
+    const plan = planSkill(skill);
+    return {
+      archetype: plan.archetype.name,
+      assetDir: `apps/client/public/assets/effects/${skill.id}/`,
+      category: skill.category,
+      description: skill.description,
+      implementationStatus: plan.implementationStatus,
+      keyframes: [1, 2, 3, 4].map((index) => ({
+        file: `keyframe-0${index}.png`,
+        phase: keyframePhase(index),
+        prompt: buildImagePrompt(skill, plan, index)
+      })),
+      mechanicCue: plan.mechanicCue,
+      name: skill.name,
+      playSummary: plan.playSummary,
+      seedancePrompt: buildSeedancePrompt(skill, plan),
+      skillId: skill.id,
+      timing: skill.timing || "未标注",
+      triggerSummary: plan.triggerSummary
+    };
+  }),
+  totals: {
+    playableSkills: playableCount,
+    totalSkills: skills.length,
+    visualOnlySkills: noPlayCount
+  }
+};
+
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, `${doc}\n`, "utf-8");
+fs.writeFileSync(promptManifestPath, `${JSON.stringify(promptManifest, null, 2)}\n`, "utf-8");
 console.log(
   `wrote ${outputPath} (${skills.length} skills, ${playableCount} playable, ${noPlayCount} visual-only)`
 );
+console.log(`wrote ${promptManifestPath}`);
 
 function renderSkillSpec(skill: SkillDefinition): string[] {
   const plan = planSkill(skill);
@@ -218,6 +274,7 @@ function renderSkillSpec(skill: SkillDefinition): string[] {
     `- 播放状态：${plan.implementationStatus}`,
     `- 玩法摘要：${plan.playSummary}`,
     `- 触发表现：${plan.triggerSummary}`,
+    `- 机制视觉线索：${plan.mechanicCue}`,
     `- 视觉原型：${plan.archetype.name}`,
     `- 色彩：${plan.archetype.color}`,
     `- 材质：${plan.archetype.texture}`,
@@ -250,6 +307,7 @@ function planSkill(skill: SkillDefinition): SkillVisualPlan {
     implementationStatus: skill.play
       ? "已接入 play，可由技能播放系统直接触发"
       : "未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐",
+    mechanicCue: buildMechanicCue(skill),
     playSummary: skill.play ? summarizePlay(skill.play) : summarizePassive(skill),
     triggerSummary: summarizeTrigger(skill)
   };
@@ -348,20 +406,27 @@ function summarizeTrigger(skill: SkillDefinition): string {
   return "在系统判断技能生效、失效或无效果时播放轻量反馈。";
 }
 
-function buildImagePrompt(skill: SkillDefinition, plan: SkillVisualPlan, keyframe: number): string {
-  const phase = [
+function keyframePhase(keyframe: number): string {
+  return [
     "起势：颜料、透明装置和细线开始聚集，动作尚未爆发。",
     "爆发：主颜料、线缆或波纹冲出，画面动势最强。",
     "扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。",
     "残留：颜料沉积、细线回落，可作为 poster frame。"
-  ][keyframe - 1];
+  ][keyframe - 1]!;
+}
+
+function buildImagePrompt(skill: SkillDefinition, plan: SkillVisualPlan, keyframe: number): string {
+  const phase = keyframePhase(keyframe);
+  const frameCue = keyframeCue(skill, plan, keyframe);
 
   return [
     "Use case: game VFX keyframe",
     `Asset type: BING-game skill effect keyframe ${keyframe}/4`,
     `Skill: ${skill.id} ${skill.name}`,
     `Gameplay meaning: ${plan.playSummary}.`,
+    `Mechanic-specific cue: ${plan.mechanicCue}.`,
     `Primary request: ${plan.archetype.name}; ${phase}`,
+    `Frame direction: ${frameCue}`,
     "Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.",
     `Color palette: ${plan.archetype.color}.`,
     `Materials/textures: ${plan.archetype.texture}.`,
@@ -377,6 +442,7 @@ function buildSeedancePrompt(skill: SkillDefinition, plan: SkillVisualPlan): str
     `Create a 0.8-1.6 second game VFX animation for BING-game skill ${skill.id} "${skill.name}".`,
     "Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.",
     `Gameplay meaning: ${plan.playSummary}. Trigger behavior: ${plan.triggerSummary}`,
+    `Mechanic-specific cue: ${plan.mechanicCue}.`,
     `Visual language: ${plan.archetype.seedanceCore}; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.`,
     `Motion: ${plan.archetype.motion}.`,
     "Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.",
@@ -385,6 +451,82 @@ function buildSeedancePrompt(skill: SkillDefinition, plan: SkillVisualPlan): str
     "Readability constraint: keep the center and lower UI-readable area partially clear; do not cover HP, resource counters, target lines, or submit status for more than 500ms.",
     "Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, plastic 3D, dark black panels."
   ].join("\n");
+}
+
+function buildMechanicCue(skill: SkillDefinition): string {
+  const play = skill.play;
+  const parts = [
+    skill.description,
+    play ? `cost ${play.cost}, target ${play.targetMode}` : "",
+    play?.power !== undefined ? `power ${play.power}` : "",
+    play?.level !== undefined ? `level ${play.level}` : "",
+    play?.defenseTag ? `defense ${play.defenseTag}` : "",
+    play?.usesPerGame ? `limited ${play.usesPerGame} use(s)` : "",
+    play?.resourceGainPerStack ? `resource gain ${play.resourceGainPerStack} per stack` : "",
+    play?.selfHeal ? `self heal ${play.selfHeal}` : "",
+    play?.targetDamage ? `target damage ${play.targetDamage}` : "",
+    play?.allEnemyDamage ? `area damage ${play.allEnemyDamage}` : ""
+  ].filter(Boolean);
+  return parts.join("; ");
+}
+
+function keyframeCue(skill: SkillDefinition, plan: SkillVisualPlan, keyframe: number): string {
+  const targetCue = targetMotionCue(skill.play?.targetMode);
+  const intensity = intensityCue(skill);
+  const namedSymbol = symbolCue(skill.name);
+  if (keyframe === 1) {
+    return `${namedSymbol} first appears as a small oil-paint emblem; ${targetCue}; keep intensity ${intensity}.`;
+  }
+  if (keyframe === 2) {
+    return `${namedSymbol} reaches the strongest readable silhouette; ${plan.archetype.motion}; emphasize ${intensity}.`;
+  }
+  if (keyframe === 3) {
+    return `The effect reveals gameplay information through ${targetCue}; split or spread only if the skill targets multiple players.`;
+  }
+  return `Leave a quiet residue shaped like ${namedSymbol}; keep final poster clean, readable, and not screen-filling.`;
+}
+
+function targetMotionCue(targetMode: SkillPlayDefinition["targetMode"] | undefined): string {
+  switch (targetMode) {
+    case "all":
+      return "radial table-wide spread with several separated landing stains";
+    case "multi":
+      return "two or three clear target lanes with separate pigment endpoints";
+    case "single":
+      return "one precise lane from source to target with a single impact point";
+    case "self":
+      return "self-centered halo that stays close to the player marker";
+    case "none":
+      return "centered system mark with no target lane";
+    default:
+      return "subtle system feedback near the skill card";
+  }
+}
+
+function intensityCue(skill: SkillDefinition): string {
+  const play = skill.play;
+  if (play?.level === "infinity" || play?.power === "infinity") {
+    return "mythic but still elegant, with a brief infinite-rank accent";
+  }
+  const numericPower = typeof play?.power === "number" ? play.power : 0;
+  const numericLevel = typeof play?.level === "number" ? play.level : 0;
+  const score =
+    numericPower +
+    numericLevel +
+    (play?.allEnemyDamage ?? 0) +
+    (play?.targetDamage ?? 0) +
+    (play?.usesPerGame ? 2 : 0);
+  if (score >= 8) return "high-impact";
+  if (score >= 4) return "medium-impact";
+  return "low-impact";
+}
+
+function symbolCue(name: string): string {
+  const normalized = name.trim();
+  if (!normalized) {
+    return "the skill symbol";
+  }
+  return `the "${normalized}" motif`;
 }
 
 function safeCell(value: string): string {

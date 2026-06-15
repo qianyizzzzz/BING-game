@@ -48,6 +48,7 @@
     "test:ui-agents:focus-fire:run": "tsx scripts/focus-fire-smoke.ts",
     "test:character-browser": "npm run build -w @bing/client && npm run test:character-browser:run",
     "test:character-browser:run": "tsx scripts/character-runtime-browser-check.ts",
+    "effects:spec": "tsx scripts/generate-effect-animation-spec.ts",
     "import:skills": "python scripts/import-skills.py",
     "training:export": "node scripts/export-training-data.mjs",
     "training:selfplay": "tsx scripts/self-play-training.ts",
