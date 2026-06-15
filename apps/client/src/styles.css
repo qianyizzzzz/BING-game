@@ -6312,3 +6312,441 @@ select {
     flex-basis: 100%;
   }
 }
+
+/* Shared Dining art pass: warm gallery canvas, translucent apparatus, oil-paint pigment. */
+.app-shell,
+.hero-shell {
+  color: #1e2430;
+  background:
+    linear-gradient(rgba(246, 241, 232, 0.56), rgba(232, 224, 212, 0.72)),
+    url("/assets/ui/shared-dining-installation-bg.png") center / cover fixed,
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.94), transparent 28%),
+    radial-gradient(circle at 73% 22%, rgba(12, 155, 150, 0.12), transparent 17%),
+    radial-gradient(circle at 84% 73%, rgba(226, 38, 45, 0.08), transparent 16%),
+    linear-gradient(180deg, #f6f1e8 0%, #e8e0d4 54%, #d8d0c5 100%);
+}
+
+.app-shell::before,
+.app-shell::after,
+.hero-page::before {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+}
+
+.app-shell::before,
+.hero-page::before {
+  background:
+    linear-gradient(90deg, rgba(29, 34, 43, 0.1) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(29, 34, 43, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 22% 34%, rgba(207, 28, 40, 0.72) 0 2px, transparent 3px),
+    radial-gradient(circle at 27% 36%, rgba(207, 28, 40, 0.46) 0 1px, transparent 2px),
+    radial-gradient(circle at 67% 32%, rgba(0, 145, 151, 0.74) 0 5px, transparent 6px),
+    radial-gradient(circle at 71% 38%, rgba(245, 187, 33, 0.78) 0 3px, transparent 4px),
+    radial-gradient(circle at 81% 71%, rgba(0, 98, 180, 0.62) 0 5px, transparent 6px);
+  background-size: 120px 120px, 120px 120px, auto, auto, auto, auto, auto;
+  opacity: 0.3;
+  mix-blend-mode: multiply;
+}
+
+.app-shell::after,
+.hero-page::after {
+  background:
+    radial-gradient(ellipse at 45% 24%, rgba(255, 255, 255, 0.62), transparent 36%),
+    radial-gradient(ellipse at 64% 42%, rgba(0, 145, 151, 0.12), transparent 18%),
+    radial-gradient(ellipse at 34% 53%, rgba(207, 28, 40, 0.1), transparent 16%),
+    repeating-linear-gradient(112deg, rgba(69, 62, 54, 0.045) 0 1px, transparent 1px 13px),
+    linear-gradient(180deg, rgba(246, 241, 232, 0.84), rgba(232, 224, 212, 0.72));
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+
+.hero-page video {
+  opacity: 0.16;
+  filter: grayscale(0.75) sepia(0.28) brightness(1.34) contrast(0.72) blur(1px);
+}
+
+.hero-brand,
+.hero-copy,
+.hero-lobby-grid,
+.hero-nav,
+.battle-grid,
+.topbar,
+.surface-card,
+.poker-table-shell,
+.side-panel-stack {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-brand,
+.hero-title,
+.app-shell:not(.hero-shell) .topbar .text-gray-950,
+.app-shell:not(.hero-shell) .topbar .text-teal-900,
+.app-shell:not(.hero-shell) .topbar .text-teal-700 {
+  color: #202633 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.66);
+}
+
+.hero-brand small,
+.hero-copy p,
+.hero-eyebrow,
+.hero-panel-heading,
+.hero-panel-heading strong,
+.app-shell:not(.hero-shell) .topbar .text-gray-600,
+.app-shell:not(.hero-shell) .topbar .text-gray-500 {
+  color: rgba(32, 38, 51, 0.64) !important;
+  text-shadow: none;
+}
+
+.hero-title {
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-weight: 700 !important;
+}
+
+.hero-eyebrow,
+.hero-proof-row span,
+.status-pill,
+.poker-table-phase {
+  border-color: rgba(32, 38, 51, 0.16);
+  background: rgba(255, 255, 255, 0.5);
+  color: #26404a !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 10px 24px rgba(82, 72, 59, 0.08);
+}
+
+.hero-brand-symbol,
+.brand-mark,
+.app-shell:not(.hero-shell) .brand-mark {
+  border-color: rgba(32, 38, 51, 0.16);
+  background:
+    radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.86) 0 7px, transparent 8px),
+    radial-gradient(circle at 66% 72%, rgba(0, 145, 151, 0.28), transparent 34%),
+    linear-gradient(145deg, #f4b637, #c77425);
+  color: #1f2530;
+  box-shadow:
+    0 20px 40px rgba(92, 74, 46, 0.18),
+    inset 0 -10px 18px rgba(131, 72, 21, 0.18);
+}
+
+.hero-lobby-panel,
+.hero-shell .character-select-panel,
+.surface-card,
+.battle-grid .command-center,
+.battle-grid .side-panel-tabs,
+.battle-grid .side-panel-content,
+.battle-grid .quick-hint-panel,
+.poker-table-shell,
+.battle-grid .poker-table-shell {
+  border: 1px solid rgba(32, 38, 51, 0.14);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.9), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.34)),
+    rgba(238, 231, 221, 0.58);
+  color: #202633;
+  box-shadow:
+    0 28px 70px rgba(82, 72, 59, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px) saturate(1.12);
+}
+
+.hero-lobby-panel::before,
+.hero-shell .character-select-panel::before,
+.surface-card::before,
+.battle-grid .command-center::before {
+  height: 2px;
+  background: linear-gradient(90deg, #c91f32, #009197, #f0bd24, #005fb5);
+  opacity: 0.74;
+}
+
+.soft-input,
+.hero-shell .soft-input {
+  border-color: rgba(32, 38, 51, 0.16);
+  background: rgba(255, 255, 255, 0.62);
+  color: #202633;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 10px 24px rgba(82, 72, 59, 0.08);
+}
+
+.hero-shell .soft-input::placeholder,
+.soft-input::placeholder {
+  color: rgba(32, 38, 51, 0.42);
+}
+
+.btn-secondary,
+.hero-shell .btn-secondary,
+.battle-grid .command-center .btn-secondary,
+.battle-grid .command-center .btn-warning,
+.side-panel-tab,
+.battle-grid .side-panel-tab {
+  border-color: rgba(32, 38, 51, 0.14);
+  background: rgba(255, 255, 255, 0.58);
+  color: #202633;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 10px 20px rgba(82, 72, 59, 0.08);
+}
+
+.btn-primary,
+.hero-shell .btn-primary,
+.battle-grid .command-center .btn-primary {
+  border-color: rgba(186, 91, 23, 0.32);
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 244, 196, 0.92), transparent 24%),
+    linear-gradient(180deg, #f5c24d, #d8792a);
+  color: #25170c;
+  box-shadow:
+    0 18px 38px rgba(202, 112, 37, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.btn-primary:hover:not(:disabled),
+.hero-shell .btn-primary:hover:not(:disabled),
+.battle-grid .command-center .btn-primary:hover:not(:disabled) {
+  border-color: rgba(163, 64, 21, 0.38);
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 248, 213, 0.96), transparent 24%),
+    linear-gradient(180deg, #ffd46a, #dc7027);
+}
+
+.hero-shell .account-card,
+.account-card,
+.status-metric,
+.settings-field,
+.stat-chip,
+.room-code,
+.lobby-next-step,
+.lobby-start-reason,
+.quick-hint-grid div,
+.reference-info-block,
+.attribute-row,
+.advice-item {
+  border-color: rgba(32, 38, 51, 0.13);
+  background: rgba(255, 255, 255, 0.48);
+  color: #202633;
+}
+
+.character-option,
+.hero-shell .character-option,
+.hero-shell .character-option:hover,
+.hero-shell .character-option-active {
+  border-color: rgba(32, 38, 51, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.32)),
+    color-mix(in srgb, var(--character-accent) 10%, transparent);
+}
+
+.hero-shell .character-option-active,
+.battle-grid .side-panel-tab-active,
+.side-panel-tab-active {
+  border-color: rgba(0, 145, 151, 0.42);
+  background:
+    radial-gradient(circle at 18% 22%, rgba(0, 145, 151, 0.18), transparent 34%),
+    rgba(255, 255, 255, 0.62);
+  color: #114e52;
+}
+
+.hero-shell .character-option strong,
+.hero-shell .character-option small,
+.hero-shell .character-select-preview .text-gray-950,
+.hero-shell .character-select-preview .text-teal-700,
+.surface-card .text-gray-950,
+.surface-card .text-gray-900,
+.surface-card .text-gray-800,
+.command-center .text-gray-950,
+.command-center .text-gray-900,
+.command-center .text-gray-800,
+.quick-hint-panel h2,
+.quick-hint-grid strong {
+  color: #202633 !important;
+}
+
+.surface-card .text-gray-700,
+.surface-card .text-gray-600,
+.surface-card .text-gray-500,
+.command-center .text-gray-700,
+.command-center .text-gray-600,
+.command-center .text-gray-500,
+.quick-hint-panel p,
+.quick-hint-eyebrow,
+.quick-hint-grid span {
+  color: rgba(32, 38, 51, 0.62) !important;
+}
+
+.topbar,
+.app-shell:not(.hero-shell) .topbar {
+  border-bottom-color: rgba(32, 38, 51, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(246, 241, 232, 0.88), rgba(238, 231, 221, 0.68));
+  box-shadow:
+    0 18px 42px rgba(82, 72, 59, 0.1),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(18px) saturate(1.08);
+}
+
+.battle-grid {
+  background-image:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.86), transparent 24%),
+    radial-gradient(circle at 74% 20%, rgba(0, 145, 151, 0.1), transparent 18%),
+    radial-gradient(circle at 82% 74%, rgba(238, 37, 48, 0.08), transparent 16%),
+    linear-gradient(rgba(32, 38, 51, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(32, 38, 51, 0.045) 1px, transparent 1px);
+  background-color: transparent;
+  background-size: auto, auto, auto, 58px 58px, 58px 58px;
+}
+
+.poker-table-toolbar,
+.battle-grid .poker-table-toolbar {
+  border-bottom-color: rgba(32, 38, 51, 0.12);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.56), rgba(235, 229, 219, 0.42));
+}
+
+.poker-table-board,
+.battle-grid .poker-table-board {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.08), rgba(238, 231, 221, 0.18)),
+    url("/assets/ui/shared-dining-tabletop.png") center / cover,
+    radial-gradient(circle at 47% 52%, rgba(245, 190, 39, 0.28), transparent 12%),
+    radial-gradient(circle at 34% 38%, rgba(206, 28, 40, 0.2), transparent 16%),
+    radial-gradient(circle at 66% 36%, rgba(0, 145, 151, 0.22), transparent 18%),
+    radial-gradient(circle at 78% 62%, rgba(0, 95, 181, 0.14), transparent 16%),
+    radial-gradient(ellipse at 50% 54%, rgba(255, 255, 255, 0.46), transparent 56%),
+    linear-gradient(180deg, rgba(232, 224, 212, 0.78), rgba(216, 208, 197, 0.82));
+  box-shadow:
+    inset 0 22px 58px rgba(255, 255, 255, 0.28),
+    inset 0 -28px 70px rgba(82, 72, 59, 0.1);
+}
+
+.poker-table-board::before {
+  opacity: 0.5;
+  filter: sepia(0.28) saturate(0.82);
+}
+
+.player-card-shell,
+.poker-seat {
+  border-color: rgba(32, 38, 51, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.64), rgba(255, 255, 255, 0.34)),
+    rgba(238, 231, 221, 0.48);
+  color: #202633;
+  box-shadow:
+    0 18px 40px rgba(82, 72, 59, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.poker-seat-active {
+  border-color: rgba(0, 145, 151, 0.48);
+  box-shadow:
+    0 22px 46px rgba(0, 145, 151, 0.14),
+    0 0 0 2px rgba(0, 145, 151, 0.12);
+}
+
+.hero-nav button,
+.hero-copy [data-testid="create-room-hero"] {
+  border-color: rgba(32, 38, 51, 0.16) !important;
+  background: rgba(255, 255, 255, 0.56) !important;
+  color: #202633 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 14px 30px rgba(82, 72, 59, 0.1);
+}
+
+.hero-copy [data-testid="create-room-hero"] {
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 244, 196, 0.92), transparent 24%),
+    linear-gradient(180deg, #f5c24d, #d8792a) !important;
+}
+
+.battle-grid .command-center .status-metric,
+.status-metric,
+.poker-table-stats span {
+  border-color: rgba(32, 38, 51, 0.14) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(233, 227, 216, 0.46)) !important;
+  color: #202633 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    0 10px 22px rgba(82, 72, 59, 0.08);
+}
+
+.table-scene-3d canvas {
+  opacity: 0.38;
+  filter:
+    sepia(0.34)
+    saturate(0.74)
+    contrast(0.72)
+    brightness(1.28)
+    drop-shadow(0 30px 42px rgba(82, 72, 59, 0.14)) !important;
+}
+
+.table-scene-3d-first-person::after {
+  background:
+    radial-gradient(ellipse at 50% 58%, rgba(255, 255, 255, 0.46), transparent 34%),
+    radial-gradient(ellipse at 50% 50%, transparent 54%, rgba(232, 224, 212, 0.34) 100%) !important;
+  mix-blend-mode: screen;
+}
+
+.poker-table-felt {
+  border-color: rgba(0, 145, 151, 0.28);
+  background:
+    radial-gradient(ellipse at 44% 45%, rgba(245, 190, 39, 0.18), transparent 30%),
+    radial-gradient(ellipse at 58% 48%, rgba(0, 145, 151, 0.18), transparent 44%),
+    rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 0 0 7px rgba(255, 255, 255, 0.2),
+    inset 0 20px 46px rgba(255, 255, 255, 0.16),
+    inset 0 -26px 52px rgba(82, 72, 59, 0.1);
+}
+
+.battle-stage-panel,
+.abyss-depth-gauge,
+.abyss-depth-gauge span,
+.table-action-dock .action-summary-panel {
+  border-color: rgba(32, 38, 51, 0.14) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(238, 231, 221, 0.48)) !important;
+  color: #202633 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 16px 34px rgba(82, 72, 59, 0.12) !important;
+  backdrop-filter: blur(10px) saturate(1.08);
+}
+
+.battle-stage-panel .text-gray-950,
+.battle-stage-panel .text-gray-900,
+.battle-stage-panel .text-gray-800,
+.battle-stage-panel .text-gray-700,
+.battle-stage-panel .text-gray-600,
+.battle-stage-panel .text-gray-500,
+.table-action-dock .action-summary-panel span,
+.table-action-dock .action-summary-panel strong {
+  color: #202633 !important;
+}
+
+.abyss-depth-gauge span {
+  color: #154f52 !important;
+}
+
+.poker-table-board .battle-stage-panel,
+.poker-table-board .abyss-depth-gauge,
+.poker-table-board .abyss-depth-gauge span,
+.poker-table-board .table-action-dock .action-summary-panel {
+  border-color: rgba(32, 38, 51, 0.16) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(238, 231, 221, 0.52)) !important;
+  color: #202633 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.76),
+    0 16px 32px rgba(82, 72, 59, 0.12) !important;
+}
+
+.poker-table-board .battle-stage-panel *,
+.poker-table-board .abyss-depth-gauge *,
+.poker-table-board .table-action-dock .action-summary-panel * {
+  color: #202633 !important;
+}
