@@ -53,9 +53,7 @@ const requiredDocs = [
   "docs/SUBAGENT_ROSTER.md",
   "workflow/docs/03-agent-rules.md"
 ];
-const readableDocs = [
-  "README.md"
-];
+const readableDocs = ["README.md"];
 const interfaceDocs = [".agents/openai.yaml"];
 const auditedFiles = [
   ...expectedAgents.map((fileName) => path.join(agentRoot, fileName)),
@@ -67,8 +65,8 @@ const auditedFiles = [
 const mojibakePatterns = [
   /[\uFFFD]/,
   /[\u951f\u65a4\u62f7]{2,}/,
-  /[æçåéèäöüï]{2,}/i,
-  /[\u5a11\u95bb\u95b3\u95ba\u95b9\u6fe1]{2,}/,
+  /[忙莽氓茅猫盲枚眉茂]{2,}/i,
+  /[\u5a11\u95fb\u95b3\u95ba\u95b9\u6fe1]{2,}/,
   /[\u7f07\u5ea2\u6e73\u93c2\u56e7\u3127\u657e\u701b\u612d\u6ae4\u9473\u20ac\u6c2b]{4,}/
 ];
 const mojibakeNeedles = [
