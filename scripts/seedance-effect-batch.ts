@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { createHash } from "node:crypto";
 
 interface EffectPromptSpec {
   assetDir?: string;
@@ -20,6 +21,7 @@ interface BatchOptions {
   dryRun: boolean;
   estimatedCnyPerTask: number;
   includeMissingKeyframes: boolean;
+  keyframeInputMode: "data-url" | "metadata-only";
   limit: number;
   model: string;
   offset: number;
@@ -214,6 +216,7 @@ function extractSeedancePrompt(section: string): string | undefined {
 }
 
 function buildPayload(spec: EffectPromptSpec, opts: BatchOptions): Record<string, unknown> {
+  const keyframeInputs = buildKeyframeInputs(spec, opts);
   return {
     callback_url: asyncCallbackUrl,
     camerafixed: true,
@@ -221,7 +224,15 @@ function buildPayload(spec: EffectPromptSpec, opts: BatchOptions): Record<string
       {
         text: spec.prompt,
         type: "text"
-      }
+      },
+      ...keyframeInputs
+        .filter((input) => input.url)
+        .map((input) => ({
+          image_url: {
+            url: input.url
+          },
+          type: "image_url"
+        }))
     ],
     execution_expires_after: 172800,
     frames: 29,
@@ -229,6 +240,8 @@ function buildPayload(spec: EffectPromptSpec, opts: BatchOptions): Record<string
       assetDir: spec.assetDir,
       estimatedCny: opts.estimatedCnyPerTask > 0 ? opts.estimatedCnyPerTask : undefined,
       expectedKeyframes: spec.keyframes?.map((keyframe) => keyframe.file),
+      keyframeInputMode: opts.keyframeInputMode,
+      keyframeInputs: keyframeInputs.map(({ url: _url, ...rest }) => rest),
       spendLimitCny: opts.cnySpendLimit,
       skillId: spec.skillId,
       skillName: spec.skillName
@@ -281,6 +294,7 @@ function readOptions(): BatchOptions {
       Number(process.env.SEEDANCE_ESTIMATED_CNY_PER_TASK ?? 0)
     ),
     includeMissingKeyframes: process.argv.includes("--include-missing-keyframes"),
+    keyframeInputMode: keyframeInputModeArg("--keyframe-input-mode", "data-url"),
     limit: numberArg("--limit", 5),
     model: stringArg("--model", "doubao-seedance-1-0-pro-fast-251015"),
     offset: numberArg("--offset", 0),
@@ -327,6 +341,56 @@ function missingRequiredKeyframes(spec: EffectPromptSpec): string[] {
     .filter((fileName) => !fs.existsSync(path.resolve(spec.assetDir!, fileName)));
 }
 
+function buildKeyframeInputs(
+  spec: EffectPromptSpec,
+  opts: BatchOptions
+): Array<{
+  bytes: number;
+  file: string;
+  mimeType: string;
+  phase: string;
+  sha256: string;
+  sourcePath: string;
+  url?: string;
+}> {
+  if (!spec.assetDir || !spec.keyframes) {
+    return [];
+  }
+
+  return spec.keyframes
+    .filter((keyframe) => /^keyframe-\d+\.png$/i.test(keyframe.file))
+    .flatMap((keyframe) => {
+      const sourcePath = path.resolve(spec.assetDir!, keyframe.file);
+      if (!fs.existsSync(sourcePath)) {
+        return [];
+      }
+
+      const bytes = fs.readFileSync(sourcePath);
+      const mimeType = mimeTypeForFile(sourcePath);
+      return [
+        {
+          bytes: bytes.length,
+          file: keyframe.file,
+          mimeType,
+          phase: keyframe.phase,
+          sha256: createHash("sha256").update(bytes).digest("hex"),
+          sourcePath,
+          url:
+            opts.keyframeInputMode === "data-url"
+              ? `data:${mimeType};base64,${bytes.toString("base64")}`
+              : undefined
+        }
+      ];
+    });
+}
+
+function mimeTypeForFile(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
+  if (ext === ".webp") return "image/webp";
+  return "image/png";
+}
+
 function enforceBudgetGate(taskCount: number, opts: BatchOptions): void {
   if (opts.estimatedCnyPerTask <= 0) {
     throw new Error(
@@ -354,6 +418,17 @@ function buildBudgetSummary(taskCount: number, opts: BatchOptions): {
     estimatedTotalCny: taskCount * opts.estimatedCnyPerTask,
     spendLimitCny: opts.cnySpendLimit
   };
+}
+
+function keyframeInputModeArg(
+  name: string,
+  fallback: "data-url" | "metadata-only"
+): "data-url" | "metadata-only" {
+  const raw = stringArg(name, fallback);
+  if (raw !== "data-url" && raw !== "metadata-only") {
+    throw new Error(`${name} must be data-url or metadata-only`);
+  }
+  return raw;
 }
 
 function stringArg(name: string, fallback: string): string {
