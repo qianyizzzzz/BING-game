@@ -70,12 +70,13 @@
 - 第一轮“全员吃饼”在 UI 上可见，但脚本定位提交控件时会出现 `data-testid`、按钮 enabled 状态、表单 submit 事件不一致的问题。
 - 如果脚本等待过久，服务端短限时兜底会推进到后续回合，导致测试看似进入第 2/3/6 回合但并非真实点击提交。
 - 因此 focus-fire 暂不进入 npm scripts 或 CI，避免把不稳定自动化当成通过门禁。
+- 2026-06-15 已补 `npm run test:ui-agents:submit-ready` 前置门禁：两个真实 browser context 均能读到 action-board submit metadata，host 真实点击后锁定，guest 仍可提交，双方提交后 host 回到下一回合 ready。报告：`artifacts/playtests/action-submit-2026-06-15T03-55-02-381Z/report.md`。
 
 ### 下一步测试设计
 
-1. 先补一个“行动提交可测性”小任务：在 `ActionPanel` 根节点暴露 `data-can-submit`、`data-viewer-id`、`data-already-submitted`、`data-selected-action`，提交按钮暴露稳定 `data-submit-ready`。
-2. 用 2 人真实 browser context 重新写最小 smoke：只验证开局后第一个玩家真实点击提交，另一个玩家收到“等待名单”变化。
-3. 再扩成 4 人：第一轮全员吃饼、第二轮 3 人攻击同一目标、目标吃饼或防御。
+1. 已补“行动提交可测性”小任务：`ActionPanel` 根节点暴露 `data-can-submit`、`data-viewer-id`、`data-already-submitted`、`data-selected-action`，提交按钮暴露稳定 `data-submit-ready`。
+2. 已补 2 人真实 browser context 最小 smoke：验证开局后 host 真实点击提交、guest 仍保持可提交、双方提交后进入下一回合。
+3. 下一步扩成 4 人：第一轮全员吃饼，第二轮 3 人攻击同一目标，目标吃饼或防御。
 4. 最后把 focus-fire 作为手动 workflow，不放默认 CI；验收时必须生成 report、截图、console/page error、目标 HP/饼变化和资源原因。
 
 ## 1. UI 优化方法

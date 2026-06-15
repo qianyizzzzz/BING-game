@@ -11,6 +11,7 @@
 - `npm run test:ci`
 - `npm run test:release-assets:dist`
 - 默认 UI agent：`artifacts/playtests/ui-agents-2026-06-14T03-28-17-336Z/report.md`
+- 提交 metadata smoke：`artifacts/playtests/action-submit-2026-06-15T03-55-02-381Z/report.md`
 - 复杂技能 UI agent：`artifacts/playtests/ui-agents-2026-06-14T01-15-06-505Z/report.md`
 - 重连/观战 smoke：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`
 - 短限时自动兜底 smoke：`artifacts/playtests/timeout-fallback-2026-06-14T01-21-25-786Z/report.md`
@@ -25,8 +26,9 @@
 - 运行 `npm ci`。
 - 运行 `npm run build`。
 - 运行 `npm run test:ci`。
-- 发布前运行 `npm run verify:release`，完整覆盖默认 UI、复杂技能、角色浏览器和发布资产边界；如果环境有严格超时，先 `npm run build`，再分段运行 `npm run verify:release:run` 中的子命令。
+- 发布前运行 `npm run verify:release`，完整覆盖默认 UI、提交 metadata、复杂技能、角色浏览器和发布资产边界；如果环境有严格超时，先 `npm run build`，再分段运行 `npm run verify:release:run` 中的子命令。
 - 本地需要浏览器验收时运行 `npm run test:ui-agents`、`npm run test:ui-agents:complex`、`npm run test:ui-agents:reconnect`、`npm run test:ui-agents:timeout` 和 `npm run test:character-browser`。
+- 多人集火前置验收运行 `npm run test:ui-agents:submit-ready`，确认两名真人玩家的 action-board metadata、真实点击提交和下一回合 ready 不依赖超时兜底。
 - GitHub Actions 可夜间运行默认 UI agents 与复杂技能 smoke，并可手动运行角色浏览器、重连/观战、短限时自动兜底验收；报告和截图会作为 artifacts 上传。
 
 通过标准：构建和测试均通过；Vite 大 chunk 警告可接受，但需要记录为后续性能优化项。

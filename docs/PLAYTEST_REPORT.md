@@ -2,6 +2,7 @@
 
 日期：2026-06-14  
 最新自动化报告：`artifacts/playtests/ui-agents-2026-06-14T03-28-17-336Z/report.md`
+最新提交 metadata smoke：`artifacts/playtests/action-submit-2026-06-15T03-55-02-381Z/report.md`
 最新复杂技能 smoke：`artifacts/playtests/ui-agents-2026-06-14T01-15-06-505Z/report.md`
 最新重连/观战 smoke：`artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md`
 最新短限时 smoke：`artifacts/playtests/timeout-fallback-2026-06-14T01-21-25-786Z/report.md`
@@ -72,6 +73,7 @@
 - `npm run test:ui-agents` 最近一次通过，无 console error、无 failed action、无视觉 QA 告警。
 - `npm run test:ui-agents:complex` 最近一次通过，覆盖“单房主 + 2 个 AI 对手”的火箭双目标技能 smoke，HUD 目标数 2，座位映射 2/2，结算 cueTargets=2、summaryTargets=2。
 - `npm run test:ci` 和 `npm run test:release-assets:dist` 最近一次通过，覆盖类型检查、规则回归、角色资源、发布资产边界和 dist 产物审计。
+- `npm run test:ui-agents:submit-ready` 最近一次通过，覆盖两个真实 browser context 的 action-board `submitReady/canSubmit/viewerId/selectedAction`、host 真实点击锁定、guest 仍可提交、双方提交后进入下一回合。
 - `npm run test:ui-agents` 和 `npm run test:character-browser` 会先执行 `npm run build -w @bing/client`，避免浏览器验收使用过期 `apps/client/dist`；release/CI 可用 `:run` 变体复用已构建 dist，避免重复 build。
 - 双端 canvas 正常渲染，并检测到运行时 LOD0 animated GLB 成功加载。
 - UI agent 已覆盖目标预览、沿用上回合、遮挡检查、结算 cue、cue target 到座位的映射。

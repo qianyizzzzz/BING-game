@@ -40,6 +40,7 @@
 | UI / HUD | 3D 牌桌、行动 HUD、底部命令区、目标预览、结算摘要、血/饼变化摘要、变化原因和移动端 LOD 已落地。 |
 | 自动化验收 | `test:ui-agents`、`test:ui-agents:complex`、`test:ui-agents:reconnect`、`test:ui-agents:timeout` 和 `test:character-browser` 会先刷新 client dist，再运行浏览器 playtest。 |
 | 最新报告 | `artifacts/playtests/ui-agents-2026-06-14T03-28-17-336Z/report.md` |
+| 提交 metadata smoke | `artifacts/playtests/action-submit-2026-06-15T03-55-02-381Z/report.md` |
 | 复杂技能报告 | `artifacts/playtests/ui-agents-2026-06-14T01-15-06-505Z/report.md` |
 | 重连/观战报告 | `artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md` |
 | 短限时报告 | `artifacts/playtests/timeout-fallback-2026-06-14T01-21-25-786Z/report.md` |
@@ -125,7 +126,7 @@ npm run serve
 | `npm run typecheck` | 对所有 workspace 运行 TypeScript 检查。 |
 | `npm run test:ci` | 运行 typecheck、角色资产审计、规则回归和 turn timeline 检查。 |
 | `npm run verify` | 构建一次后运行核心检查与 UI agents。 |
-| `npm run verify:release` | 构建一次后运行发布前完整门禁：CI、发布资产审计、默认 UI、复杂技能和角色浏览器。 |
+| `npm run verify:release` | 构建一次后运行发布前完整门禁：CI、发布资产审计、默认 UI、提交 metadata、复杂技能和角色浏览器。 |
 | `npm run test:assets` | 检查 6 个角色的 GLB、头像、QA 图和 PBR 贴图资源。 |
 | `npm run test:release-assets` | 检查 public 静态资源中没有 Blender 源文件或角色 source 目录。 |
 | `npm run test:character-browser` | 先构建 client，再逐个创建角色房间，用真实浏览器验证 animated GLB 加载和 3D canvas。 |
@@ -139,6 +140,8 @@ npm run serve
 | `npm run test:ui-agents:reconnect:run` | 复用已构建的 client dist，直接运行重连/观战 smoke。 |
 | `npm run test:ui-agents:timeout` | 先构建 client，再验证 5 秒限时下真人未提交会被服务端自动记为吃饼。 |
 | `npm run test:ui-agents:timeout:run` | 复用已构建的 client dist，直接运行短限时自动兜底 smoke。 |
+| `npm run test:ui-agents:submit-ready` | 先构建 client，再验证两个真人 action-board metadata、真实提交锁定和下一回合 ready。 |
+| `npm run test:ui-agents:submit-ready:run` | 复用已构建的 client dist，直接运行提交 metadata smoke。 |
 | `npm run import:skills` | 从技能表导入技能数据。 |
 | `npm run training:export` | 导出比赛训练数据。 |
 | `npm run training:selfplay` | 运行自博弈训练脚本。 |
@@ -149,7 +152,7 @@ npm run serve
 - 6 个默认角色已具备 `idle / attack / defend / skill / hit / down` 动作剪影 QA 图。
 - 逐角色浏览器验收已覆盖 6 个默认角色的选择、房间状态、animated GLB 请求、3D canvas 采样和角色屏幕 BBox。
 - 初版 BattleDirector 已统一结算 cue、牌桌 metadata 和 3D 镜头脉冲。
-- UI agent 已覆盖双玩家 3 回合 happy path、复杂技能 smoke、重连/观战 smoke 和短限时自动兜底 smoke，并检查 canvas、GLB 加载、目标预览、行动 HUD、底部命令区、血/饼变化原因、遮挡、console error 和失败动作。
+- UI agent 已覆盖双玩家 3 回合 happy path、action-board 提交 metadata smoke、复杂技能 smoke、重连/观战 smoke 和短限时自动兜底 smoke，并检查 canvas、GLB 加载、目标预览、行动 HUD、底部命令区、血/饼变化原因、遮挡、console error 和失败动作。
 - 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、精细权重绘制和精修运行时动画。
 - 下一阶段重点是竞技读局层、复杂技能参数抽屉、多人集火/公网 tunnel playtest、6 角色 runtime 精修和更完整的平衡测试。
 
