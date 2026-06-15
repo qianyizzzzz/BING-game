@@ -133,7 +133,7 @@ export function buildSeatFeedbackMap(state: PublicGameState): Record<PlayerId, S
 
     if (state.phase === "finished") {
       const isWinner = latestFinished?.winnerIds.includes(player.id) ?? state.winnerIds.includes(player.id);
-      const defeatLabel = player.status === "dead" ? DEFEAT_LEVEL_LABELS[player.defeatLevel ?? 1] : "未胜";
+      const defeatLabel = player.status === "dead" ? DEFEAT_LEVEL_LABELS[player.defeatLevel ?? 1] : "未分胜负";
       feedback[player.id] = {
         animation: isWinner ? "win" : "lose",
         animationKey: `${latestFinished?.id ?? "finished"}-${player.id}`,

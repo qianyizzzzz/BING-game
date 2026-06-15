@@ -96,7 +96,7 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   {
     title: "11. 复盘报告怎么读",
     goal: "每局结束后用复盘报告快速定位关键错误。",
-    rule: "新版复盘 TXT 会先给快速结论、玩家终局、关键回合，再给完整事件流。先看最大伤害、承伤、反弹和轮结束原因。",
+    rule: "复盘报告会先给快速结论、玩家终局、关键回合，再给完整事件流。先看最大伤害、承伤、反弹和轮结束原因。",
     practice: "如果你只想知道哪一回合开始崩盘，应该先看哪一段？",
     answer: "先看“关键回合”。那里会按亮招回合汇总伤害、防御、反弹和轮结束。",
     checklist: ["先读快速结论", "再看关键回合", "最后看完整事件流核对细节"]
@@ -169,7 +169,7 @@ export function TutorialPanel() {
           <GraduationCap className="h-5 w-5 text-teal-700" aria-hidden="true" />
           <div>
             <h2 className="text-lg font-semibold text-gray-900">新手入门指南</h2>
-            <p className="text-sm text-gray-500">跟着 {TUTORIAL_STEPS.length} 个步骤理解新版桌面和技能节奏。</p>
+            <p className="text-sm text-gray-500">跟着 {TUTORIAL_STEPS.length} 个步骤理解牌桌和技能节奏。</p>
           </div>
         </div>
         <button

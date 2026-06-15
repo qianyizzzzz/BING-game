@@ -713,7 +713,7 @@ export function ActionPanel({
       : mode === "skill" && !selectedSkill
         ? "还没有选择技能"
         : mode === "skill" && !selectedSkillPlay
-          ? "当前技能不能在此阶段使用"
+          ? "这张技能现在不能用"
           : mode === "skill" && selectedSkillTargetError
             ? selectedSkillTargetError
             : reboundUnavailable
@@ -724,7 +724,7 @@ export function ActionPanel({
                   ? "同一回合不能重复指定同一目标"
                   : hasAreaMixed
                     ? "群攻招式必须单独使用"
-                  : hasInvalidMultiTargetSkillTargets
+                    : hasInvalidMultiTargetSkillTargets
                       ? "追加目标需要补全"
                       : undefined;
   const actionRecoveryHint = actionInvalid
@@ -826,14 +826,14 @@ export function ActionPanel({
   const readinessLabel = alreadySubmitted
       ? "已提交，等待亮招"
       : actionInvalid
-        ? "需要补全选择"
+        ? "还差一步"
       : "可以提交";
   const actionBlockReason = !viewer
     ? "请选择座位后再出招"
     : alreadySubmitted
       ? "已经提交，等待其他玩家"
       : state.phase !== "collecting_actions"
-        ? "等待牌桌进入行动阶段"
+        ? "还没到出招时间"
         : viewer.status !== "alive"
           ? "当前角色不能行动"
           : submitting
@@ -855,7 +855,7 @@ export function ActionPanel({
       : "等待全部玩家亮招"
     : actionReadyState === "ready"
       ? "点击提交，锁定本回合"
-      : "先处理提示，再提交";
+      : "按提示补完再提交";
   const repeatActionError = getRepeatActionError({
     canAct,
     lastActionSubmission,
@@ -1535,7 +1535,7 @@ export function ActionPanel({
                       </label>
                     ) : (
                       <div className="self-end rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                        当前没有可交错的相向攻击
+                        现在没有可以交错的对攻
                       </div>
                     )
                   ) : isWindowAbsoluteGuard ? (
@@ -1556,7 +1556,7 @@ export function ActionPanel({
                       </label>
                     ) : (
                       <div className="self-end rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                        当前没有本回合将要攻击你的攻击
+                        本回合还没人打向你
                       </div>
                     )
                   ) : isWindowShunshouSteal ? (
@@ -1698,7 +1698,7 @@ export function ActionPanel({
                     </label>
                   ) : (
                     <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                      当前亮出的出招里没有可修改的攻击。
+                      亮出的招里没有可改的攻击。
                     </div>
                   )
                 ) : null}

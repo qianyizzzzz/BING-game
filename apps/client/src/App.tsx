@@ -192,14 +192,14 @@ export function App() {
         : busy
           ? "正在处理，请稍候"
           : missingStartPlayers > 0
-            ? `还差 ${missingStartPlayers} 名玩家。可以邀请朋友，或点击“加 AI”立即练习。`
+            ? `还差 ${missingStartPlayers} 名玩家。可以分享房号，也可以先补一名电脑玩家开练。`
             : "";
   const lobbyHint =
     state?.phase !== "lobby"
       ? ""
       : isOwner
         ? missingStartPlayers > 0
-          ? `下一步：加 ${missingStartPlayers} 名 AI 或分享房号，凑齐 ${MIN_PLAYERS} 人后开始。`
+          ? `下一步：补 ${missingStartPlayers} 名电脑玩家或分享房号，凑齐 ${MIN_PLAYERS} 人后开始。`
           : "下一步：确认设置后点击“开始”，进入第一回合。"
         : `你已在房间中，等待房主 ${ownerName} 调整设置并开始游戏。`;
   const activeDeadline =
@@ -815,7 +815,7 @@ export function App() {
                 <div className="hero-panel-heading">
                   <span>
                     <BadgeCheck className="h-4 w-4" aria-hidden="true" />
-                    玩家牌桌通行证
+                    入席信息
                   </span>
                   <strong>{selectedCharacter.archetype}</strong>
                 </div>
@@ -834,7 +834,7 @@ export function App() {
                     <img alt={`${selectedCharacter.name} 头像`} src={accountAvatarUrl} />
                   </div>
                   <div className="account-summary min-w-0 flex-1 text-left">
-                    <div className="text-sm font-black text-foreground">本地账号</div>
+                    <div className="text-sm font-black text-foreground">你的身份</div>
                     <p className="mt-1 truncate text-xs text-muted-foreground">{account.id}</p>
                   </div>
                   <label className="btn-secondary cursor-pointer">
@@ -854,7 +854,7 @@ export function App() {
                     type="button"
                   >
                     <UserPen className="h-4 w-4" aria-hidden="true" />
-                    注册账号
+                    保存身份
                   </button>
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
@@ -1029,7 +1029,7 @@ export function App() {
                           type="button"
                         >
                           <Bot className="h-4 w-4" aria-hidden="true" />
-                          加 AI
+                          加电脑玩家
                         </button>
                         <button
                           className="btn-primary"
@@ -1427,7 +1427,7 @@ function quickHintForState(
   if (state.phase === "lobby") {
     return {
       title: "准备开局",
-      body: "房主可以加 AI 或分享房号；其他玩家只需要确认名字、角色和技能，等待开局。"
+      body: "房主可以加电脑玩家或分享房号；其他玩家只需要确认名字、角色和技能，等待开局。"
     };
   }
 

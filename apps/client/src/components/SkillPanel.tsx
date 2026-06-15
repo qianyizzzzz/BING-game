@@ -62,7 +62,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
           <div>
             <h2 className="text-base font-black text-amber-50">技能画廊</h2>
             <p className="mt-0.5 text-xs font-semibold text-amber-100/70">
-              本局技能以卡片陈列，亮招时会在这里留下触发痕迹
+              本局技能以卡片陈列，触发过的技能会在这里高亮
             </p>
           </div>
         </div>

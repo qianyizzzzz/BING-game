@@ -153,7 +153,7 @@ export function PokerTableGame({
         : "";
   const tablePrompt = getTablePrompt(state, Boolean(viewerNeedsAction));
   const depthMeters = 720 + state.roundNumber * 180 + state.roundTurnNumber * 14;
-  const layerLabel = `LAYER ${String(Math.min(9, Math.max(1, state.roundNumber))).padStart(2, "0")}`;
+  const layerNumberLabel = String(Math.min(9, Math.max(1, state.roundNumber))).padStart(2, "0");
   const signalLabel = effects.length > 0
     ? "ACTIVE"
     : state.phase === "collecting_actions"
@@ -250,15 +250,15 @@ export function PokerTableGame({
           <div className="abyss-hud-readouts">
             <span>
               <Gauge className="h-3.5 w-3.5" aria-hidden="true" />
-              DEPTH {depthMeters}m
+              深度 {depthMeters}m
             </span>
             <span>
               <Compass className="h-3.5 w-3.5" aria-hidden="true" />
-              {layerLabel}
+              第 {layerNumberLabel} 层
             </span>
             <span>
               <RadioTower className="h-3.5 w-3.5" aria-hidden="true" />
-              RELIC {signalLabel}
+              遗物信号 {signalLabel}
             </span>
           </div>
         </div>
@@ -511,7 +511,7 @@ function ResourceDeltaStrip({
           </span>
         ))
       ) : (
-        <span className="battle-resource-delta-chip">等待血量/饼变化</span>
+        <span className="battle-resource-delta-chip">暂无血量/饼变化</span>
       )}
       {deltas.length > visibleDeltas.length ? (
         <span className="battle-resource-delta-chip">+{deltas.length - visibleDeltas.length}</span>
