@@ -55,7 +55,7 @@
 | --- | --- | --- |
 | 新手玩家 Agent | 可行动阶段不能写成“正在收招”；技能提交和结算摘要必须保留技能名、目标、补救动作、锁定回执和资源变化。 | 已改为“请选择行动 / 等待亮招”，提交后显示已锁定行动，技能提交显示“提交：火箭”等具体名称；不可提交补救动作和前三回合 HP/饼 delta 已纳入 UI agent 门禁。 |
 | 竞技玩家 Agent | 火箭等目标型技能在提交、亮招、摘要和 VFX 任一阶段丢 target，都会破坏竞技读局。 | 已让 `ActionPanel`、`tableFeedback`、`BattleDirector` / readout / summary 消费技能 `targetIds`；复杂 smoke 已验证当前选择、cueTargets=2、summaryTargets=2 和目标线/落点。 |
-| 开发商 / QA Agent | 公开 demo 前要处理生产 Origin、public 资产边界、LICENSE/资产权属、持久化备份和发布产物审计。 | Browser Playtest workflow 已加入 complex smoke 和手动重连/观战 smoke；下一步做多人集火、公网 tunnel 和响应窗口场景。 |
+| 开发商 / QA Agent | 已补私有项目 LICENSE 和基础资产权属说明；公开 demo 前还要处理生产 Origin、public 资产边界、最终素材逐项来源、持久化备份和发布产物审计。 | Browser Playtest workflow 已加入 complex smoke 和手动重连/观战 smoke；下一步做多人集火、公网 tunnel 和响应窗口场景。 |
 | 美术总监 Agent | 桌面中心仍被网页卡片感挤压，角色存在感还不够像游戏舞台。 | 目标线/落点 VFX 与角色 BBox 已纳入 smoke；下一步做桌面中心遮挡预算和中帧动画截图。 |
 
 ## 2026-06-14 上午子智能体与多人 smoke 更新

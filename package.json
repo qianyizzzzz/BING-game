@@ -1,6 +1,7 @@
 {
   "name": "bing-card-game",
   "private": true,
+  "license": "UNLICENSED",
   "version": "0.1.0",
   "type": "module",
   "engines": {

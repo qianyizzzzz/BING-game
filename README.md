@@ -45,7 +45,7 @@
 | 重连/观战报告 | `artifacts/playtests/reconnect-spectator-2026-06-13T23-43-00-536Z/report.md` |
 | 短限时报告 | `artifacts/playtests/timeout-fallback-2026-06-14T01-21-25-786Z/report.md` |
 | 角色浏览器报告 | `artifacts/playtests/character-runtime-2026-06-13T23-56-29-228Z/report.md` |
-| 发布口径 | 可用于受控公网试玩；正式公开发布前仍需许可证、资产权属、多人集火/公网 tunnel 门禁和备份策略。 |
+| 发布口径 | 可用于受控公网试玩；已补私有项目 LICENSE 和资产权属说明；正式公开发布前仍需最终素材来源确认、多人集火/公网 tunnel 门禁和备份策略。 |
 
 ## 项目简介
 
@@ -159,7 +159,7 @@ npm run serve
 - 逐角色浏览器验收已覆盖 6 个默认角色的选择、房间状态、animated GLB 请求、3D canvas 采样和角色屏幕 BBox。
 - 初版 BattleDirector 已统一结算 cue、牌桌 metadata 和 3D 镜头脉冲。
 - UI agent 已覆盖双玩家 3 回合 happy path、action-board 提交 metadata smoke、4 真人集火手动 smoke、复杂技能 smoke、重连/观战 smoke 和短限时自动兜底 smoke，并检查 canvas、GLB 加载、目标预览、行动 HUD、底部命令区、血/饼变化原因、遮挡、console error 和失败动作。
-- 角色仍是 WIP/blockout 口径：尚未完成最终高模、授权资产声明、精细权重绘制和精修运行时动画。
+- 角色仍是 WIP/blockout 口径：尚未完成最终手绘动物角色资产、逐项来源确认、精细权重绘制和精修运行时动画。
 - 下一阶段重点是竞技读局层、复杂技能参数抽屉、多人集火/公网 tunnel playtest、6 角色 runtime 精修和更完整的平衡测试。
 
 ## 项目结构
@@ -210,6 +210,7 @@ workflow/          任务模板、评审模板、制作流程文档
 - [产品计划](docs/PRODUCT_PLAN.md)
 - [子智能体 UI 评审](docs/SUBAGENT_UI_REVIEW.md)
 - [BING 子智能体名册](docs/SUBAGENT_ROSTER.md)
+- [资产权属与来源说明](docs/ASSET_RIGHTS.md)
 - [美术总监 Blender 方案](docs/SUBAGENT_ART_DIRECTOR_BLENDER.md)
 - [角色资产审计](docs/CHARACTER_ASSET_AUDIT.md)
 - [提示词 + Goal 组合写法](workflow/prompts/prompt-goal-combos.md)
@@ -218,4 +219,4 @@ workflow/          任务模板、评审模板、制作流程文档
 
 ## 许可证
 
-当前为私有项目。公开发布或接受外部贡献前，请先补充许可证。
+当前为私有项目，详见 [LICENSE](LICENSE)。资产来源与发布边界见 [资产权属与来源说明](docs/ASSET_RIGHTS.md)。公开发布或接受外部贡献前，需要重新确认代码授权、素材授权和贡献协议。

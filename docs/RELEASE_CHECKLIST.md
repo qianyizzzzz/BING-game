@@ -2,7 +2,7 @@
 
 日期：2026-06-13
 
-当前结论：项目适合受控公网试玩；正式公开发布前仍需补多人集火/公网 tunnel 浏览器门禁、安全白名单、持久化策略、许可证和资产权属。
+当前结论：项目适合受控公网试玩；已补私有项目 `LICENSE` 和基础资产权属说明；正式公开发布前仍需补多人集火/公网 tunnel 浏览器门禁、安全白名单、持久化策略和最终素材来源确认。
 
 ## 0. 最新本地验证
 
@@ -83,8 +83,8 @@ docker run -p 3001:3001 -v bing-data:/app/data bing-card-game
 
 ## 7. 发布前阻断项
 
-- 补充正式 `LICENSE` 和资产权属说明。
-- 明确角色 GLB、贴图、截图、技能表来源。
+- 已补充私有项目 `LICENSE` 和 `docs/ASSET_RIGHTS.md`；正式公开发布前仍需逐项确认最终素材来源。
+- 明确最终角色 GLB、贴图、截图、技能表、Seedance 特效和宣传素材来源。
 - 保持公开战斗画面没有 `/assets/placeholders/` 网络请求。
 - 发布产物不得包含 `*.blend*` 或 `assets/characters/source/`；源场景只保留在 `tools/blender/source/`。
 - 扩展浏览器级 CI：复杂技能 smoke 已纳入夜间 workflow；重连/观战和短限时自动兜底 smoke 已加入手动 workflow；继续把响应窗口和多人集火加入可选 workflow，并上传报告和截图。
