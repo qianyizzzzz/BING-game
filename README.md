@@ -103,6 +103,7 @@ npm run public:no-build
 - [视觉圣经](workflow/docs/01-visual-bible.md)
 - [UI 设计方案](docs/UI_DESIGN_PLAN.md)
 - [全技能特效状态](docs/EFFECT_ASSET_STATUS.md)
+- [技能特效批量生成计划](docs/EFFECT_GENERATION_BATCH_PLAN.md)
 - [油画特效生产线](workflow/tasks/TASK-007-oil-paint-effect-pipeline.md)
 - [Seedance MCP / API 配置](docs/SEEDANCE_MCP_SETUP.md)
 - [角色资产审计](docs/CHARACTER_ASSET_AUDIT.md)
