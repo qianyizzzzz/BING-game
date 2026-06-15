@@ -51,6 +51,7 @@
     "test:character-browser:run": "tsx scripts/character-runtime-browser-check.ts",
     "effects:spec": "tsx scripts/generate-effect-animation-spec.ts",
     "effects:keyframes:plan": "tsx scripts/effect-keyframe-batch.ts",
+    "characters:goofy-portraits": "node scripts/generate-goofy-animal-portraits.mjs",
     "import:skills": "python scripts/import-skills.py",
     "training:export": "node scripts/export-training-data.mjs",
     "training:selfplay": "tsx scripts/self-play-training.ts",
