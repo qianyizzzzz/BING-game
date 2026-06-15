@@ -9503,3 +9503,162 @@ select {
   object-position: 50% 34% !important;
   filter: saturate(0.98) contrast(1.03) brightness(1.01) !important;
 }
+
+/* French cartoon pass: make character UI match the cute rough-line portrait style. */
+.hero-shell .account-card,
+.account-card,
+.hero-shell .character-select-panel,
+.character-select-panel,
+.player-card-shell,
+.poker-table-board .poker-seat {
+  border: 2px solid rgba(34, 31, 25, 0.58) !important;
+  border-radius: 11px 9px 12px 8px !important;
+  background:
+    repeating-linear-gradient(96deg, rgba(48, 42, 30, 0.026) 0 1px, transparent 1px 9px),
+    radial-gradient(ellipse at 22% 8%, rgba(255, 250, 226, 0.74), transparent 42%),
+    #f4e8ca !important;
+  box-shadow:
+    5px 6px 0 rgba(48, 42, 30, 0.08),
+    inset 0 0 0 1px rgba(255, 252, 235, 0.48) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.hero-shell .character-select-panel::before,
+.character-select-panel::before,
+.hero-shell .account-card::before,
+.account-card::before,
+.player-card-shell::before,
+.poker-table-board .poker-seat::before {
+  display: none !important;
+}
+
+.character-select-preview {
+  align-items: center;
+}
+
+.character-select-portrait,
+.character-portrait-badge,
+.player-avatar,
+.account-avatar,
+.poker-table-board .character-avatar-shell {
+  border: 2px solid rgba(27, 25, 21, 0.76) !important;
+  border-radius: 48% 45% 42% 46% / 44% 46% 43% 45% !important;
+  background:
+    radial-gradient(circle at 44% 30%, rgba(255, 245, 209, 0.38), transparent 34%),
+    #ead7ad !important;
+  box-shadow:
+    2px 3px 0 rgba(34, 31, 25, 0.18),
+    inset 0 0 0 1px rgba(255, 252, 235, 0.28) !important;
+}
+
+.character-select-painted-portrait {
+  width: 118px !important;
+  height: 126px !important;
+  border-radius: 42% 45% 36% 40% / 45% 42% 38% 36% !important;
+}
+
+.character-option-painted-portrait {
+  width: 40px !important;
+  height: 44px !important;
+}
+
+.character-portrait-image {
+  object-position: 50% 30% !important;
+  filter: saturate(0.93) contrast(1.08) brightness(0.98) !important;
+}
+
+.hero-shell .character-option,
+.character-option {
+  border: 2px solid rgba(34, 31, 25, 0.42) !important;
+  border-radius: 10px 8px 12px 9px !important;
+  background:
+    linear-gradient(180deg, rgba(250, 239, 204, 0.78), rgba(230, 211, 168, 0.54)),
+    #f3e4bd !important;
+  box-shadow: 3px 4px 0 rgba(48, 42, 30, 0.07) !important;
+}
+
+.hero-shell .character-option:hover,
+.hero-shell .character-option-active,
+.character-option:hover,
+.character-option-active {
+  border-color: rgba(34, 31, 25, 0.72) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 240, 190, 0.9), rgba(226, 201, 134, 0.7)),
+    #f0d99a !important;
+  transform: translate(-1px, -1px) rotate(-0.25deg);
+}
+
+.hero-shell .character-option strong,
+.hero-shell .character-option small,
+.character-option strong,
+.character-option small,
+.hero-shell .character-select-preview :is(h3, p, div),
+.character-select-preview :is(h3, p, div),
+.seat-name-line strong,
+.seat-status-line,
+.seat-resource span,
+.seat-resource strong {
+  color: #241f19 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+.character-option strong,
+.seat-name-line strong {
+  font-weight: 760 !important;
+}
+
+.character-option small,
+.seat-status-line,
+.seat-resource span {
+  color: rgba(36, 31, 25, 0.66) !important;
+  font-weight: 560 !important;
+}
+
+.poker-table-board .seat-resource,
+.poker-table-board .seat-skill-card,
+.seat-resource,
+.seat-skill-card {
+  border: 1.5px solid rgba(34, 31, 25, 0.34) !important;
+  border-radius: 8px 7px 9px 7px !important;
+  background: rgba(255, 246, 216, 0.54) !important;
+  box-shadow: 2px 2px 0 rgba(48, 42, 30, 0.055) !important;
+}
+
+.poker-table-board .seat-hp-track,
+.seat-hp-track {
+  height: 5px !important;
+  border: 1px solid rgba(34, 31, 25, 0.32) !important;
+  background: rgba(241, 223, 177, 0.76) !important;
+  box-shadow: none !important;
+}
+
+.poker-table-board .seat-hp-track span,
+.seat-hp-track span {
+  background: #d66f46 !important;
+}
+
+.seat-feedback-bubble {
+  border: 1.5px solid rgba(34, 31, 25, 0.46) !important;
+  border-radius: 10px 8px 10px 7px !important;
+  background: #f5df9f !important;
+  color: #241f19 !important;
+  box-shadow: 2px 3px 0 rgba(48, 42, 30, 0.12) !important;
+}
+
+.hero-shell .btn-primary,
+.hero-shell .btn-secondary,
+.account-card .btn-secondary,
+.character-select-panel .btn-primary {
+  border: 2px solid rgba(34, 31, 25, 0.52) !important;
+  border-radius: 9px 8px 10px 8px !important;
+  background: #e4c373 !important;
+  color: #241f19 !important;
+  box-shadow: 3px 4px 0 rgba(48, 42, 30, 0.09) !important;
+}
+
+.hero-shell .btn-secondary,
+.account-card .btn-secondary {
+  background: #f5e8c7 !important;
+}
