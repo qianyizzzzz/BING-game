@@ -128,13 +128,13 @@ ${requiredFiles.map((fileName) => `| \`${fileName}\` | ${missingByFile[fileName]
 npm.cmd run test:effect-assets -- --json
 npm.cmd run effects:status
 npm.cmd run effects:keyframes:plan -- --offset-skills=0 --limit-skills=5 --estimated-cny-per-frame=0.5
-npm.cmd run seedance:effects:plan -- --offset=76 --limit=1 --estimated-cny-per-task=3
+npm.cmd run seedance:effects:plan -- --provider=volcengine --offset=76 --limit=1 --estimated-cny-per-task=3
 \`\`\`
 
 提交 Seedance 前必须带预算估算：
 
 \`\`\`powershell
-npm.cmd run seedance:effects:submit -- --offset=76 --limit=1 --estimated-cny-per-task=3
+npm.cmd run seedance:effects:submit -- --provider=volcengine --offset=76 --limit=1 --estimated-cny-per-task=3
 \`\`\`
 
 估算总额达到或超过 10 RMB 时，必须先向用户确认是否继续；获得明确许可后才可以继续提交付费任务。

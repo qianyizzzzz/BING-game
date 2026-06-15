@@ -185,7 +185,14 @@ try {
     }
     logStep("after-turn screenshots captured");
 
-    logStep("visual health begin");
+    if (config.smokeOnly) {
+      const message = "Quick UI smoke skipped full visual health checks; run test:ui-agents:run for strict overlap and canvas QA.";
+      runNotes.push(message);
+      producer.observations.push(message);
+    }
+
+    if (!config.smokeOnly) {
+      logStep("visual health begin");
     await collectVisualHealth(playerA, firstTimer, "新手玩家");
     if (playerB) {
       await collectVisualHealth(playerB, competitor, "竞技玩家");
@@ -194,6 +201,7 @@ try {
     await collectHeuristicFeedback(playerA, firstTimer, "新手玩家");
     if (playerB) {
       await collectHeuristicFeedback(playerB, competitor, "竞技玩家");
+    }
     }
     collectProducerFeedback();
   } catch (error) {
@@ -376,7 +384,7 @@ async function fillRoomId(page: Page, value: string): Promise<void> {
 }
 
 async function clickByTestId(page: Page, testId: string): Promise<void> {
-  const target = page.getByTestId(testId).first();
+  const target = visibleByTestId(page, testId);
   await activate(target);
 }
 
@@ -485,7 +493,7 @@ async function setCheckboxByTestId(page: Page, testId: string, checked: boolean)
 }
 
 async function ensureGameCanStart(page: Page): Promise<void> {
-  const startButton = page.getByTestId("start-game").first();
+  const startButton = visibleByTestId(page, "start-game");
   await startButton.waitFor({ state: "attached", timeout: 15_000 });
   if (await waitForEnabled(startButton, 1_000)) {
     return;
@@ -496,6 +504,10 @@ async function ensureGameCanStart(page: Page): Promise<void> {
     const label = await startButton.innerText().catch(() => "开始");
     throw new Error(`开始按钮仍不可用：${label}`);
   }
+}
+
+function visibleByTestId(page: Page, testId: string): Locator {
+  return page.locator(`[data-testid="${testId}"]:visible`).first();
 }
 
 async function waitForActionDock(page: Page): Promise<void> {
@@ -832,12 +844,21 @@ async function submitRepeatTurn(page: Page, turn: number, agent: AgentLog): Prom
 }
 
 async function activate(locator: Locator, timeoutMs = 10_000): Promise<void> {
-  await locator.waitFor({ state: "attached", timeout: timeoutMs });
+  await locator.waitFor({ state: "visible", timeout: timeoutMs });
   if (!(await waitForEnabled(locator, timeoutMs))) {
     const label = await locator.innerText().catch(() => "未知控件");
     throw new Error(`控件不可用：${label}`);
   }
-  await locator.dispatchEvent("click", undefined, { timeout: timeoutMs });
+  await locator.scrollIntoViewIfNeeded({ timeout: timeoutMs }).catch(() => undefined);
+  try {
+    await locator.click({ force: true, timeout: Math.min(timeoutMs, 2_500) });
+  } catch {
+    await locator.evaluate((element) => {
+      if (element instanceof HTMLElement) {
+        element.click();
+      }
+    });
+  }
 }
 
 async function waitForEnabled(locator: Locator, timeoutMs: number): Promise<boolean> {

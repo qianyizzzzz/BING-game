@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
 
 interface GenerationManifest {
   apiProvider?: ApiProvider;
@@ -39,7 +40,7 @@ const outDir = path.resolve(stringArg("--out-dir", "apps/client/public/assets/ef
 const poll = process.argv.includes("--poll");
 const maxPolls = numberArg("--max-polls", poll ? 24 : 1);
 const pollDelayMs = numberArg("--poll-delay-ms", 10_000);
-const ffmpegPath = stringArg("--ffmpeg", process.env.FFMPEG_PATH ?? "ffmpeg");
+const ffmpegPath = stringArg("--ffmpeg", process.env.FFMPEG_PATH ?? bundledFfmpegPath() ?? "ffmpeg");
 const skipWebm = process.argv.includes("--skip-webm");
 
 if (showHelp) {
@@ -228,7 +229,7 @@ async function downloadTaskAssets(
   if (!urls.videoUrl) {
     warnings.push("missing_video_url");
   }
-  if (!urls.posterUrl) {
+  if (!urls.posterUrl && !fs.existsSync(path.join(skillDir, "poster.png"))) {
     warnings.push("missing_poster_url");
   }
   if (videoSourcePath && !fs.existsSync(mp4Path)) {
@@ -410,6 +411,16 @@ function tokenErrorMessage(provider: ApiProvider): string {
     return "ARK_API_KEY or VOLCENGINE_ARK_API_KEY is required to settle Seedance tasks";
   }
   return "ACEDATACLOUD_API_TOKEN is required to settle Seedance tasks";
+}
+
+function bundledFfmpegPath(): string | undefined {
+  try {
+    const require = createRequire(import.meta.url);
+    const ffmpeg = require("@ffmpeg-installer/ffmpeg") as { path?: string };
+    return ffmpeg.path;
+  } catch {
+    return undefined;
+  }
 }
 
 function stringArg(name: string, fallback: string): string {

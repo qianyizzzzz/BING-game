@@ -20,6 +20,8 @@ interface BatchOptions {
   apiBaseUrl: string;
   apiProvider: ApiProvider;
   apiToken: string;
+  imageRoles: string[];
+  imageSlots: number[];
   cnySpendLimit: number;
   dryRun: boolean;
   estimatedCnyPerTask: number;
@@ -223,12 +225,16 @@ function extractSeedancePrompt(section: string): string | undefined {
 
 function buildPayload(spec: EffectPromptSpec, opts: BatchOptions): Record<string, unknown> {
   const keyframeInputs = buildKeyframeInputs(spec, opts);
+  const selectedKeyframeInputs =
+    opts.apiProvider === "volcengine" && opts.imageRoles.length > 0
+      ? keyframeInputs.filter((_input, index) => opts.imageSlots.includes(index + 1))
+      : keyframeInputs;
   const content = [
     {
       text: spec.prompt,
       type: "text"
     },
-    ...keyframeInputs
+    ...selectedKeyframeInputs
       .filter((input) => input.url)
       .map((input) => ({
         image_url: {
@@ -240,7 +246,14 @@ function buildPayload(spec: EffectPromptSpec, opts: BatchOptions): Record<string
 
   if (opts.apiProvider === "volcengine") {
     return {
-      content,
+      content: content.map((item, index) =>
+        "image_url" in item && opts.imageRoles[index - 1]
+          ? {
+              ...item,
+              role: opts.imageRoles[index - 1]
+            }
+          : item
+      ),
       model: opts.model
     };
   }
@@ -317,6 +330,8 @@ function readOptions(): BatchOptions {
       Number(process.env.SEEDANCE_ESTIMATED_CNY_PER_TASK ?? 0)
     ),
     includeMissingKeyframes: process.argv.includes("--include-missing-keyframes"),
+    imageRoles: stringListArg("--image-roles", process.env.SEEDANCE_IMAGE_ROLES ?? "first_frame,last_frame"),
+    imageSlots: numberListArg("--image-slots", process.env.SEEDANCE_IMAGE_SLOTS ?? "1,4"),
     keyframeInputMode: keyframeInputModeArg("--keyframe-input-mode", "data-url"),
     limit: numberArg("--limit", 5),
     model: stringArg("--model", defaultModel(apiProvider)),
@@ -512,4 +527,22 @@ function stringArg(name: string, fallback: string): string {
   const prefix = `${name}=`;
   const matches = process.argv.filter((arg) => arg.startsWith(prefix));
   return matches.at(-1)?.slice(prefix.length) ?? fallback;
+}
+
+function stringListArg(name: string, fallback: string): string[] {
+  const raw = stringArg(name, fallback);
+  return raw
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function numberListArg(name: string, fallback: string): number[] {
+  return stringListArg(name, fallback).map((item) => {
+    const value = Number(item);
+    if (!Number.isInteger(value) || value < 1) {
+      throw new Error(`${name} must contain positive integers`);
+    }
+    return value;
+  });
 }

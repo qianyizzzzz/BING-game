@@ -54,6 +54,12 @@ $env:SEEDANCE_DEFAULT_MODEL
 npm.cmd run seedance:effects:plan -- --provider=volcengine --offset=76 --limit=1 --estimated-cny-per-task=3
 ```
 
+如果使用图片关键帧，火山 Ark 要求每个 `image_url` 内容带官方支持的 `role`。官方文档明确首帧图片使用 `first_frame`，尾帧图片使用 `last_frame`。因此当前脚本默认只向 Ark 发送第 1 张和第 4 张关键帧；中间关键帧保留在提示词和本地素材里，用于描述运动过程。
+
+```powershell
+npm.cmd run seedance:effects:plan -- --provider=volcengine --offset=76 --limit=1 --estimated-cny-per-task=3 --image-slots=1,4 --image-roles=first_frame,last_frame
+```
+
 提交任务，会消耗 API：
 
 ```powershell
