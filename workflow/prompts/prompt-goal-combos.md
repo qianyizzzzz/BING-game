@@ -152,20 +152,24 @@ Commit:
 
 ```text
 Goal:
-用 Codex 子智能体从 4 个角色并行评审 BING-game，并把结论转成可执行修改方案。
+用 Codex 子智能体从 BING 专用职能名册并行评审 BING-game，并把结论转成可执行修改方案。
 
 Context:
 - 工作区：C:\Users\haoyu\Desktop\bing\bing(1)\bing
 - 主 Agent 继续负责代码、测试、commit、push。
+- 必读名册：docs/SUBAGENT_ROSTER.md
 - 子智能体只读评审，不要改文件，避免和主 Agent 冲突。
-- 角色：新手玩家、竞技玩家、开发商 / QA、美术总监。
+- 角色：美术总监、动画设计、文学总监、产品经理、新手玩家、竞技玩家、开发商 / QA。
 
 Task:
-1. 新手玩家 Agent：评审首次开房、加入、第一轮吃饼、读懂结算。
-2. 竞技玩家 Agent：评审多人集火、技能/反制、资源读局、重复操作速度。
-3. 开发商 / QA Agent：评审 CI、browser smoke、公网试玩、socket 同步、release gate。
-4. 美术总监 Agent：评审角色存在感、HUD 层级、动效节奏、移动端拥挤、风格统一。
-5. 主 Agent 汇总到 docs/UI_DESIGN_PLAN.md，并把能做的项拆进 workflow/tasks。
+1. 美术总监 Agent：评审角色、头像、玩家信息框、HUD 层级、动效质感、风格统一。
+2. 动画设计 Agent：评审全技能关键帧、Seedance prompt、VFX 遮挡和节奏。
+3. 文学总监 Agent：评审封面、房间、行动面板和结算文案；不改技能名和机制。
+4. 产品经理 Agent：评审 P0/P1/P2、发布阻塞、验收口径和 commit 节奏。
+5. 新手玩家 Agent：评审首次开房、加入、第一轮吃饼、读懂结算。
+6. 竞技玩家 Agent：评审多人集火、技能/反制、资源读局、重复操作速度。
+7. 开发商 / QA Agent：评审 CI、browser smoke、公网试玩、socket 同步、release gate。
+8. 主 Agent 汇总到 docs/PLAYTEST_REPORT.md 或 docs/UI_DESIGN_PLAN.md，并把能做的项拆进 workflow/tasks。
 
 Acceptance:
 - 每个子智能体至少给出 3 条发现。

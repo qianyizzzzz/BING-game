@@ -192,7 +192,7 @@ workflow/          任务模板、评审模板、制作流程文档
 - 当前玩家是否需要操作必须一眼可见。
 - 服务端每个关键事件都应对应一个明确的视觉动画节拍。
 - 3D 桌面要有沉浸感，但不能牺牲卡牌和状态信息的可读性。
-- 引入两个玩家 agent、一个开发商/QA agent、一个美术总监 agent，持续生成测试反馈和修改清单。
+- 使用 BING 专用子智能体名册：美术总监、动画设计、文学总监、产品经理、新手玩家、竞技玩家、开发商/QA、Blender 角色美术和公网部署；不再使用和职责无关的泛名子智能体。
 - 角色资产遵循 `workflow/docs/01-visual-bible.md`，先以 blockout 验证轮廓，再推进半写实细化。
 
 完整方案见 [docs/UI_DESIGN_PLAN.md](docs/UI_DESIGN_PLAN.md)。
@@ -209,6 +209,7 @@ workflow/          任务模板、评审模板、制作流程文档
 - [Playtest 子智能体报告](docs/PLAYTEST_REPORT.md)
 - [产品计划](docs/PRODUCT_PLAN.md)
 - [子智能体 UI 评审](docs/SUBAGENT_UI_REVIEW.md)
+- [BING 子智能体名册](docs/SUBAGENT_ROSTER.md)
 - [美术总监 Blender 方案](docs/SUBAGENT_ART_DIRECTOR_BLENDER.md)
 - [角色资产审计](docs/CHARACTER_ASSET_AUDIT.md)
 - [提示词 + Goal 组合写法](workflow/prompts/prompt-goal-combos.md)

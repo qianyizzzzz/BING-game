@@ -16,6 +16,8 @@
 
 ## Role Split
 
+项目固定子智能体名册见 `docs/SUBAGENT_ROSTER.md`。BING 任务不再使用 Kuhn、Fermat、Noether、Sagan、Planck、Darwin、Descartes、Rawls、Plato、Volta、Huygens、James、Hume、Bernoulli、Lovelace、Ptolemy、Godel、Bacon、Gibbs、Erdos、Dewey、Kant 这类无职责泛名；新开子智能体必须按职能命名。
+
 ### You
 
 - Final decision maker
@@ -52,6 +54,17 @@
 - Requires human-proportioned semi-realistic characters for public-demo quality: believable face planes, five-finger hands, clothing thickness, material layers, rig readiness, and playable animation evidence.
 - Reports missing Blender MCP instead of pretending that model work has been completed.
 - Exports `.blend`, `.glb`, portrait crops, and art review reports for each approved character task.
+
+### BING Specialist Subagents
+
+- Art Director: owns taste review for UI, portraits, player frames, character quality, VFX language, and style consistency.
+- Animation Designer: owns keyframe coverage, Seedance prompt readiness, VFX timing, poster/video asset gaps, and UI readability during effects.
+- Literary Director: owns Chinese copy quality for onboarding, room flow, action panel, battle readout, README, and public-facing text; it must not rename skills or alter mechanics.
+- Product Manager: owns priority, scope, release blockers, acceptance criteria, and commit cadence.
+- New Player: reviews first-room, first-turn, first-settlement comprehension.
+- Competitive Player: reviews repeated actions, target reading, resource deltas, response windows, and whether animation blocks play.
+- Developer / QA: reviews tests, CI, socket behavior, browser smoke, release gates, and regression risk.
+- Public Deployment: owns local/public runbook checks, tunnel notes, and deployment docs.
 
 ## Ownership Rules
 

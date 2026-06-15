@@ -4,7 +4,7 @@
 
 本轮评审使用的是 Codex 侧边栏里的运行态子智能体，而不是 `scripts/ui-playtest-agents.ts` 里的 Playwright 测试 persona。Playwright 脚本仍然保留，用于后续自动化截图、流程回归和报告生成。
 
-当前 repo 尚未包含 `.agents` 持久化配置；如果要让这些角色在项目里长期固定出现，需要下一步补充对应的 agent 配置文件。
+当前 repo 已新增 `docs/SUBAGENT_ROSTER.md` 作为 BING 专用子智能体名册；侧边栏旧的泛名线程只保留历史记录，不再作为 BING 工作角色。
 
 ## 参与角色
 
@@ -12,6 +12,9 @@
 - 竞技玩家 Agent：高频对局用户，关注重复出招速度、目标信息、资源读取、动画是否干扰判断。
 - 开发商 Agent：制作人 / QA / 技术负责人，关注计划完成度、测试闭环、性能、可访问性和发布风险。
 - 美术总监 Agent：关注 art direction、角色资产、技能视觉、动效节奏和真实游戏质感；对几何体拼装角色拥有 P0 拒收权。
+- 动画设计 Agent：关注全技能关键帧、Seedance prompt、VFX 遮挡和节奏。
+- 文学总监 Agent：关注封面、房间、行动面板和结算文案；只改展示表达，不改技能名和机制。
+- 产品经理 Agent：关注 P0/P1/P2、发布阻塞、验收方式和 commit 节奏。
 - 美术总监 Blender Agent：在 Blender MCP 可用时，为每个默认角色/玩家建立真人比例的半写实 3D 角色，并输出 `.glb`、头像、turnaround、face-detail、rig/skin QA 和美术验收报告。详细规范见 `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`。
 
 ## 总结判断
