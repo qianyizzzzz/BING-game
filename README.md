@@ -1,7 +1,7 @@
 # BING Game / 饼
 
 <p align="center">
-  <strong>一款“同时出招、统一亮牌结算”的多人卡牌策略游戏。</strong>
+  <strong>一款“同时出招、亮牌结算”的多人卡牌策略游戏。</strong>
 </p>
 
 <p align="center">
@@ -30,15 +30,16 @@
 
 ## 项目简介
 
-`饼` 是一个原创回合制卡牌策略游戏。每位玩家在同一回合暗中选择行动，服务端再统一亮牌并结算：吃饼、防御、攻击、反弹、技能、伤害和死亡都会在同一个节奏里被处理。
+`饼` 是一个原创回合制卡牌策略游戏。每名玩家在同一回合暗中选择行动，所有人锁定后统一亮牌并结算：吃饼、防御、攻击、反弹、技能、伤害和死亡都会在同一个节奏里发生。
 
 当前仓库包含：
 
-- React / Vite / Three.js 客户端，包含 3D 牌桌、玩家座位、行动面板、技能画廊、复盘和新手引导。
-- Express / Socket.IO 服务端，负责房间、状态机、回合结算、复盘记录和训练样本导出。
-- `packages/shared` 共享规则包，统一动作、技能、状态、socket 类型和回合时间线。
-- 自动 playtest agents，用真实浏览器开房、出招、观战、重连、超时兜底并生成报告。
-- Seedance 动画任务脚本和全技能特效文档，正在把技能特效从 CSS 光效升级为油画/装置感动画资产。
+- React / Vite / Three.js 客户端：牌桌、座位、行动面板、目标预览、技能画廊、复盘和新手引导。
+- Express / Socket.IO 服务端：房间、状态机、回合结算、复盘记录和训练样本导出。
+- `packages/shared` 共享规则包：动作、技能、状态、socket 类型和回合时间线。
+- 自动化 playtest agents：用真实浏览器开房、出招、观战、重连、超时兜底并生成报告。
+- 全技能特效文档与 Seedance 任务脚本：把 CSS 光效逐步升级为油画 / 装置感动画资产。
+- 角色资产管线：头像、动作姿态图、GLB blockout、PBR 材质和浏览器运行时审计。
 
 ## 截图
 
@@ -51,11 +52,11 @@
 | 模块 | 状态 |
 | --- | --- |
 | 核心玩法 | 双玩家创建房间、加入房间、开局、出招、沿用上回合、攻击和结算 happy path 已通过 UI agent。 |
-| UI/HUD | 3D 牌桌、行动面板、目标预览、结算摘要、血量/饼变化和技能画廊已接入；仍在继续做油画感和轻量化打磨。 |
-| 角色资产 | 6 个默认角色有头像、移动端头像、动作姿态图和 GLB 管线；美术方向已转向手绘搞怪动物，GLB 仍是 WIP/blockout。 |
-| 特效资产 | `docs/EFFECT_ANIMATION_PROMPTS.json` 已覆盖 120 个技能、480 张关键帧 prompt 和 120 条 Seedance prompt；实际 mp4/webm 动画仍在生成阶段。 |
+| UI / HUD | 3D 牌桌、行动面板、目标预览、结算摘要、血量 / 饼变化和技能画廊已接入；仍在继续打磨轻薄度、油画感和信息层级。 |
+| 角色资产 | 6 个默认角色已有手绘动物头像、移动端头像和动作姿态图；GLB 仍是 WIP / blockout，不能视为最终美术资产。 |
+| 特效资产 | `docs/EFFECT_ANIMATION_PROMPTS.json` 已覆盖 120 个技能、480 条关键帧 prompt 和 120 条 Seedance prompt；实际 mp4 / webm 动画仍未批量生成。 |
 | 自动化验收 | 覆盖规则回归、角色资产审计、turn timeline、UI agents、复杂技能、重连、超时和提交 metadata smoke。 |
-| 发布边界 | 当前是私有项目。公开发布前需要确认素材来源、授权、长期部署和公网联机门禁。 |
+| 发布边界 | 当前是私有项目。公开发布前需要确认素材来源、授权、长期部署方案和公网联机门禁。 |
 
 ## 快速开始
 
@@ -89,13 +90,13 @@ npm run public:no-build
 
 ## 美术与动画方向
 
-当前视觉目标是“油画纸面 + 透明装置 + 手绘动物角色”：
+当前视觉目标是“油画纸面 + 透明装置 + 手绘搞怪动物角色”：
 
 - 页面元素要轻薄，避免塑料感、硬方框和后台 dashboard 感。
 - 头像和玩家信息框采用手绘角色、纸面纹理、低饱和色和不规则边缘。
 - 技能和介绍界面做成 gallery，展示一张张技能卡片。
-- 技能特效以 `docs/EFFECT_ANIMATION_PROMPTS.json` 为准，每个技能 4 张关键帧，再用 Seedance 补成短动画。
-- paid API 调用有预算闸门：预计达到或超过 10 RMB 时必须先确认。
+- 技能特效以 `docs/EFFECT_ANIMATION_PROMPTS.json` 为准：每个技能 4 张关键帧，再用 Seedance 补成短动画。
+- 付费 API 调用有预算闸门：预计达到或超过 10 RMB 时必须先确认。
 
 相关文档：
 
@@ -113,11 +114,11 @@ npm run public:no-build
 
 - 美术总监：检查油画感、字体、透明度、色彩、头像和整体美术一致性。
 - 动画设计：拆解技能关键帧、Seedance prompt、节奏、遮挡和 reduced-motion 回退。
-- 文学总监：修正界面文案、README、引导文本和气质表达，不改技能名和原机制。
+- 文学总监：修正界面文案、README、引导文本和气质表达，不修改技能名和原机制。
 - 产品经理：检查主流程、信息层级、可理解性和发布优先级。
 - 新手玩家 / 竞技玩家：分别从学习成本和对抗读局角度做 playtest。
 - 开发商 QA：负责 smoke、回归、截图、控制台错误和发布风险。
-- 公网部署：负责本地/公网联机、隧道、端口和部署文档。
+- 公网部署：负责本地 / 公网联机、隧道、端口和部署文档。
 
 完整名单见 [BING 子智能体名册](docs/SUBAGENT_ROSTER.md)。
 
@@ -134,6 +135,7 @@ npm run public:no-build
 | `npm run verify` | 构建后运行核心检查和默认 UI agents。 |
 | `npm run verify:release` | 发布前完整门禁。 |
 | `npm run test:assets` | 检查 6 个角色的 GLB、头像、QA 图和 PBR 贴图资源。 |
+| `npm run test:effect-spec` | 检查 120 个技能的特效文档、关键帧 prompt 和 Seedance prompt。 |
 | `npm run test:effect-assets` | 检查 120 个技能的关键帧、poster、webm 和 mp4 是否齐全且格式有效。 |
 | `npm run test:ui-agents` | 构建 client 后运行默认双玩家浏览器 playtest。 |
 | `npm run test:ui-agents:complex` | 运行复杂技能 smoke。 |
@@ -173,6 +175,6 @@ workflow/          制作流程、任务、prompts、review 和 playtest 模板
 - [Game Pillars](workflow/docs/00-game-pillars.md)
 - [Roadmap](workflow/docs/02-roadmap.md)
 
-## 许可证
+## 许可说明
 
 当前为私有项目，详见 [LICENSE](LICENSE)。素材来源、发布边界和授权注意事项见 [资产权属与来源说明](docs/ASSET_RIGHTS.md)。
