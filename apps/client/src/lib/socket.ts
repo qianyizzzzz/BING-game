@@ -22,7 +22,8 @@ function inferServerUrl(): string {
   }
 
   const { hostname, origin, port, protocol } = window.location;
-  if (port === "3001" || protocol === "https:") {
+  const devClientPorts = new Set(["5173", "5174"]);
+  if (protocol === "https:" || !port || port === "3001" || !devClientPorts.has(port)) {
     return origin;
   }
 

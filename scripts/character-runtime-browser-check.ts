@@ -69,7 +69,7 @@ try {
     await browser.close();
   }
 } finally {
-  stopServer(serverProcess);
+  await stopServer(serverProcess);
 }
 
 const reportPath = path.join(runDir, "report.md");
@@ -81,10 +81,11 @@ if (failures.length > 0) {
     console.error(`fail - ${failure}`);
   }
   console.error(`report - ${reportPath}`);
-  process.exitCode = 1;
+  process.exit(1);
 } else {
   console.log(`character runtime browser check passed: ${activeRoster.length} characters`);
   console.log(`report - ${reportPath}`);
+  process.exit(0);
 }
 
 async function verifyCharacter(
@@ -112,6 +113,7 @@ async function verifyCharacter(
     await fillPlayerName(host, `角色验证-${index + 1}`);
     await clickByTestId(host, "create-room");
     roomId = await readRoomId(host);
+    await startLobbyGame(host);
 
     const expectedModelResponse = spectator
       .waitForResponse((response) => {
@@ -273,6 +275,44 @@ async function waitForInputValue(locator: Locator, expected: string, timeoutMs: 
 async function readRoomId(page: Page): Promise<string> {
   await page.getByTestId("room-code").waitFor({ timeout: 20_000 });
   return (await page.getByTestId("room-code").first().innerText()).trim();
+}
+
+async function startLobbyGame(page: Page): Promise<void> {
+  const startedAt = Date.now();
+
+  while (!(await isDomEnabled(page, "start-game"))) {
+    if (Date.now() - startedAt > 30_000) {
+      throw new Error("room did not become startable within 30s");
+    }
+    if (await isDomEnabled(page, "add-ai")) {
+      await clickDomTestId(page, "add-ai");
+    }
+    await page.waitForTimeout(750);
+  }
+
+  await clickDomTestId(page, "start-game");
+  await page.locator(".table-scene-3d").first().waitFor({ state: "visible", timeout: 20_000 });
+}
+
+async function isDomEnabled(page: Page, testId: string): Promise<boolean> {
+  return page.evaluate((targetTestId) => {
+    const element = document.querySelector(`[data-testid="${targetTestId}"]`);
+    return element instanceof HTMLButtonElement && !element.disabled;
+  }, testId);
+}
+
+async function clickDomTestId(page: Page, testId: string): Promise<void> {
+  const clicked = await page.evaluate((targetTestId) => {
+    const element = document.querySelector(`[data-testid="${targetTestId}"]`);
+    if (!(element instanceof HTMLElement)) {
+      return false;
+    }
+    element.click();
+    return true;
+  }, testId);
+  if (!clicked) {
+    throw new Error(`missing control: ${testId}`);
+  }
 }
 
 async function waitForRoomLobby(page: Page, actionLabel: string): Promise<void> {
@@ -602,20 +642,37 @@ async function isHealthy(url: string): Promise<boolean> {
   }
 }
 
-function stopServer(child: ChildProcess | undefined): void {
+async function stopServer(child: ChildProcess | undefined): Promise<void> {
   if (!child || child.killed) {
     return;
   }
 
+  const exited = waitForProcessExit(child, 5_000);
   if (process.platform === "win32" && child.pid) {
-    spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
+    const killer = spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
       stdio: "ignore",
       windowsHide: true
     });
+    await Promise.race([waitForProcessExit(killer, 5_000), exited]);
     return;
   }
 
   child.kill("SIGTERM");
+  await exited;
+}
+
+function waitForProcessExit(child: ChildProcess, timeoutMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    if (child.exitCode !== null || child.signalCode !== null) {
+      resolve();
+      return;
+    }
+    const timer = setTimeout(resolve, timeoutMs);
+    child.once("exit", () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
 }
 
 function renderReport(): string {

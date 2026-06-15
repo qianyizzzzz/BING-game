@@ -104,7 +104,12 @@ export function App() {
       });
     };
 
+    const handleRoomState = (nextState: PublicGameState) => {
+      setState(nextState);
+      setBusy(false);
+    };
     const handleRoomError = (nextMessage: string) => {
+      setBusy(false);
       setMessage(nextMessage);
       if (nextMessage.includes("移出")) {
         clearSavedIdentity();
@@ -113,10 +118,11 @@ export function App() {
       }
     };
     const handleConnectError = (error: Error) => {
+      setBusy(false);
       setMessage(`连接服务器失败：${error.message}`);
     };
 
-    socket.on("room:state", setState);
+    socket.on("room:state", handleRoomState);
     socket.on("room:error", handleRoomError);
     socket.on("connect", resumeSavedRoom);
     socket.on("connect_error", handleConnectError);
@@ -124,7 +130,7 @@ export function App() {
     resumeSavedRoom();
 
     return () => {
-      socket.off("room:state", setState);
+      socket.off("room:state", handleRoomState);
       socket.off("room:error", handleRoomError);
       socket.off("connect", resumeSavedRoom);
       socket.off("connect_error", handleConnectError);

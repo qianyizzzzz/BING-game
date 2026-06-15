@@ -163,6 +163,14 @@ export function TableScene3D({
       character.position.set(position.x + inward.x * 0.86, 0.05, position.z + inward.z * 0.86);
       character.lookAt(0, 0.46, 0);
       scene.add(character);
+      const fallbackRuntime: LoadedCharacterRuntime = {
+        actions: new Map(),
+        isDead: player.status === "dead",
+        lodTier: characterLodTier,
+        playerId: player.id,
+        root: character
+      };
+      loadedCharacters.push(fallbackRuntime);
 
       loadCharacterAsset(loader, profile, characterLodTier, player.status === "dead", player.name, player.id)
         .then((runtime) => {
@@ -178,7 +186,12 @@ export function TableScene3D({
           scene.remove(character);
           disposeObjectTree(character);
           scene.add(asset);
-          loadedCharacters.push(runtime);
+          const fallbackIndex = loadedCharacters.indexOf(fallbackRuntime);
+          if (fallbackIndex >= 0) {
+            loadedCharacters.splice(fallbackIndex, 1, runtime);
+          } else {
+            loadedCharacters.push(runtime);
+          }
         })
         .catch(() => {
           // Keep the procedural fallback when a public GLB cannot be loaded.
