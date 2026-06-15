@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 
 interface GenerationManifest {
   tasks: GenerationTask[];
@@ -16,12 +17,20 @@ interface SettledTask {
   queryResponse?: unknown;
   skillId: string;
   skillName: string;
-  status: "missing_task_id" | "pending" | "failed" | "downloaded";
+  status: "missing_task_id" | "pending" | "failed" | "partial" | "downloaded";
   taskId?: string;
+  warnings?: string[];
+}
+
+interface DownloadResult {
+  downloaded: string[];
+  hasCompleteSet: boolean;
+  warnings: string[];
 }
 
 const apiBaseUrl = process.env.ACEDATACLOUD_API_BASE_URL ?? "https://api.acedata.cloud";
 const apiToken = process.env.ACEDATACLOUD_API_TOKEN ?? "";
+const showHelp = process.argv.includes("--help") || process.argv.includes("-h");
 const manifestPath = path.resolve(
   stringArg("--manifest", "artifacts/seedance/effect-generation-tasks.json")
 );
@@ -29,6 +38,13 @@ const outDir = path.resolve(stringArg("--out-dir", "apps/client/public/assets/ef
 const poll = process.argv.includes("--poll");
 const maxPolls = numberArg("--max-polls", poll ? 24 : 1);
 const pollDelayMs = numberArg("--poll-delay-ms", 10_000);
+const ffmpegPath = stringArg("--ffmpeg", process.env.FFMPEG_PATH ?? "ffmpeg");
+const skipWebm = process.argv.includes("--skip-webm");
+
+if (showHelp) {
+  printHelp();
+  process.exit(0);
+}
 
 if (!apiToken) {
   throw new Error("ACEDATACLOUD_API_TOKEN is required to settle Seedance tasks");
@@ -64,14 +80,16 @@ for (const task of manifest.tasks) {
   }
 
   const urls = extractResultUrls(result);
-  const downloaded = await downloadTaskAssets(task.skillId, urls);
+  const downloadResult = await downloadTaskAssets(task.skillId, urls);
+  const downloadStatus = statusForDownload(downloadResult);
   settled.push({
-    downloaded,
+    downloaded: downloadResult.downloaded,
     queryResponse: result,
     skillId: task.skillId,
     skillName: task.skillName,
-    status: downloaded.length > 0 ? "downloaded" : "pending",
-    taskId
+    status: downloadStatus,
+    taskId,
+    warnings: downloadResult.warnings.length > 0 ? downloadResult.warnings : undefined
   });
 }
 
@@ -133,24 +151,83 @@ async function queryTask(taskId: string): Promise<unknown> {
 async function downloadTaskAssets(
   skillId: string,
   urls: { posterUrl?: string; videoUrl?: string }
-): Promise<string[]> {
+): Promise<DownloadResult> {
   const skillDir = path.join(outDir, skillId);
   fs.mkdirSync(skillDir, { recursive: true });
   const downloaded: string[] = [];
+  const warnings: string[] = [];
+  let videoSourcePath: string | undefined;
 
   if (urls.videoUrl) {
-    const videoPath = path.join(skillDir, "effect.mp4");
+    const ext = extensionFromUrl(urls.videoUrl);
+    const videoPath =
+      ext === ".webm"
+        ? path.join(skillDir, "effect.webm")
+        : ext === ".mov"
+          ? path.join(skillDir, "source.mov")
+          : path.join(skillDir, "effect.mp4");
     await downloadFile(urls.videoUrl, videoPath);
     downloaded.push(videoPath);
+    videoSourcePath = videoPath;
+
+    if (ext === ".mov") {
+      warnings.push("video_saved_as_source_mov; mp4 transcode is not implemented");
+    }
+    if (ext === ".webm" && !fs.existsSync(path.join(skillDir, "effect.mp4"))) {
+      warnings.push("effect_mp4_missing; Seedance returned webm only");
+    }
   }
 
   if (urls.posterUrl) {
-    const posterPath = path.join(skillDir, "poster.png");
+    const ext = extensionFromUrl(urls.posterUrl);
+    const posterPath =
+      ext === ".png" || ext === "" ? path.join(skillDir, "poster.png") : path.join(skillDir, `poster-source${ext}`);
     await downloadFile(urls.posterUrl, posterPath);
     downloaded.push(posterPath);
+    if (posterPath.endsWith("poster-source")) {
+      warnings.push("poster_source_extension_missing");
+    }
+    if (!posterPath.endsWith("poster.png")) {
+      warnings.push(`poster_not_png; saved as ${path.basename(posterPath)}`);
+    }
   }
 
-  return downloaded;
+  const webmPath = path.join(skillDir, "effect.webm");
+  const mp4Path = path.join(skillDir, "effect.mp4");
+  if (!fs.existsSync(webmPath) && fs.existsSync(mp4Path)) {
+    if (skipWebm) {
+      warnings.push("webm_conversion_skipped");
+    } else {
+      const warning = convertMp4ToWebm(mp4Path, webmPath);
+      if (warning) {
+        warnings.push(warning);
+      } else {
+        downloaded.push(webmPath);
+      }
+    }
+  }
+
+  if (!urls.videoUrl) {
+    warnings.push("missing_video_url");
+  }
+  if (!urls.posterUrl) {
+    warnings.push("missing_poster_url");
+  }
+  if (videoSourcePath && !fs.existsSync(mp4Path)) {
+    warnings.push(`effect_mp4_missing; source=${path.basename(videoSourcePath)}`);
+  }
+  if (!fs.existsSync(webmPath)) {
+    warnings.push("effect_webm_missing");
+  }
+
+  return {
+    downloaded,
+    hasCompleteSet:
+      fs.existsSync(path.join(skillDir, "poster.png")) &&
+      fs.existsSync(mp4Path) &&
+      fs.existsSync(webmPath),
+    warnings: [...new Set(warnings)]
+  };
 }
 
 async function downloadFile(url: string, targetPath: string): Promise<void> {
@@ -172,6 +249,39 @@ function extractResultUrls(value: unknown): { posterUrl?: string; videoUrl?: str
     posterUrl: urls.find((url) => /\.(png|jpg|jpeg|webp)(\?|$)/i.test(url)),
     videoUrl: urls.find((url) => /\.(mp4|webm|mov)(\?|$)/i.test(url))
   };
+}
+
+function statusForDownload(result: DownloadResult): SettledTask["status"] {
+  if (result.hasCompleteSet) {
+    return "downloaded";
+  }
+  return result.downloaded.length > 0 ? "partial" : "pending";
+}
+
+function convertMp4ToWebm(mp4Path: string, webmPath: string): string | undefined {
+  const result = spawnSync(
+    ffmpegPath,
+    ["-y", "-i", mp4Path, "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "35", "-an", webmPath],
+    { encoding: "utf-8" }
+  );
+  if (result.status === 0 && fs.existsSync(webmPath)) {
+    return undefined;
+  }
+  fs.rmSync(webmPath, { force: true });
+  const detail = result.error?.message ?? result.stderr ?? "unknown ffmpeg error";
+  return `webm_conversion_failed; ${oneLine(detail).slice(0, 240)}`;
+}
+
+function extensionFromUrl(url: string): string {
+  try {
+    return path.extname(new URL(url).pathname).toLowerCase();
+  } catch {
+    return path.extname(url.split("?")[0] ?? "").toLowerCase();
+  }
+}
+
+function oneLine(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
 }
 
 function taskStatus(value: unknown): "pending" | "succeeded" | "failed" {
@@ -251,4 +361,21 @@ function numberArg(name: string, fallback: number): number {
 function stringArg(name: string, fallback: string): string {
   const prefix = `${name}=`;
   return process.argv.find((arg) => arg.startsWith(prefix))?.slice(prefix.length) ?? fallback;
+}
+
+function printHelp(): void {
+  console.log(`Settle Seedance effect tasks.
+
+Usage:
+  npm run seedance:effects:settle -- --manifest=artifacts/seedance/effect-generation-tasks.json
+
+Options:
+  --manifest=<path>       Seedance generation manifest.
+  --out-dir=<path>        Effect asset output directory.
+  --poll                  Poll until each task succeeds/fails.
+  --max-polls=<count>     Maximum poll attempts.
+  --poll-delay-ms=<ms>    Delay between poll attempts.
+  --ffmpeg=<path>         ffmpeg executable for mp4 -> webm conversion.
+  --skip-webm             Download only; record missing webm in the report.
+`);
 }
