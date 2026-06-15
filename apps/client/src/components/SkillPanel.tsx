@@ -55,14 +55,14 @@ export function SkillPanel({ state }: SkillPanelProps) {
   }
 
   return (
-    <section className="surface-card skill-card abyss-skill-panel p-4">
+    <section className="surface-card skill-card skill-gallery-panel p-4">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-amber-200" aria-hidden="true" />
+          <Sparkles className="h-5 w-5 text-teal-700" aria-hidden="true" />
           <div>
-            <h2 className="text-base font-black text-amber-50">技能画廊</h2>
-            <p className="mt-0.5 text-xs font-semibold text-amber-100/70">
-              本局技能以卡片陈列，触发过的技能会在这里高亮
+            <h2 className="text-base font-black text-gray-950">技能画廊</h2>
+            <p className="mt-0.5 text-xs font-semibold text-gray-500">
+              本局技能像展签一样陈列，刚触发的卡会出现颜料高亮。
             </p>
           </div>
         </div>
@@ -80,7 +80,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
           const playSummary = skill ? formatPlaySummary(skill) : "";
 
           return (
-            <div
+            <article
               key={skillId}
               className={[
                 "skill-list-item",
@@ -96,31 +96,31 @@ export function SkillPanel({ state }: SkillPanelProps) {
                 {skill ? <span className="skill-power-badge">{skillPowerLabel(skill)}</span> : null}
               </div>
 
-              <div className="skill-relic-art">
-                <span className="skill-relic-etch skill-relic-etch-a" aria-hidden="true" />
-                <span className="skill-relic-etch skill-relic-etch-b" aria-hidden="true" />
-                <span className="skill-relic-halo" aria-hidden="true" />
-                <span className="skill-relic-crest" aria-hidden="true">
+              <div className="skill-relic-art" aria-hidden="true">
+                <span className="skill-relic-etch skill-relic-etch-a" />
+                <span className="skill-relic-etch skill-relic-etch-b" />
+                <span className="skill-relic-halo" />
+                <span className="skill-relic-crest">
                   <Gem className="skill-relic-gem" />
                   <span className="skill-relic-crest-mark" />
                 </span>
-                <span className="skill-relic-specimen" aria-hidden="true">
-                  SPEC-{skill?.sourceRow ?? visual.sigil}
+                <span className="skill-relic-specimen">
+                  #{skill?.sourceRow ?? visual.sigil}
                 </span>
-                <span className="skill-relic-cost-track" aria-hidden="true">
+                <span className="skill-relic-cost-track">
                   {Array.from({ length: skillCostPipCount(skill) }).map((_, index) => (
                     <span key={index} className="skill-relic-cost-pip" />
                   ))}
                 </span>
-                <span className="skill-relic-energy-bar" aria-hidden="true">
+                <span className="skill-relic-energy-bar">
                   <span />
                 </span>
                 <strong>{visual.sigil}</strong>
               </div>
 
-              <div className="skill-relic-name" title={skill?.name ?? skillId}>
+              <h3 className="skill-relic-name" title={skill?.name ?? skillId}>
                 {skill?.name ?? skillId}
-              </div>
+              </h3>
 
               {phaseLabels.length > 0 ? (
                 <div className="skill-stage-strip mt-2">
@@ -158,10 +158,10 @@ export function SkillPanel({ state }: SkillPanelProps) {
                 </p>
               ) : !skill?.implemented ? (
                 <p className="skill-relic-note skill-relic-note-muted">
-                  展示/抽卡阶段，复杂效果会逐步接入结算引擎。
+                  展示阶段，复杂效果会逐步接入结算引擎。
                 </p>
               ) : null}
-            </div>
+            </article>
           );
         })}
       </div>
@@ -175,18 +175,18 @@ function formatPlaySummary(skill: NonNullable<ReturnType<typeof getSkill>>): str
     return "";
   }
 
-  const parts = [`COST ${play.cost}`];
+  const parts = [`消耗 ${play.cost}`];
   if (play.power !== undefined) {
-    parts.push(`POW ${play.power}`);
+    parts.push(`威力 ${play.power}`);
   }
   if (play.level !== undefined) {
-    parts.push(`LV ${play.level}`);
+    parts.push(`等级 ${play.level}`);
   }
   if (play.maxStacks > 1) {
-    parts.push(`x${play.maxStacks}`);
+    parts.push(`可叠 ${play.maxStacks}`);
   }
   if (play.targetMode === "all") {
-    parts.push("AOE");
+    parts.push("全场");
   }
   return parts.join(" / ");
 }

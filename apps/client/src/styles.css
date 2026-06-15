@@ -4759,6 +4759,137 @@ select {
   color: rgba(248, 237, 210, 0.58);
 }
 
+.skill-gallery-panel {
+  border-color: rgba(196, 178, 128, 0.36);
+  background:
+    radial-gradient(circle at 18% 10%, rgba(44, 156, 140, 0.08), transparent 28%),
+    linear-gradient(180deg, rgba(255, 250, 240, 0.96), rgba(245, 237, 218, 0.9));
+}
+
+.skill-gallery-panel .text-amber-50,
+.skill-gallery-panel .text-amber-100\/70 {
+  color: inherit;
+}
+
+.skill-panel-count {
+  border-color: rgba(121, 103, 59, 0.22);
+  background: rgba(255, 252, 244, 0.72);
+  color: #655019;
+}
+
+.skill-relic-card {
+  border-color: color-mix(in srgb, var(--skill-border) 46%, #d8ceb7);
+  background:
+    radial-gradient(circle at 22% 18%, var(--skill-glow), transparent 32%),
+    radial-gradient(circle at 78% 20%, rgba(255, 255, 255, 0.62), transparent 24%),
+    linear-gradient(180deg, color-mix(in srgb, var(--skill-surface) 88%, white), #fbf4e4);
+  color: var(--skill-ink);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.56),
+    0 12px 24px rgba(88, 71, 38, 0.12);
+}
+
+.skill-relic-card:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+    0 16px 30px rgba(88, 71, 38, 0.16),
+    0 0 0 1px color-mix(in srgb, var(--skill-border) 18%, transparent);
+}
+
+.skill-relic-card::before {
+  border-color: color-mix(in srgb, var(--skill-border) 26%, transparent);
+  opacity: 0.48;
+}
+
+.skill-relic-card::after {
+  background:
+    linear-gradient(115deg, transparent 0 34%, rgba(255, 255, 255, 0.28) 42%, transparent 48%),
+    repeating-linear-gradient(0deg, rgba(96, 76, 42, 0.035) 0 1px, transparent 1px 12px);
+  opacity: 0.34;
+}
+
+.skill-relic-topline {
+  color: color-mix(in srgb, var(--skill-ink) 76%, #6f6a5d);
+}
+
+.skill-relic-art {
+  border-color: color-mix(in srgb, var(--skill-border) 24%, transparent);
+  background:
+    linear-gradient(90deg, transparent 0 48%, color-mix(in srgb, var(--skill-border) 14%, transparent) 49% 51%, transparent 52%),
+    radial-gradient(ellipse at 50% 58%, color-mix(in srgb, var(--skill-glow) 70%, transparent), transparent 58%),
+    rgba(255, 252, 244, 0.46);
+}
+
+.skill-relic-halo {
+  border-color: color-mix(in srgb, var(--skill-border) 68%, transparent);
+  box-shadow:
+    inset 0 0 18px var(--skill-glow),
+    0 0 16px var(--skill-glow);
+}
+
+.skill-relic-crest::before {
+  border-color: color-mix(in srgb, var(--skill-border) 46%, transparent);
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--skill-ink) 18%, transparent), transparent 44%),
+    rgba(255, 250, 240, 0.7);
+  box-shadow:
+    inset 0 0 16px var(--skill-glow),
+    0 0 14px color-mix(in srgb, var(--skill-glow) 70%, transparent);
+}
+
+.skill-relic-gem {
+  color: color-mix(in srgb, var(--skill-ink) 88%, #17211d);
+  filter: drop-shadow(0 2px 5px rgba(68, 53, 28, 0.18));
+}
+
+.skill-relic-specimen,
+.skill-relic-art strong,
+.skill-relic-stats,
+.skill-power-badge,
+.skill-relic-tags span,
+.skill-stage-strip span {
+  border-color: color-mix(in srgb, var(--skill-border, #c9b27c) 34%, transparent);
+  background: rgba(255, 252, 244, 0.64);
+  color: color-mix(in srgb, var(--skill-ink, #5d4c2c) 86%, #17211d);
+  box-shadow: none;
+}
+
+.skill-relic-energy-bar {
+  border-color: color-mix(in srgb, var(--skill-border) 26%, transparent);
+  background: rgba(230, 217, 188, 0.42);
+}
+
+.skill-relic-energy-bar span {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--skill-border) 72%, #fff4cf), color-mix(in srgb, var(--skill-ink) 38%, #fff7df));
+  box-shadow: none;
+}
+
+.skill-relic-cost-pip {
+  border-color: color-mix(in srgb, var(--skill-ink) 42%, transparent);
+  background: color-mix(in srgb, var(--skill-border) 72%, #fff4cf);
+  box-shadow: none;
+}
+
+.skill-relic-name {
+  color: #17211d;
+  text-shadow: none;
+}
+
+.skill-relic-timing,
+.skill-relic-stats,
+.skill-relic-note {
+  color: color-mix(in srgb, var(--skill-ink) 78%, #17211d);
+}
+
+.skill-relic-description {
+  color: #5f5a4e;
+}
+
+.skill-relic-note-muted {
+  color: #8a8173;
+}
+
 .table-projectile-flame {
   background:
     radial-gradient(circle at 40% 36%, #fff7ad, transparent 24%),

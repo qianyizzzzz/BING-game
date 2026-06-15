@@ -24,75 +24,75 @@ export interface SkillVisualProfile {
 const AFFINITY_VISUALS: Record<SkillAffinity, SkillVisualProfile> = {
   ember: {
     affinity: "ember",
-    border: "#e76f2f",
-    glow: "rgba(255, 118, 54, 0.52)",
-    ink: "#ffd5a1",
-    label: "焰印遗物",
-    sigil: "焰",
-    surface: "rgba(77, 30, 18, 0.92)"
+    border: "#d56d3c",
+    glow: "rgba(213, 109, 60, 0.22)",
+    ink: "#62321f",
+    label: "暖色颜料",
+    sigil: "火",
+    surface: "#fff3df"
   },
   frost: {
     affinity: "frost",
-    border: "#7dd3fc",
-    glow: "rgba(125, 211, 252, 0.48)",
-    ink: "#d8f5ff",
-    label: "霜印遗物",
-    sigil: "霜",
-    surface: "rgba(16, 47, 62, 0.92)"
+    border: "#78a9b8",
+    glow: "rgba(120, 169, 184, 0.2)",
+    ink: "#244d58",
+    label: "冷色颜料",
+    sigil: "冰",
+    surface: "#edf7f7"
   },
   storm: {
     affinity: "storm",
-    border: "#facc15",
-    glow: "rgba(250, 204, 21, 0.45)",
-    ink: "#fff2a7",
-    label: "雷印遗物",
-    sigil: "雷",
-    surface: "rgba(63, 49, 17, 0.92)"
+    border: "#c4a342",
+    glow: "rgba(196, 163, 66, 0.22)",
+    ink: "#655019",
+    label: "闪光颜料",
+    sigil: "电",
+    surface: "#fff6d8"
   },
   venom: {
     affinity: "venom",
-    border: "#84cc16",
-    glow: "rgba(132, 204, 22, 0.42)",
-    ink: "#d9f99d",
-    label: "蚀印遗物",
-    sigil: "蚀",
-    surface: "rgba(31, 57, 26, 0.92)"
+    border: "#83a45a",
+    glow: "rgba(131, 164, 90, 0.2)",
+    ink: "#41562b",
+    label: "绿色颜料",
+    sigil: "毒",
+    surface: "#f1f7df"
   },
   ward: {
     affinity: "ward",
-    border: "#93c5fd",
-    glow: "rgba(147, 197, 253, 0.42)",
-    ink: "#dbeafe",
-    label: "盾印遗物",
+    border: "#7c9bb3",
+    glow: "rgba(124, 155, 179, 0.2)",
+    ink: "#334f62",
+    label: "防护展签",
     sigil: "盾",
-    surface: "rgba(21, 44, 71, 0.92)"
+    surface: "#eff5f8"
   },
   vital: {
     affinity: "vital",
-    border: "#fb7185",
-    glow: "rgba(251, 113, 133, 0.44)",
-    ink: "#ffe4e6",
-    label: "命印遗物",
-    sigil: "命",
-    surface: "rgba(70, 28, 45, 0.92)"
+    border: "#c98286",
+    glow: "rgba(201, 130, 134, 0.2)",
+    ink: "#6c3f43",
+    label: "生命颜料",
+    sigil: "生",
+    surface: "#fff0ed"
   },
   void: {
     affinity: "void",
-    border: "#c084fc",
-    glow: "rgba(192, 132, 252, 0.45)",
-    ink: "#f3e8ff",
-    label: "虚印遗物",
-    sigil: "虚",
-    surface: "rgba(42, 32, 64, 0.94)"
+    border: "#9b8ab8",
+    glow: "rgba(155, 138, 184, 0.2)",
+    ink: "#514565",
+    label: "暗色颜料",
+    sigil: "影",
+    surface: "#f3f0f6"
   },
   relic: {
     affinity: "relic",
     border: "#c9b27c",
-    glow: "rgba(201, 178, 124, 0.42)",
-    ink: "#f8edd2",
-    label: "渊印遗物",
-    sigil: "遗",
-    surface: "rgba(52, 45, 32, 0.94)"
+    glow: "rgba(201, 178, 124, 0.2)",
+    ink: "#5d4c2c",
+    label: "普通展品",
+    sigil: "技",
+    surface: "#fbf4e4"
   }
 };
 
@@ -111,7 +111,7 @@ export function getSkillVisualProfile(
     .join(" ")
     .toLowerCase();
 
-  if (containsAny(text, ["火", "炎", "lava", "fire", "burn"])) {
+  if (containsAny(text, ["火", "炎", "燃", "lava", "fire", "burn"])) {
     return AFFINITY_VISUALS.ember;
   }
   if (containsAny(text, ["冰", "霜", "雪", "frost", "ice", "winter"])) {
@@ -129,7 +129,7 @@ export function getSkillVisualProfile(
   if (containsAny(text, ["血", "治疗", "复活", "heal", "life"])) {
     return AFFINITY_VISUALS.vital;
   }
-  if (containsAny(text, ["死", "影", "鬼", "裂魂", "curse", "void", "death"])) {
+  if (containsAny(text, ["死", "影", "魂", "裂魂", "curse", "void", "death"])) {
     return AFFINITY_VISUALS.void;
   }
 
