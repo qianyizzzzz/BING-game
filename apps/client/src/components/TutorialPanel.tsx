@@ -14,12 +14,12 @@ interface TutorialStep {
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
-    title: "1. 你每回合只能提交一次出招计划",
-    goal: "先理解同时行动：你按下出招后不会立刻结算，要等所有存活玩家都出完。",
-    rule: "每个玩家在同一回合提交出招。别人先出招时，界面只显示“已出招”，不会提前暴露内容。",
+    title: "1. 每回合只锁定一次行动",
+    goal: "先理解同时行动：你按下出招后不会立刻结算，要等所有存活玩家都亮牌。",
+    rule: "每个玩家在同一回合暗选行动。别人先出招时，界面只显示“已出招”，不会提前暴露内容。",
     practice: "如果 AI 1 已出招，但你还没出招，此时会不会已经造成伤害？",
     answer: "不会。真正的伤害、防御、反弹都在所有人亮招后统一结算。",
-    checklist: ["观察玩家卡片右上角状态", "所有人已出招后才看播报动画", "不要被“已出招”误导成已经结算"]
+    checklist: ["观察玩家卡片右上角状态", "所有人都锁定后才看播报动画", "不要把“已出招”误读成已经结算"]
   },
   {
     title: "2. 饼是本轮资源，不会跨轮保存",
@@ -38,12 +38,12 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     checklist: ["先看招式的防御标签", "任意防可以被小防、油条、石头挡住", "饼防表示出饼也能挡，同时获得 1 饼"]
   },
   {
-    title: "4. 可以对不同目标提交多个招式",
+    title: "4. 可以对不同目标同时出手",
     goal: "学会多人局的核心操作：一个目标最多一个招式，但可以同时打不同人。",
     rule: "一回合里可以对 A 出杀、对 B 出擒、对 C 出防御相关操作，但不能对同一个人叠多个不同招式。叠加同一种攻击仍用“重数”表达。",
     practice: "你有 2 饼，能不能同回合对 AI 1 出 1 杀、对 AI 2 出 1 擒？",
-    answer: "可以，只要饼够并且每个目标只对应一个招式。若想对同一目标打 2 杀，应提交“2 杀”，不是两个杀动作。",
-    checklist: ["多人局优先考虑补刀路线", "同目标多段同类攻击用重数", "提交前检查总耗饼"]
+    answer: "可以，只要饼够并且每个目标只对应一个招式。若想对同一目标打 2 杀，应选择“2 杀”，不是两个杀动作。",
+    checklist: ["多人局优先考虑补刀路线", "同目标多段同类攻击用重数", "锁定前检查总耗饼"]
   },
   {
     title: "5. 反弹会沿路径继续传递",
@@ -189,19 +189,19 @@ export function TutorialPanel() {
         />
       </div>
 
-      <article className="rounded-lg border border-teal-100 bg-teal-50/50 p-4">
+      <article className="tutorial-gallery-card tutorial-step-card">
         <div className="mb-2 flex items-center gap-2 text-sm font-bold text-teal-800">
           <BookOpen className="h-4 w-4" aria-hidden="true" />
           第 {stepIndex + 1} / {TUTORIAL_STEPS.length} 步
         </div>
         <h3 className="text-base font-black text-gray-950">{step.title}</h3>
         <p className="mt-2 text-sm leading-6 text-gray-700">{step.goal}</p>
-        <p className="mt-2 rounded-lg border border-white bg-white/80 px-3 py-2 text-sm leading-6 text-gray-700">
+        <p className="tutorial-rule-label">
           {step.rule}
         </p>
       </article>
 
-      <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+      <div className="tutorial-gallery-card tutorial-practice-card">
         <div className="text-sm font-bold text-amber-900">你来判断</div>
         <p className="mt-2 text-sm leading-6 text-amber-950">{step.practice}</p>
         <button
@@ -212,15 +212,15 @@ export function TutorialPanel() {
           {showAnswer ? "收起答案" : "查看答案"}
         </button>
         {showAnswer ? (
-          <p className="mt-3 rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm leading-6 text-gray-700">
+          <p className="tutorial-answer-label">
             {step.answer}
           </p>
         ) : null}
       </div>
 
-      <div className="mt-4 grid gap-2 text-sm text-gray-600">
+      <div className="tutorial-check-gallery">
         {step.checklist.map((item) => (
-          <div key={item} className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+          <div key={item} className="tutorial-gallery-card tutorial-check-card">
             {item}
           </div>
         ))}

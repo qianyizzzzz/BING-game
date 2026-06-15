@@ -5,6 +5,7 @@ import {
   CharacterProfile,
   getCharacterById
 } from "../lib/characters";
+import { CharacterPortrait } from "./CharacterAvatar";
 
 interface CharacterSelectProps {
   selectedCharacterId: string;
@@ -35,10 +36,10 @@ export function CharacterSelect({
             } as CSSProperties
           }
         >
-          <img
-            alt={`${draft.name} 预览`}
-            data-testid="character-preview-image"
-            src={draft.avatarUrl}
+          <CharacterPortrait
+            avatarUrl={draft.avatarUrl}
+            className="character-select-painted-portrait"
+            name={draft.name}
           />
         </div>
         <div className="min-w-0 flex-1">
@@ -84,7 +85,11 @@ export function CharacterSelect({
             }
             type="button"
           >
-            <img alt="" src={character.avatarUrl} />
+            <CharacterPortrait
+              avatarUrl={character.avatarUrl}
+              className="character-option-painted-portrait"
+              name={character.name}
+            />
             <span>
               <strong>{character.name}</strong>
               <small>{character.archetype}</small>

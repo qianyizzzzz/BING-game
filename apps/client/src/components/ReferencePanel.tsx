@@ -61,38 +61,29 @@ export function ReferencePanel() {
       </div>
 
       {tab === "attacks" ? (
-        <div className="overflow-auto">
-          <table className="reference-table w-full min-w-[520px] text-left text-sm">
-            <thead className="border-b border-gray-200 text-gray-500">
-              <tr>
-                <th className="py-2 pr-3 font-medium">名称</th>
-                <th className="py-2 pr-3 font-medium">饼</th>
-                <th className="py-2 pr-3 font-medium">攻</th>
-                <th className="py-2 pr-3 font-medium">级</th>
-                <th className="py-2 pr-3 font-medium">防御</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ATTACK_ORDER.map((id) => {
-                const attack = BASE_ATTACKS[id];
-                return (
-                  <tr key={id} className="border-b border-gray-100">
-                    <td className="py-2 pr-3 font-semibold text-gray-800">
-                      {attack.name}
-                    </td>
-                    <td className="py-2 pr-3 text-gray-600">{attack.cost}</td>
-                    <td className="py-2 pr-3 text-gray-600">
-                      {attack.power === "infinity" ? "∞" : attack.power}
-                    </td>
-                    <td className="py-2 pr-3 text-gray-600">{attack.level}</td>
-                    <td className="py-2 pr-3 text-gray-600">
-                      {DEFENSE_TAG_LABELS[attack.defenseTag]}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="reference-gallery reference-attack-gallery">
+          {ATTACK_ORDER.map((id) => {
+            const attack = BASE_ATTACKS[id];
+            return (
+              <article className="reference-exhibit-card reference-attack-card" key={id}>
+                <div className="reference-card-topline">
+                  <span>{DEFENSE_TAG_LABELS[attack.defenseTag]}</span>
+                  <span>{attack.cost} 饼</span>
+                </div>
+                <div className="reference-attack-mark" aria-hidden="true">
+                  {attack.power === "infinity" ? "∞" : attack.power}
+                </div>
+                <h3>{attack.name}</h3>
+                <div className="reference-card-meta">
+                  <span>攻击 {attack.power === "infinity" ? "无限" : attack.power}</span>
+                  <span>等级 {attack.level}</span>
+                </div>
+                <p>
+                  需要用 {DEFENSE_TAG_LABELS[attack.defenseTag]} 处理。出招时先看饼耗，再看攻与级的对撞关系。
+                </p>
+              </article>
+            );
+          })}
         </div>
       ) : tab === "skills" ? (
         <div>
@@ -116,13 +107,13 @@ export function ReferencePanel() {
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="reference-info-grid">
+          <div className="reference-gallery reference-info-grid">
             <InfoBlock title="防御标签" text="小防防、油条防、石头防要求对应防御；任意防三种基础防都能挡；饼防只能出饼挡；无法防只能靠反弹或特殊技能处理。" />
             <InfoBlock title="攻击等级" text="攻击对撞时先比等级。等级高者按差值公式造成伤害，等级相同互相抵消。" />
             <InfoBlock title="元素" text="火、电、冰、毒等属性会被部分技能引用。当前基础版先记录属性，后续扩展会继续接入元素联动。" />
             <InfoBlock title="技能类型" text="主动技能会出现在出招面板；锁定技自动生效；控制技和限定技会逐步接入更完整的时机系统。" />
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="reference-gallery reference-defense-gallery">
             {Object.entries(DEFENSE_LABELS).map(([id, label]) => (
               <div key={id} className="attribute-row">
                 <strong>{label}</strong>
@@ -144,8 +135,8 @@ export function ReferencePanel() {
 
 function tabClass(active: boolean): string {
   return [
-    "rounded-md px-3 py-1 transition",
-    active ? "bg-teal-700 text-white shadow-sm" : "text-gray-600 hover:bg-gray-100"
+    "reference-tab-button",
+    active ? "reference-tab-button-active" : ""
   ].join(" ");
 }
 
@@ -206,7 +197,7 @@ function ReferenceSkillCard({ skill }: { skill: ReturnType<typeof getAllSkills>[
 
 function InfoBlock({ title, text }: { title: string; text: string }) {
   return (
-    <div className="reference-info-block">
+    <div className="reference-exhibit-card reference-info-block">
       <strong>{title}</strong>
       <p>{text}</p>
     </div>

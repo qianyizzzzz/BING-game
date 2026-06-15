@@ -299,7 +299,8 @@ export function PokerTableGame({
         <div
           className={[
             "battle-readout",
-            director.isPlaying ? "battle-readout-active" : ""
+            director.isPlaying ? "battle-readout-active" : "",
+            readoutStep ? "" : "battle-readout-idle"
           ].join(" ")}
           data-testid="battle-readout"
           data-active={director.isPlaying ? "true" : "false"}

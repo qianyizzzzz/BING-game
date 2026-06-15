@@ -8581,3 +8581,653 @@ select {
     0 10px 26px rgba(82, 72, 59, 0.026),
     inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
 }
+
+/* Gallery pass: skill cards, rule cards, and tutorial notes share one exhibition language. */
+.abyss-skill-panel,
+.skill-card {
+  border-color: rgba(32, 38, 51, 0.032) !important;
+  background:
+    radial-gradient(circle at 20% 8%, rgba(255, 255, 255, 0.11), transparent 34%),
+    linear-gradient(180deg, rgba(247, 241, 229, 0.11), rgba(226, 218, 204, 0.032)) !important;
+  box-shadow:
+    0 12px 30px rgba(82, 72, 59, 0.024),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+
+.skill-panel-count {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(0, 145, 151, 0.24) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: rgba(32, 38, 51, 0.58) !important;
+  font-weight: 500 !important;
+}
+
+.skill-gallery,
+.reference-gallery,
+.reference-skill-gallery,
+.tutorial-check-gallery {
+  display: grid;
+  gap: 12px;
+}
+
+.skill-gallery,
+.reference-skill-gallery {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.reference-attack-gallery,
+.reference-info-grid,
+.reference-defense-gallery {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.tutorial-check-gallery {
+  margin-top: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.skill-relic-card,
+.reference-exhibit-card,
+.tutorial-gallery-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(32, 38, 51, 0.05) !important;
+  border-radius: 6px !important;
+  background:
+    radial-gradient(circle at 18% 14%, color-mix(in srgb, var(--skill-glow, rgba(0, 145, 151, 0.16)) 26%, transparent), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(226, 218, 204, 0.038)) !important;
+  color: rgba(32, 38, 51, 0.74) !important;
+  box-shadow:
+    0 8px 22px rgba(82, 72, 59, 0.026),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+}
+
+.skill-relic-card {
+  min-height: 286px;
+  padding: 12px;
+  transform: none !important;
+}
+
+.skill-relic-card:hover,
+.reference-exhibit-card:hover,
+.tutorial-gallery-card:hover {
+  border-color: rgba(0, 145, 151, 0.16) !important;
+  box-shadow:
+    0 10px 26px rgba(82, 72, 59, 0.035),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.skill-relic-card::before,
+.skill-relic-card::after {
+  opacity: 0.16 !important;
+}
+
+.skill-relic-topline,
+.reference-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: rgba(32, 38, 51, 0.5) !important;
+  font-size: 10px;
+  font-weight: 520 !important;
+  text-transform: none;
+}
+
+.skill-relic-art,
+.reference-skill-art {
+  height: 92px;
+  border-color: rgba(32, 38, 51, 0.045) !important;
+  border-radius: 6px;
+  background:
+    radial-gradient(ellipse at 50% 54%, color-mix(in srgb, var(--skill-glow, rgba(0, 145, 151, 0.16)) 36%, transparent), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(226, 218, 204, 0.05)) !important;
+}
+
+.skill-relic-halo,
+.skill-relic-etch,
+.skill-relic-crest::before {
+  border-color: color-mix(in srgb, var(--skill-border, #009197) 42%, transparent) !important;
+  box-shadow: none !important;
+}
+
+.skill-relic-gem,
+.skill-relic-crest-mark {
+  filter: none !important;
+}
+
+.skill-relic-specimen,
+.skill-relic-art strong,
+.skill-relic-stats,
+.skill-relic-tags span,
+.skill-stage-strip span,
+.skill-power-badge {
+  border-color: rgba(32, 38, 51, 0.055) !important;
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: rgba(32, 38, 51, 0.58) !important;
+  box-shadow: none !important;
+  font-weight: 500 !important;
+}
+
+.skill-relic-name {
+  min-height: auto;
+  margin-top: 10px;
+  color: rgba(32, 38, 51, 0.86) !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  font-weight: 560 !important;
+  text-shadow: none !important;
+}
+
+.skill-relic-description,
+.skill-relic-timing,
+.skill-relic-note {
+  color: rgba(32, 38, 51, 0.58) !important;
+  font-weight: 440 !important;
+}
+
+.skill-relic-description {
+  min-height: 78px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.reference-tab-button {
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  padding: 5px 7px;
+  color: rgba(32, 38, 51, 0.52);
+  font-size: 13px;
+  font-weight: 460;
+  transition: border-color 0.16s ease, color 0.16s ease;
+}
+
+.reference-tab-button-active {
+  border-bottom-color: rgba(0, 145, 151, 0.38);
+  color: rgba(0, 112, 118, 0.82);
+}
+
+.reference-exhibit-card {
+  min-height: 154px;
+  padding: 13px;
+}
+
+.reference-exhibit-card h3,
+.reference-info-block strong,
+.attribute-row strong {
+  color: rgba(32, 38, 51, 0.84) !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  font-weight: 560 !important;
+}
+
+.reference-exhibit-card p,
+.reference-info-block p,
+.attribute-row span {
+  margin-top: 8px;
+  color: rgba(32, 38, 51, 0.56) !important;
+  font-size: 12px;
+  font-weight: 420 !important;
+  line-height: 1.65;
+}
+
+.reference-card-meta,
+.reference-relic-tags,
+.reference-exhibit-card .skill-relic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.reference-card-meta span,
+.reference-exhibit-card .skill-relic-tags span {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(32, 38, 51, 0.08) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 0 3px !important;
+  color: rgba(32, 38, 51, 0.52) !important;
+  font-size: 11px;
+  font-weight: 440 !important;
+}
+
+.reference-attack-mark {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin: 14px 0 10px;
+  border: 1px solid rgba(0, 145, 151, 0.14);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 42% 38%, rgba(255, 255, 255, 0.18), transparent 46%),
+    rgba(0, 145, 151, 0.045);
+  color: rgba(0, 112, 118, 0.82);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  place-items: center;
+}
+
+.attribute-row {
+  border: 1px solid rgba(32, 38, 51, 0.045) !important;
+  border-radius: 6px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(226, 218, 204, 0.035)) !important;
+  padding: 12px !important;
+  box-shadow: 0 8px 18px rgba(82, 72, 59, 0.02) !important;
+}
+
+.tutorial-gallery-card {
+  padding: 14px;
+}
+
+.tutorial-step-card h3 {
+  color: rgba(32, 38, 51, 0.86) !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 560 !important;
+}
+
+.tutorial-rule-label,
+.tutorial-answer-label {
+  margin-top: 10px;
+  border: 0 !important;
+  border-left: 1px solid rgba(0, 145, 151, 0.22) !important;
+  background: transparent !important;
+  padding: 0 0 0 12px !important;
+  color: rgba(32, 38, 51, 0.58) !important;
+  font-size: 13px;
+  font-weight: 420 !important;
+  line-height: 1.7;
+}
+
+.tutorial-practice-card {
+  margin-top: 16px;
+}
+
+.tutorial-practice-card .text-amber-900,
+.tutorial-practice-card .text-amber-950 {
+  color: rgba(61, 43, 18, 0.72) !important;
+}
+
+.tutorial-check-card {
+  color: rgba(32, 38, 51, 0.58) !important;
+  font-size: 12px;
+  font-weight: 420 !important;
+  line-height: 1.55;
+}
+
+/* Portrait replacement pass: remove puppet faces and use polished painted portraits. */
+.character-avatar-shell {
+  width: 48px !important;
+  height: 56px !important;
+}
+
+.character-avatar-shell .character-avatar-core,
+.character-avatar-shell .character-stand-base,
+.character-avatar-shell .character-avatar-shadow {
+  display: none !important;
+}
+
+.character-portrait-badge {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 56px;
+  overflow: hidden;
+  border: 1px solid rgba(48, 40, 30, 0.12);
+  border-radius: 42% 42% 36% 36% / 48% 48% 34% 34%;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255, 246, 222, 0.72), transparent 31%),
+    radial-gradient(circle at 48% 92%, color-mix(in srgb, var(--portrait-b, #b98a4c) 44%, transparent), transparent 42%),
+    linear-gradient(145deg, color-mix(in srgb, var(--portrait-a, #315f60) 74%, #fff7df), color-mix(in srgb, var(--portrait-b, #c59a5a) 66%, #1b221f));
+  box-shadow:
+    0 9px 18px rgba(64, 53, 38, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.character-portrait-badge::before {
+  content: "";
+  position: absolute;
+  inset: -18%;
+  background:
+    repeating-linear-gradient(112deg, rgba(255, 255, 255, 0.1) 0 2px, transparent 2px 9px),
+    radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.24), transparent 22%);
+  opacity: 0.48;
+  mix-blend-mode: overlay;
+}
+
+.character-portrait-image {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 37%;
+  filter: saturate(0.96) contrast(1.02);
+}
+
+.character-portrait-badge:has(.character-portrait-image)::before {
+  z-index: 2;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.character-portrait-wash {
+  position: absolute;
+  inset: 5px 5px 4px;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse at 40% 24%, rgba(255, 255, 255, 0.32), transparent 24%),
+    linear-gradient(180deg, rgba(255, 248, 232, 0.15), rgba(29, 35, 30, 0.08));
+}
+
+.character-portrait-neck {
+  position: absolute;
+  left: 19px;
+  top: 34px;
+  width: 10px;
+  height: 12px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #d7a889, #a66e55);
+  box-shadow: inset -2px 0 0 rgba(79, 47, 34, 0.12);
+}
+
+.character-portrait-face {
+  position: absolute;
+  left: 13px;
+  top: 11px;
+  width: 22px;
+  height: 28px;
+  border-radius: 47% 47% 44% 44% / 42% 42% 58% 58%;
+  background:
+    radial-gradient(circle at 34% 39%, rgba(255, 239, 214, 0.9), transparent 12%),
+    radial-gradient(circle at 66% 39%, rgba(255, 239, 214, 0.72), transparent 11%),
+    linear-gradient(138deg, #f0c5a0 0%, #d8a27f 48%, #b9795f 100%);
+  box-shadow:
+    inset -3px -2px 0 rgba(88, 54, 40, 0.12),
+    inset 2px 1px 0 rgba(255, 244, 220, 0.22);
+}
+
+.character-portrait-shadow {
+  position: absolute;
+  left: 14px;
+  top: 16px;
+  width: 20px;
+  height: 21px;
+  border-radius: 45%;
+  background:
+    linear-gradient(90deg, transparent 0 56%, rgba(72, 42, 31, 0.12) 57% 100%);
+}
+
+.character-portrait-hair {
+  position: absolute;
+  left: 10px;
+  top: 6px;
+  width: 28px;
+  height: 18px;
+  border-radius: 48% 52% 36% 38%;
+  background:
+    radial-gradient(circle at 74% 30%, rgba(255, 255, 255, 0.16), transparent 20%),
+    linear-gradient(145deg, #151818, color-mix(in srgb, var(--portrait-a, #263f42) 44%, #1b1714));
+  box-shadow:
+    inset 5px 1px 0 rgba(255, 255, 255, 0.055),
+    0 2px 0 rgba(54, 31, 24, 0.16);
+}
+
+.character-portrait-brow,
+.character-portrait-eye,
+.character-portrait-nose,
+.character-portrait-mouth {
+  position: absolute;
+  z-index: 2;
+  display: block;
+}
+
+.character-portrait-brow {
+  top: 20px;
+  width: 7px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(39, 30, 24, 0.58);
+}
+
+.character-portrait-brow-left {
+  left: 16px;
+  transform: rotate(-8deg);
+}
+
+.character-portrait-brow-right {
+  right: 16px;
+  transform: rotate(8deg);
+}
+
+.character-portrait-eye {
+  top: 24px;
+  width: 4px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(23, 31, 31, 0.82);
+  box-shadow: 0 0 0 1px rgba(255, 245, 222, 0.28);
+}
+
+.character-portrait-eye-left {
+  left: 18px;
+}
+
+.character-portrait-eye-right {
+  right: 18px;
+}
+
+.character-portrait-nose {
+  left: 23px;
+  top: 24px;
+  width: 3px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(124, 76, 54, 0.18), rgba(92, 54, 40, 0.38));
+}
+
+.character-portrait-mouth {
+  left: 20px;
+  top: 34px;
+  width: 9px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(103, 45, 43, 0.62);
+  box-shadow: 0 1px 0 rgba(255, 233, 211, 0.2);
+}
+
+.character-portrait-collar {
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  bottom: 5px;
+  height: 13px;
+  border-radius: 50% 50% 12% 12%;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--portrait-c, #b58a4a) 72%, #222) 0 45%, rgba(255, 245, 216, 0.34) 46% 54%, color-mix(in srgb, var(--portrait-a, #315f60) 68%, #111) 55% 100%);
+}
+
+.character-portrait-initial {
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+  color: rgba(255, 248, 228, 0.54);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 8px;
+  font-weight: 560;
+}
+
+.character-select-portrait {
+  display: grid;
+  place-items: center;
+}
+
+.character-select-painted-portrait {
+  width: 118px;
+  height: 138px;
+  border-radius: 38% 38% 30% 30% / 44% 44% 26% 26%;
+}
+
+.character-select-painted-portrait .character-portrait-image {
+  object-position: 50% 39%;
+}
+
+.character-select-painted-portrait .character-portrait-face {
+  left: 35px;
+  top: 28px;
+  width: 48px;
+  height: 62px;
+}
+
+.character-select-painted-portrait .character-portrait-hair {
+  left: 27px;
+  top: 16px;
+  width: 64px;
+  height: 42px;
+}
+
+.character-select-painted-portrait .character-portrait-neck {
+  left: 50px;
+  top: 82px;
+  width: 20px;
+  height: 28px;
+}
+
+.character-select-painted-portrait .character-portrait-brow {
+  top: 50px;
+  width: 17px;
+  height: 4px;
+}
+
+.character-select-painted-portrait .character-portrait-brow-left {
+  left: 41px;
+}
+
+.character-select-painted-portrait .character-portrait-brow-right {
+  right: 41px;
+}
+
+.character-select-painted-portrait .character-portrait-eye {
+  top: 61px;
+  width: 9px;
+  height: 4px;
+}
+
+.character-select-painted-portrait .character-portrait-eye-left {
+  left: 45px;
+}
+
+.character-select-painted-portrait .character-portrait-eye-right {
+  right: 45px;
+}
+
+.character-select-painted-portrait .character-portrait-nose {
+  left: 57px;
+  top: 59px;
+  width: 6px;
+  height: 20px;
+}
+
+.character-select-painted-portrait .character-portrait-mouth {
+  left: 49px;
+  top: 85px;
+  width: 22px;
+  height: 4px;
+}
+
+.character-select-painted-portrait .character-portrait-collar {
+  left: 22px;
+  right: 22px;
+  bottom: 14px;
+  height: 34px;
+}
+
+.character-option-painted-portrait {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 42px;
+  border-radius: 38% 38% 31% 31%;
+}
+
+.character-option > img,
+.character-select-portrait > img {
+  display: none !important;
+}
+
+.character-option .character-portrait-image,
+.character-select-portrait .character-portrait-image,
+.character-avatar-shell .character-portrait-image {
+  display: block !important;
+}
+
+/* Readout placement pass: keep the settlement label from covering the table. */
+.poker-table-board .battle-readout {
+  left: 22px !important;
+  right: auto !important;
+  bottom: 218px !important;
+  width: min(360px, calc(100% - 620px)) !important;
+  min-width: 280px;
+  min-height: 106px !important;
+  max-height: 168px;
+  padding: 10px 12px !important;
+  border-color: rgba(32, 38, 51, 0.032) !important;
+  background:
+    linear-gradient(102deg, rgba(247, 241, 229, 0.22), rgba(226, 218, 204, 0.055)) !important;
+  box-shadow:
+    0 8px 18px rgba(82, 72, 59, 0.032),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13) !important;
+  backdrop-filter: blur(8px) saturate(0.9);
+}
+
+.poker-table-board .battle-readout h3 {
+  margin-top: 4px !important;
+  font-size: 18px !important;
+  font-weight: 560 !important;
+}
+
+.poker-table-board .battle-readout-route,
+.poker-table-board .battle-turn-summary,
+.poker-table-board .battle-readout p {
+  font-size: 11px !important;
+}
+
+.poker-table-board .battle-turn-summary div {
+  padding: 2px 5px !important;
+}
+
+.poker-table-board .battle-readout-idle {
+  width: 240px !important;
+  min-width: 0;
+  min-height: 0 !important;
+  max-height: none;
+  padding: 10px 12px 9px !important;
+}
+
+.poker-table-board .battle-readout-idle .battle-turn-summary,
+.poker-table-board .battle-readout-idle .battle-resource-delta-strip {
+  display: none !important;
+}
+
+.poker-table-board .battle-readout-idle h3 {
+  font-size: 17px !important;
+}
+
+.poker-table-board .battle-readout-idle .battle-readout-route {
+  padding-block: 4px !important;
+}
+
+.poker-table-board .battle-readout::before {
+  opacity: 0.4;
+}
+
+@media (max-width: 1180px) {
+  .poker-table-board .battle-readout {
+    width: min(330px, calc(100% - 32px)) !important;
+    bottom: 190px !important;
+  }
+}
