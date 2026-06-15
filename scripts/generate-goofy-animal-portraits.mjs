@@ -15,6 +15,7 @@ const characters = [
     ears: "cat",
     name: "a-wai",
     prop: "pan",
+    quirk: "sleepy-cheek",
     spots: "#6f4c2d"
   },
   {
@@ -26,6 +27,7 @@ const characters = [
     ears: "otter",
     name: "xiao-liu",
     prop: "glass",
+    quirk: "side-eye",
     spots: "#6a4529"
   },
   {
@@ -37,6 +39,7 @@ const characters = [
     ears: "fox",
     name: "bian-zui",
     prop: "fork",
+    quirk: "big-frown",
     spots: "#9b4a22"
   },
   {
@@ -48,6 +51,7 @@ const characters = [
     ears: "hamster",
     name: "guo-ba",
     prop: "crumb",
+    quirk: "crumb-face",
     spots: "#8f6a2d"
   },
   {
@@ -59,6 +63,7 @@ const characters = [
     ears: "goat",
     name: "man-man",
     prop: "bottle",
+    quirk: "tiny-bandage",
     spots: "#87765c"
   },
   {
@@ -70,6 +75,7 @@ const characters = [
     ears: "owl",
     name: "lao-ding",
     prop: "lens",
+    quirk: "double-stare",
     spots: "#4d4a41"
   }
 ];
@@ -118,9 +124,10 @@ function portraitSvg(character, size, variant, mood, markColor = "#d1953a") {
   const scale = size / 512;
   const isAction = variant !== "portrait" && variant !== "mobile";
   const bodyY = isAction ? 316 : 326;
-  const headTilt = mood === "startled" ? -4 : mood === "flat" ? 2 : variant === "skill" ? -7 : -3;
+  const headTilt = mood === "startled" ? -8 : mood === "flat" ? 4 : variant === "skill" ? -11 : -5;
+  const squash = isAction ? "scale(1.04 .96)" : "scale(1.08 .94)";
   const mouth = mouthPath(mood);
-  const eyes = eyesForMood(mood, character.ears);
+  const eyes = eyesForMood(mood, character);
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 512 512">
@@ -146,18 +153,19 @@ function portraitSvg(character, size, variant, mood, markColor = "#d1953a") {
   <rect width="512" height="512" fill="url(#wash)" />
   <rect width="512" height="512" filter="url(#paper)" opacity="0.72" />
   ${paperSpeckles(character.id)}
-  <g filter="url(#wobble)" transform="rotate(${headTilt} 256 246)">
+  <g filter="url(#wobble)" transform="rotate(${headTilt} 256 246) translate(-8 8) ${squash}">
     ${backMarks(character, markColor, isAction)}
     ${ears(character)}
-    <path d="M141 194 C139 105 197 58 273 70 C353 82 396 145 383 230 C371 313 318 358 238 350 C172 343 143 279 141 194 Z"
+    <path d="M136 198 C129 110 195 58 280 72 C362 86 401 146 384 232 C369 313 315 360 232 348 C165 338 139 278 136 198 Z"
       fill="${character.base}" stroke="${character.dark}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M169 239 C205 288 304 299 358 245 C342 318 296 355 237 350 C188 346 156 304 169 239 Z"
       fill="${character.belly}" opacity="0.92"/>
     ${animalMarks(character)}
     ${hairTuft(character)}
     ${eyes}
-    <path d="M252 212 C267 205 286 207 296 219 C285 232 265 233 252 212 Z" fill="${character.dark}" opacity="0.92"/>
+    <path d="M250 214 C270 199 292 205 302 219 C286 236 262 233 250 214 Z" fill="${character.dark}" opacity="0.92"/>
     ${mouth}
+    ${goofyDetails(character)}
     ${prop(character)}
   </g>
   <g filter="url(#wobble)">
@@ -198,7 +206,25 @@ function ears(character) {
     <path d="M340 140 L362 101 L318 130 Z" fill="#e6ad91" opacity="0.58"/>`;
 }
 
-function eyesForMood(mood, ears) {
+function eyesForMood(mood, character) {
+  const ears = character.ears;
+  if (character.quirk === "side-eye") {
+    return `
+      <path d="M176 199 C204 184 236 188 260 205" fill="#fff8e8" stroke="#1d1a16" stroke-width="6"/>
+      <path d="M290 201 C319 185 350 188 372 207" fill="#fff8e8" stroke="#1d1a16" stroke-width="6"/>
+      <circle cx="242" cy="202" r="8" fill="#171411"/>
+      <circle cx="352" cy="203" r="8" fill="#171411"/>
+      <path d="M180 179 C205 166 232 168 258 182" fill="none" stroke="#1d1a16" stroke-width="7" stroke-linecap="round"/>
+      <path d="M302 179 C333 168 357 171 379 188" fill="none" stroke="#1d1a16" stroke-width="7" stroke-linecap="round"/>`;
+  }
+  if (character.quirk === "double-stare") {
+    return `
+      <circle cx="211" cy="205" r="42" fill="#fff8e8" stroke="#1d1a16" stroke-width="7"/>
+      <circle cx="309" cy="201" r="31" fill="#fff8e8" stroke="#1d1a16" stroke-width="7"/>
+      <circle cx="224" cy="214" r="8" fill="#171411"/>
+      <circle cx="297" cy="191" r="7" fill="#171411"/>
+      <path d="M169 250 C190 237 220 238 242 254" fill="none" stroke="#1d1a16" stroke-width="5" stroke-linecap="round" opacity="0.44"/>`;
+  }
   if (mood === "startled") {
     return `
       <ellipse cx="214" cy="209" rx="34" ry="39" fill="#fff8e8" stroke="#1d1a16" stroke-width="6"/>
@@ -241,7 +267,25 @@ function mouthPath(mood) {
   if (mood === "scheming") {
     return `<path d="M233 260 C256 285 300 278 321 247" fill="none" stroke="#1d1a16" stroke-width="7" stroke-linecap="round"/><path d="M273 277 L283 294 L292 275" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/>`;
   }
-  return `<path d="M228 262 C253 283 294 278 318 252" fill="#5b2722" stroke="#1d1a16" stroke-width="6" stroke-linejoin="round"/><path d="M259 263 L270 286 L282 262" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M292 264 L300 279 L308 261" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M233 291 C256 301 292 299 315 284" fill="none" stroke="#1d1a16" stroke-width="4" stroke-linecap="round" opacity="0.38"/>`;
+  return `<path d="M225 264 C252 290 297 280 323 249" fill="#5b2722" stroke="#1d1a16" stroke-width="6" stroke-linejoin="round"/><path d="M254 263 L266 289 L279 262" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M294 264 L302 281 L312 260" fill="#fff8e8" stroke="#1d1a16" stroke-width="4"/><path d="M232 294 C258 304 292 301 318 282" fill="none" stroke="#1d1a16" stroke-width="4" stroke-linecap="round" opacity="0.38"/>`;
+}
+
+function goofyDetails(character) {
+  const cheek = `<circle cx="181" cy="252" r="12" fill="#d98270" opacity="0.28"/><circle cx="342" cy="244" r="9" fill="#d98270" opacity="0.22"/>`;
+  const whiskerMistake = `<path d="M116 272 C142 260 164 262 181 276" fill="none" stroke="${character.dark}" stroke-width="4" stroke-linecap="round" opacity="0.7"/><path d="M348 269 C379 253 407 251 437 265" fill="none" stroke="${character.dark}" stroke-width="4" stroke-linecap="round" opacity="0.7"/>`;
+  if (character.quirk === "sleepy-cheek") {
+    return `${cheek}<path d="M195 231 C204 246 218 249 233 238" fill="none" stroke="${character.dark}" stroke-width="4" stroke-linecap="round" opacity="0.55"/>${whiskerMistake}`;
+  }
+  if (character.quirk === "big-frown") {
+    return `${cheek}<path d="M214 289 C246 267 292 272 323 296" fill="none" stroke="${character.dark}" stroke-width="5" stroke-linecap="round" opacity="0.5"/>`;
+  }
+  if (character.quirk === "crumb-face") {
+    return `${cheek}<circle cx="202" cy="286" r="5" fill="#8f6a2d" opacity="0.8"/><circle cx="223" cy="294" r="3" fill="#8f6a2d" opacity="0.7"/><circle cx="335" cy="276" r="4" fill="#8f6a2d" opacity="0.68"/>`;
+  }
+  if (character.quirk === "tiny-bandage") {
+    return `${cheek}<g transform="rotate(-10 335 172)"><rect x="309" y="160" width="58" height="19" rx="9" fill="#f0d7bf" stroke="${character.dark}" stroke-width="4"/><path d="M329 162 L325 179 M347 162 L343 179" stroke="#b9896e" stroke-width="3"/></g>`;
+  }
+  return `${cheek}${whiskerMistake}`;
 }
 
 function animalMarks(character) {
