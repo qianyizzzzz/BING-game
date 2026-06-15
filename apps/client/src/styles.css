@@ -9825,3 +9825,126 @@ select {
   font-weight: 620 !important;
   letter-spacing: 0 !important;
 }
+
+/* Action board final pass: gallery labels instead of hard dashboard boxes. */
+.table-action-dock .action-board {
+  padding: 16px 18px 14px !important;
+  border: 1px solid rgba(36, 31, 25, 0.06) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 241, 0.4), rgba(235, 226, 209, 0.1)),
+    rgba(255, 255, 255, 0.08) !important;
+  box-shadow:
+    0 -14px 30px rgba(48, 42, 30, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.table-action-dock .action-board > .flex:first-child {
+  margin-bottom: 8px;
+}
+
+.table-action-dock .action-board h2 {
+  font-size: 16px !important;
+  font-weight: 650 !important;
+}
+
+.table-action-dock .action-board h2 + p {
+  margin-top: 2px !important;
+  color: rgba(36, 31, 25, 0.46) !important;
+  font-size: 12px !important;
+}
+
+.table-action-dock .action-command-strip,
+.poker-table-board .table-action-dock .action-command-strip {
+  gap: 0 !important;
+  margin-top: 10px !important;
+  border-width: 0 0 1px !important;
+  border-radius: 0 !important;
+  border-color: rgba(36, 31, 25, 0.1) !important;
+  background:
+    linear-gradient(90deg, rgba(0, 145, 151, 0.08), transparent 76%) !important;
+  padding: 5px 0 8px !important;
+  box-shadow: none !important;
+}
+
+.table-action-dock .action-command-strip div {
+  border-right: 1px solid rgba(36, 31, 25, 0.09);
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 3px 12px !important;
+  box-shadow: none !important;
+}
+
+.table-action-dock .action-command-strip div:last-child {
+  border-right: 0;
+}
+
+.table-action-dock .action-command-strip span {
+  color: rgba(36, 31, 25, 0.45) !important;
+  font-size: 10px !important;
+  font-weight: 640 !important;
+}
+
+.table-action-dock .action-command-strip strong {
+  color: #241f19 !important;
+  font-size: 13px !important;
+  font-weight: 680 !important;
+}
+
+.table-action-dock .action-mode-grid {
+  gap: 6px !important;
+}
+
+.table-action-dock .mode-button,
+.action-board .action-mode-grid .mode-button {
+  min-height: 34px !important;
+  border-width: 0 0 1px !important;
+  border-radius: 0 !important;
+  border-color: rgba(36, 31, 25, 0.11) !important;
+  background: transparent !important;
+  color: rgba(36, 31, 25, 0.54) !important;
+  box-shadow: none !important;
+}
+
+.table-action-dock .mode-button-active,
+.action-board .action-mode-grid .mode-button-active {
+  border-color: rgba(0, 145, 151, 0.46) !important;
+  background:
+    linear-gradient(180deg, transparent, rgba(0, 145, 151, 0.06)) !important;
+  color: #154f52 !important;
+}
+
+.table-action-dock .action-command-footer {
+  gap: 8px !important;
+  border-top: 0 !important;
+  background: linear-gradient(180deg, transparent, rgba(246, 239, 222, 0.72) 38%) !important;
+  box-shadow: none !important;
+}
+
+.table-action-dock .action-repeat-button,
+.table-action-dock .action-submit-button {
+  min-height: 42px !important;
+  border-radius: 8px 7px 9px 7px !important;
+  box-shadow: none !important;
+}
+
+.table-action-dock .action-submit-button {
+  border-color: rgba(121, 92, 43, 0.16) !important;
+  background:
+    linear-gradient(180deg, rgba(225, 203, 148, 0.46), rgba(189, 151, 82, 0.34)) !important;
+  color: rgba(36, 25, 16, 0.88) !important;
+}
+
+.table-action-dock .action-submit-button:hover:not(:disabled) {
+  background:
+    linear-gradient(180deg, rgba(230, 209, 158, 0.52), rgba(194, 156, 88, 0.38)) !important;
+}
+
+.table-action-dock .action-board > .flex:first-child {
+  position: static !important;
+  margin: 0 !important;
+  border-bottom: 1px solid rgba(36, 31, 25, 0.08) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 0 8px !important;
+  backdrop-filter: none !important;
+}
