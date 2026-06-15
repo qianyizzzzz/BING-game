@@ -19,8 +19,24 @@ interface SkillVisualPlan {
   triggerSummary: string;
 }
 
+interface EffectAssetStatus {
+  complete: boolean;
+  existing: string[];
+  missing: string[];
+}
+
 const outputPath = path.resolve("docs/EFFECT_ANIMATION_SPEC.md");
 const promptManifestPath = path.resolve("docs/EFFECT_ANIMATION_PROMPTS.json");
+const effectRoot = path.resolve("apps/client/public/assets/effects");
+const requiredAssetFiles = [
+  "keyframe-01.png",
+  "keyframe-02.png",
+  "keyframe-03.png",
+  "keyframe-04.png",
+  "poster.png",
+  "effect.webm",
+  "effect.mp4"
+];
 
 const skills = getAllSkills().sort(
   (a, b) => a.sourceRow - b.sourceRow || a.id.localeCompare(b.id)
@@ -189,11 +205,12 @@ const doc = [
   "",
   `总计 ${skills.length} 个技能；已接入 play 的技能 ${playableCount} 个；未接入 play 但仍需视觉反馈的技能 ${noPlayCount} 个。`,
   "",
-  "| 技能 | 名称 | 分类 | 播放状态 | 视觉原型 | 资产目录 |",
-  "| --- | --- | --- | --- | --- | --- |",
+  "| 技能 | 名称 | 分类 | 播放状态 | 视觉原型 | 资产状态 | 资产目录 |",
+  "| --- | --- | --- | --- | --- | --- | --- |",
   ...skills.map((skill) => {
     const plan = planSkill(skill);
-    return `| \`${skill.id}\` | ${safeCell(skill.name)} | ${skill.category} | ${safeCell(plan.implementationStatus)} | ${safeCell(plan.archetype.name)} | \`apps/client/public/assets/effects/${skill.id}/\` |`;
+    const assetStatus = getEffectAssetStatus(skill);
+    return `| \`${skill.id}\` | ${safeCell(skill.name)} | ${skill.category} | ${safeCell(plan.implementationStatus)} | ${safeCell(plan.archetype.name)} | ${assetStatus.existing.length}/${requiredAssetFiles.length} | \`apps/client/public/assets/effects/${skill.id}/\` |`;
   }),
   "",
   "## 逐技能规格",
@@ -203,15 +220,7 @@ const doc = [
 
 const promptManifest = {
   assetContract: {
-    files: [
-      "keyframe-01.png",
-      "keyframe-02.png",
-      "keyframe-03.png",
-      "keyframe-04.png",
-      "poster.png",
-      "effect.webm",
-      "effect.mp4"
-    ],
+    files: requiredAssetFiles,
     root: "apps/client/public/assets/effects/{skillId}/"
   },
   generatedAt: new Date().toISOString(),
@@ -232,6 +241,7 @@ const promptManifest = {
       category: skill.category,
       description: skill.description,
       implementationStatus: plan.implementationStatus,
+      currentAssets: getEffectAssetStatus(skill),
       keyframes: [1, 2, 3, 4].map((index) => ({
         file: `keyframe-0${index}.png`,
         phase: keyframePhase(index),
@@ -279,6 +289,7 @@ function renderSkillSpec(skill: SkillDefinition): string[] {
     `- 色彩：${plan.archetype.color}`,
     `- 材质：${plan.archetype.texture}`,
     `- 运动：${plan.archetype.motion}`,
+    `- 当前资产：${formatAssetStatus(getEffectAssetStatus(skill))}`,
     `- 资产目录：\`apps/client/public/assets/effects/${skill.id}/\``,
     "",
     "#### imagegen 关键帧 prompt",
@@ -318,11 +329,28 @@ function classifySkill(skill: SkillDefinition): EffectArchetype {
   const text = `${skill.name} ${skill.description} ${skill.tags.join(" ")} ${skill.typeTags.join(" ")} ${play?.effect ?? ""} ${play?.element ?? ""}`.toLowerCase();
 
   if (play?.kind === "resource" || play?.resourceGainPerStack) return archetypes.resource;
+  if (play?.effect === "reroll_skill") return archetypes.reroll;
+  if (play?.effect === "sand_transform") return archetypes.transform;
+  if (play?.kind === "attack" || play?.targetDamage || play?.allEnemyDamage) {
+    if (play?.element === "fire") return archetypes.attack_fire;
+    if (play?.element === "ice") return archetypes.attack_ice;
+    if (play?.element === "electric") return archetypes.attack_electric;
+    if (play?.element === "poison") return archetypes.attack_poison;
+    if (includesAny(text, ["冰", "霜", "雪", "寒", "冬"])) {
+      return archetypes.attack_ice;
+    }
+    if (includesAny(text, ["电", "雷", "麻痹"])) {
+      return archetypes.attack_electric;
+    }
+    if (includesAny(text, ["毒", "腐蚀", "中毒"])) {
+      return archetypes.attack_poison;
+    }
+    if (includesAny(text, ["火", "焰", "炎", "熔", "朱雀"])) return archetypes.attack_fire;
+    return archetypes.attack_physical;
+  }
   if (play?.selfHeal || text.includes("治疗") || text.includes("恢复") || text.includes("+4血")) {
     return archetypes.heal;
   }
-  if (play?.effect === "reroll_skill") return archetypes.reroll;
-  if (play?.effect === "sand_transform") return archetypes.transform;
   if (
     play?.effect === "shield_normal" ||
     play?.effect === "shield_skill" ||
@@ -358,13 +386,6 @@ function classifySkill(skill: SkillDefinition): EffectArchetype {
     text.includes("虚空")
   ) {
     return archetypes.void;
-  }
-  if (play?.kind === "attack" || play?.targetDamage || play?.allEnemyDamage) {
-    if (play?.element === "fire" || text.includes("火")) return archetypes.attack_fire;
-    if (play?.element === "ice" || text.includes("冰")) return archetypes.attack_ice;
-    if (play?.element === "electric" || text.includes("电")) return archetypes.attack_electric;
-    if (play?.element === "poison" || text.includes("毒")) return archetypes.attack_poison;
-    return archetypes.attack_physical;
   }
   if (skill.category === "locked" || skill.category === "passive" || text.includes("被动")) {
     return archetypes.passive;
@@ -531,4 +552,29 @@ function symbolCue(name: string): string {
 
 function safeCell(value: string): string {
   return value.replaceAll("|", "/").replace(/\s+/g, " ");
+}
+
+function includesAny(value: string, needles: string[]): boolean {
+  return needles.some((needle) => value.includes(needle));
+}
+
+function getEffectAssetStatus(skill: SkillDefinition): EffectAssetStatus {
+  const existing = requiredAssetFiles.filter((fileName) =>
+    fs.existsSync(path.join(effectRoot, skill.id, fileName))
+  );
+  return {
+    complete: existing.length === requiredAssetFiles.length,
+    existing,
+    missing: requiredAssetFiles.filter((fileName) => !existing.includes(fileName))
+  };
+}
+
+function formatAssetStatus(status: EffectAssetStatus): string {
+  if (status.complete) {
+    return "齐全";
+  }
+  if (status.existing.length === 0) {
+    return `缺少全部 ${requiredAssetFiles.length} 个文件`;
+  }
+  return `已有 ${status.existing.join("、")}；缺少 ${status.missing.join("、")}`;
 }

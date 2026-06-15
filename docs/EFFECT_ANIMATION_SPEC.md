@@ -1,6 +1,6 @@
 # BING 全技能特效动画生成规格
 
-生成时间：2026-06-15T09:20:36.743Z
+生成时间：2026-06-15T11:01:32.955Z
 
 本文件由 `scripts/generate-effect-animation-spec.ts` 从真实技能注册表生成，覆盖全部技能，而不是只覆盖可主动播放的技能。
 
@@ -42,128 +42,128 @@ apps/client/public/assets/effects/{skillId}/effect.mp4
 
 总计 120 个技能；已接入 play 的技能 65 个；未接入 play 但仍需视觉反馈的技能 55 个。
 
-| 技能 | 名称 | 分类 | 播放状态 | 视觉原型 | 资产目录 |
-| --- | --- | --- | --- | --- | --- |
-| `skill_2_8724` | 空 | raw | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 中性无效波纹 | `apps/client/public/assets/effects/skill_2_8724/` |
-| `skill_3_56718` | 再来一次 | raw | 已接入 play，可由技能播放系统直接触发 | 重获颜料旋涡 | `apps/client/public/assets/effects/skill_3_56718/` |
-| `skill_4_65637` | 沙子 | raw | 已接入 play，可由技能播放系统直接触发 | 沙化变形 | `apps/client/public/assets/effects/skill_4_65637/` |
-| `skill_5_34881` | 封印 | locked | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_5_34881/` |
-| `skill_6_503` | 裂魂 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 墨色虚空裂隙 | `apps/client/public/assets/effects/skill_6_503/` |
-| `skill_7_35434` | 净化 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_7_35434/` |
-| `skill_8_89763` | 禁锢 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 石墨线控场 | `apps/client/public/assets/effects/skill_8_89763/` |
-| `skill_9_93219` | 破厄 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 石墨线控场 | `apps/client/public/assets/effects/skill_9_93219/` |
-| `skill_10_9488` | 沦陷 | raw | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_10_9488/` |
-| `skill_11_89360` | 衰竭 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_11_89360/` |
-| `skill_12_79004` | 血之哀 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_12_79004/` |
-| `skill_13_68869` | 火烧大地 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_13_68869/` |
-| `skill_14_46860` | 霜落大地 | limited | 已接入 play，可由技能播放系统直接触发 | 暖白治愈晕染 | `apps/client/public/assets/effects/skill_14_46860/` |
-| `skill_15_64971` | 净化之风 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_15_64971/` |
-| `huo_yan_dao` | 火焰刀 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/huo_yan_dao/` |
-| `zhu_que_yu_shan` | 朱雀羽扇 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/zhu_que_yu_shan/` |
-| `skill_18_34323` | 寒冰剑 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_18_34323/` |
-| `skill_19_45609` | 毒箭雨 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | `apps/client/public/assets/effects/skill_19_45609/` |
-| `skill_20_63089` | 冰箭雨 | locked | 已接入 play，可由技能播放系统直接触发 | 被动触发印记 | `apps/client/public/assets/effects/skill_20_63089/` |
-| `skill_21_36332` | 熔岩之怒 | locked | 已接入 play，可由技能播放系统直接触发 | 被动触发印记 | `apps/client/public/assets/effects/skill_21_36332/` |
-| `skill_22_54978` | 凛冬之怒 | locked | 已接入 play，可由技能播放系统直接触发 | 被动触发印记 | `apps/client/public/assets/effects/skill_22_54978/` |
-| `skill_23_90895` | 神隐红莲 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_23_90895/` |
-| `skill_24_71363` | 神隐青莲 | control | 已接入 play，可由技能播放系统直接触发 | 暖白治愈晕染 | `apps/client/public/assets/effects/skill_24_71363/` |
-| `skill_25_51277` | 暗影盾 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_25_51277/` |
-| `skill_26_70243` | 后盾 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_26_70243/` |
-| `skill_27_23816` | 全力一击 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_27_23816/` |
-| `skill_28_42646` | 狙击枪 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_28_42646/` |
-| `skill_29_96125` | 古淀刀 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_29_96125/` |
-| `skill_30_38815` | 青釭剑 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | `apps/client/public/assets/effects/skill_30_38815/` |
-| `skill_31_80497` | 双刃剑 | control | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_31_80497/` |
-| `skill_32_19017` | 神之庇护 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_32_19017/` |
-| `skill_33_55159` | 神族水晶 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_33_55159/` |
-| `skill_34_1533` | 酒 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_34_1533/` |
-| `skill_35_16792` | 雷电法术 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_35_16792/` |
-| `skill_36_14343` | 电击法术 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_36_14343/` |
-| `skill_37_68416` | 鬼道 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_37_68416/` |
-| `skill_38_81245` | 闪电护体 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_38_81245/` |
-| `skill_39_77400` | 大地之心 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | `apps/client/public/assets/effects/skill_39_77400/` |
-| `skill_40_27274` | 碎石掌 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_40_27274/` |
-| `skill_41_43495` | 裂山拳 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_41_43495/` |
-| `skill_42_94266` | 破地之力 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_42_94266/` |
-| `skill_43_74082` | 阳光普照 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_43_74082/` |
-| `skill_44_20092` | 永远之夜 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_44_20092/` |
-| `skill_45_30424` | 毁灭之力 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_45_30424/` |
-| `skill_46_3651` | 嗜血 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_46_3651/` |
-| `skill_47_94841` | 凝血之力 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_47_94841/` |
-| `skill_48_26455` | 血水屏障 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_48_26455/` |
-| `skill_49_75347` | 遗计 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_49_75347/` |
-| `skill_50_50034` | 八卦阵 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_50_50034/` |
-| `skill_51_92674` | 藤甲 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | `apps/client/public/assets/effects/skill_51_92674/` |
-| `skill_52_22171` | 克己 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_52_22171/` |
-| `skill_53_62958` | 独裁 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_53_62958/` |
-| `skill_54_99719` | 乱舞 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_54_99719/` |
-| `skill_55_96047` | 神罩 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_55_96047/` |
-| `skill_56_42637` | 鬼罩 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_56_42637/` |
-| `skill_57_59843` | 绝弹 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_57_59843/` |
-| `skill_58_88471` | 散弹 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_58_88471/` |
-| `skill_59_79990` | 火眼金睛 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | `apps/client/public/assets/effects/skill_59_79990/` |
-| `skill_60_57192` | 烈弓 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_60_57192/` |
-| `skill_61_59049` | 圣 | raw | 已接入 play，可由技能播放系统直接触发 | 餐桌资源沉积 | `apps/client/public/assets/effects/skill_61_59049/` |
-| `skill_62_8008` | 齐天大圣 | raw | 已接入 play，可由技能播放系统直接触发 | 餐桌资源沉积 | `apps/client/public/assets/effects/skill_62_8008/` |
-| `skill_63_72549` | 圣水收集器 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_63_72549/` |
-| `skill_64_60978` | 治愈术 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_64_60978/` |
-| `skill_65_71994` | 浴火重生 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_65_71994/` |
-| `skill_66_82448` | 天佑之魂 | limited | 已接入 play，可由技能播放系统直接触发 | 暖白治愈晕染 | `apps/client/public/assets/effects/skill_66_82448/` |
-| `skill_67_31717` | 沐浴圣光 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_67_31717/` |
-| `skill_68_57581` | 离殇 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_68_57581/` |
-| `skill_69_22138` | 绝对值 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 墨色虚空裂隙 | `apps/client/public/assets/effects/skill_69_22138/` |
-| `skill_70_79685` | 死神之镰 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 墨色虚空裂隙 | `apps/client/public/assets/effects/skill_70_79685/` |
-| `skill_71_40087` | 圣域 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_71_40087/` |
-| `skill_72_53933` | 邪域 | locked | 已接入 play，可由技能播放系统直接触发 | 被动触发印记 | `apps/client/public/assets/effects/skill_72_53933/` |
-| `skill_73_76567` | 十字守护 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_73_76567/` |
-| `skill_74_34920` | 绝对守护 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_74_34920/` |
-| `skill_75_68329` | 圣灵之境 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | `apps/client/public/assets/effects/skill_75_68329/` |
-| `skill_76_76044` | 帝炎之境 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_76_76044/` |
-| `skill_77_30612` | 森林的低吟 | raw | 已接入 play，可由技能播放系统直接触发 | 暖白治愈晕染 | `apps/client/public/assets/effects/skill_77_30612/` |
-| `skill_78_18866` | 火球 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_78_18866/` |
-| `skill_79_36319` | 火箭 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_79_36319/` |
-| `skill_80_20445` | 核反应堆 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_80_20445/` |
-| `skill_81_59663` | 撸 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_81_59663/` |
-| `skill_82_45540` | 日 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_82_45540/` |
-| `skill_83_32356` | 丁 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_83_32356/` |
-| `skill_84_6114` | 抠 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_84_6114/` |
-| `skill_85_26345` | 钟 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_85_26345/` |
-| `skill_86_14131` | 梵 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_86_14131/` |
-| `skill_87_44771` | 连爆 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_87_44771/` |
-| `skill_88_62906` | 换防 | control | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_88_62906/` |
-| `skill_89_99375` | 幻防 | control | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_89_99375/` |
-| `skill_90_32911` | 杀换 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_90_32911/` |
-| `skill_91_89631` | 级换 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_91_89631/` |
-| `skill_92_26484` | 文明人 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_92_26484/` |
-| `skill_93_50224` | 逆转 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_93_50224/` |
-| `skill_94_627` | 斗转星移 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_94_627/` |
-| `skill_95_91337` | 卷子 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_95_91337/` |
-| `skill_96_33279` | 暴风雪 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_96_33279/` |
-| `skill_97_60773` | 狂风骤雪 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_97_60773/` |
-| `skill_98_7182` | 普天同庆 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_98_7182/` |
-| `skill_99_65551` | 无形之盾 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_99_65551/` |
-| `skill_100_45717` | 顺手牵羊 | locked | 已接入 play，可由技能播放系统直接触发 | 被动触发印记 | `apps/client/public/assets/effects/skill_100_45717/` |
-| `skill_101_4254` | 镜像法术 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_101_4254/` |
-| `skill_102_5546` | 自爆者死 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 墨色虚空裂隙 | `apps/client/public/assets/effects/skill_102_5546/` |
-| `skill_103_56259` | 闪现 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_103_56259/` |
-| `skill_104_71181` | 过往时空 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_104_71181/` |
-| `skill_105_48309` | 白板 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_105_48309/` |
-| `skill_106_59962` | 黑板 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_106_59962/` |
-| `skill_107_53513` | 雷裂残阳 | limited | 已接入 play，可由技能播放系统直接触发 | 墨色虚空裂隙 | `apps/client/public/assets/effects/skill_107_53513/` |
-| `skill_108_76133` | 六芒星 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_108_76133/` |
-| `skill_109_65084` | 传音入密 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_109_65084/` |
-| `skill_110_2190` | 三千雷动 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_110_2190/` |
-| `skill_111_51056` | 制衡 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_111_51056/` |
-| `skill_112_59292` | 地狱主宰 | limited | 已接入 play，可由技能播放系统直接触发 | 墨色虚空裂隙 | `apps/client/public/assets/effects/skill_112_59292/` |
-| `skill_113_88141` | 无限战意 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 墨色虚空裂隙 | `apps/client/public/assets/effects/skill_113_88141/` |
-| `skill_114_87583` | 不死金身 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | `apps/client/public/assets/effects/skill_114_87583/` |
-| `skill_115_74459` | 同生共死 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | `apps/client/public/assets/effects/skill_115_74459/` |
-| `skill_116_97172` | 复仇之刃 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_116_97172/` |
-| `skill_117_55768` | 百炼成神 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_117_55768/` |
-| `skill_118_53580` | 冰漩决 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_118_53580/` |
-| `skill_119_78843` | 火漩决 | attack | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | `apps/client/public/assets/effects/skill_119_78843/` |
-| `skill_120_85509` | 创伤聚合 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_120_85509/` |
-| `skill_121_59557` | 因果律认知 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | `apps/client/public/assets/effects/skill_121_59557/` |
+| 技能 | 名称 | 分类 | 播放状态 | 视觉原型 | 资产状态 | 资产目录 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `skill_2_8724` | 空 | raw | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 中性无效波纹 | 0/7 | `apps/client/public/assets/effects/skill_2_8724/` |
+| `skill_3_56718` | 再来一次 | raw | 已接入 play，可由技能播放系统直接触发 | 重获颜料旋涡 | 0/7 | `apps/client/public/assets/effects/skill_3_56718/` |
+| `skill_4_65637` | 沙子 | raw | 已接入 play，可由技能播放系统直接触发 | 沙化变形 | 0/7 | `apps/client/public/assets/effects/skill_4_65637/` |
+| `skill_5_34881` | 封印 | locked | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_5_34881/` |
+| `skill_6_503` | 裂魂 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 墨色虚空裂隙 | 0/7 | `apps/client/public/assets/effects/skill_6_503/` |
+| `skill_7_35434` | 净化 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_7_35434/` |
+| `skill_8_89763` | 禁锢 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_8_89763/` |
+| `skill_9_93219` | 破厄 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_9_93219/` |
+| `skill_10_9488` | 沦陷 | raw | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_10_9488/` |
+| `skill_11_89360` | 衰竭 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_11_89360/` |
+| `skill_12_79004` | 血之哀 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_12_79004/` |
+| `skill_13_68869` | 火烧大地 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_13_68869/` |
+| `skill_14_46860` | 霜落大地 | limited | 已接入 play，可由技能播放系统直接触发 | 冰霜蛋彩攻击 | 0/7 | `apps/client/public/assets/effects/skill_14_46860/` |
+| `skill_15_64971` | 净化之风 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_15_64971/` |
+| `huo_yan_dao` | 火焰刀 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/huo_yan_dao/` |
+| `zhu_que_yu_shan` | 朱雀羽扇 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/zhu_que_yu_shan/` |
+| `skill_18_34323` | 寒冰剑 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_18_34323/` |
+| `skill_19_45609` | 毒箭雨 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_19_45609/` |
+| `skill_20_63089` | 冰箭雨 | locked | 已接入 play，可由技能播放系统直接触发 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_20_63089/` |
+| `skill_21_36332` | 熔岩之怒 | locked | 已接入 play，可由技能播放系统直接触发 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_21_36332/` |
+| `skill_22_54978` | 凛冬之怒 | locked | 已接入 play，可由技能播放系统直接触发 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_22_54978/` |
+| `skill_23_90895` | 神隐红莲 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_23_90895/` |
+| `skill_24_71363` | 神隐青莲 | control | 已接入 play，可由技能播放系统直接触发 | 暖白治愈晕染 | 0/7 | `apps/client/public/assets/effects/skill_24_71363/` |
+| `skill_25_51277` | 暗影盾 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_25_51277/` |
+| `skill_26_70243` | 后盾 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_26_70243/` |
+| `skill_27_23816` | 全力一击 | attack | 已接入 play，可由技能播放系统直接触发 | 红色油彩冲击 | 0/7 | `apps/client/public/assets/effects/skill_27_23816/` |
+| `skill_28_42646` | 狙击枪 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_28_42646/` |
+| `skill_29_96125` | 古淀刀 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_29_96125/` |
+| `skill_30_38815` | 青釭剑 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_30_38815/` |
+| `skill_31_80497` | 双刃剑 | control | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_31_80497/` |
+| `skill_32_19017` | 神之庇护 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_32_19017/` |
+| `skill_33_55159` | 神族水晶 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_33_55159/` |
+| `skill_34_1533` | 酒 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_34_1533/` |
+| `skill_35_16792` | 雷电法术 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_35_16792/` |
+| `skill_36_14343` | 电击法术 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_36_14343/` |
+| `skill_37_68416` | 鬼道 | attack | 已接入 play，可由技能播放系统直接触发 | 电流金属线绘 | 0/7 | `apps/client/public/assets/effects/skill_37_68416/` |
+| `skill_38_81245` | 闪电护体 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_38_81245/` |
+| `skill_39_77400` | 大地之心 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_39_77400/` |
+| `skill_40_27274` | 碎石掌 | attack | 已接入 play，可由技能播放系统直接触发 | 红色油彩冲击 | 0/7 | `apps/client/public/assets/effects/skill_40_27274/` |
+| `skill_41_43495` | 裂山拳 | attack | 已接入 play，可由技能播放系统直接触发 | 红色油彩冲击 | 0/7 | `apps/client/public/assets/effects/skill_41_43495/` |
+| `skill_42_94266` | 破地之力 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_42_94266/` |
+| `skill_43_74082` | 阳光普照 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_43_74082/` |
+| `skill_44_20092` | 永远之夜 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_44_20092/` |
+| `skill_45_30424` | 毁灭之力 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_45_30424/` |
+| `skill_46_3651` | 嗜血 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_46_3651/` |
+| `skill_47_94841` | 凝血之力 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_47_94841/` |
+| `skill_48_26455` | 血水屏障 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_48_26455/` |
+| `skill_49_75347` | 遗计 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_49_75347/` |
+| `skill_50_50034` | 八卦阵 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_50_50034/` |
+| `skill_51_92674` | 藤甲 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_51_92674/` |
+| `skill_52_22171` | 克己 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_52_22171/` |
+| `skill_53_62958` | 独裁 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_53_62958/` |
+| `skill_54_99719` | 乱舞 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_54_99719/` |
+| `skill_55_96047` | 神罩 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_55_96047/` |
+| `skill_56_42637` | 鬼罩 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_56_42637/` |
+| `skill_57_59843` | 绝弹 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_57_59843/` |
+| `skill_58_88471` | 散弹 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_58_88471/` |
+| `skill_59_79990` | 火眼金睛 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_59_79990/` |
+| `skill_60_57192` | 烈弓 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_60_57192/` |
+| `skill_61_59049` | 圣 | raw | 已接入 play，可由技能播放系统直接触发 | 餐桌资源沉积 | 0/7 | `apps/client/public/assets/effects/skill_61_59049/` |
+| `skill_62_8008` | 齐天大圣 | raw | 已接入 play，可由技能播放系统直接触发 | 餐桌资源沉积 | 0/7 | `apps/client/public/assets/effects/skill_62_8008/` |
+| `skill_63_72549` | 圣水收集器 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_63_72549/` |
+| `skill_64_60978` | 治愈术 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_64_60978/` |
+| `skill_65_71994` | 浴火重生 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_65_71994/` |
+| `skill_66_82448` | 天佑之魂 | limited | 已接入 play，可由技能播放系统直接触发 | 暖白治愈晕染 | 0/7 | `apps/client/public/assets/effects/skill_66_82448/` |
+| `skill_67_31717` | 沐浴圣光 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_67_31717/` |
+| `skill_68_57581` | 离殇 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_68_57581/` |
+| `skill_69_22138` | 绝对值 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 墨色虚空裂隙 | 0/7 | `apps/client/public/assets/effects/skill_69_22138/` |
+| `skill_70_79685` | 死神之镰 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 墨色虚空裂隙 | 0/7 | `apps/client/public/assets/effects/skill_70_79685/` |
+| `skill_71_40087` | 圣域 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_71_40087/` |
+| `skill_72_53933` | 邪域 | locked | 已接入 play，可由技能播放系统直接触发 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_72_53933/` |
+| `skill_73_76567` | 十字守护 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_73_76567/` |
+| `skill_74_34920` | 绝对守护 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_74_34920/` |
+| `skill_75_68329` | 圣灵之境 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_75_68329/` |
+| `skill_76_76044` | 帝炎之境 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_76_76044/` |
+| `skill_77_30612` | 森林的低吟 | raw | 已接入 play，可由技能播放系统直接触发 | 暖白治愈晕染 | 0/7 | `apps/client/public/assets/effects/skill_77_30612/` |
+| `skill_78_18866` | 火球 | attack | 已接入 play，可由技能播放系统直接触发 | 火焰油彩攻击 | 5/7 | `apps/client/public/assets/effects/skill_78_18866/` |
+| `skill_79_36319` | 火箭 | limited | 已接入 play，可由技能播放系统直接触发 | 火焰油彩攻击 | 0/7 | `apps/client/public/assets/effects/skill_79_36319/` |
+| `skill_80_20445` | 核反应堆 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_80_20445/` |
+| `skill_81_59663` | 撸 | attack | 已接入 play，可由技能播放系统直接触发 | 红色油彩冲击 | 0/7 | `apps/client/public/assets/effects/skill_81_59663/` |
+| `skill_82_45540` | 日 | attack | 已接入 play，可由技能播放系统直接触发 | 红色油彩冲击 | 0/7 | `apps/client/public/assets/effects/skill_82_45540/` |
+| `skill_83_32356` | 丁 | attack | 已接入 play，可由技能播放系统直接触发 | 红色油彩冲击 | 0/7 | `apps/client/public/assets/effects/skill_83_32356/` |
+| `skill_84_6114` | 抠 | attack | 已接入 play，可由技能播放系统直接触发 | 红色油彩冲击 | 0/7 | `apps/client/public/assets/effects/skill_84_6114/` |
+| `skill_85_26345` | 钟 | attack | 已接入 play，可由技能播放系统直接触发 | 红色油彩冲击 | 0/7 | `apps/client/public/assets/effects/skill_85_26345/` |
+| `skill_86_14131` | 梵 | attack | 已接入 play，可由技能播放系统直接触发 | 红色油彩冲击 | 0/7 | `apps/client/public/assets/effects/skill_86_14131/` |
+| `skill_87_44771` | 连爆 | attack | 已接入 play，可由技能播放系统直接触发 | 红色油彩冲击 | 0/7 | `apps/client/public/assets/effects/skill_87_44771/` |
+| `skill_88_62906` | 换防 | control | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_88_62906/` |
+| `skill_89_99375` | 幻防 | control | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_89_99375/` |
+| `skill_90_32911` | 杀换 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_90_32911/` |
+| `skill_91_89631` | 级换 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_91_89631/` |
+| `skill_92_26484` | 文明人 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_92_26484/` |
+| `skill_93_50224` | 逆转 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_93_50224/` |
+| `skill_94_627` | 斗转星移 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_94_627/` |
+| `skill_95_91337` | 卷子 | attack | 已接入 play，可由技能播放系统直接触发 | 红色油彩冲击 | 0/7 | `apps/client/public/assets/effects/skill_95_91337/` |
+| `skill_96_33279` | 暴风雪 | attack | 已接入 play，可由技能播放系统直接触发 | 冰霜蛋彩攻击 | 0/7 | `apps/client/public/assets/effects/skill_96_33279/` |
+| `skill_97_60773` | 狂风骤雪 | limited | 已接入 play，可由技能播放系统直接触发 | 冰霜蛋彩攻击 | 0/7 | `apps/client/public/assets/effects/skill_97_60773/` |
+| `skill_98_7182` | 普天同庆 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_98_7182/` |
+| `skill_99_65551` | 无形之盾 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_99_65551/` |
+| `skill_100_45717` | 顺手牵羊 | locked | 已接入 play，可由技能播放系统直接触发 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_100_45717/` |
+| `skill_101_4254` | 镜像法术 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_101_4254/` |
+| `skill_102_5546` | 自爆者死 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 墨色虚空裂隙 | 0/7 | `apps/client/public/assets/effects/skill_102_5546/` |
+| `skill_103_56259` | 闪现 | control | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_103_56259/` |
+| `skill_104_71181` | 过往时空 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_104_71181/` |
+| `skill_105_48309` | 白板 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_105_48309/` |
+| `skill_106_59962` | 黑板 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_106_59962/` |
+| `skill_107_53513` | 雷裂残阳 | limited | 已接入 play，可由技能播放系统直接触发 | 墨色虚空裂隙 | 0/7 | `apps/client/public/assets/effects/skill_107_53513/` |
+| `skill_108_76133` | 六芒星 | limited | 已接入 play，可由技能播放系统直接触发 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_108_76133/` |
+| `skill_109_65084` | 传音入密 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_109_65084/` |
+| `skill_110_2190` | 三千雷动 | attack | 已接入 play，可由技能播放系统直接触发 | 电流金属线绘 | 0/7 | `apps/client/public/assets/effects/skill_110_2190/` |
+| `skill_111_51056` | 制衡 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_111_51056/` |
+| `skill_112_59292` | 地狱主宰 | limited | 已接入 play，可由技能播放系统直接触发 | 墨色虚空裂隙 | 0/7 | `apps/client/public/assets/effects/skill_112_59292/` |
+| `skill_113_88141` | 无限战意 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 墨色虚空裂隙 | 0/7 | `apps/client/public/assets/effects/skill_113_88141/` |
+| `skill_114_87583` | 不死金身 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 透明防御波纹 | 0/7 | `apps/client/public/assets/effects/skill_114_87583/` |
+| `skill_115_74459` | 同生共死 | limited | 已接入 play，可由技能播放系统直接触发 | 石墨线控场 | 0/7 | `apps/client/public/assets/effects/skill_115_74459/` |
+| `skill_116_97172` | 复仇之刃 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_116_97172/` |
+| `skill_117_55768` | 百炼成神 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_117_55768/` |
+| `skill_118_53580` | 冰漩决 | attack | 已接入 play，可由技能播放系统直接触发 | 冰霜蛋彩攻击 | 0/7 | `apps/client/public/assets/effects/skill_118_53580/` |
+| `skill_119_78843` | 火漩决 | attack | 已接入 play，可由技能播放系统直接触发 | 火焰油彩攻击 | 0/7 | `apps/client/public/assets/effects/skill_119_78843/` |
+| `skill_120_85509` | 创伤聚合 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_120_85509/` |
+| `skill_121_59557` | 因果律认知 | locked | 未接入 play，需要作为锁定/被动/系统触发视觉反馈补齐 | 被动触发印记 | 0/7 | `apps/client/public/assets/effects/skill_121_59557/` |
 
 ## 逐技能规格
 
@@ -181,6 +181,7 @@ apps/client/public/assets/effects/{skillId}/effect.mp4
 - 色彩：乳白、灰蓝、少量淡金
 - 材质：薄油膜、透明玻璃反光、柔软画布颗粒
 - 运动：浅色油膜轻轻展开后收束，不制造强攻击感，作为无直接效果或空技能反馈
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_2_8724/`
 
 #### imagegen 关键帧 prompt
@@ -291,6 +292,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、红、黄、蓝混合
 - 材质：旋转调色盘、透明圆盘、油彩涡流
 - 运动：多色颜料绕透明圆盘旋转，重组为新的小色块，最后定格
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_3_56718/`
 
 #### imagegen 关键帧 prompt
@@ -401,6 +403,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：沙黄、米白、赭石
 - 材质：砂质油彩、颗粒化笔触、半透明尘雾
 - 运动：米黄色颜料粒子从中心散开，重新聚合成新的纹理印记
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_4_65637/`
 
 #### imagegen 关键帧 prompt
@@ -511,6 +514,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_5_34881/`
 
 #### imagegen 关键帧 prompt
@@ -621,6 +625,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：蓝黑、紫灰、象牙白
 - 材质：稀释油墨、刮擦裂纹、半透明烟状颜料
 - 运动：蓝黑墨痕在画布上裂开，吸入周围颜料后迅速闭合
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_6_503/`
 
 #### imagegen 关键帧 prompt
@@ -731,6 +736,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_7_35434/`
 
 #### imagegen 关键帧 prompt
@@ -841,6 +847,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_8_89763/`
 
 #### imagegen 关键帧 prompt
@@ -951,6 +958,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_9_93219/`
 
 #### imagegen 关键帧 prompt
@@ -1061,6 +1069,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_10_9488/`
 
 #### imagegen 关键帧 prompt
@@ -1171,6 +1180,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_11_89360/`
 
 #### imagegen 关键帧 prompt
@@ -1281,6 +1291,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_12_79004/`
 
 #### imagegen 关键帧 prompt
@@ -1391,6 +1402,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_13_68869/`
 
 #### imagegen 关键帧 prompt
@@ -1497,10 +1509,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=effect / cost=0 / target=all / selfHeal=4 / allEnemyDamage=-1 / uses=1
 - 触发表现：在技能确认或效果结算时播放，优先跟随技能卡和目标线。
 - 机制视觉线索：限定技，一局限1次，使你+4血，除你外所有人+1血，消除除你外所有人的火系技能，对持有火系技能的玩家不加血; cost 0, target all; limited 1 use(s); self heal 4; area damage -1
-- 视觉原型：暖白治愈晕染
-- 色彩：暖白、淡黄、浅粉
-- 材质：柔软油彩晕染、薄纱状透明颜料
-- 运动：暖白颜料从中心慢慢开花，淡黄光斑浮起，末尾融入画布
+- 视觉原型：冰霜蛋彩攻击
+- 色彩：雾蓝、灰白、淡青
+- 材质：冷色蛋彩、薄涂刮痕、冰晶状颜料边缘
+- 运动：淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_14_46860/`
 
 #### imagegen 关键帧 prompt
@@ -1513,11 +1526,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_14_46860 霜落大地
 Gameplay meaning: kind=effect / cost=0 / target=all / selfHeal=4 / allEnemyDamage=-1 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，使你+4血，除你外所有人+1血，消除除你外所有人的火系技能，对持有火系技能的玩家不加血; cost 0, target all; limited 1 use(s); self heal 4; area damage -1.
-Primary request: 暖白治愈晕染; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 冰霜蛋彩攻击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "霜落大地" motif first appears as a small oil-paint emblem; radial table-wide spread with several separated landing stains; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 暖白、淡黄、浅粉.
-Materials/textures: 柔软油彩晕染、薄纱状透明颜料.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -1532,11 +1545,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_14_46860 霜落大地
 Gameplay meaning: kind=effect / cost=0 / target=all / selfHeal=4 / allEnemyDamage=-1 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，使你+4血，除你外所有人+1血，消除除你外所有人的火系技能，对持有火系技能的玩家不加血; cost 0, target all; limited 1 use(s); self heal 4; area damage -1.
-Primary request: 暖白治愈晕染; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "霜落大地" motif reaches the strongest readable silhouette; 暖白颜料从中心慢慢开花，淡黄光斑浮起，末尾融入画布; emphasize low-impact.
+Primary request: 冰霜蛋彩攻击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "霜落大地" motif reaches the strongest readable silhouette; 淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 暖白、淡黄、浅粉.
-Materials/textures: 柔软油彩晕染、薄纱状透明颜料.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -1551,11 +1564,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_14_46860 霜落大地
 Gameplay meaning: kind=effect / cost=0 / target=all / selfHeal=4 / allEnemyDamage=-1 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，使你+4血，除你外所有人+1血，消除除你外所有人的火系技能，对持有火系技能的玩家不加血; cost 0, target all; limited 1 use(s); self heal 4; area damage -1.
-Primary request: 暖白治愈晕染; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 冰霜蛋彩攻击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through radial table-wide spread with several separated landing stains; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 暖白、淡黄、浅粉.
-Materials/textures: 柔软油彩晕染、薄纱状透明颜料.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -1570,11 +1583,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_14_46860 霜落大地
 Gameplay meaning: kind=effect / cost=0 / target=all / selfHeal=4 / allEnemyDamage=-1 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，使你+4血，除你外所有人+1血，消除除你外所有人的火系技能，对持有火系技能的玩家不加血; cost 0, target all; limited 1 use(s); self heal 4; area damage -1.
-Primary request: 暖白治愈晕染; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 冰霜蛋彩攻击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "霜落大地" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 暖白、淡黄、浅粉.
-Materials/textures: 柔软油彩晕染、薄纱状透明颜料.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -1588,8 +1601,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_14_46860 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=effect / cost=0 / target=all / selfHeal=4 / allEnemyDamage=-1 / uses=1. Trigger behavior: 在技能确认或效果结算时播放，优先跟随技能卡和目标线。
 Mechanic-specific cue: 限定技，一局限1次，使你+4血，除你外所有人+1血，消除除你外所有人的火系技能，对持有火系技能的玩家不加血; cost 0, target all; limited 1 use(s); self heal 4; area damage -1.
-Visual language: warm white and pale yellow oil paint bloom, gentle healing pigment spreading on canvas; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 暖白颜料从中心慢慢开花，淡黄光斑浮起，末尾融入画布.
+Visual language: pale blue ice-tempera paint streak, frost flower burst, delicate cold pigment scratches; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -1611,6 +1624,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_15_64971/`
 
 #### imagegen 关键帧 prompt
@@ -1721,6 +1735,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/huo_yan_dao/`
 
 #### imagegen 关键帧 prompt
@@ -1831,6 +1846,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/zhu_que_yu_shan/`
 
 #### imagegen 关键帧 prompt
@@ -1941,6 +1957,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_18_34323/`
 
 #### imagegen 关键帧 prompt
@@ -2051,6 +2068,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_19_45609/`
 
 #### imagegen 关键帧 prompt
@@ -2161,6 +2179,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_20_63089/`
 
 #### imagegen 关键帧 prompt
@@ -2271,6 +2290,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_21_36332/`
 
 #### imagegen 关键帧 prompt
@@ -2381,6 +2401,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_22_54978/`
 
 #### imagegen 关键帧 prompt
@@ -2491,6 +2512,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_23_90895/`
 
 #### imagegen 关键帧 prompt
@@ -2601,6 +2623,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：暖白、淡黄、浅粉
 - 材质：柔软油彩晕染、薄纱状透明颜料
 - 运动：暖白颜料从中心慢慢开花，淡黄光斑浮起，末尾融入画布
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_24_71363/`
 
 #### imagegen 关键帧 prompt
@@ -2711,6 +2734,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_25_51277/`
 
 #### imagegen 关键帧 prompt
@@ -2821,6 +2845,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_26_70243/`
 
 #### imagegen 关键帧 prompt
@@ -2927,10 +2952,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=0 / target=single / element=physical / power=999 / level=-1
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，0饼，攻无限，-1级，任意防，被防住则你-3血; cost 0, target single; power 999; level -1; defense any
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：红色油彩冲击
+- 色彩：深红、赭石、少量黑色
+- 材质：厚涂红色油彩、刮刀痕、画布颗粒
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_27_23816/`
 
 #### imagegen 关键帧 prompt
@@ -2943,11 +2969,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_27_23816 全力一击
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=999 / level=-1.
 Mechanic-specific cue: 技能攻击，0饼，攻无限，-1级，任意防，被防住则你-3血; cost 0, target single; power 999; level -1; defense any.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "全力一击" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity high-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -2962,11 +2988,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_27_23816 全力一击
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=999 / level=-1.
 Mechanic-specific cue: 技能攻击，0饼，攻无限，-1级，任意防，被防住则你-3血; cost 0, target single; power 999; level -1; defense any.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "全力一击" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize high-impact.
+Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "全力一击" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize high-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -2981,11 +3007,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_27_23816 全力一击
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=999 / level=-1.
 Mechanic-specific cue: 技能攻击，0饼，攻无限，-1级，任意防，被防住则你-3血; cost 0, target single; power 999; level -1; defense any.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -3000,11 +3026,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_27_23816 全力一击
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=999 / level=-1.
 Mechanic-specific cue: 技能攻击，0饼，攻无限，-1级，任意防，被防住则你-3血; cost 0, target single; power 999; level -1; defense any.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "全力一击" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -3018,8 +3044,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_27_23816 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=999 / level=-1. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，0饼，攻无限，-1级，任意防，被防住则你-3血; cost 0, target single; power 999; level -1; defense any.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -3041,6 +3067,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_28_42646/`
 
 #### imagegen 关键帧 prompt
@@ -3151,6 +3178,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_29_96125/`
 
 #### imagegen 关键帧 prompt
@@ -3261,6 +3289,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_30_38815/`
 
 #### imagegen 关键帧 prompt
@@ -3371,6 +3400,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_31_80497/`
 
 #### imagegen 关键帧 prompt
@@ -3481,6 +3511,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_32_19017/`
 
 #### imagegen 关键帧 prompt
@@ -3591,6 +3622,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_33_55159/`
 
 #### imagegen 关键帧 prompt
@@ -3701,6 +3733,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_34_1533/`
 
 #### imagegen 关键帧 prompt
@@ -3811,6 +3844,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_35_16792/`
 
 #### imagegen 关键帧 prompt
@@ -3921,6 +3955,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_36_14343/`
 
 #### imagegen 关键帧 prompt
@@ -4027,10 +4062,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=0 / target=single / element=electric / power=1 / level=2
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：锁定技，当你使用小防防住他人攻击时，根据攻击重数获得等量的“鬼道”次数；鬼道：技能出招，攻1，2级，油条防，电系; cost 0, target single; power 1; level 2; defense youtiao
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：电流金属线绘
+- 色彩：柠檬黄、钴蓝、石墨黑
+- 材质：细金属线、亮黄油彩点、透明导线反光
+- 运动：细线绷紧并抖动，黄色颜料沿线路跳跃，命中时产生短促星状飞溅
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_37_68416/`
 
 #### imagegen 关键帧 prompt
@@ -4043,11 +4079,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_37_68416 鬼道
 Gameplay meaning: kind=attack / cost=0 / target=single / element=electric / power=1 / level=2.
 Mechanic-specific cue: 锁定技，当你使用小防防住他人攻击时，根据攻击重数获得等量的“鬼道”次数；鬼道：技能出招，攻1，2级，油条防，电系; cost 0, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 电流金属线绘; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "鬼道" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 柠檬黄、钴蓝、石墨黑.
+Materials/textures: 细金属线、亮黄油彩点、透明导线反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4062,11 +4098,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_37_68416 鬼道
 Gameplay meaning: kind=attack / cost=0 / target=single / element=electric / power=1 / level=2.
 Mechanic-specific cue: 锁定技，当你使用小防防住他人攻击时，根据攻击重数获得等量的“鬼道”次数；鬼道：技能出招，攻1，2级，油条防，电系; cost 0, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "鬼道" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize low-impact.
+Primary request: 电流金属线绘; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "鬼道" motif reaches the strongest readable silhouette; 细线绷紧并抖动，黄色颜料沿线路跳跃，命中时产生短促星状飞溅; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 柠檬黄、钴蓝、石墨黑.
+Materials/textures: 细金属线、亮黄油彩点、透明导线反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4081,11 +4117,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_37_68416 鬼道
 Gameplay meaning: kind=attack / cost=0 / target=single / element=electric / power=1 / level=2.
 Mechanic-specific cue: 锁定技，当你使用小防防住他人攻击时，根据攻击重数获得等量的“鬼道”次数；鬼道：技能出招，攻1，2级，油条防，电系; cost 0, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 电流金属线绘; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 柠檬黄、钴蓝、石墨黑.
+Materials/textures: 细金属线、亮黄油彩点、透明导线反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4100,11 +4136,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_37_68416 鬼道
 Gameplay meaning: kind=attack / cost=0 / target=single / element=electric / power=1 / level=2.
 Mechanic-specific cue: 锁定技，当你使用小防防住他人攻击时，根据攻击重数获得等量的“鬼道”次数；鬼道：技能出招，攻1，2级，油条防，电系; cost 0, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 电流金属线绘; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "鬼道" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 柠檬黄、钴蓝、石墨黑.
+Materials/textures: 细金属线、亮黄油彩点、透明导线反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4118,8 +4154,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_37_68416 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=0 / target=single / element=electric / power=1 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 锁定技，当你使用小防防住他人攻击时，根据攻击重数获得等量的“鬼道”次数；鬼道：技能出招，攻1，2级，油条防，电系; cost 0, target single; power 1; level 2; defense youtiao.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: thin metal wire vibration with lemon yellow oil paint sparks and cobalt blue pigment; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 细线绷紧并抖动，黄色颜料沿线路跳跃，命中时产生短促星状飞溅.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -4141,6 +4177,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_38_81245/`
 
 #### imagegen 关键帧 prompt
@@ -4251,6 +4288,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_39_77400/`
 
 #### imagegen 关键帧 prompt
@@ -4357,10 +4395,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=3 / target=single / element=physical / power=3 / level=2
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，3饼，攻3，2级，小防防，目标出石头时攻击变为6; cost 3, target single; power 3; level 2; defense small
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：红色油彩冲击
+- 色彩：深红、赭石、少量黑色
+- 材质：厚涂红色油彩、刮刀痕、画布颗粒
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_40_27274/`
 
 #### imagegen 关键帧 prompt
@@ -4373,11 +4412,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_40_27274 碎石掌
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=3 / level=2.
 Mechanic-specific cue: 技能攻击，3饼，攻3，2级，小防防，目标出石头时攻击变为6; cost 3, target single; power 3; level 2; defense small.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "碎石掌" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4392,11 +4431,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_40_27274 碎石掌
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=3 / level=2.
 Mechanic-specific cue: 技能攻击，3饼，攻3，2级，小防防，目标出石头时攻击变为6; cost 3, target single; power 3; level 2; defense small.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "碎石掌" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize medium-impact.
+Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "碎石掌" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4411,11 +4450,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_40_27274 碎石掌
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=3 / level=2.
 Mechanic-specific cue: 技能攻击，3饼，攻3，2级，小防防，目标出石头时攻击变为6; cost 3, target single; power 3; level 2; defense small.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4430,11 +4469,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_40_27274 碎石掌
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=3 / level=2.
 Mechanic-specific cue: 技能攻击，3饼，攻3，2级，小防防，目标出石头时攻击变为6; cost 3, target single; power 3; level 2; defense small.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "碎石掌" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4448,8 +4487,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_40_27274 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=3 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，3饼，攻3，2级，小防防，目标出石头时攻击变为6; cost 3, target single; power 3; level 2; defense small.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -4467,10 +4506,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=3 / target=single / element=physical / power=2 / level=3
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，3饼，攻2，3级，油条防，目标出石头时攻击变为4; cost 3, target single; power 2; level 3; defense youtiao
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：红色油彩冲击
+- 色彩：深红、赭石、少量黑色
+- 材质：厚涂红色油彩、刮刀痕、画布颗粒
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_41_43495/`
 
 #### imagegen 关键帧 prompt
@@ -4483,11 +4523,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_41_43495 裂山拳
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=2 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻2，3级，油条防，目标出石头时攻击变为4; cost 3, target single; power 2; level 3; defense youtiao.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "裂山拳" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4502,11 +4542,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_41_43495 裂山拳
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=2 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻2，3级，油条防，目标出石头时攻击变为4; cost 3, target single; power 2; level 3; defense youtiao.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "裂山拳" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize medium-impact.
+Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "裂山拳" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4521,11 +4561,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_41_43495 裂山拳
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=2 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻2，3级，油条防，目标出石头时攻击变为4; cost 3, target single; power 2; level 3; defense youtiao.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4540,11 +4580,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_41_43495 裂山拳
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=2 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻2，3级，油条防，目标出石头时攻击变为4; cost 3, target single; power 2; level 3; defense youtiao.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "裂山拳" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -4558,8 +4598,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_41_43495 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=3 / target=single / element=physical / power=2 / level=3. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，3饼，攻2，3级，油条防，目标出石头时攻击变为4; cost 3, target single; power 2; level 3; defense youtiao.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -4581,6 +4621,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_42_94266/`
 
 #### imagegen 关键帧 prompt
@@ -4691,6 +4732,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_43_74082/`
 
 #### imagegen 关键帧 prompt
@@ -4801,6 +4843,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_44_20092/`
 
 #### imagegen 关键帧 prompt
@@ -4911,6 +4954,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_45_30424/`
 
 #### imagegen 关键帧 prompt
@@ -5021,6 +5065,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_46_3651/`
 
 #### imagegen 关键帧 prompt
@@ -5131,6 +5176,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_47_94841/`
 
 #### imagegen 关键帧 prompt
@@ -5241,6 +5287,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_48_26455/`
 
 #### imagegen 关键帧 prompt
@@ -5351,6 +5398,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_49_75347/`
 
 #### imagegen 关键帧 prompt
@@ -5461,6 +5509,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_50_50034/`
 
 #### imagegen 关键帧 prompt
@@ -5571,6 +5620,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_51_92674/`
 
 #### imagegen 关键帧 prompt
@@ -5681,6 +5731,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_52_22171/`
 
 #### imagegen 关键帧 prompt
@@ -5791,6 +5842,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_53_62958/`
 
 #### imagegen 关键帧 prompt
@@ -5901,6 +5953,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_54_99719/`
 
 #### imagegen 关键帧 prompt
@@ -6011,6 +6064,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_55_96047/`
 
 #### imagegen 关键帧 prompt
@@ -6121,6 +6175,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_56_42637/`
 
 #### imagegen 关键帧 prompt
@@ -6231,6 +6286,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_57_59843/`
 
 #### imagegen 关键帧 prompt
@@ -6341,6 +6397,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_58_88471/`
 
 #### imagegen 关键帧 prompt
@@ -6451,6 +6508,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_59_79990/`
 
 #### imagegen 关键帧 prompt
@@ -6561,6 +6619,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_60_57192/`
 
 #### imagegen 关键帧 prompt
@@ -6671,6 +6730,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：蜂蜜黄、面包金、浅棕
 - 材质：厚涂面包屑、蜂蜜状颜料、餐桌油彩
 - 运动：金色颜料像食物碎屑落入盘面，聚成一枚柔软资源印记
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_61_59049/`
 
 #### imagegen 关键帧 prompt
@@ -6781,6 +6841,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：蜂蜜黄、面包金、浅棕
 - 材质：厚涂面包屑、蜂蜜状颜料、餐桌油彩
 - 运动：金色颜料像食物碎屑落入盘面，聚成一枚柔软资源印记
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_62_8008/`
 
 #### imagegen 关键帧 prompt
@@ -6891,6 +6952,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_63_72549/`
 
 #### imagegen 关键帧 prompt
@@ -7001,6 +7063,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_64_60978/`
 
 #### imagegen 关键帧 prompt
@@ -7111,6 +7174,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_65_71994/`
 
 #### imagegen 关键帧 prompt
@@ -7221,6 +7285,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：暖白、淡黄、浅粉
 - 材质：柔软油彩晕染、薄纱状透明颜料
 - 运动：暖白颜料从中心慢慢开花，淡黄光斑浮起，末尾融入画布
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_66_82448/`
 
 #### imagegen 关键帧 prompt
@@ -7331,6 +7396,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_67_31717/`
 
 #### imagegen 关键帧 prompt
@@ -7441,6 +7507,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_68_57581/`
 
 #### imagegen 关键帧 prompt
@@ -7551,6 +7618,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：蓝黑、紫灰、象牙白
 - 材质：稀释油墨、刮擦裂纹、半透明烟状颜料
 - 运动：蓝黑墨痕在画布上裂开，吸入周围颜料后迅速闭合
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_69_22138/`
 
 #### imagegen 关键帧 prompt
@@ -7661,6 +7729,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：蓝黑、紫灰、象牙白
 - 材质：稀释油墨、刮擦裂纹、半透明烟状颜料
 - 运动：蓝黑墨痕在画布上裂开，吸入周围颜料后迅速闭合
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_70_79685/`
 
 #### imagegen 关键帧 prompt
@@ -7771,6 +7840,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_71_40087/`
 
 #### imagegen 关键帧 prompt
@@ -7881,6 +7951,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_72_53933/`
 
 #### imagegen 关键帧 prompt
@@ -7991,6 +8062,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_73_76567/`
 
 #### imagegen 关键帧 prompt
@@ -8101,6 +8173,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_74_34920/`
 
 #### imagegen 关键帧 prompt
@@ -8211,6 +8284,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_75_68329/`
 
 #### imagegen 关键帧 prompt
@@ -8321,6 +8395,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_76_76044/`
 
 #### imagegen 关键帧 prompt
@@ -8431,6 +8506,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：暖白、淡黄、浅粉
 - 材质：柔软油彩晕染、薄纱状透明颜料
 - 运动：暖白颜料从中心慢慢开花，淡黄光斑浮起，末尾融入画布
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_77_30612/`
 
 #### imagegen 关键帧 prompt
@@ -8537,10 +8613,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=2 / target=single / element=fire / power=4 / level=2
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，2饼，攻4，2级，油条防，火系，若未防住对目标相邻玩家溅射1点火系伤害，若相邻玩家出招为石头则不受该伤害，你不受来自自己的溅射伤害; cost 2, target single; power 4; level 2; defense youtiao
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：火焰油彩攻击
+- 色彩：镉红、朱砂橙、少量焦黑
+- 材质：厚涂油彩、热蜡裂纹、透明亚克力反光
+- 运动：红橙颜料从起点压缩后冲出，命中时溅成放射状油彩颗粒，末尾留下热色拖痕
+- 当前资产：已有 keyframe-01.png、keyframe-02.png、keyframe-03.png、keyframe-04.png、poster.png；缺少 effect.webm、effect.mp4
 - 资产目录：`apps/client/public/assets/effects/skill_78_18866/`
 
 #### imagegen 关键帧 prompt
@@ -8553,11 +8630,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_78_18866 火球
 Gameplay meaning: kind=attack / cost=2 / target=single / element=fire / power=4 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻4，2级，油条防，火系，若未防住对目标相邻玩家溅射1点火系伤害，若相邻玩家出招为石头则不受该伤害，你不受来自自己的溅射伤害; cost 2, target single; power 4; level 2; defense youtiao.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 火焰油彩攻击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "火球" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8572,11 +8649,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_78_18866 火球
 Gameplay meaning: kind=attack / cost=2 / target=single / element=fire / power=4 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻4，2级，油条防，火系，若未防住对目标相邻玩家溅射1点火系伤害，若相邻玩家出招为石头则不受该伤害，你不受来自自己的溅射伤害; cost 2, target single; power 4; level 2; defense youtiao.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "火球" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize medium-impact.
+Primary request: 火焰油彩攻击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "火球" motif reaches the strongest readable silhouette; 红橙颜料从起点压缩后冲出，命中时溅成放射状油彩颗粒，末尾留下热色拖痕; emphasize medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8591,11 +8668,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_78_18866 火球
 Gameplay meaning: kind=attack / cost=2 / target=single / element=fire / power=4 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻4，2级，油条防，火系，若未防住对目标相邻玩家溅射1点火系伤害，若相邻玩家出招为石头则不受该伤害，你不受来自自己的溅射伤害; cost 2, target single; power 4; level 2; defense youtiao.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 火焰油彩攻击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8610,11 +8687,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_78_18866 火球
 Gameplay meaning: kind=attack / cost=2 / target=single / element=fire / power=4 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻4，2级，油条防，火系，若未防住对目标相邻玩家溅射1点火系伤害，若相邻玩家出招为石头则不受该伤害，你不受来自自己的溅射伤害; cost 2, target single; power 4; level 2; defense youtiao.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 火焰油彩攻击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "火球" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8628,8 +8705,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_78_18866 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=2 / target=single / element=fire / power=4 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，2饼，攻4，2级，油条防，火系，若未防住对目标相邻玩家溅射1点火系伤害，若相邻玩家出招为石头则不受该伤害，你不受来自自己的溅射伤害; cost 2, target single; power 4; level 2; defense youtiao.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: fiery cadmium red and orange oil paint splash, painterly impasto, warm transparent acrylic reflections; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红橙颜料从起点压缩后冲出，命中时溅成放射状油彩颗粒，末尾留下热色拖痕.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -8647,10 +8724,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=0 / target=single / element=fire / power=6 / level=6 / uses=1
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：限定技，一局限1次，技能攻击，攻6，6级，石头防，破弹，火系，可选取连续的1到2名玩家作为目标; cost 0, target single; power 6; level 6; defense stone; limited 1 use(s)
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：火焰油彩攻击
+- 色彩：镉红、朱砂橙、少量焦黑
+- 材质：厚涂油彩、热蜡裂纹、透明亚克力反光
+- 运动：红橙颜料从起点压缩后冲出，命中时溅成放射状油彩颗粒，末尾留下热色拖痕
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_79_36319/`
 
 #### imagegen 关键帧 prompt
@@ -8663,11 +8741,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_79_36319 火箭
 Gameplay meaning: kind=attack / cost=0 / target=single / element=fire / power=6 / level=6 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻6，6级，石头防，破弹，火系，可选取连续的1到2名玩家作为目标; cost 0, target single; power 6; level 6; defense stone; limited 1 use(s).
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 火焰油彩攻击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "火箭" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity high-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8682,11 +8760,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_79_36319 火箭
 Gameplay meaning: kind=attack / cost=0 / target=single / element=fire / power=6 / level=6 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻6，6级，石头防，破弹，火系，可选取连续的1到2名玩家作为目标; cost 0, target single; power 6; level 6; defense stone; limited 1 use(s).
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "火箭" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize high-impact.
+Primary request: 火焰油彩攻击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "火箭" motif reaches the strongest readable silhouette; 红橙颜料从起点压缩后冲出，命中时溅成放射状油彩颗粒，末尾留下热色拖痕; emphasize high-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8701,11 +8779,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_79_36319 火箭
 Gameplay meaning: kind=attack / cost=0 / target=single / element=fire / power=6 / level=6 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻6，6级，石头防，破弹，火系，可选取连续的1到2名玩家作为目标; cost 0, target single; power 6; level 6; defense stone; limited 1 use(s).
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 火焰油彩攻击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8720,11 +8798,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_79_36319 火箭
 Gameplay meaning: kind=attack / cost=0 / target=single / element=fire / power=6 / level=6 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻6，6级，石头防，破弹，火系，可选取连续的1到2名玩家作为目标; cost 0, target single; power 6; level 6; defense stone; limited 1 use(s).
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 火焰油彩攻击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "火箭" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8738,8 +8816,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_79_36319 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=0 / target=single / element=fire / power=6 / level=6 / uses=1. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻6，6级，石头防，破弹，火系，可选取连续的1到2名玩家作为目标; cost 0, target single; power 6; level 6; defense stone; limited 1 use(s).
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: fiery cadmium red and orange oil paint splash, painterly impasto, warm transparent acrylic reflections; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红橙颜料从起点压缩后冲出，命中时溅成放射状油彩颗粒，末尾留下热色拖痕.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -8761,6 +8839,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_80_20445/`
 
 #### imagegen 关键帧 prompt
@@ -8867,10 +8946,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=1 / target=single / element=physical / power=1 / level=1
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：红色油彩冲击
+- 色彩：深红、赭石、少量黑色
+- 材质：厚涂红色油彩、刮刀痕、画布颗粒
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_81_59663/`
 
 #### imagegen 关键帧 prompt
@@ -8883,11 +8963,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_81_59663 撸
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
 Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "撸" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8902,11 +8982,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_81_59663 撸
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
 Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "撸" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize low-impact.
+Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "撸" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8921,11 +9001,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_81_59663 撸
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
 Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8940,11 +9020,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_81_59663 撸
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
 Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "撸" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -8958,8 +9038,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_81_59663 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，1饼，攻1，1级，小防防; cost 1, target single; power 1; level 1; defense small.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -8977,10 +9057,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=1 / target=single / element=physical / power=1 / level=2
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，1饼，攻1，2级，油条防; cost 1, target single; power 1; level 2; defense youtiao
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：红色油彩冲击
+- 色彩：深红、赭石、少量黑色
+- 材质：厚涂红色油彩、刮刀痕、画布颗粒
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_82_45540/`
 
 #### imagegen 关键帧 prompt
@@ -8993,11 +9074,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_82_45540 日
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，油条防; cost 1, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "日" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9012,11 +9093,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_82_45540 日
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，油条防; cost 1, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "日" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize low-impact.
+Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "日" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9031,11 +9112,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_82_45540 日
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，油条防; cost 1, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9050,11 +9131,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_82_45540 日
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，油条防; cost 1, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "日" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9068,8 +9149,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_82_45540 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，油条防; cost 1, target single; power 1; level 2; defense youtiao.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9087,10 +9168,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=1 / target=single / element=physical / power=1 / level=1
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，1饼，攻1，饼防，与攻击对撞则完全抵消，与抠对撞则你被退游; cost 1, target single; power 1; level 1; defense cake
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：红色油彩冲击
+- 色彩：深红、赭石、少量黑色
+- 材质：厚涂红色油彩、刮刀痕、画布颗粒
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_83_32356/`
 
 #### imagegen 关键帧 prompt
@@ -9103,11 +9185,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_83_32356 丁
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
 Mechanic-specific cue: 技能攻击，1饼，攻1，饼防，与攻击对撞则完全抵消，与抠对撞则你被退游; cost 1, target single; power 1; level 1; defense cake.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "丁" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9122,11 +9204,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_83_32356 丁
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
 Mechanic-specific cue: 技能攻击，1饼，攻1，饼防，与攻击对撞则完全抵消，与抠对撞则你被退游; cost 1, target single; power 1; level 1; defense cake.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "丁" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize low-impact.
+Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "丁" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9141,11 +9223,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_83_32356 丁
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
 Mechanic-specific cue: 技能攻击，1饼，攻1，饼防，与攻击对撞则完全抵消，与抠对撞则你被退游; cost 1, target single; power 1; level 1; defense cake.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9160,11 +9242,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_83_32356 丁
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1.
 Mechanic-specific cue: 技能攻击，1饼，攻1，饼防，与攻击对撞则完全抵消，与抠对撞则你被退游; cost 1, target single; power 1; level 1; defense cake.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "丁" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9178,8 +9260,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_83_32356 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=1 / target=single / element=physical / power=1 / level=1. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，1饼，攻1，饼防，与攻击对撞则完全抵消，与抠对撞则你被退游; cost 1, target single; power 1; level 1; defense cake.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9197,10 +9279,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=2 / target=single / element=physical / power=1 / level=3
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击：2饼，攻1，3级，石头防，若目标出招为反弹，且反弹对象包含你，则你受到3点伤害，若与丁对撞，则使目标退游; cost 2, target single; power 1; level 3; defense stone
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：红色油彩冲击
+- 色彩：深红、赭石、少量黑色
+- 材质：厚涂红色油彩、刮刀痕、画布颗粒
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_84_6114/`
 
 #### imagegen 关键帧 prompt
@@ -9213,11 +9296,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_84_6114 抠
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=3.
 Mechanic-specific cue: 技能攻击：2饼，攻1，3级，石头防，若目标出招为反弹，且反弹对象包含你，则你受到3点伤害，若与丁对撞，则使目标退游; cost 2, target single; power 1; level 3; defense stone.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "抠" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9232,11 +9315,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_84_6114 抠
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=3.
 Mechanic-specific cue: 技能攻击：2饼，攻1，3级，石头防，若目标出招为反弹，且反弹对象包含你，则你受到3点伤害，若与丁对撞，则使目标退游; cost 2, target single; power 1; level 3; defense stone.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "抠" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize medium-impact.
+Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "抠" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9251,11 +9334,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_84_6114 抠
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=3.
 Mechanic-specific cue: 技能攻击：2饼，攻1，3级，石头防，若目标出招为反弹，且反弹对象包含你，则你受到3点伤害，若与丁对撞，则使目标退游; cost 2, target single; power 1; level 3; defense stone.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9270,11 +9353,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_84_6114 抠
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=3.
 Mechanic-specific cue: 技能攻击：2饼，攻1，3级，石头防，若目标出招为反弹，且反弹对象包含你，则你受到3点伤害，若与丁对撞，则使目标退游; cost 2, target single; power 1; level 3; defense stone.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "抠" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9288,8 +9371,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_84_6114 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=3. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击：2饼，攻1，3级，石头防，若目标出招为反弹，且反弹对象包含你，则你受到3点伤害，若与丁对撞，则使目标退游; cost 2, target single; power 1; level 3; defense stone.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9307,10 +9390,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=1 / target=single / effect=zhong_shield / element=physical / power=1 / level=2
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，1饼，攻1，2级，小防防，命中则获得1个对目标的“金钟罩”护盾，对同一名玩家的“金钟罩”最多持有1个；你受到来自他人的攻击时，若你未防住，且你有对他的“金钟罩”，则消耗这个金钟罩，抵挡这次攻击; cost 1, target single; power 1; level 2; defense small
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：红色油彩冲击
+- 色彩：深红、赭石、少量黑色
+- 材质：厚涂红色油彩、刮刀痕、画布颗粒
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_85_26345/`
 
 #### imagegen 关键帧 prompt
@@ -9323,11 +9407,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_85_26345 钟
 Gameplay meaning: kind=attack / cost=1 / target=single / effect=zhong_shield / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，小防防，命中则获得1个对目标的“金钟罩”护盾，对同一名玩家的“金钟罩”最多持有1个；你受到来自他人的攻击时，若你未防住，且你有对他的“金钟罩”，则消耗这个金钟罩，抵挡这次攻击; cost 1, target single; power 1; level 2; defense small.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "钟" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9342,11 +9426,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_85_26345 钟
 Gameplay meaning: kind=attack / cost=1 / target=single / effect=zhong_shield / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，小防防，命中则获得1个对目标的“金钟罩”护盾，对同一名玩家的“金钟罩”最多持有1个；你受到来自他人的攻击时，若你未防住，且你有对他的“金钟罩”，则消耗这个金钟罩，抵挡这次攻击; cost 1, target single; power 1; level 2; defense small.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "钟" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize low-impact.
+Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "钟" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9361,11 +9445,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_85_26345 钟
 Gameplay meaning: kind=attack / cost=1 / target=single / effect=zhong_shield / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，小防防，命中则获得1个对目标的“金钟罩”护盾，对同一名玩家的“金钟罩”最多持有1个；你受到来自他人的攻击时，若你未防住，且你有对他的“金钟罩”，则消耗这个金钟罩，抵挡这次攻击; cost 1, target single; power 1; level 2; defense small.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9380,11 +9464,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_85_26345 钟
 Gameplay meaning: kind=attack / cost=1 / target=single / effect=zhong_shield / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，小防防，命中则获得1个对目标的“金钟罩”护盾，对同一名玩家的“金钟罩”最多持有1个；你受到来自他人的攻击时，若你未防住，且你有对他的“金钟罩”，则消耗这个金钟罩，抵挡这次攻击; cost 1, target single; power 1; level 2; defense small.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "钟" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9398,8 +9482,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_85_26345 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=1 / target=single / effect=zhong_shield / element=physical / power=1 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，1饼，攻1，2级，小防防，命中则获得1个对目标的“金钟罩”护盾，对同一名玩家的“金钟罩”最多持有1个；你受到来自他人的攻击时，若你未防住，且你有对他的“金钟罩”，则消耗这个金钟罩，抵挡这次攻击; cost 1, target single; power 1; level 2; defense small.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9417,10 +9501,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=2 / target=single / element=physical / power=1 / level=2
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，2饼，攻1，2级，石头防，破弹; cost 2, target single; power 1; level 2; defense stone
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：红色油彩冲击
+- 色彩：深红、赭石、少量黑色
+- 材质：厚涂红色油彩、刮刀痕、画布颗粒
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_86_14131/`
 
 #### imagegen 关键帧 prompt
@@ -9433,11 +9518,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_86_14131 梵
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，石头防，破弹; cost 2, target single; power 1; level 2; defense stone.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "梵" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9452,11 +9537,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_86_14131 梵
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，石头防，破弹; cost 2, target single; power 1; level 2; defense stone.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "梵" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize low-impact.
+Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "梵" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9471,11 +9556,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_86_14131 梵
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，石头防，破弹; cost 2, target single; power 1; level 2; defense stone.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9490,11 +9575,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_86_14131 梵
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，石头防，破弹; cost 2, target single; power 1; level 2; defense stone.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "梵" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9508,8 +9593,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_86_14131 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=2 / target=single / element=physical / power=1 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，石头防，破弹; cost 2, target single; power 1; level 2; defense stone.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9527,10 +9612,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=2 / target=single / effect=lian_bao_free / element=physical / power=1 / level=2
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，2饼，攻1，2级，油条防，命中则获得1次免费“连爆”; cost 2, target single; power 1; level 2; defense youtiao
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：红色油彩冲击
+- 色彩：深红、赭石、少量黑色
+- 材质：厚涂红色油彩、刮刀痕、画布颗粒
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_87_44771/`
 
 #### imagegen 关键帧 prompt
@@ -9543,11 +9629,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_87_44771 连爆
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=lian_bao_free / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，油条防，命中则获得1次免费“连爆”; cost 2, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "连爆" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9562,11 +9648,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_87_44771 连爆
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=lian_bao_free / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，油条防，命中则获得1次免费“连爆”; cost 2, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "连爆" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize low-impact.
+Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "连爆" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize low-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9581,11 +9667,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_87_44771 连爆
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=lian_bao_free / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，油条防，命中则获得1次免费“连爆”; cost 2, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9600,11 +9686,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_87_44771 连爆
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=lian_bao_free / element=physical / power=1 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，油条防，命中则获得1次免费“连爆”; cost 2, target single; power 1; level 2; defense youtiao.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "连爆" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -9618,8 +9704,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_87_44771 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=lian_bao_free / element=physical / power=1 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，2饼，攻1，2级，油条防，命中则获得1次免费“连爆”; cost 2, target single; power 1; level 2; defense youtiao.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -9641,6 +9727,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_88_62906/`
 
 #### imagegen 关键帧 prompt
@@ -9751,6 +9838,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_89_99375/`
 
 #### imagegen 关键帧 prompt
@@ -9861,6 +9949,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_90_32911/`
 
 #### imagegen 关键帧 prompt
@@ -9971,6 +10060,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_91_89631/`
 
 #### imagegen 关键帧 prompt
@@ -10081,6 +10171,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_92_26484/`
 
 #### imagegen 关键帧 prompt
@@ -10191,6 +10282,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_93_50224/`
 
 #### imagegen 关键帧 prompt
@@ -10301,6 +10393,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_94_627/`
 
 #### imagegen 关键帧 prompt
@@ -10407,10 +10500,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=0 / target=single / element=physical / power=100000 / level=100000 / uses=1
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：限定技，一局限1次，技能攻击，攻退游，等同，任意防，破弹; cost 0, target single; power 100000; level 100000; defense any; limited 1 use(s)
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：红色油彩冲击
+- 色彩：深红、赭石、少量黑色
+- 材质：厚涂红色油彩、刮刀痕、画布颗粒
+- 运动：红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_95_91337/`
 
 #### imagegen 关键帧 prompt
@@ -10423,11 +10517,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_95_91337 卷子
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=100000 / level=100000 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻退游，等同，任意防，破弹; cost 0, target single; power 100000; level 100000; defense any; limited 1 use(s).
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 红色油彩冲击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "卷子" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity high-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10442,11 +10536,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_95_91337 卷子
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=100000 / level=100000 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻退游，等同，任意防，破弹; cost 0, target single; power 100000; level 100000; defense any; limited 1 use(s).
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "卷子" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize high-impact.
+Primary request: 红色油彩冲击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "卷子" motif reaches the strongest readable silhouette; 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射; emphasize high-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10461,11 +10555,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_95_91337 卷子
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=100000 / level=100000 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻退游，等同，任意防，破弹; cost 0, target single; power 100000; level 100000; defense any; limited 1 use(s).
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 红色油彩冲击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10480,11 +10574,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_95_91337 卷子
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=100000 / level=100000 / uses=1.
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻退游，等同，任意防，破弹; cost 0, target single; power 100000; level 100000; defense any; limited 1 use(s).
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 红色油彩冲击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "卷子" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 深红、赭石、少量黑色.
+Materials/textures: 厚涂红色油彩、刮刀痕、画布颗粒.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10498,8 +10592,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_95_91337 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=0 / target=single / element=physical / power=100000 / level=100000 / uses=1. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 限定技，一局限1次，技能攻击，攻退游，等同，任意防，破弹; cost 0, target single; power 100000; level 100000; defense any; limited 1 use(s).
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: deep red oil paint impact splash, palette knife texture, canvas grain, shared dining installation; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红色颜料团向目标甩出，命中时像餐盘上的颜料被拍散，留下椭圆溅射.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -10517,10 +10611,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=2 / target=single / effect=blizzard_double_hit / element=ice / power=2 / level=2
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，2饼，攻2+2，2级，油条防，冰系; cost 2, target single; power 2; level 2; defense youtiao
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：冰霜蛋彩攻击
+- 色彩：雾蓝、灰白、淡青
+- 材质：冷色蛋彩、薄涂刮痕、冰晶状颜料边缘
+- 运动：淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_96_33279/`
 
 #### imagegen 关键帧 prompt
@@ -10533,11 +10628,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_96_33279 暴风雪
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=blizzard_double_hit / element=ice / power=2 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻2+2，2级，油条防，冰系; cost 2, target single; power 2; level 2; defense youtiao.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 冰霜蛋彩攻击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "暴风雪" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10552,11 +10647,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_96_33279 暴风雪
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=blizzard_double_hit / element=ice / power=2 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻2+2，2级，油条防，冰系; cost 2, target single; power 2; level 2; defense youtiao.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "暴风雪" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize medium-impact.
+Primary request: 冰霜蛋彩攻击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "暴风雪" motif reaches the strongest readable silhouette; 淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂; emphasize medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10571,11 +10666,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_96_33279 暴风雪
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=blizzard_double_hit / element=ice / power=2 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻2+2，2级，油条防，冰系; cost 2, target single; power 2; level 2; defense youtiao.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 冰霜蛋彩攻击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10590,11 +10685,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_96_33279 暴风雪
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=blizzard_double_hit / element=ice / power=2 / level=2.
 Mechanic-specific cue: 技能攻击，2饼，攻2+2，2级，油条防，冰系; cost 2, target single; power 2; level 2; defense youtiao.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 冰霜蛋彩攻击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "暴风雪" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10608,8 +10703,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_96_33279 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=2 / target=single / effect=blizzard_double_hit / element=ice / power=2 / level=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，2饼，攻2+2，2级，油条防，冰系; cost 2, target single; power 2; level 2; defense youtiao.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: pale blue ice-tempera paint streak, frost flower burst, delicate cold pigment scratches; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -10627,10 +10722,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=0 / target=all / element=ice / power=2 / level=2 / uses=2
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：限定技，一局限2次，技能攻击，群攻2，2级，油条防，冰系; cost 0, target all; power 2; level 2; defense youtiao; limited 2 use(s)
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：冰霜蛋彩攻击
+- 色彩：雾蓝、灰白、淡青
+- 材质：冷色蛋彩、薄涂刮痕、冰晶状颜料边缘
+- 运动：淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_97_60773/`
 
 #### imagegen 关键帧 prompt
@@ -10643,11 +10739,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_97_60773 狂风骤雪
 Gameplay meaning: kind=attack / cost=0 / target=all / element=ice / power=2 / level=2 / uses=2.
 Mechanic-specific cue: 限定技，一局限2次，技能攻击，群攻2，2级，油条防，冰系; cost 0, target all; power 2; level 2; defense youtiao; limited 2 use(s).
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 冰霜蛋彩攻击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "狂风骤雪" motif first appears as a small oil-paint emblem; radial table-wide spread with several separated landing stains; keep intensity medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10662,11 +10758,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_97_60773 狂风骤雪
 Gameplay meaning: kind=attack / cost=0 / target=all / element=ice / power=2 / level=2 / uses=2.
 Mechanic-specific cue: 限定技，一局限2次，技能攻击，群攻2，2级，油条防，冰系; cost 0, target all; power 2; level 2; defense youtiao; limited 2 use(s).
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "狂风骤雪" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize medium-impact.
+Primary request: 冰霜蛋彩攻击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "狂风骤雪" motif reaches the strongest readable silhouette; 淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂; emphasize medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10681,11 +10777,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_97_60773 狂风骤雪
 Gameplay meaning: kind=attack / cost=0 / target=all / element=ice / power=2 / level=2 / uses=2.
 Mechanic-specific cue: 限定技，一局限2次，技能攻击，群攻2，2级，油条防，冰系; cost 0, target all; power 2; level 2; defense youtiao; limited 2 use(s).
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 冰霜蛋彩攻击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through radial table-wide spread with several separated landing stains; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10700,11 +10796,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_97_60773 狂风骤雪
 Gameplay meaning: kind=attack / cost=0 / target=all / element=ice / power=2 / level=2 / uses=2.
 Mechanic-specific cue: 限定技，一局限2次，技能攻击，群攻2，2级，油条防，冰系; cost 0, target all; power 2; level 2; defense youtiao; limited 2 use(s).
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 冰霜蛋彩攻击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "狂风骤雪" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -10718,8 +10814,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_97_60773 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=0 / target=all / element=ice / power=2 / level=2 / uses=2. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 限定技，一局限2次，技能攻击，群攻2，2级，油条防，冰系; cost 0, target all; power 2; level 2; defense youtiao; limited 2 use(s).
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: pale blue ice-tempera paint streak, frost flower burst, delicate cold pigment scratches; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -10741,6 +10837,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_98_7182/`
 
 #### imagegen 关键帧 prompt
@@ -10851,6 +10948,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_99_65551/`
 
 #### imagegen 关键帧 prompt
@@ -10961,6 +11059,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_100_45717/`
 
 #### imagegen 关键帧 prompt
@@ -11071,6 +11170,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_101_4254/`
 
 #### imagegen 关键帧 prompt
@@ -11181,6 +11281,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：蓝黑、紫灰、象牙白
 - 材质：稀释油墨、刮擦裂纹、半透明烟状颜料
 - 运动：蓝黑墨痕在画布上裂开，吸入周围颜料后迅速闭合
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_102_5546/`
 
 #### imagegen 关键帧 prompt
@@ -11291,6 +11392,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_103_56259/`
 
 #### imagegen 关键帧 prompt
@@ -11401,6 +11503,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_104_71181/`
 
 #### imagegen 关键帧 prompt
@@ -11511,6 +11614,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_105_48309/`
 
 #### imagegen 关键帧 prompt
@@ -11621,6 +11725,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_106_59962/`
 
 #### imagegen 关键帧 prompt
@@ -11731,6 +11836,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：蓝黑、紫灰、象牙白
 - 材质：稀释油墨、刮擦裂纹、半透明烟状颜料
 - 运动：蓝黑墨痕在画布上裂开，吸入周围颜料后迅速闭合
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_107_53513/`
 
 #### imagegen 关键帧 prompt
@@ -11841,6 +11947,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_108_76133/`
 
 #### imagegen 关键帧 prompt
@@ -11951,6 +12058,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_109_65084/`
 
 #### imagegen 关键帧 prompt
@@ -12057,10 +12165,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=3 / target=all / element=electric / power=4 / level=4
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，3饼，群攻4，4级，油条防，电系; cost 3, target all; power 4; level 4; defense youtiao
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：电流金属线绘
+- 色彩：柠檬黄、钴蓝、石墨黑
+- 材质：细金属线、亮黄油彩点、透明导线反光
+- 运动：细线绷紧并抖动，黄色颜料沿线路跳跃，命中时产生短促星状飞溅
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_110_2190/`
 
 #### imagegen 关键帧 prompt
@@ -12073,11 +12182,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_110_2190 三千雷动
 Gameplay meaning: kind=attack / cost=3 / target=all / element=electric / power=4 / level=4.
 Mechanic-specific cue: 技能攻击，3饼，群攻4，4级，油条防，电系; cost 3, target all; power 4; level 4; defense youtiao.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 电流金属线绘; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "三千雷动" motif first appears as a small oil-paint emblem; radial table-wide spread with several separated landing stains; keep intensity high-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 柠檬黄、钴蓝、石墨黑.
+Materials/textures: 细金属线、亮黄油彩点、透明导线反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -12092,11 +12201,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_110_2190 三千雷动
 Gameplay meaning: kind=attack / cost=3 / target=all / element=electric / power=4 / level=4.
 Mechanic-specific cue: 技能攻击，3饼，群攻4，4级，油条防，电系; cost 3, target all; power 4; level 4; defense youtiao.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "三千雷动" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize high-impact.
+Primary request: 电流金属线绘; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "三千雷动" motif reaches the strongest readable silhouette; 细线绷紧并抖动，黄色颜料沿线路跳跃，命中时产生短促星状飞溅; emphasize high-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 柠檬黄、钴蓝、石墨黑.
+Materials/textures: 细金属线、亮黄油彩点、透明导线反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -12111,11 +12220,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_110_2190 三千雷动
 Gameplay meaning: kind=attack / cost=3 / target=all / element=electric / power=4 / level=4.
 Mechanic-specific cue: 技能攻击，3饼，群攻4，4级，油条防，电系; cost 3, target all; power 4; level 4; defense youtiao.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 电流金属线绘; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through radial table-wide spread with several separated landing stains; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 柠檬黄、钴蓝、石墨黑.
+Materials/textures: 细金属线、亮黄油彩点、透明导线反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -12130,11 +12239,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_110_2190 三千雷动
 Gameplay meaning: kind=attack / cost=3 / target=all / element=electric / power=4 / level=4.
 Mechanic-specific cue: 技能攻击，3饼，群攻4，4级，油条防，电系; cost 3, target all; power 4; level 4; defense youtiao.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 电流金属线绘; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "三千雷动" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 柠檬黄、钴蓝、石墨黑.
+Materials/textures: 细金属线、亮黄油彩点、透明导线反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -12148,8 +12257,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_110_2190 "�
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=3 / target=all / element=electric / power=4 / level=4. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，3饼，群攻4，4级，油条防，电系; cost 3, target all; power 4; level 4; defense youtiao.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: thin metal wire vibration with lemon yellow oil paint sparks and cobalt blue pigment; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 细线绷紧并抖动，黄色颜料沿线路跳跃，命中时产生短促星状飞溅.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -12171,6 +12280,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_111_51056/`
 
 #### imagegen 关键帧 prompt
@@ -12281,6 +12391,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：蓝黑、紫灰、象牙白
 - 材质：稀释油墨、刮擦裂纹、半透明烟状颜料
 - 运动：蓝黑墨痕在画布上裂开，吸入周围颜料后迅速闭合
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_112_59292/`
 
 #### imagegen 关键帧 prompt
@@ -12391,6 +12502,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：蓝黑、紫灰、象牙白
 - 材质：稀释油墨、刮擦裂纹、半透明烟状颜料
 - 运动：蓝黑墨痕在画布上裂开，吸入周围颜料后迅速闭合
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_113_88141/`
 
 #### imagegen 关键帧 prompt
@@ -12501,6 +12613,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：青绿、乳白、透明灰
 - 材质：透明亚克力、水波、薄油膜
 - 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_114_87583/`
 
 #### imagegen 关键帧 prompt
@@ -12611,6 +12724,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：石墨黑、灰蓝、少量青绿
 - 材质：细金属支架线、铅笔线稿、透明胶片
 - 运动：石墨线框从四周收束，短暂锁定目标后像展览装置的线缆一样松开
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_115_74459/`
 
 #### imagegen 关键帧 prompt
@@ -12721,6 +12835,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_116_97172/`
 
 #### imagegen 关键帧 prompt
@@ -12831,6 +12946,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_117_55768/`
 
 #### imagegen 关键帧 prompt
@@ -12937,10 +13053,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=3 / target=single / element=ice / power=1 / level=3
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，3饼，攻1，3级，石头防，冰系，命中后赋予1回合“冰冻”，可选取连续的1到3名玩家作为目标；冰冻：无法出招; cost 3, target single; power 1; level 3; defense stone
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：冰霜蛋彩攻击
+- 色彩：雾蓝、灰白、淡青
+- 材质：冷色蛋彩、薄涂刮痕、冰晶状颜料边缘
+- 运动：淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_118_53580/`
 
 #### imagegen 关键帧 prompt
@@ -12953,11 +13070,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_118_53580 冰漩决
 Gameplay meaning: kind=attack / cost=3 / target=single / element=ice / power=1 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻1，3级，石头防，冰系，命中后赋予1回合“冰冻”，可选取连续的1到3名玩家作为目标；冰冻：无法出招; cost 3, target single; power 1; level 3; defense stone.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 冰霜蛋彩攻击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "冰漩决" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -12972,11 +13089,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_118_53580 冰漩决
 Gameplay meaning: kind=attack / cost=3 / target=single / element=ice / power=1 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻1，3级，石头防，冰系，命中后赋予1回合“冰冻”，可选取连续的1到3名玩家作为目标；冰冻：无法出招; cost 3, target single; power 1; level 3; defense stone.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "冰漩决" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize medium-impact.
+Primary request: 冰霜蛋彩攻击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "冰漩决" motif reaches the strongest readable silhouette; 淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂; emphasize medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -12991,11 +13108,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_118_53580 冰漩决
 Gameplay meaning: kind=attack / cost=3 / target=single / element=ice / power=1 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻1，3级，石头防，冰系，命中后赋予1回合“冰冻”，可选取连续的1到3名玩家作为目标；冰冻：无法出招; cost 3, target single; power 1; level 3; defense stone.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 冰霜蛋彩攻击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -13010,11 +13127,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_118_53580 冰漩决
 Gameplay meaning: kind=attack / cost=3 / target=single / element=ice / power=1 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻1，3级，石头防，冰系，命中后赋予1回合“冰冻”，可选取连续的1到3名玩家作为目标；冰冻：无法出招; cost 3, target single; power 1; level 3; defense stone.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 冰霜蛋彩攻击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "冰漩决" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 雾蓝、灰白、淡青.
+Materials/textures: 冷色蛋彩、薄涂刮痕、冰晶状颜料边缘.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -13028,8 +13145,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_118_53580 "
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=3 / target=single / element=ice / power=1 / level=3. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，3饼，攻1，3级，石头防，冰系，命中后赋予1回合“冰冻”，可选取连续的1到3名玩家作为目标；冰冻：无法出招; cost 3, target single; power 1; level 3; defense stone.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: pale blue ice-tempera paint streak, frost flower burst, delicate cold pigment scratches; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 淡蓝颜料凝成细线后快速刺出，命中时扩成霜花状薄涂纹理，末尾轻微碎裂.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -13047,10 +13164,11 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 玩法摘要：kind=attack / cost=3 / target=single / element=fire / power=3 / level=3
 - 触发表现：在出招、目标确认、命中结算三段中播放。
 - 机制视觉线索：技能攻击，3饼，攻3，3级，石头防，火系，可选取连续的1到3名玩家作为目标; cost 3, target single; power 3; level 3; defense stone
-- 视觉原型：透明防御波纹
-- 色彩：青绿、乳白、透明灰
-- 材质：透明亚克力、水波、薄油膜
-- 运动：青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹
+- 视觉原型：火焰油彩攻击
+- 色彩：镉红、朱砂橙、少量焦黑
+- 材质：厚涂油彩、热蜡裂纹、透明亚克力反光
+- 运动：红橙颜料从起点压缩后冲出，命中时溅成放射状油彩颗粒，末尾留下热色拖痕
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_119_78843/`
 
 #### imagegen 关键帧 prompt
@@ -13063,11 +13181,11 @@ Asset type: BING-game skill effect keyframe 1/4
 Skill: skill_119_78843 火漩决
 Gameplay meaning: kind=attack / cost=3 / target=single / element=fire / power=3 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻3，3级，石头防，火系，可选取连续的1到3名玩家作为目标; cost 3, target single; power 3; level 3; defense stone.
-Primary request: 透明防御波纹; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
+Primary request: 火焰油彩攻击; 起势：颜料、透明装置和细线开始聚集，动作尚未爆发。
 Frame direction: the "火漩决" motif first appears as a small oil-paint emblem; one precise lane from source to target with a single impact point; keep intensity medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -13082,11 +13200,11 @@ Asset type: BING-game skill effect keyframe 2/4
 Skill: skill_119_78843 火漩决
 Gameplay meaning: kind=attack / cost=3 / target=single / element=fire / power=3 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻3，3级，石头防，火系，可选取连续的1到3名玩家作为目标; cost 3, target single; power 3; level 3; defense stone.
-Primary request: 透明防御波纹; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
-Frame direction: the "火漩决" motif reaches the strongest readable silhouette; 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹; emphasize medium-impact.
+Primary request: 火焰油彩攻击; 爆发：主颜料、线缆或波纹冲出，画面动势最强。
+Frame direction: the "火漩决" motif reaches the strongest readable silhouette; 红橙颜料从起点压缩后冲出，命中时溅成放射状油彩颗粒，末尾留下热色拖痕; emphasize medium-impact.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -13101,11 +13219,11 @@ Asset type: BING-game skill effect keyframe 3/4
 Skill: skill_119_78843 火漩决
 Gameplay meaning: kind=attack / cost=3 / target=single / element=fire / power=3 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻3，3级，石头防，火系，可选取连续的1到3名玩家作为目标; cost 3, target single; power 3; level 3; defense stone.
-Primary request: 透明防御波纹; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
+Primary request: 火焰油彩攻击; 扩散：颜料飞溅、波纹展开或线框锁定，保留中心留白。
 Frame direction: The effect reveals gameplay information through one precise lane from source to target with a single impact point; split or spread only if the skill targets multiple players.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -13120,11 +13238,11 @@ Asset type: BING-game skill effect keyframe 4/4
 Skill: skill_119_78843 火漩决
 Gameplay meaning: kind=attack / cost=3 / target=single / element=fire / power=3 / level=3.
 Mechanic-specific cue: 技能攻击，3饼，攻3，3级，石头防，火系，可选取连续的1到3名玩家作为目标; cost 3, target single; power 3; level 3; defense stone.
-Primary request: 透明防御波纹; 残留：颜料沉积、细线回落，可作为 poster frame。
+Primary request: 火焰油彩攻击; 残留：颜料沉积、细线回落，可作为 poster frame。
 Frame direction: Leave a quiet residue shaped like the "火漩决" motif; keep final poster clean, readable, and not screen-filling.
 Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.
-Color palette: 青绿、乳白、透明灰.
-Materials/textures: 透明亚克力、水波、薄油膜.
+Color palette: 镉红、朱砂橙、少量焦黑.
+Materials/textures: 厚涂油彩、热蜡裂纹、透明亚克力反光.
 Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.
 Lighting/mood: soft museum lighting, gentle wall-shadow feeling, refined art installation.
 Constraints: readable game state must remain possible; avoid covering the entire frame; no text, no watermark.
@@ -13138,8 +13256,8 @@ Create a 0.8-1.6 second game VFX animation for BING-game skill skill_119_78843 "
 Use the four input keyframes in order: keyframe-01 start, keyframe-02 burst, keyframe-03 spread, keyframe-04 residue/poster.
 Gameplay meaning: kind=attack / cost=3 / target=single / element=fire / power=3 / level=3. Trigger behavior: 在出招、目标确认、命中结算三段中播放。
 Mechanic-specific cue: 技能攻击，3饼，攻3，3级，石头防，火系，可选取连续的1到3名玩家作为目标; cost 3, target single; power 3; level 3; defense stone.
-Visual language: teal translucent acrylic ripple shield, soft oil film, museum installation lighting; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
-Motion: 青绿色透明圆环从玩家周围扩散，挡住冲击后回弹成柔和波纹.
+Visual language: fiery cadmium red and orange oil paint splash, painterly impasto, warm transparent acrylic reflections; oil painting on canvas, transparent acrylic shared dining installation, thin metal apparatus, soft museum lighting.
+Motion: 红橙颜料从起点压缩后冲出，命中时溅成放射状油彩颗粒，末尾留下热色拖痕.
 Camera: locked top-down or slight three-quarter tabletop view; no camera shake unless the keyframe implies impact; no zoom that hides UI.
 Timing: ease-in 0.18s, burst at 0.35-0.55s, dissipate by the end; preserve a clean final poster frame.
 Output: 30fps, one-shot playback, no text, no logo, no watermark, no extra characters.
@@ -13161,6 +13279,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_120_85509/`
 
 #### imagegen 关键帧 prompt
@@ -13271,6 +13390,7 @@ Avoid: neon lasers, sci-fi HUD, flat vector circles, generic particle systems, p
 - 色彩：象牙白、石墨灰、低饱和青绿
 - 材质：薄涂标记、透明标签、细线装置
 - 运动：细线和半透明颜料在角色旁短暂显现，像展签一样提示被动条件已触发，随后淡出
+- 当前资产：缺少全部 7 个文件
 - 资产目录：`apps/client/public/assets/effects/skill_121_59557/`
 
 #### imagegen 关键帧 prompt
