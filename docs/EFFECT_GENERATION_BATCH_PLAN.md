@@ -6,6 +6,7 @@
 
 ```powershell
 npm.cmd run test:effect-spec
+npm.cmd run test:effect-budget
 npm.cmd run test:effect-assets -- --json
 ```
 
@@ -102,6 +103,7 @@ npm.cmd run seedance:effects:plan -- --provider=volcengine --offset=76 --limit=1
 ```powershell
 --estimated-cny-per-frame=<单张关键帧估算人民币>
 --estimated-cny-per-task=<单个 Seedance 视频估算人民币>
+--prior-spend-cny=<可选；覆盖台账里的已发生或已估算人民币费用>
 ```
 
 规则：
@@ -109,6 +111,8 @@ npm.cmd run seedance:effects:plan -- --provider=volcengine --offset=76 --limit=1
 - `plan` 命令不消耗 API。
 - `submit` 命令会消耗 API。
 - 单批预计或累计达到 **10 RMB** 前，必须先得到用户明确许可。
+- 已经跑通的火球 Seedance 样例按当前估算记作约 3 RMB，并记录在 `docs/PAID_API_SPEND_LEDGER.json`；脚本默认读取该台账作为累计费用。
+- 如需临时覆盖台账费用，可显式传 `--prior-spend-cny=<金额>` 或设置 `PAID_API_PRIOR_SPEND_CNY`。
 - 未确认 provider 前，不提交任何付费任务。
 
 ## 每批验收
@@ -118,6 +122,7 @@ npm.cmd run seedance:effects:plan -- --provider=volcengine --offset=76 --limit=1
 ```powershell
 npm.cmd run test:effect-spec
 npm.cmd run test:effect-assets -- --json
+npm.cmd run test:effect-budget
 npm.cmd run build
 ```
 
@@ -127,15 +132,23 @@ npm.cmd run build
 npm.cmd run test:ui-agents:run
 ```
 
+预算脚本改动后必须运行：
+
+```powershell
+npm.cmd run test:effect-budget
+```
+
+该命令会先审计 `docs/PAID_API_SPEND_LEDGER.json`，再验证关键帧与 Seedance dry-run 是否按累计费用截断。
+
 ## 自动批次选择
 
-关键帧计划脚本默认会跳过已经存在的关键帧，并在设置了 `--estimated-cny-per-frame` 时把计划控制在 10 RMB 以下；若确实要超过预算线，必须先得到用户许可，再显式加 `--allow-over-budget`。
+关键帧计划脚本默认会跳过已经存在的关键帧，并在设置了 `--estimated-cny-per-frame` 时把计划控制在 10 RMB 以下；若确实要超过预算线，必须先得到用户许可，再显式加 `--allow-over-budget`。继续已有批次时默认从 `docs/PAID_API_SPEND_LEDGER.json` 读取累计费用。
 
 ```powershell
 npm.cmd run effects:keyframes:plan -- --offset-skills=0 --limit-skills=10 --estimated-cny-per-frame=0.5
 ```
 
-计划文件会记录 `selectedFramesBeforeBudgetCap`、`skippedByBudgetCap` 和 `budget.cappedForSpendLimit`，方便确认哪些关键帧只是因为预算闸门被延后，并不是 prompt 缺失。
+计划文件会记录 `budget.priorSpendCny`、`budget.totalEstimatedCnyWithPrior`、`selectedFramesBeforeBudgetCap`、`skippedByBudgetCap` 和 `budget.cappedForSpendLimit`，方便确认哪些关键帧只是因为预算闸门被延后，并不是 prompt 缺失。
 
 Seedance 提交脚本默认会跳过已经具备 `poster.png`、`effect.mp4`、`effect.webm` 的技能，并且火山 Ark 路线默认只发送第 1 张和第 4 张关键帧作为 `first_frame` / `last_frame`：
 
@@ -150,6 +163,8 @@ npm.cmd run seedance:effects:plan -- --provider=volcengine --offset=0 --limit=3 
 - provider：火山引擎 Ark 官方接口，除非明确切回 AceDataCloud。
 - 任务 id。
 - 估算费用和实际费用。
+- `docs/PAID_API_SPEND_LEDGER.json` 台账更新；可先运行 `npm.cmd run effects:spend:sync` 从本地 Seedance manifest / settle report 同步安全字段。
+- `artifacts/seedance/effect-settle-report.json` 不保留临时视频 URL、Bearer、token、API key 或签名参数；由 `npm.cmd run test:effect-budget` 一并审计。
 - 生成文件路径。
 - 美术总监结论：通过、返工、或仅作为技术样例。
 - 是否触发 10 RMB 许可线。

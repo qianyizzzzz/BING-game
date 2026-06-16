@@ -83,9 +83,16 @@ const readyRows = keyframeAndPosterReady.length
     )
   : ["| 暂无 | 暂无 | 暂无 | 需要先生成关键帧 |"];
 
+const generatedDate = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+}).format(new Date());
+
 const markdown = `# BING 技能特效资产状态
 
-更新时间：${new Date().toISOString().slice(0, 10)}
+更新时间：${generatedDate}
 
 ## 当前结论
 
@@ -126,7 +133,12 @@ ${requiredFiles.map((fileName) => `| \`${fileName}\` | ${missingByFile[fileName]
 
 \`\`\`powershell
 npm.cmd run test:effect-assets -- --json
+npm.cmd run test:visual-style
+npm.cmd run test:skill-gallery
+npm.cmd run test:effect-assets:stage
+npm.cmd run test:effect-budget
 npm.cmd run effects:status
+npm.cmd run effects:spend:sync
 npm.cmd run effects:keyframes:plan -- --offset-skills=0 --limit-skills=5 --estimated-cny-per-frame=0.5
 npm.cmd run seedance:effects:plan -- --provider=volcengine --offset=76 --limit=1 --estimated-cny-per-task=3
 \`\`\`
@@ -137,7 +149,7 @@ npm.cmd run seedance:effects:plan -- --provider=volcengine --offset=76 --limit=1
 npm.cmd run seedance:effects:submit -- --provider=volcengine --offset=76 --limit=1 --estimated-cny-per-task=3
 \`\`\`
 
-估算总额达到或超过 10 RMB 时，必须先向用户确认是否继续；获得明确许可后才可以继续提交付费任务。
+费用累计默认读取 \`docs/PAID_API_SPEND_LEDGER.json\`；估算总额达到或超过 10 RMB 时，必须先向用户确认是否继续；获得明确许可后才可以继续提交付费任务，并在生成后更新费用台账。Seedance settle 报告只保留安全摘要，\`npm.cmd run test:effect-budget\` 会同时检查报告里没有临时视频 URL、签名参数或密钥。
 `;
 
 fs.writeFileSync(statusPath, markdown, "utf8");

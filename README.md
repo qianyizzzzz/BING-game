@@ -55,7 +55,7 @@
 | UI / HUD | 3D 牌桌、行动面板、目标预览、结算摘要、血量 / 饼变化和技能画廊已接入；仍在继续打磨轻薄度、油画感和信息层级。 |
 | 角色资产 | 6 个默认角色已有手绘动物头像、移动端头像和动作姿态图；GLB 仍是占位版本，不能视为最终美术资产。 |
 | 特效资产 | `docs/EFFECT_ANIMATION_PROMPTS.json` 已覆盖 120 个技能、480 条关键帧提示词和 120 条 Seedance 提示词；实际 mp4 / webm 动画仍未批量生成。 |
-| 自动化验收 | 覆盖规则回归、角色资产审计、回合时间线、UI 自动化试玩、复杂技能、重连、超时和提交信息基础检查。 |
+| 自动化验收 | 覆盖规则回归、角色资产审计、视觉风格审计、特效规格审计、Seedance 预算与报告脱敏门槛、公网配置审计、回合时间线、UI 自动化试玩、复杂技能、重连、超时和提交信息基础检查。 |
 | 发布边界 | 当前是私有项目。公开发布前需要确认素材来源、授权、长期部署方案和公网联机门禁。 |
 
 ## 快速开始
@@ -96,7 +96,8 @@ npm run public:no-build
 - 头像和玩家信息框采用手绘角色、纸面纹理、低饱和色和不规则边缘。
 - 技能和介绍界面做成 gallery，展示一张张技能卡片。
 - 技能特效以 `docs/EFFECT_ANIMATION_PROMPTS.json` 为准：每个技能 4 张关键帧，再用 Seedance 补成短动画。
-- 付费 API 调用有预算闸门：预计达到或超过 10 RMB 时必须先确认。
+- 付费 API 调用有预算闸门：预计达到或超过 10 RMB 时必须先确认；Seedance settle 报告只保留安全摘要，不保存临时视频 URL、签名参数或密钥。
+- 本地、正式部署、临时公网、Seedance 和数据持久化变量统一从 `.env.example` 复制，不把真实 token 写进仓库。
 
 相关文档：
 
@@ -132,11 +133,16 @@ npm run public:no-build
 | `npm run serve` | 启动生产模式服务。 |
 | `npm run public` | 构建并打开临时公网联机地址。 |
 | `npm run typecheck` | 对所有 workspace 运行 TypeScript 检查。 |
-| `npm run test:ci` | 运行 typecheck、资产审计、规则回归和 turn timeline 检查。 |
+| `npm run test:ci` | 运行 typecheck、agent 名册、资产、视觉风格、技能画廊、特效规格、阶段性特效资产、Seedance 预算/报告脱敏、公网配置、规则回归和 turn timeline 检查。 |
 | `npm run verify` | 构建后运行核心检查和默认 UI 自动化试玩。 |
 | `npm run verify:release` | 发布前完整门禁。 |
 | `npm run test:assets` | 检查 6 个角色的 GLB、头像、QA 图和 PBR 贴图资源。 |
+| `npm run test:visual-style` | 检查房间入口、角色选择、玩家座位和行动面板是否保留轻薄油画 / 手绘标签风格。 |
+| `npm run test:skill-gallery` | 检查本局技能卡册和完整技能参考页是否保持 gallery 卡片结构、搜索、分类和计数。 |
 | `npm run test:effect-spec` | 检查 120 个技能的特效文档、关键帧提示词和 Seedance 提示词。 |
+| `npm run test:effect-budget` | 检查付费 API ledger、Seedance settle 报告脱敏与 10 RMB 累计预算门槛，避免批量生成越过确认线。 |
+| `npm run test:effect-assets:stage` | 阶段性检查火球样例完整、全局无坏特效文件、状态页统计同步。 |
+| `npm run test:public-config` | 检查公网试玩脚本、端口、Cloudflare Tunnel 文档和生产 Origin 配置说明。 |
 | `npm run test:effect-assets` | 检查 120 个技能的关键帧、poster、webm 和 mp4 是否齐全且格式有效。 |
 | `npm run test:ui-agents` | 构建 client 后运行默认双玩家浏览器 playtest。 |
 | `npm run test:ui-agents:complex` | 运行复杂技能 smoke。 |
@@ -145,7 +151,8 @@ npm run public:no-build
 | `npm run effects:keyframes:plan` | 生成技能关键帧 image generation 计划，不调用 API。 |
 | `npm run seedance:effects:plan` | 生成 Seedance 任务 payload，不调用 API。 |
 | `npm run seedance:effects:submit -- --estimated-cny-per-task=3` | 提交 Seedance 任务；达到 10 RMB 预算线会自动停止。 |
-| `npm run seedance:effects:settle` | 轮询已提交任务并下载动画资产。 |
+| `npm run seedance:effects:settle` | 轮询已提交任务并下载动画资产；报告只写安全摘要。 |
+| `npm run effects:spend:sync` | 从本地 Seedance 任务 manifest 同步安全的付费记录到 `docs/PAID_API_SPEND_LEDGER.json`。 |
 
 ## 项目结构
 

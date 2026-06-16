@@ -1,0 +1,32 @@
+{
+  "currency": "CNY",
+  "entries": [
+    {
+      "actualCny": null,
+      "estimatedCny": 3,
+      "id": "seedance-fireball-loop-2026-06-16",
+      "kind": "seedance_video",
+      "model": "doubao-seedance-2-0-260128",
+      "notes": "First successful Fireball Seedance loop. Includes generated mp4/webm and poster/keyframe asset validation.",
+      "provider": "volcengine",
+      "skillId": "skill_78_18866",
+      "skillName": "火球",
+      "status": "succeeded",
+      "taskId": "cgt-20260616032151-pr4n7"
+    },
+    {
+      "actualCny": null,
+      "estimatedCny": 3,
+      "id": "seedance-skill_78_18866-cgt-20260616214034-76mkl",
+      "kind": "seedance_video",
+      "model": "doubao-seedance-2-0-260128",
+      "notes": "Synced from local Seedance task manifest; excludes prompt payloads, URLs, and API credentials.",
+      "provider": "volcengine",
+      "skillId": "skill_78_18866",
+      "skillName": "火球",
+      "status": "succeeded",
+      "taskId": "cgt-20260616214034-76mkl"
+    }
+  ],
+  "updatedAt": "2026-06-16"
+}

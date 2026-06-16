@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
+import { readPaidApiPriorSpendCny } from "./paid-api-spend-ledger";
 
 interface EffectPromptSpec {
   assetDir?: string;
@@ -31,6 +32,7 @@ interface BatchOptions {
   model: string;
   offset: number;
   outDir: string;
+  priorSpendCny: number;
   ratio: string;
   resolution: string;
   serviceTier: string;
@@ -71,7 +73,7 @@ const eligibleSpecs = options.skipCompleteAssets
   : specs;
 const candidateSpecs = eligibleSpecs.slice(options.offset, options.offset + options.limit);
 const skipped: SkippedTask[] = [];
-const selected = candidateSpecs.filter((spec) => {
+const selectedBeforeBudget = candidateSpecs.filter((spec) => {
   const missingKeyframes = missingRequiredKeyframes(spec);
   if (options.includeMissingKeyframes || missingKeyframes.length === 0) {
     return true;
@@ -84,6 +86,15 @@ const selected = candidateSpecs.filter((spec) => {
   });
   return false;
 });
+const selected = applyBudgetCap(selectedBeforeBudget, options);
+for (const spec of selectedBeforeBudget.slice(selected.length)) {
+  skipped.push({
+    missingKeyframes: [],
+    reason: "budget_cap",
+    skillId: spec.skillId,
+    skillName: spec.skillName
+  });
+}
 
 if (!options.dryRun && selected.length > 0) {
   enforceBudgetGate(selected.length, options);
@@ -125,7 +136,7 @@ fs.writeFileSync(
     {
       apiBaseUrl: options.apiBaseUrl,
       apiProvider: options.apiProvider,
-      budget: buildBudgetSummary(tasks.length, options),
+      budget: buildBudgetSummary(tasks.length, selectedBeforeBudget.length, options),
       count: tasks.length,
       dryRun: options.dryRun,
       generatedAt: new Date().toISOString(),
@@ -134,6 +145,7 @@ fs.writeFileSync(
       sourceSpec: fs.existsSync(promptManifestPath) ? promptManifestPath : specPath,
       totalSpecs: specs.length,
       totalEligibleSpecs: eligibleSpecs.length,
+      totalSelectedBeforeBudgetCap: selectedBeforeBudget.length,
       tasks
     },
     null,
@@ -145,6 +157,17 @@ fs.writeFileSync(
 console.log(
   `${options.dryRun ? "planned" : "submitted"} ${tasks.length} Seedance effect tasks, skipped ${skipped.length} -> ${manifestPath}`
 );
+const budget = buildBudgetSummary(tasks.length, selectedBeforeBudget.length, options);
+if (budget.cappedForSpendLimit) {
+  console.warn(
+    `budget cap kept cumulative spend under ${budget.spendLimitCny.toFixed(2)} RMB: prior ${budget.priorSpendCny.toFixed(2)} RMB, ${budget.skippedByBudgetCap} Seedance tasks skipped; use --allow-over-budget only after user permission.`
+  );
+}
+if (budget.requiresPermission) {
+  console.warn(
+    `cumulative estimated Seedance spend ${budget.totalEstimatedCnyWithPrior.toFixed(2)} RMB reaches or exceeds ${budget.spendLimitCny.toFixed(2)} RMB; ask the user for permission before paid generation.`
+  );
+}
 
 function parseEffectPrompts(markdown: string): EffectPromptSpec[] {
   const headingPattern = /^### ([^:\uFF1A\s]+)[:\uFF1A](.+)$/gm;
@@ -342,6 +365,10 @@ function readOptions(): BatchOptions {
     model: stringArg("--model", defaultModel(apiProvider)),
     offset: numberArg("--offset", 0),
     outDir: stringArg("--out-dir", "artifacts/seedance"),
+    priorSpendCny: decimalArg(
+      "--prior-spend-cny",
+      Number(process.env.PAID_API_PRIOR_SPEND_CNY ?? readPaidApiPriorSpendCny())
+    ),
     ratio: stringArg("--ratio", "16:9"),
     resolution: stringArg("--resolution", "480p"),
     serviceTier: stringArg("--service-tier", "flex"),
@@ -487,6 +514,15 @@ function mimeTypeForFile(filePath: string): string {
   return "image/png";
 }
 
+function applyBudgetCap(tasks: EffectPromptSpec[], opts: BatchOptions): EffectPromptSpec[] {
+  if (opts.allowOverBudget || opts.estimatedCnyPerTask <= 0) {
+    return tasks;
+  }
+  const remainingCny = opts.cnySpendLimit - opts.priorSpendCny;
+  const maxTasksUnderLimit = Math.max(0, Math.ceil(remainingCny / opts.estimatedCnyPerTask) - 1);
+  return tasks.slice(0, maxTasksUnderLimit);
+}
+
 function enforceBudgetGate(taskCount: number, opts: BatchOptions): void {
   if (opts.estimatedCnyPerTask <= 0) {
     throw new Error(
@@ -494,28 +530,40 @@ function enforceBudgetGate(taskCount: number, opts: BatchOptions): void {
     );
   }
 
-  const estimatedTotal = taskCount * opts.estimatedCnyPerTask;
+  const estimatedTotal = opts.priorSpendCny + taskCount * opts.estimatedCnyPerTask;
   if (!opts.allowOverBudget && estimatedTotal >= opts.cnySpendLimit) {
     throw new Error(
-      `Seedance submit blocked: estimated spend ${estimatedTotal.toFixed(2)} RMB reaches or exceeds ${opts.cnySpendLimit.toFixed(2)} RMB. Ask the user for permission before continuing, then rerun with --allow-over-budget if approved.`
+      `Seedance submit blocked: cumulative estimated spend ${estimatedTotal.toFixed(2)} RMB reaches or exceeds ${opts.cnySpendLimit.toFixed(2)} RMB. Ask the user for permission before continuing, then rerun with --allow-over-budget if approved.`
     );
   }
 }
 
-function buildBudgetSummary(taskCount: number, opts: BatchOptions): {
+function buildBudgetSummary(taskCount: number, selectedBeforeBudgetCount: number, opts: BatchOptions): {
   allowOverBudget: boolean;
+  cappedForSpendLimit: boolean;
   estimatedCnyPerTask: number;
   estimatedTotalCny: number;
+  plannedBeforeBudgetCap: number;
+  priorSpendCny: number;
   requiresPermission: boolean;
+  skippedByBudgetCap: number;
   spendLimitCny: number;
+  totalEstimatedCnyWithPrior: number;
 } {
   const estimatedTotalCny = taskCount * opts.estimatedCnyPerTask;
+  const totalEstimatedCnyWithPrior = opts.priorSpendCny + estimatedTotalCny;
+  const skippedByBudgetCap = selectedBeforeBudgetCount - taskCount;
   return {
     allowOverBudget: opts.allowOverBudget,
+    cappedForSpendLimit: skippedByBudgetCap > 0,
     estimatedCnyPerTask: opts.estimatedCnyPerTask,
     estimatedTotalCny,
-    requiresPermission: estimatedTotalCny >= opts.cnySpendLimit,
-    spendLimitCny: opts.cnySpendLimit
+    plannedBeforeBudgetCap: selectedBeforeBudgetCount,
+    priorSpendCny: opts.priorSpendCny,
+    requiresPermission: totalEstimatedCnyWithPrior >= opts.cnySpendLimit,
+    skippedByBudgetCap,
+    spendLimitCny: opts.cnySpendLimit,
+    totalEstimatedCnyWithPrior
   };
 }
 

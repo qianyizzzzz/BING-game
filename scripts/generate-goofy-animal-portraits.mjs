@@ -100,15 +100,10 @@ const page = await browser.newPage({ deviceScaleFactor: 1, viewport: { height: 7
 
 for (const character of characters) {
   const dir = path.join(characterRoot, character.id);
-  await fs.mkdir(path.join(dir, "source"), { recursive: true });
+  await fs.mkdir(dir, { recursive: true });
 
   await writePortrait(page, character, path.join(dir, "portrait.png"), 512, "portrait", character.mood);
   await writePortrait(page, character, path.join(dir, "mobile-avatar.png"), 768, "mobile", character.mood);
-  await fs.writeFile(
-    path.join(dir, "source", "goofy-animal-portrait.svg"),
-    cleanSvg(portraitSvg(character, 512, "portrait", character.mood)),
-    "utf-8"
-  );
 
   for (const [file, variant] of Object.entries(actionVariants)) {
     await writePortrait(page, character, path.join(dir, file), 512, variant.action, variant.mood, variant.mark);

@@ -21,8 +21,9 @@
 | 角色头像 / mobile-avatar | `apps/client/public/assets/characters/*/portrait.png`、`mobile-avatar.png` | 方向探索，已转向手绘搞怪动物方向 | 替换为通过美术总监验收的最终头像，并记录生成来源 |
 | 角色 PBR 贴图 | `apps/client/public/assets/characters/materials/pbr/` | 程序化 / 技术占位 | 记录生成方式或替换为授权贴图 |
 | Blender 源场景 | `tools/blender/source/` | 开发源文件，不进入发布产物 | 发布包不得包含 `.blend` 源文件 |
-| 技能特效关键帧 | `apps/client/public/assets/effects/{skillId}/keyframe-*.png` | 文档已覆盖 120 个技能和每技 4 个关键帧；批量图片产物未完成 | 每个技能需记录提示词、生成工具、费用和资产状态 |
-| Seedance 动画 | `apps/client/public/assets/effects/{skillId}/effect.mp4`、`effect.webm` | 文档已覆盖 Seedance 提示词；批量视频产物未完成 | 生成前遵守 10 元人民币费用阈值，生成后记录任务 id、费用和文件 |
+| 技能特效关键帧 | `apps/client/public/assets/effects/{skillId}/keyframe-*.png` | 文档已覆盖 120 个技能和每技 4 个关键帧；批量图片产物未完成 | 每个技能需记录提示词、生成工具、费用和资产状态；费用台账见 `docs/PAID_API_SPEND_LEDGER.json` |
+| Seedance 动画 | `apps/client/public/assets/effects/{skillId}/effect.mp4`、`effect.webm` | 文档已覆盖 Seedance 提示词；批量视频产物未完成 | 生成前遵守 10 元人民币费用阈值，生成后在 `docs/PAID_API_SPEND_LEDGER.json` 记录任务 id、费用和文件 |
+| 旧 placeholder 目录 | `apps/client/public/assets/placeholders/` | 已从 public 和 dist 清理 | `npm run test:release-assets` / `test:release-assets:dist` 禁止占位素材回归 |
 | 技能表 / 规则数据 | `packages/shared/src/skills/generatedSkillCatalog.ts` | 项目规则数据 | 保留来源行号和导入脚本；公开发布前确认规则权属 |
 | Playtest 截图 / 报告 | `artifacts/playtests/` | 测试产物，不作为默认发布素材 | 对外展示前清理玩家名、房号、账号 id 和临时 URL |
 
@@ -37,7 +38,7 @@
 ## 发布前检查
 
 1. 更新本文件，列出最终角色、贴图、特效、音频和宣传图的来源。
-2. 确认 `npm run test:release-assets` 通过，发布产物不含 `.blend` 或 source 目录。
+2. 确认 `npm run test:release-assets` 通过，发布产物不含 `.blend`、source 目录或 `assets/placeholders/`。
 3. 确认所有默认头像、角色、技能特效和音频都有可追踪来源。
 4. 确认公开截图不包含测试账号 id、房号、临时 tunnel URL 或未授权用户头像。
 5. 若未来决定开源代码，必须重新选择开源许可证，并把代码授权和美术/音视频素材授权分开说明。

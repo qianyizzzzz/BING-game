@@ -15,11 +15,11 @@
 - 动画设计 Agent：关注全技能关键帧、Seedance prompt、VFX 遮挡和节奏。
 - 文学总监 Agent：关注封面、房间、行动面板和结算文案；只改展示表达，不改技能名和机制。
 - 产品经理 Agent：关注 P0/P1/P2、发布阻塞、验收方式和 commit 节奏。
-- 美术总监 Blender Agent：在 Blender MCP 可用时，为每个默认角色/玩家建立真人比例的半写实 3D 角色，并输出 `.glb`、头像、turnaround、face-detail、rig/skin QA 和美术验收报告。详细规范见 `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`。
+- 美术总监 Blender Agent：在 Blender MCP 可用时，为每个默认角色/玩家建立手绘搞怪动物 3D 角色，并输出 `.glb`、头像、turnaround、face-detail、rig/skin QA 和美术验收报告。详细规范见 `docs/SUBAGENT_ART_DIRECTOR_BLENDER.md`。
 
 ## 总结判断
 
-项目已经从“网页式卡牌工具”明显走向“深渊遗物牌桌竞技”的方向。首屏、战斗 HUD、行动 dock、资源变化、事件 timeline mapper、中文 README 都已经有基础。
+项目已经从“网页式卡牌工具”明显走向“油画纸面 + 透明装置 + 手绘搞怪动物牌桌”的方向。首屏、战斗 HUD、行动 dock、资源变化、事件 timeline mapper、中文 README 都已经有基础。
 
 主要缺口是：
 
@@ -118,12 +118,12 @@
 
 ## 美术方案
 
-主方向：深渊遗物牌桌竞技。
+主方向：油画纸面、透明装置和手绘搞怪动物牌桌。
 
 需要统一：
 
-- 移除 meadow / placeholder 背景与深渊牌桌的冲突。
-- 结算层减少白底网页 modal 感，改为桌面内暗色浮层或桌心演出。
+- 移除 meadow / placeholder 背景与当前油画装置牌桌的冲突。
+- 结算层减少白底网页 modal 感，改为轻薄纸面浮层、透明装置标注或桌心演出。
 - 技能 sigil 从英文 `Relic / PYR / FRS` 改成中文或图形符号，例如 `焰 / 霜 / 雷 / 蚀 / 盾 / 命 / 虚 / 遗`。
 - 统一 2D 座位头像和 3D 桌面角色语言。
 
@@ -139,7 +139,7 @@
 
 ## 美术总监 Blender Agent 升级
 
-新增目标：美术总监 Agent 不只评审 UI，还要能在 Blender MCP 接入后为每位玩家建模，并把 placeholder 角色升级为接近真人比例的半写实游戏角色。
+新增目标：美术总监 Agent 不只评审 UI，还要能在 Blender MCP 接入后为每位玩家建模，并把 placeholder 角色升级为手绘搞怪动物游戏角色。
 
 当前环境状态：
 

@@ -122,13 +122,13 @@ Figma 任务至少应该包含：
 
 ### Blender / 美术总监 Agent
 
-负责角色 3D 建模、材质优化、turnaround、头像裁切和资产验收。目标是把默认角色和玩家形象从 placeholder 推进到接近真人比例的半写实游戏角色。
+负责角色 3D 建模、材质优化、turnaround、头像裁切和资产验收。目标是把默认角色和玩家形象从 placeholder 推进到手绘搞怪动物游戏角色，并统一到油画纸面、透明装置和法国动画感。
 
 适合给美术总监 Agent 的任务：
 
 ```text
 请读取 docs/SUBAGENT_ART_DIRECTOR_BLENDER.md 和 workflow/docs/01-visual-bible.md，
-使用 Blender MCP 为 ember-guardian 建立半写实 3D 角色模型。
+使用 Blender MCP 为 ember-guardian 建立手绘搞怪动物 3D 角色模型。
 完成后导出 .blend、.glb、头像、三视图，并生成 artifacts/art/ember-guardian-review.md。
 ```
 

@@ -418,7 +418,7 @@ function buildImagePrompt(skill: SkillDefinition, plan: SkillVisualPlan, keyfram
     `Mechanic-specific cue: ${plan.mechanicCue}.`,
     `Primary request: ${plan.archetype.name}; ${phase}`,
     `Frame direction: ${frameCue}`,
-    "Style/medium: hand-painted oil on canvas, contemporary shared dining installation, translucent acrylic apparatus, painterly impasto.",
+    "Style/medium: hand-painted oil on canvas, contemporary shared dining installation, transparent acrylic apparatus, painterly impasto.",
     `Color palette: ${plan.archetype.color}.`,
     `Materials/textures: ${plan.archetype.texture}.`,
     "Composition/framing: centered effect on a warm ivory tabletop, generous transparent negative space around the effect, no UI text, no logo, no characters.",

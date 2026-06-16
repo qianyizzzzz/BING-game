@@ -72,6 +72,18 @@ npm.cmd run seedance:effects:submit -- --provider=volcengine --offset=76 --limit
 npm.cmd run seedance:effects:settle -- --provider=volcengine --manifest=artifacts/seedance/effect-generation-tasks.json
 ```
 
+settle 报告只写入任务 id、状态、模型、用量和下载文件路径等安全摘要，不保存临时视频 URL、签名参数、prompt 或密钥。可用下面的预算/报告门禁复查：
+
+```powershell
+npm.cmd run test:effect-budget
+```
+
+同步费用台账，只写入安全字段，不保存 prompt、URL 或密钥：
+
+```powershell
+npm.cmd run effects:spend:sync
+```
+
 输出约定：
 
 ```text
@@ -122,7 +134,10 @@ LOG_LEVEL = "INFO"
 - `plan` 不调用付费 API。
 - `submit` 会调用付费 API。
 - 批量提交前必须写明 `--estimated-cny-per-task`。
+- 累计费用默认读取 `docs/PAID_API_SPEND_LEDGER.json`；如需临时覆盖，可传 `--prior-spend-cny=<金额>` 或设置 `PAID_API_PRIOR_SPEND_CNY`。
 - 预计或累计达到 **10 元人民币** 前，必须先得到用户明确许可。
+- 成功生成后必须把任务 id、估算费用或实际费用、技能 id 和 provider 写回 `docs/PAID_API_SPEND_LEDGER.json`；可以用 `npm.cmd run effects:spend:sync` 从本地结果自动同步。
+- 本地 `artifacts/seedance/effect-settle-report.json` 也必须保持脱敏；`npm.cmd run test:effect-budget` 会检查报告里没有临时视频 URL、签名参数、Bearer、API key 或 token。
 
 ## 安全事项
 

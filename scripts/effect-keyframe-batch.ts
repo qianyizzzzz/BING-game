@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { readPaidApiPriorSpendCny } from "./paid-api-spend-ledger";
 
 interface EffectPromptManifest {
   skills: EffectPromptSkill[];
@@ -39,6 +40,7 @@ interface KeyframeBatchOptions {
   offsetSkills: number;
   onlyMissing: boolean;
   outDir: string;
+  priorSpendCny: number;
   promptManifest: string;
 }
 
@@ -118,12 +120,12 @@ console.log(`planned ${tasks.length} keyframe image tasks -> ${planPath}`);
 console.log(`wrote jsonl -> ${jsonlPath}`);
 if (budget.cappedForSpendLimit) {
   console.warn(
-    `budget cap kept this plan under ${budget.spendLimitCny.toFixed(2)} RMB: ${budget.skippedByBudgetCap} keyframes skipped; use --allow-over-budget only after user permission.`
+    `budget cap kept cumulative spend under ${budget.spendLimitCny.toFixed(2)} RMB: prior ${budget.priorSpendCny.toFixed(2)} RMB, ${budget.skippedByBudgetCap} keyframes skipped; use --allow-over-budget only after user permission.`
   );
 }
 if (budget.requiresPermission) {
   console.warn(
-    `estimated keyframe spend ${budget.estimatedTotalCny.toFixed(2)} RMB reaches or exceeds ${budget.spendLimitCny.toFixed(2)} RMB; ask the user for permission before paid generation.`
+    `cumulative estimated keyframe spend ${budget.totalEstimatedCnyWithPrior.toFixed(2)} RMB reaches or exceeds ${budget.spendLimitCny.toFixed(2)} RMB; ask the user for permission before paid generation.`
   );
 }
 
@@ -161,6 +163,10 @@ function readOptions(): KeyframeBatchOptions {
     offsetSkills: numberArg("--offset-skills", 0),
     onlyMissing: !process.argv.includes("--include-existing"),
     outDir: stringArg("--out-dir", "artifacts/effects"),
+    priorSpendCny: decimalArg(
+      "--prior-spend-cny",
+      Number(process.env.PAID_API_PRIOR_SPEND_CNY ?? readPaidApiPriorSpendCny())
+    ),
     promptManifest: stringArg("--prompt-manifest", "docs/EFFECT_ANIMATION_PROMPTS.json")
   };
 }
@@ -169,7 +175,8 @@ function applyBudgetCap(tasks: KeyframeTask[], opts: KeyframeBatchOptions): Keyf
   if (opts.allowOverBudget || opts.estimatedCnyPerFrame <= 0) {
     return tasks;
   }
-  const maxTasksUnderLimit = Math.max(0, Math.ceil(opts.cnySpendLimit / opts.estimatedCnyPerFrame) - 1);
+  const remainingCny = opts.cnySpendLimit - opts.priorSpendCny;
+  const maxTasksUnderLimit = Math.max(0, Math.ceil(remainingCny / opts.estimatedCnyPerFrame) - 1);
   return tasks.slice(0, maxTasksUnderLimit);
 }
 
@@ -182,20 +189,25 @@ function buildBudgetSummary(
   estimatedCnyPerFrame: number;
   estimatedTotalCny: number;
   plannedBeforeBudgetCap: number;
+  priorSpendCny: number;
   requiresPermission: boolean;
   skippedByBudgetCap: number;
   spendLimitCny: number;
+  totalEstimatedCnyWithPrior: number;
 } {
   const estimatedTotalCny = taskCount * opts.estimatedCnyPerFrame;
+  const totalEstimatedCnyWithPrior = opts.priorSpendCny + estimatedTotalCny;
   const skippedByBudgetCap = plannedTaskCount - taskCount;
   return {
     cappedForSpendLimit: skippedByBudgetCap > 0,
     estimatedCnyPerFrame: opts.estimatedCnyPerFrame,
     estimatedTotalCny,
     plannedBeforeBudgetCap: plannedTaskCount,
-    requiresPermission: estimatedTotalCny >= opts.cnySpendLimit,
+    priorSpendCny: opts.priorSpendCny,
+    requiresPermission: totalEstimatedCnyWithPrior >= opts.cnySpendLimit,
     skippedByBudgetCap,
-    spendLimitCny: opts.cnySpendLimit
+    spendLimitCny: opts.cnySpendLimit,
+    totalEstimatedCnyWithPrior
   };
 }
 

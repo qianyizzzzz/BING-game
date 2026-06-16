@@ -92,7 +92,10 @@ cp .env.example .env
 - `PUBLIC_ORIGINS` / `CLIENT_ORIGINS`：逗号分隔的公网白名单，例如正式域名。
 - `ALLOW_TUNNEL_ORIGINS`：只在临时 tunnel 试玩时设为 `true`；正式长期上线保持 `false`，并改用 `PUBLIC_ORIGINS` 白名单。
 - `ACCOUNT_DATA_FILE`：账号数据 JSON 路径；Docker 或云服务器部署时应放在持久化卷/磁盘上。
+- `MATCH_DATA_DIR`：比赛复盘、快照和训练样本目录；正式部署应挂到持久化卷/磁盘。
+- `AI_POLICY_PATH`：AI 策略文件路径；有训练数据时建议和 `MATCH_DATA_DIR` 一起持久化。
 - `VITE_SERVER_URL`：客户端构建时使用的服务端地址，本地通常是 `http://localhost:3001`。
+- `ARK_API_KEY` / `VOLCENGINE_ARK_API_KEY` / `SEEDANCE_*`：只在需要生成付费动画素材的机器上配置；正式游戏服务器可以保持为空。
 
 ## Docker 部署
 

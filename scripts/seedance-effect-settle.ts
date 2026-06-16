@@ -16,12 +16,27 @@ interface GenerationTask {
 
 interface SettledTask {
   downloaded: string[];
-  queryResponse?: unknown;
+  queryResponse?: SafeTaskResponse;
   skillId: string;
   skillName: string;
   status: "missing_task_id" | "pending" | "failed" | "partial" | "downloaded";
   taskId?: string;
   warnings?: string[];
+}
+
+interface SafeTaskResponse {
+  created_at?: number;
+  duration?: number;
+  id?: string;
+  model?: string;
+  ratio?: string;
+  resolution?: string;
+  status?: string;
+  updated_at?: number;
+  usage?: {
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
 }
 
 interface DownloadResult {
@@ -56,6 +71,7 @@ if (!apiToken) {
   throw new Error(tokenErrorMessage(apiProvider));
 }
 const settled: SettledTask[] = [];
+const skillNamesById = readSkillNamesById();
 
 for (const task of manifest.tasks) {
   const taskId = extractTaskId(task.response);
@@ -63,7 +79,7 @@ for (const task of manifest.tasks) {
     settled.push({
       downloaded: [],
       skillId: task.skillId,
-      skillName: task.skillName,
+      skillName: canonicalSkillName(task.skillId, task.skillName),
       status: "missing_task_id"
     });
     continue;
@@ -74,9 +90,9 @@ for (const task of manifest.tasks) {
   if (status !== "succeeded") {
     settled.push({
       downloaded: [],
-      queryResponse: result,
+      queryResponse: sanitizeTaskResponse(result),
       skillId: task.skillId,
-      skillName: task.skillName,
+      skillName: canonicalSkillName(task.skillId, task.skillName),
       status: status === "failed" ? "failed" : "pending",
       taskId
     });
@@ -88,9 +104,9 @@ for (const task of manifest.tasks) {
   const downloadStatus = statusForDownload(downloadResult);
   settled.push({
     downloaded: downloadResult.downloaded,
-    queryResponse: result,
+    queryResponse: sanitizeTaskResponse(result),
     skillId: task.skillId,
-    skillName: task.skillName,
+    skillName: canonicalSkillName(task.skillId, task.skillName),
     status: downloadStatus,
     taskId,
     warnings: downloadResult.warnings.length > 0 ? downloadResult.warnings : undefined
@@ -213,7 +229,7 @@ async function downloadTaskAssets(
 
   const webmPath = path.join(skillDir, "effect.webm");
   const mp4Path = path.join(skillDir, "effect.mp4");
-  if (!fs.existsSync(webmPath) && fs.existsSync(mp4Path)) {
+  if (fs.existsSync(mp4Path) && (!fs.existsSync(webmPath) || isOlderThan(webmPath, mp4Path))) {
     if (skipWebm) {
       warnings.push("webm_conversion_skipped");
     } else {
@@ -249,6 +265,10 @@ async function downloadTaskAssets(
   };
 }
 
+function isOlderThan(candidatePath: string, sourcePath: string): boolean {
+  return fs.statSync(candidatePath).mtimeMs < fs.statSync(sourcePath).mtimeMs;
+}
+
 async function downloadFile(url: string, targetPath: string): Promise<void> {
   const response = await fetch(url);
   if (!response.ok) {
@@ -260,6 +280,46 @@ async function downloadFile(url: string, targetPath: string): Promise<void> {
 
 function extractTaskId(value: unknown): string | undefined {
   return findStringByKey(value, new Set(["task_id", "taskId", "id"]));
+}
+
+function sanitizeTaskResponse(value: unknown): SafeTaskResponse | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  return {
+    created_at: numberField(value, "created_at"),
+    duration: numberField(value, "duration"),
+    id: findStringByKey(value, new Set(["task_id", "taskId", "id"])),
+    model: findStringByKey(value, new Set(["model"])),
+    ratio: findStringByKey(value, new Set(["ratio"])),
+    resolution: findStringByKey(value, new Set(["resolution"])),
+    status: findStringByKey(value, new Set(["status", "state"])),
+    updated_at: numberField(value, "updated_at"),
+    usage: sanitizeUsage(value)
+  };
+}
+
+function sanitizeUsage(value: unknown): SafeTaskResponse["usage"] | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+  const usage = (value as Record<string, unknown>).usage;
+  if (!usage || typeof usage !== "object" || Array.isArray(usage)) {
+    return undefined;
+  }
+  return {
+    completion_tokens: numberField(usage, "completion_tokens"),
+    total_tokens: numberField(usage, "total_tokens")
+  };
+}
+
+function numberField(value: unknown, key: string): number | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+  const field = (value as Record<string, unknown>)[key];
+  return typeof field === "number" && Number.isFinite(field) ? field : undefined;
 }
 
 function extractResultUrls(value: unknown): { posterUrl?: string; videoUrl?: string } {
@@ -423,6 +483,27 @@ function bundledFfmpegPath(): string | undefined {
   }
 }
 
+function readSkillNamesById(): Map<string, string> {
+  const promptManifestPath = path.resolve("docs/EFFECT_ANIMATION_PROMPTS.json");
+  const manifest = readJsonIfExists<{ skills?: Array<{ name?: string; skillId?: string }> }>(promptManifestPath);
+  return new Map(
+    (manifest?.skills ?? [])
+      .filter((skill): skill is { name: string; skillId: string } => Boolean(skill.skillId && skill.name))
+      .map((skill) => [skill.skillId, skill.name])
+  );
+}
+
+function canonicalSkillName(skillId: string, fallback: string): string {
+  return skillNamesById.get(skillId) ?? fallback;
+}
+
+function readJsonIfExists<T>(filePath: string): T | undefined {
+  if (!fs.existsSync(filePath)) {
+    return undefined;
+  }
+  return JSON.parse(fs.readFileSync(filePath, "utf8")) as T;
+}
+
 function stringArg(name: string, fallback: string): string {
   const prefix = `${name}=`;
   return process.argv.find((arg) => arg.startsWith(prefix))?.slice(prefix.length) ?? fallback;
@@ -444,5 +525,9 @@ Options:
   --poll-delay-ms=<ms>    Delay between poll attempts.
   --ffmpeg=<path>         ffmpeg executable for mp4 -> webm conversion.
   --skip-webm             Download only; record missing webm in the report.
+
+Report safety:
+  The settle report stores only a safe task summary. It does not write temporary video URLs,
+  signed URL parameters, prompt payloads, Bearer tokens, or API keys.
 `);
 }

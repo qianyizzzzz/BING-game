@@ -2,7 +2,7 @@
 
 日期：2026-06-13
 
-本审计由 `tools/blender/create-bing-character-blockouts.py` 通过 Blender MCP / Blender Python 生成。2026-06-15 复审后，当前资产只能作为技术占位和运行时管线验证，不能再按“已验收美术资产”宣传。下一阶段角色方向已从真人比例半写实改为“手绘搞怪动物角色”：松弛、略怪、有生活化道具，但不过度可爱，不做三国古风、偶像脸或塑料 3D 玩具。
+本审计由 `tools/blender/create-bing-character-blockouts.py` 通过 Blender MCP / Blender Python 生成。2026-06-15 复审后，当前资产只能作为技术占位和运行时管线验证，不能再按“已验收美术资产”宣传。下一阶段角色方向是“手绘搞怪动物角色”：松弛、略怪、有生活化道具，但不过度可爱，不做三国古风、偶像脸或塑料 3D 玩具。
 
 ## 2026-06-15 复审结论
 
@@ -17,7 +17,7 @@
 - 每角色：LOD0 `.glb`、LOD1 `-lod1.glb`、头像、移动端头像、正面、侧面、3/4、桌面距离 QA 图
 - 动作 QA：每角色 `idle / attack / defend / skill / hit / down` 动作剪影图
 - 绑定准备：每角色 `17` 根骨骼 guide armature、`rig-guide.png`、LOD0/LOD1 first-pass blended skin weights、`skin-preview-*.png` 与 `idle / attack / defend / skill / hit / down` 预览动画 clips
-- 建模：当前仍保留旧半写实 blockout 结构和运行时 GLB 管线；这些结构只能证明导出链路可用，不能作为新动物角色方向的最终模型。
+- 建模：当前仍保留旧 blockout 结构和运行时 GLB 管线；这些结构只能证明导出链路可用，不能作为新动物角色方向的最终模型。
 - 材质：当前 PBR 贴图仍服务于旧 blockout 管线；新方向应改成手绘毛发/羽毛/布料/颜料痕迹/亚克力道具等更低塑料感的贴图语言。
 - PBR 贴图目录：`apps/client/public/assets/characters/materials/pbr`，当前 `123` 张 PNG
 - 材质近景 QA：`apps/client/public/assets/characters/materials/material-qa.png`
@@ -26,12 +26,12 @@
 
 | id | 中文名 | LOD0 vertices | LOD0 faces | LOD0 预算 | LOD1 vertices | LOD1 faces | LOD1 预算 | 移动头像 QA | 桌面距离 QA |
 | --- | --- | ---: | ---: | --- | ---: | ---: | --- | --- | --- |
-| `ember-guardian` | 烛火守卫 | 37035 | 39140 | 通过 | 6387 | 11160 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
-| `jade-trickster` | 青玉术士 | 37277 | 39410 | 通过 | 6404 | 11220 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
-| `violet-duelist` | 紫曦剑客 | 36405 | 38476 | 通过 | 6280 | 10966 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
-| `solar-chef` | 日冕饼师 | 36365 | 38446 | 通过 | 6240 | 10936 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
-| `crimson-mender` | 绯红医师 | 36909 | 39038 | 通过 | 6363 | 11118 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
-| `iron-oracle` | 铁面观察者 | 17187 | 17856 | 通过 | 3091 | 5246 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
+| `ember-guardian` | 阿歪 | 37035 | 39140 | 通过 | 6387 | 11160 | 通过 | `apps/client/public/assets/characters/ember-guardian/mobile-avatar.png` | `apps/client/public/assets/characters/ember-guardian/table-scale.png` |
+| `jade-trickster` | 小六 | 37277 | 39410 | 通过 | 6404 | 11220 | 通过 | `apps/client/public/assets/characters/jade-trickster/mobile-avatar.png` | `apps/client/public/assets/characters/jade-trickster/table-scale.png` |
+| `violet-duelist` | 扁嘴 | 36405 | 38476 | 通过 | 6280 | 10966 | 通过 | `apps/client/public/assets/characters/violet-duelist/mobile-avatar.png` | `apps/client/public/assets/characters/violet-duelist/table-scale.png` |
+| `solar-chef` | 锅巴 | 36365 | 38446 | 通过 | 6240 | 10936 | 通过 | `apps/client/public/assets/characters/solar-chef/mobile-avatar.png` | `apps/client/public/assets/characters/solar-chef/table-scale.png` |
+| `crimson-mender` | 慢慢 | 36909 | 39038 | 通过 | 6363 | 11118 | 通过 | `apps/client/public/assets/characters/crimson-mender/mobile-avatar.png` | `apps/client/public/assets/characters/crimson-mender/table-scale.png` |
+| `iron-oracle` | 老盯 | 17187 | 17856 | 通过 | 3091 | 5246 | 通过 | `apps/client/public/assets/characters/iron-oracle/mobile-avatar.png` | `apps/client/public/assets/characters/iron-oracle/table-scale.png` |
 
 ## 美术判断
 

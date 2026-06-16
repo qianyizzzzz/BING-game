@@ -7,7 +7,9 @@ interface PromptManifest {
     files: string[];
     root: string;
   };
+  generatedAt?: string;
   skills: Array<{
+    assetDir?: string;
     keyframes: Array<{ file: string; phase: string; prompt: string }>;
     name: string;
     seedancePrompt: string;
@@ -31,6 +33,21 @@ const requiredFiles = [
   "poster.png",
   "effect.webm",
   "effect.mp4"
+];
+const requiredKeyframePhases = ["起势", "爆发", "扩散", "残留"];
+const requiredSeedancePromptFragments = [
+  "keyframe-01",
+  "keyframe-02",
+  "keyframe-03",
+  "keyframe-04",
+  "oil painting",
+  "transparent acrylic",
+  "Readability constraint",
+  "no text",
+  "no logo",
+  "no watermark",
+  "Avoid:",
+  "plastic 3D"
 ];
 
 const failures: string[] = [];
@@ -57,16 +74,34 @@ if (manifest.skills.length !== skillIds.size) {
   failures.push(`manifest skills length=${manifest.skills.length}, expected ${skillIds.size}`);
 }
 
+if (!manifest.assetContract.root || !manifest.assetContract.root.includes("apps/client/public/assets/effects")) {
+  failures.push(`manifest asset contract root is not the effects public asset root: ${manifest.assetContract.root}`);
+}
+
+if (manifest.generatedAt && !/^\d{4}-\d{2}-\d{2}/.test(manifest.generatedAt)) {
+  failures.push(`manifest generatedAt is not ISO-like: ${manifest.generatedAt}`);
+}
+
 for (const fileName of requiredFiles) {
   if (!manifest.assetContract.files.includes(fileName)) {
     failures.push(`manifest asset contract missing ${fileName}`);
   }
 }
 
+const seenSkillIds = new Set<string>();
 for (const skill of manifest.skills) {
+  if (seenSkillIds.has(skill.skillId)) {
+    failures.push(`manifest contains duplicate skill ${skill.skillId}`);
+  }
+  seenSkillIds.add(skill.skillId);
+
   if (!skillIds.has(skill.skillId)) {
     failures.push(`manifest contains unknown skill ${skill.skillId}`);
     continue;
+  }
+
+  if (skill.assetDir && !skill.assetDir.endsWith(`/assets/effects/${skill.skillId}/`)) {
+    failures.push(`${skill.skillId}: assetDir does not point to its effect folder`);
   }
 
   if (!spec.includes(`### ${skill.skillId}`)) {
@@ -86,6 +121,19 @@ for (const skill of manifest.skills) {
     if (!keyframe?.phase || !keyframe.prompt.includes(skill.skillId)) {
       failures.push(`${skill.skillId}: keyframe ${index} prompt missing phase or skill id`);
     }
+    if (!keyframe?.phase.includes(requiredKeyframePhases[index - 1]!)) {
+      failures.push(`${skill.skillId}: keyframe ${index} phase missing ${requiredKeyframePhases[index - 1]}`);
+    }
+    if (!keyframe?.prompt.includes(`keyframe ${index}/4`)) {
+      failures.push(`${skill.skillId}: keyframe ${index} prompt missing keyframe ${index}/4 contract`);
+    }
+    const hasOilStyle = Boolean(keyframe?.prompt.includes("oil-paint") || keyframe?.prompt.includes("hand-painted oil"));
+    const hasAcrylicStyle = Boolean(
+      keyframe?.prompt.includes("transparent acrylic") || keyframe?.prompt.includes("translucent acrylic")
+    );
+    if (!hasOilStyle || !hasAcrylicStyle) {
+      failures.push(`${skill.skillId}: keyframe ${index} prompt missing oil-paint / acrylic style contract`);
+    }
     if (!spec.includes(`**${fileName}**`)) {
       failures.push(`spec missing ${fileName} marker`);
     }
@@ -93,6 +141,11 @@ for (const skill of manifest.skills) {
 
   if (!skill.seedancePrompt.includes(skill.skillId) || !skill.seedancePrompt.includes("0.8-1.6 second")) {
     failures.push(`${skill.skillId}: Seedance prompt missing skill id or duration contract`);
+  }
+  for (const fragment of requiredSeedancePromptFragments) {
+    if (!skill.seedancePrompt.includes(fragment)) {
+      failures.push(`${skill.skillId}: Seedance prompt missing ${fragment}`);
+    }
   }
 }
 

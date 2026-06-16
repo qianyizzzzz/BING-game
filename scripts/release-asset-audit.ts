@@ -10,9 +10,13 @@ const roots = [
 ];
 
 const forbiddenPatterns = [
+  {
+    pattern: /(^|[\\/])assets[\\/]placeholders([\\/]|$)/i,
+    reason: "Placeholder assets must not ship in public or dist builds."
+  },
   { pattern: /\.blend\d?$/i, reason: "Blender source files must stay outside static web assets." },
   {
-    pattern: /(^|[\\/])assets[\\/]characters[\\/]source([\\/]|$)/i,
+    pattern: /(^|[\\/])assets[\\/]characters[\\/][^\\/]+[\\/]source([\\/]|$)/i,
     reason: "Character source scenes must live under tools/blender/source."
   }
 ];

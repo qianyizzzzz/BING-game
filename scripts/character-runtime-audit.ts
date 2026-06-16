@@ -22,9 +22,11 @@ type GlbInfo = {
 
 const projectRoot = path.resolve(import.meta.dirname, "..");
 const publicRoot = path.join(projectRoot, "apps", "client", "public");
+const characterAuditPath = path.join(projectRoot, "docs", "CHARACTER_ASSET_AUDIT.md");
 const failures: string[] = [];
 const warnings: string[] = [];
 const expectedAnimationNames = ["idle", "attack", "defend", "skill", "hit", "down"];
+const retiredCharacterNames = ["烛火守卫", "青玉术士", "紫曦剑客", "日冕饼师", "绯红医师", "铁面观察者"];
 const requiredCharacterImages = [
   ["mobile-avatar", "mobile-avatar.png", 768, 768],
   ["face-detail", "face-detail.png", 640, 640],
@@ -73,6 +75,7 @@ for (const character of CHARACTER_ROSTER) {
 }
 
 auditMaterialAssets();
+auditCharacterArtDirectionDoc();
 
 if (warnings.length > 0) {
   console.warn("character runtime asset warnings:");
@@ -177,6 +180,33 @@ function auditMaterialAssets(): void {
         continue;
       }
       auditPng("materials", `pbr/${packName}/${fileName}`, filePath);
+    }
+  }
+}
+
+function auditCharacterArtDirectionDoc(): void {
+  if (!fs.existsSync(characterAuditPath)) {
+    failures.push(`character audit doc: missing ${repoPath(characterAuditPath)}`);
+    return;
+  }
+
+  const text = fs.readFileSync(characterAuditPath, "utf8");
+  for (const character of CHARACTER_ROSTER) {
+    const expectedRowStart = `| \`${character.id}\` | ${character.name} |`;
+    if (!text.includes(expectedRowStart)) {
+      failures.push(`character audit doc: missing roster row ${expectedRowStart}`);
+    }
+  }
+
+  for (const retiredName of retiredCharacterNames) {
+    if (text.includes(retiredName)) {
+      failures.push(`character audit doc: contains retired character name ${retiredName}`);
+    }
+  }
+
+  for (const stalePhrase of ["真人比例", "半写实"]) {
+    if (text.includes(stalePhrase)) {
+      failures.push(`character audit doc: contains stale character direction phrase ${stalePhrase}`);
     }
   }
 }
