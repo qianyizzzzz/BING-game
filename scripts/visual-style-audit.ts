@@ -6,11 +6,14 @@ const cssPath = path.join(projectRoot, "apps", "client", "src", "styles.css");
 const css = fs.readFileSync(cssPath, "utf8");
 const failures: string[] = [];
 const visualDoctrinePaths = [
+  "README.md",
+  "docs/PRODUCT_PLAN.md",
   "docs/UI_DESIGN_PLAN.md",
   "docs/SUBAGENT_ART_DIRECTOR_BLENDER.md",
   "docs/SUBAGENT_UI_REVIEW.md",
   "workflow/README.md",
-  "workflow/docs/01-visual-bible.md"
+  "workflow/docs/01-visual-bible.md",
+  "workflow/tasks/TASK-006-real-human-character-upgrade.md"
 ];
 
 const finalPass = sectionAfter("Art director inspection pass");
@@ -59,10 +62,18 @@ for (const relativePath of visualDoctrinePaths) {
     expectContains(source, "搞怪动物", `${relativePath} should keep animal character direction`);
   }
 
+  for (const token of ["\uFFFD", "楗?", "缇庢湳", "鍔ㄧ敾", "鏂囧"]) {
+    if (source.includes(token)) {
+      failures.push(`${relativePath} contains likely mojibake token ${JSON.stringify(token)}`);
+    }
+  }
+
   for (const stalePhrase of [
     "深渊遗物",
     "深渊牌桌",
+    "真人比例",
     "接近真人比例",
+    "半写实",
     "真人比例的半写实",
     "半写实游戏角色",
     "半写实 3D"
