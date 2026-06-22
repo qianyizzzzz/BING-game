@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --exclude \"../../.git/**\" --exclude \"../../node_modules/**\" --exclude \"../client/node_modules/**\" --exclude \"../client/dist/**\" --exclude \"../../artifacts/**\" --exclude \"../../data/**\" --exclude \"../../data-test/**\" --exclude \"../../coverage/**\" src/index.ts",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
