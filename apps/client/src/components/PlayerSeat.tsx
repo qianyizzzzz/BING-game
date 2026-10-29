@@ -256,6 +256,7 @@ function getVisibleSeatBuffs(
   buffs: PlayerState["buffs"]
 ): PlayerState["buffs"] {
   const priority = (buff: PlayerState["buffs"][number]): number => {
+    if (buff.id === "huiyue_stasis") return -1;
     if (buff.id === "frozen") {
       return 0;
     }

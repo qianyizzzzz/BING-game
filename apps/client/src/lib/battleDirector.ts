@@ -46,7 +46,8 @@ export type BattleDirectorSeatRole = "source" | "target" | "source-target";
 
 export function useBattleDirector(state: PublicGameState): BattleDirectorState {
   const playedRevealIds = useRef(new Set<string>());
-  const [activeRevealId, setActiveRevealId] = useState<string | null>(null);
+  const [playback, setPlayback] = useState<{ revealId: string; cueCount: number } | null>(null);
+  const activeRevealId = playback?.revealId ?? null;
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const broadcast = useMemo(() => findLatestBroadcast(state.eventLog), [state.eventLog]);
   const battleSteps = useMemo(
@@ -68,21 +69,29 @@ export function useBattleDirector(state: PublicGameState): BattleDirectorState {
       return;
     }
 
-    setActiveRevealId(broadcast.reveal.id);
+    setPlayback({ revealId: broadcast.reveal.id, cueCount: presentationCues.length });
     setActiveStepIndex(0);
-    const stepCount = Math.max(1, presentationCues.length);
+  }, [broadcast, presentationCues.length, state.turnResolutionStarted]);
+
+  // Room updates must not cancel the timers of an already-started presentation.
+  useEffect(() => {
+    if (!playback) {
+      return;
+    }
+
+    const stepCount = Math.max(1, playback.cueCount);
     const interval = window.setInterval(() => {
       setActiveStepIndex((index) => Math.min(index + 1, stepCount - 1));
     }, STEP_DURATION_MS);
     const timeout = window.setTimeout(
-      () => setActiveRevealId(null),
-      battleDirectorTotalDurationMs(presentationCues.length)
+      () => setPlayback(null),
+      battleDirectorTotalDurationMs(playback.cueCount)
     );
     return () => {
       window.clearInterval(interval);
       window.clearTimeout(timeout);
     };
-  }, [broadcast, presentationCues.length, state.turnResolutionStarted]);
+  }, [playback]);
 
   const snapshot = buildBattleDirectorSnapshotFromCues(presentationCues, activeStepIndex);
   const visibleCue = presentationCues[activeStepIndex];

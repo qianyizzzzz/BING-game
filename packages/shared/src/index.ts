@@ -1,5 +1,7 @@
 export * from "./types";
 export * from "./engine/actions";
+export * from "./engine/actionCosts";
+export * from "./engine/attackFields";
 export * from "./engine/actionSwitch";
 export * from "./engine/attacks";
 export * from "./engine/gameFactory";
@@ -9,5 +11,7 @@ export * from "./engine/validation";
 export * from "./skills/registry";
 export * from "./skills/phases";
 export * from "./skills/types";
+export * from "./skills/fusion";
+export * from "./engine/fusion";
 export * from "./socket";
 export * from "./state/machine";

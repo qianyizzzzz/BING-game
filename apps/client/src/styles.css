@@ -11029,3 +11029,23 @@ select {
     padding-top: 10px !important;
   }
 }
+
+/* Fusion controls share the turn-action dock, including on narrow screens. */
+.fusion-controls > summary {
+  min-height: 44px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.table-action-dock .fusion-controls[open] > section {
+  max-height: min(46dvh, 26rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.table-action-dock .action-board:has(.fusion-controls[open]) {
+  max-height: calc(100dvh - 120px) !important;
+  overflow-y: auto !important;
+}

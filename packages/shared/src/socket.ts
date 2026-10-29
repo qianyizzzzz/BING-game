@@ -70,6 +70,17 @@ export interface GuessSkillPayload {
   targetSkillId: SkillId;
 }
 
+export interface DecomposeSkillPayload {
+  roomId: GameId;
+  fusionId: string;
+}
+
+export interface ChooseWitherNumberPayload {
+  roomId: GameId;
+  selectionIndex: number;
+  value: number;
+}
+
 export interface RenamePlayerPayload {
   roomId: GameId;
   name: string;
@@ -96,6 +107,14 @@ export interface UpdatePlayerSkillsPayload {
 }
 
 export interface ClientToServerEvents {
+  "game:choose_wither_number": (
+    payload: ChooseWitherNumberPayload,
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
+  ) => void;
+  "game:decompose_skill": (
+    payload: DecomposeSkillPayload,
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
+  ) => void;
   "room:create": (
     payload: CreateRoomPayload,
     ack: (response: SocketAck<RoomIdentity & { state: PublicGameState }>) => void

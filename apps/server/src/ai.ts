@@ -5,6 +5,7 @@ import {
   BASE_ATTACKS,
   GameState,
   INFINITE_DAMAGE,
+  RETIRE_EFFECT_POWER,
   PlayerAction,
   PlayerId,
   PlayerState,
@@ -18,6 +19,14 @@ import {
   getSkill,
   getSkillAttackStats,
   getSkillPlay,
+  getSkillUseLimit,
+  getOwnedSkillIds,
+  getDamageRedirectLimit,
+  getFusionSkillId,
+  getActionAttackTargetIds,
+  getFusionEnhancementCount,
+  getFreeSkillChargeId,
+  getAttackActionCost,
   getSmallSkillIds,
   getStackedAttackStats,
   isActionSwitchSkillId,
@@ -116,7 +125,7 @@ export function enumerateLegalAiActions(
   }
 
   if (!(state.config.firstTurnNoAttack && state.roundTurnNumber === 1)) {
-    for (const skillId of self.skills) {
+    for (const skillId of getOwnedSkillIds(self)) {
       const play = getSkillPlay(skillId);
       if (!play) {
         continue;
@@ -127,7 +136,8 @@ export function enumerateLegalAiActions(
 
     for (const attackId of ATTACK_ORDER) {
       const definition = BASE_ATTACKS[attackId];
-      const maxStacks = Math.min(3, Math.floor(self.cakes / definition.cost));
+      const cost = getAttackActionCost(state, self, { type: "attack", attackId, stacks: 1 });
+      const maxStacks = Math.min(3, cost > 0 ? Math.floor(self.cakes / cost) : 3);
       for (let stacks = 1; stacks <= maxStacks; stacks += 1) {
         const forcedArea = hasForcedAreaAttacks(state, self);
         if (definition.isArea || forcedArea) {
@@ -205,7 +215,7 @@ export function enumerateLegalAiActionWindowSkills(
           actionWindowMode: "active" as const
         }
       : state;
-  const actions = self.skills.flatMap((skillId) => {
+  const actions = getOwnedSkillIds(self).flatMap((skillId) => {
     const play = getSkillPlay(skillId);
     if (!play || play.kind === "attack") {
       return [];
@@ -228,7 +238,7 @@ function buildAiSkillActions(
 ): SkillAction[] {
   if (
     play.usesPerGame &&
-    getSkillUseCount(self, skillId) >= play.usesPerGame * getActiveSkillCount(self, skillId)
+    getSkillUseCount(self, skillId) >= (getSkillUseLimit(self, skillId) ?? play.usesPerGame * getActiveSkillCount(self, skillId))
   ) {
     return [];
   }
@@ -264,6 +274,16 @@ function buildAiSkillActions(
   if (skillId === "skill_36_14343") {
     return buildAiElectricShockSkills(enemies);
   }
+  if (skillId === getFusionSkillId("魔域")) return enemies[0] ? [{ type: "skill", skillId, stacks: 1,
+    targetIds: [enemies[0].id, enemies[0].id, enemies[0].id] }] : [];
+  if (skillId === "skill_74_34920") return state.players.flatMap((player) =>
+    (state.pendingActions[player.id]?.actions ?? []).flatMap((action, index): SkillAction[] => isAttackLikeAction(action) ? [
+      { type: "skill", skillId, stacks: 1, targetId: player.id, switchActionIndex: index },
+      { type: "skill", skillId, stacks: 1, targetId: player.id, switchActionIndex: index, absoluteGuardToSky: true }
+    ] : []));
+  if (skillId === "skill_31_80497") return (state.pendingActions[self.id]?.actions ?? []).flatMap((action, index): SkillAction[] =>
+    isAttackLikeAction(action) ? ["ignore_defense", "ignore_all_defense", "pierce_rebound"].map((mode) => ({ type: "skill", skillId, stacks: 1,
+      switchActionIndex: index, doubleEdgeMode: mode as NonNullable<SkillAction["doubleEdgeMode"]> })) : []);
 
   if (needsExposedSkillTarget(skillId)) {
     return enumerateExposedSkillTargetActions(state, self, enemies, skillId);
@@ -275,13 +295,15 @@ function buildAiSkillActions(
   }
 
   const actions: SkillAction[] = [];
+  const charge = getFreeSkillChargeId(self, skillId);
+  const availableFree = self.buffs.find((buff) => buff.id === charge)?.stacks ?? 0;
   for (let stacks = 1; stacks <= maxStacks; stacks += 1) {
     if (
       play.targetMode === "none" ||
       play.targetMode === "all" ||
       (play.kind === "attack" && hasForcedAreaAttacks(state, self))
     ) {
-      actions.push({ type: "skill", skillId, stacks });
+      actions.push({ type: "skill", skillId, stacks, ...(charge ? { freeStacks: Math.min(stacks, availableFree) } : {}) });
       continue;
     }
 
@@ -290,6 +312,7 @@ function buildAiSkillActions(
         type: "skill",
         skillId,
         stacks,
+        ...(charge ? { freeStacks: Math.min(stacks, availableFree) } : {}),
         targetId: enemy.id
       });
     }
@@ -447,7 +470,7 @@ function buildAiDamageRedirectSkills(
   const damage = (state.pendingDamageItems ?? []).find(
     (item) =>
       item.targetId === self.id &&
-      item.amount <= 3 &&
+      item.amount > 0 && item.amount <= getDamageRedirectLimit(self) &&
       !(item.redirectedByPlayerIds ?? []).includes(self.id)
   );
   const target = enemies.length > 0 ? chooseWeakestEnemy(enemies) : undefined;
@@ -559,7 +582,7 @@ function getMaxAiSkillStacks(
 ): number {
   const resourceStacks = getAvailableSkillResourceStacks(self, skillId);
   const affordableStacks =
-    play.cost > 0 ? Math.floor(self.cakes / play.cost) : 1;
+    play.cost > 0 ? Math.floor(self.cakes / play.cost) + (self.buffs.find((buff) => buff.id === getFreeSkillChargeId(self, skillId))?.stacks ?? 0) : 1;
   return Math.min(3, play.maxStacks, resourceStacks ?? affordableStacks);
 }
 
@@ -912,6 +935,15 @@ function scoreNoDirectEffectWindow(
   enemies: PlayerState[],
   action: SkillAction
 ): number {
+  if (action.skillId === getFusionSkillId("辉月")) {
+    const incoming = Object.entries(state.pendingActions).flatMap(([id, plan]) => id === self.id ? [] :
+      (plan?.actions ?? []).filter((candidate) => getActionAttackTargetIds(state, id, candidate).includes(self.id)));
+    const damage = incoming.reduce((sum, candidate) => {
+      const stats = estimatePendingAttackStats(candidate);
+      return sum + (stats && stats.power < RETIRE_EFFECT_POWER ? stats.power : 0);
+    }, 0);
+    return damage > 0 ? 28 + Math.min(40, damage * 4) : -40;
+  }
   if (action.skillId === "skill_5_34881" || action.skillId === "skill_72_53933") {
     return 0;
   }

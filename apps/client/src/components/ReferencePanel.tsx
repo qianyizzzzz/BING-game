@@ -30,7 +30,7 @@ export function ReferencePanel() {
   const [query, setQuery] = useState("");
   const [skillCategory, setSkillCategory] = useState<SkillCategoryFilter>("all");
   const [selectedSkillId, setSelectedSkillId] = useState("");
-  const skills = useMemo(() => getAllSkills(), []);
+  const skills = useMemo(() => getAllSkills({ includeFusions: true }), []);
   const filteredSkills = useMemo(() => {
     const normalized = query.trim();
     return skills

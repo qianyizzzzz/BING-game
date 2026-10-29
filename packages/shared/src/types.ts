@@ -120,6 +120,13 @@ export interface AttackStats {
   stacks: number;
   isSkill: boolean;
   freezeTurns?: number;
+  /** Separate damage ticks of one attack, retained when its source is reversed. */
+  damageHits?: number;
+  /** Granted only to the attack modified by 宗师之力's 毁灭之力. */
+  ignoreEarthBreak?: boolean;
+  includeSelf?: boolean;
+  frostBladeKeepsDamage?: boolean;
+  ignoreSwordProtections?: boolean;
 }
 
 export interface PlayerState {
@@ -134,7 +141,14 @@ export interface PlayerState {
   defeatLevel?: DefeatLevel;
   connected: boolean;
   skills: SkillId[];
+  /** The two underlying material slots remain in skills, covered by one fusion card. */
+  skillFusions?: SkillFusionState[] | undefined;
+  fusionRequestIds?: string[] | undefined;
+  /** Private opening selections, reused when a wither fusion is formed later. */
+  witherSelections?: number[] | undefined;
   skillSlotCount?: number;
+  /** Viewer-only authoritative prices, never accepted as client input. */
+  attackCostOverrides?: Partial<Record<AttackId, number>> | undefined;
   revealedSkillIds: SkillId[];
   buffs: BuffState[];
 }
@@ -146,6 +160,16 @@ export interface BuffState {
   expiresAtRound?: number;
   expiresAtTurn?: number;
   sourcePlayerId?: PlayerId;
+  sourceFusionId?: string;
+  fusionMarkKind?: "ice_fire" | "solar_lava" | "ice_rain";
+  traumaCakePaid?: boolean;
+}
+
+export interface SkillFusionState {
+  id: string;
+  skillId: SkillId;
+  materialSkillIds: [SkillId, SkillId];
+  witherSelectionIndex?: number;
 }
 
 export interface GainCakeAction {
@@ -173,10 +197,14 @@ export interface SkillAction {
   targetId?: PlayerId;
   targetIds?: PlayerId[];
   targetSkillId?: SkillId;
+  materialSkillIds?: [SkillId, SkillId];
+  fusionRequestId?: string;
   targetDamageId?: string;
   attackStatModifier?: AttackStatModifierChoice;
   switchActionIndex?: number;
   switchToAction?: AttackAction | DefenseAction;
+  doubleEdgeMode?: "ignore_defense" | "pierce_rebound" | "ignore_all_defense";
+  absoluteGuardToSky?: boolean;
 }
 
 export interface DiscardSkillAction {
@@ -246,6 +274,8 @@ export interface GameState {
   turnDeadlineAt?: number;
   players: PlayerState[];
   pendingActions: PendingActionMap;
+  turnActionCosts?: Partial<Record<PlayerId, number[]>>;
+  turnActionReceipts?: Partial<Record<PlayerId, TurnActionReceipt>>;
   pendingDamageItems?: PendingDamageItem[];
   pendingSkillChoices?: PendingSkillChoice[];
   skillKnowledge: SkillKnowledgeMap;
@@ -254,6 +284,14 @@ export interface GameState {
   config: GameConfig;
   createdAt: number;
   updatedAt: number;
+}
+
+export interface TurnActionReceipt {
+  cakesSpent: number;
+  cakesGained: number;
+  buffsBefore: BuffState[];
+  buffsAfter: BuffState[];
+  addedFusionIds: string[];
 }
 
 export interface PreemptiveRestartSnapshot {
@@ -275,10 +313,14 @@ export interface PublicGameState
     | "pendingSkillChoices"
     | "preemptiveRestartSnapshot"
     | "damageModifyAfterTurnResolution"
+    | "turnActionCosts"
+    | "turnActionReceipts"
   > {
   pendingActionPlayerIds: PlayerId[];
   pendingSkillChoices?: PendingSkillChoice[];
   revealedActions?: PendingActionMap;
+  revealedActionCosts?: Partial<Record<PlayerId, number[]>>;
+  revealedActionTargets?: Partial<Record<PlayerId, PlayerId[][]>>;
   viewerPlayerId?: PlayerId;
 }
 
@@ -287,6 +329,7 @@ export type GameEvent =
   | PlayerJoinedEvent
   | PlayerReadyEvent
   | ActionSwitchedEvent
+  | ActionCancelledEvent
   | ActionSubmittedEvent
   | PlayerRenamedEvent
   | PlayerLeftEvent
@@ -313,6 +356,7 @@ export interface BaseGameEvent {
   at: number;
   roundNumber: number;
   turnNumber: number;
+  privatePlayerId?: PlayerId;
 }
 
 export interface GameCreatedEvent extends BaseGameEvent {
@@ -345,6 +389,12 @@ export interface ActionSwitchedEvent extends BaseGameEvent {
   before: PlayerAction;
   after: PlayerAction;
   cost: number;
+}
+
+export interface ActionCancelledEvent extends BaseGameEvent {
+  type: "action_cancelled";
+  playerId: PlayerId;
+  reason: string;
 }
 
 export interface PlayerRenamedEvent extends BaseGameEvent {
@@ -456,6 +506,8 @@ export interface PendingDamageItem {
   traits?: AttackTrait[];
   fromAttack?: boolean;
   isLastHit?: boolean;
+  attackKey?: string;
+  attackPower?: number;
   redirectedByPlayerIds?: PlayerId[];
   damageModifierIds?: string[];
 }
@@ -474,6 +526,8 @@ export interface HealEvent extends BaseGameEvent {
   targetId: PlayerId;
   amount: number;
   reason: string;
+  /** Only ordinary healing is affected by healing suppression or redirection. */
+  recoveryKind?: "healing" | "full_restore" | "revival";
 }
 
 export interface RoundEndedEvent extends BaseGameEvent {

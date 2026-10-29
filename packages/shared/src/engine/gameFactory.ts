@@ -13,6 +13,11 @@ import {
   SkillTimingPhase
 } from "../types";
 import { getIntroSmallSkillIds, getSkill, skillHasTypeTag } from "../skills/registry";
+import { COMMON_FUSION_SKILL_ID, countSuppressedFusionMaterials, getOwnedSkillIds, getFusionRecipe, isFusionActive,
+  HUIYUE_BUFF_ID, isHuiyueActive } from "../skills/fusion";
+import { getAttackActionCost, getTurnSkillActionCost } from "./actionCosts";
+import { ATTACK_ORDER } from "./attacks";
+import { getActionAttackTargetIds } from "./validation";
 import { SkillExposureTiming } from "../skills/types";
 
 export const ACTION_PROMPT_SECONDS = 5;
@@ -344,6 +349,7 @@ export function beginBasicTurnAction(state: GameState): void {
   clearSkipUntilTurnActionBuffs(state);
   state.turnStartedAt = Date.now();
   applyFrozenAutoActions(state);
+  applyHuiyueAutoActions(state);
   const deadline = getTurnDeadline(state);
   if (deadline) {
     state.turnDeadlineAt = deadline;
@@ -351,6 +357,16 @@ export function beginBasicTurnAction(state: GameState): void {
     delete state.turnDeadlineAt;
   }
   revealJinguForBlockedControlSkills(state);
+}
+
+export function applyHuiyueAutoActions(state: GameState): void {
+  for (const player of state.players) {
+    player.buffs = player.buffs.filter((buff) => buff.id !== HUIYUE_BUFF_ID || (buff.expiresAtTurn ?? -1) >= state.turnNumber);
+    if (player.status === "alive" && isHuiyueActive(player, state.turnNumber)) {
+      state.pendingActions[player.id] = { actions: [] };
+      state.eventLog.push({ ...createBaseEvent(state, "system"), type: "system", message: `${player.name} 处于辉月，本回合自动空过，不能出招` });
+    }
+  }
 }
 
 export function applyFrozenAutoActions(state: GameState): void {
@@ -549,7 +565,7 @@ export function playerHasActiveSkill(
 }
 
 export function getActiveSkillCount(
-  player: { skills: SkillId[]; buffs: Array<{ id: string }> } | undefined,
+  player: { skills: SkillId[]; buffs: Array<{ id: string }>; skillFusions?: PlayerState["skillFusions"] } | undefined,
   skillId: SkillId
 ): number {
   if (
@@ -561,7 +577,9 @@ export function getActiveSkillCount(
     return 0;
   }
 
-  return player.skills.filter((id) => id === skillId).length;
+  if (getFusionRecipe(skillId)) return (player.skillFusions ?? []).filter((fusion) =>
+    fusion.skillId === skillId && isFusionActive(player, fusion)).length;
+  return Math.max(0, player.skills.filter((id) => id === skillId).length - countSuppressedFusionMaterials(player, skillId));
 }
 
 export function getPlayerInitialHp(
@@ -733,7 +751,7 @@ export function toPublicGameState(
 ): PublicGameState {
   const pendingActionPlayerIds = Object.keys(state.pendingActions);
   const revealedActions: PendingActionMap | undefined = state.turnResolutionStarted
-    ? JSON.parse(JSON.stringify(state.pendingActions)) as PendingActionMap
+    ? publicActionPlans(state.pendingActions, viewerPlayerId)
     : undefined;
   const {
     pendingActions: _pendingActions,
@@ -741,6 +759,8 @@ export function toPublicGameState(
     skillKnowledge: _skillKnowledge,
     preemptiveRestartSnapshot: _preemptiveRestartSnapshot,
     damageModifyAfterTurnResolution: _damageModifyAfterTurnResolution,
+    turnActionCosts: _turnActionCosts,
+    turnActionReceipts: _turnActionReceipts,
     ...publicFields
   } = state;
   const players = publicFields.players.map((player) => {
@@ -749,6 +769,8 @@ export function toPublicGameState(
         ? player.skills
         : visibleSkillIdsForViewer(state, viewerPlayerId, player.id);
     const skillSlotCount = player.skills.length;
+    const attackCostOverrides = !viewerPlayerId || viewerPlayerId === player.id ? Object.fromEntries(ATTACK_ORDER.map((attackId) =>
+      [attackId, getAttackActionCost(state, player, { type: "attack", attackId, stacks: 1 })])) : undefined;
 
     if (
       state.config.hideCakeCounts &&
@@ -757,19 +779,31 @@ export function toPublicGameState(
     ) {
       return {
         ...player,
+        skillFusions: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.skillFusions : undefined,
+        fusionRequestIds: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.fusionRequestIds : undefined,
+        witherSelections: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.witherSelections : undefined,
+        buffs: publicPlayerBuffs(player, viewerPlayerId, skills),
         skills,
         skillSlotCount,
+        attackCostOverrides,
         cakes: -1
       };
     }
 
     return {
       ...player,
+      skillFusions: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.skillFusions : undefined,
+      fusionRequestIds: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.fusionRequestIds : undefined,
+      witherSelections: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.witherSelections : undefined,
+      buffs: publicPlayerBuffs(player, viewerPlayerId, skills),
       skills,
-      skillSlotCount
+      skillSlotCount,
+      attackCostOverrides
     };
   });
-  const eventLog = publicFields.eventLog.map((event) => {
+  const eventLog = publicFields.eventLog.filter((event) => !viewerPlayerId ||
+    !event.privatePlayerId || event.privatePlayerId === viewerPlayerId).map((event) => {
+    if (event.type === "turn_revealed") return { ...event, actions: publicActionPlans(event.actions, viewerPlayerId) as typeof event.actions };
     if (
       state.config.hideCakeCounts &&
       viewerPlayerId &&
@@ -796,6 +830,13 @@ export function toPublicGameState(
         (choice) => choice.playerId === viewerPlayerId
       ),
       ...(revealedActions ? { revealedActions } : {}),
+      ...(revealedActions ? { revealedActionTargets: Object.fromEntries(Object.entries(state.pendingActions).map(([id, plan]) =>
+        [id, plan?.actions.map((action) => getActionAttackTargetIds(state, id, action)) ?? []])) } : {}),
+      ...(revealedActions ? { revealedActionCosts: Object.fromEntries(Object.entries(state.pendingActions).map(([id, plan]) => {
+        const owner = findPlayer(state, id)!;
+        return [id, state.turnActionCosts?.[id] ?? plan?.actions.map((action) => action.type === "attack" ? getAttackActionCost(state, owner, action) :
+          action.type === "skill" ? getTurnSkillActionCost(owner, action) : 0) ?? []];
+      })) } : {}),
       viewerPlayerId
     };
   }
@@ -833,7 +874,23 @@ function visibleSkillIdsForViewer(
       ...(player.revealedSkillIds ?? []),
       ...(state.skillKnowledge?.[viewerId]?.[playerId] ?? [])
     ])
-  ).filter((skillId) => player.skills.includes(skillId));
+  ).filter((skillId) => getOwnedSkillIds(player).includes(skillId));
+}
+
+function publicActionPlans(plans: PendingActionMap, viewerId?: PlayerId): PendingActionMap {
+  return Object.fromEntries(Object.entries(plans).map(([playerId, plan]) => [playerId, plan ? {
+    actions: plan.actions.map((action) => action.type === "skill" && action.skillId === COMMON_FUSION_SKILL_ID &&
+      viewerId && viewerId !== playerId
+      ? { type: "skill" as const, skillId: COMMON_FUSION_SKILL_ID, stacks: 1 }
+      : { ...action })
+  } : undefined]));
+}
+
+function publicPlayerBuffs(player: PlayerState, viewerId: PlayerId | undefined, visibleSkills: SkillId[]): PlayerState["buffs"] {
+  if (!viewerId || viewerId === player.id) return player.buffs;
+  return player.buffs.filter((buff) => !buff.id.startsWith("shunshou_taken:") &&
+    (!buff.id.includes("fusion_") || visibleSkills.some((id) => buff.id.includes(id))))
+    .map(({ sourceFusionId: _source, fusionMarkKind: _kind, ...buff }) => buff);
 }
 
 export function getCurrentTurnLimitSeconds(state: GameState): number {

@@ -20,6 +20,7 @@ import { CharacterSelect } from "./components/CharacterSelect";
 import { ReferencePanel } from "./components/ReferencePanel";
 import { PokerTableGame } from "./components/PokerTableGame";
 import { SkillPanel } from "./components/SkillPanel";
+import { FusionPanel } from "./components/FusionPanel";
 import { TutorialPanel } from "./components/TutorialPanel";
 import { TurnAnimation } from "./components/TurnAnimation";
 import { Button } from "./components/ui/button";
@@ -429,7 +430,7 @@ export function App() {
       },
       (response) => {
         setBusy(false);
-        if (response.ok && response.data) {
+        if (response.ok && response.data && state?.phase === "collecting_actions") {
           setLastActionSubmission(cloneActionSubmission(action));
         }
         handleStateResponse(response);
@@ -510,6 +511,24 @@ export function App() {
         handleStateResponse(response);
       }
     );
+  }
+
+  function chooseWitherNumber(selectionIndex: number, value: number) {
+    if (!identity) return;
+    setBusy(true);
+    socket.emit("game:choose_wither_number", { roomId: identity.roomId, selectionIndex, value }, (response) => {
+      setBusy(false);
+      handleStateResponse(response);
+    });
+  }
+
+  function decomposeFusion(fusionId: string) {
+    if (!identity) return;
+    setBusy(true);
+    socket.emit("game:decompose_skill", { roomId: identity.roomId, fusionId }, (response) => {
+      setBusy(false);
+      handleStateResponse(response);
+    });
   }
 
   function renameSelf() {
@@ -702,7 +721,7 @@ export function App() {
                 <Copy className="h-4 w-4" aria-hidden="true" />
                 {roomCopied ? "已复制" : "复制房号"}
               </button>
-              <a
+              {state.phase === "finished" ? <a
                 className="btn-secondary"
                 download={`${identity.roomId}-replay.txt`}
                 href={`${SERVER_URL}/replay/${identity.roomId}.txt`}
@@ -711,7 +730,7 @@ export function App() {
               >
                 <Download className="h-4 w-4" aria-hidden="true" />
                 复盘报告
-              </a>
+              </a> : <span className="btn-secondary opacity-60" title="对局结束后开放全量复盘">复盘报告（结束后开放）</span>}
               <button
                 className="btn-secondary"
                 onClick={leaveRoom}
@@ -924,6 +943,9 @@ export function App() {
                 actionPanel={
                   state.phase !== "finished" && viewer?.kind !== "spectator" ? (
                     <ActionPanel
+                      fusionControls={viewer && viewer.skills.length >= 2 ? (
+                        <FusionPanel state={state} submitting={busy} onSubmit={submitAction} onDecompose={decomposeFusion} onChooseWitherNumber={chooseWitherNumber} />
+                      ) : null}
                       lastActionSubmission={lastActionSubmission}
                       onEnterActionWindow={enterActionWindow}
                       onPassActionWindow={passActionWindow}

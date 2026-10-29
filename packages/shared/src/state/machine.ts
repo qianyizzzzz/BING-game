@@ -1,5 +1,6 @@
 import { GamePhase, GameState } from "../types";
 import { alivePlayers, playerHasActiveSkill, victoryEligiblePlayers } from "../engine/gameFactory";
+import { getActiveFusionCount } from "../skills/fusion";
 
 export type GameTransition =
   | "join"
@@ -42,6 +43,7 @@ export function shouldFinishGame(state: GameState): boolean {
   const alive = alivePlayers(state);
   const victoryAlive = victoryEligiblePlayers(state);
   return (
+    (victoryAlive.length <= 3 && victoryAlive.some((player) => getActiveFusionCount(player, "黑白板") > 0)) ||
     victoryAlive.length <= 1 ||
     alive.some((player) => player.buffs.some((buff) => buff.id.startsWith("instant_win:"))) ||
     (victoryAlive.length === 2 &&

@@ -47,6 +47,8 @@ export function formatEvent(event: GameEvent, state: PublicGameState): string {
       return event.message;
     case "action_submitted":
       return `${playerName(state, event.playerId)} 已锁定出牌`;
+    case "action_cancelled":
+      return `${playerName(state, event.playerId)}：${event.reason}`;
     case "action_switched":
       return `${playerName(state, event.playerId)} 使用 ${event.skillName} 将 ${getActionLabel(event.before)} 切换为 ${getActionLabel(event.after)}，消耗 ${event.cost} 饼`;
     case "turn_revealed": {
