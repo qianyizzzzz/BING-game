@@ -24,6 +24,8 @@ const EXTRA_ALLOWED_ORIGINS = parseOriginList(
   process.env.PUBLIC_ORIGINS ?? process.env.CLIENT_ORIGINS ?? ""
 );
 const ALLOW_TUNNEL_ORIGINS = parseBooleanFlag(process.env.ALLOW_TUNNEL_ORIGINS);
+// Trust only this service's platform-provided URL, never every onrender.com site.
+const RENDER_ORIGIN = process.env.RENDER === "true" ? process.env.RENDER_EXTERNAL_URL : undefined;
 const serverDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultPublicDir = path.resolve(serverDir, "../../client/dist");
 const publicDir = path.resolve(process.env.PUBLIC_DIR ?? defaultPublicDir);
@@ -119,10 +121,17 @@ app.get("/api/matches/:roomId", (request, response) => {
     return;
   }
 
+  if (state.phase !== "finished") {
+    response.status(409).json({ error: "对局结束后才可访问全量复盘和训练样本" });
+    return;
+  }
   response.json({ state });
 });
 
 app.get("/api/matches/:roomId/training-samples", (request, response) => {
+  const state = rooms.readRecordedMatch(request.params.roomId);
+  if (!state) { response.status(404).json({ error: "比赛不存在" }); return; }
+  if (state.phase !== "finished") { response.status(409).json({ error: "对局结束后才可访问全量复盘和训练样本" }); return; }
   response.json({
     samples: rooms.readTrainingSamples(request.params.roomId)
   });
@@ -135,6 +144,10 @@ app.get("/replay/:roomId.txt", (request, response) => {
     return;
   }
 
+  if (state.phase !== "finished") {
+    response.status(409).type("text/plain; charset=utf-8").send("对局结束后才可访问全量复盘\n");
+    return;
+  }
   response
     .type("text/plain; charset=utf-8")
     .attachment(`${state.id}-replay.txt`)
@@ -148,6 +161,10 @@ app.get("/replay/:roomId", (request, response) => {
     return;
   }
 
+  if (state.phase !== "finished") {
+    response.status(409).type("html; charset=utf-8").send("<!doctype html><meta charset=\"utf-8\"><title>复盘尚未开放</title><p>对局结束后才可访问全量复盘</p>");
+    return;
+  }
   response.type("html; charset=utf-8").send(renderReplayHtml(state));
 });
 
@@ -375,6 +392,24 @@ io.on("connection", (socket) => {
       };
     });
   });
+
+  socket.on("game:choose_wither_number", (payload, ack) => {
+    safely(ack, () => {
+      const playerId = requirePlayerId(socket.data.playerId);
+      rooms.chooseWitherNumber(payload.roomId, playerId, payload.selectionIndex, payload.value);
+      void broadcastRoomState(payload.roomId);
+      return { state: rooms.publicState(payload.roomId, playerId) };
+    });
+  });
+
+  socket.on("game:decompose_skill", (payload, ack) => {
+    safely(ack, () => {
+      const playerId = requirePlayerId(socket.data.playerId);
+      rooms.decomposeSkill(payload.roomId, playerId, payload.fusionId);
+      void broadcastRoomState(payload.roomId);
+      return { state: rooms.publicState(payload.roomId, playerId) };
+    });
+  });
 });
 
 if (fs.existsSync(publicDir)) {
@@ -527,6 +562,7 @@ function isAllowedOrigin(
     CLIENT_ORIGIN,
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    ...(RENDER_ORIGIN ? [RENDER_ORIGIN] : []),
     ...EXTRA_ALLOWED_ORIGINS
   ]);
 

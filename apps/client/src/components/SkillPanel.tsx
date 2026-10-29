@@ -4,6 +4,7 @@ import {
   PublicGameState,
   SKILL_TIMING_PHASE_LABELS,
   getAllSkills,
+  getSkillCardIds,
   getSkill
 } from "@bing/shared";
 import { getSkillVisualProfile, skillCardStyle, skillCostPipCount } from "../lib/skillVisuals";
@@ -24,7 +25,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
       return [];
     }
     if (viewer.skills.length > 0) {
-      return viewer.skills;
+      return getSkillCardIds(viewer);
     }
     return getAllSkills()
       .filter(
@@ -217,6 +218,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
               <h3 className="skill-relic-name" title={skill?.name ?? skillId}>
                 {skill?.name ?? skillId}
               </h3>
+              {skill?.fusion ? <p className="mt-1 text-xs text-gray-500">融合 · 占2槽 · {skill.fusion}</p> : null}
 
               {phaseLabels.length > 0 ? (
                 <div className="skill-stage-strip mt-2">

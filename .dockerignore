@@ -5,3 +5,12 @@ data
 .git
 apps/*/tsconfig.tsbuildinfo
 packages/*/tsconfig.tsbuildinfo
+artifacts
+data-test
+coverage
+playwright-report
+test-results
+.env
+.env.*
+**/.env
+**/.env.*

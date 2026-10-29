@@ -278,6 +278,13 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
     };
   }
 
+  if (event.type === "action_cancelled") {
+    const source = playerRef(state, event.playerId);
+    return { id: event.id, kind: "skill", beat: "skill", soundCue: "skill", sourceName: source.name,
+      sourceAvatarUrl: source.avatarUrl, targetName: source.name, targetAvatarUrl: source.avatarUrl,
+      label: "出招取消", description: event.reason };
+  }
+
   if (event.type === "action_switched") {
     const source = playerRef(state, event.playerId);
     const targetIds = targetIdsForPlayerAction(event.after);

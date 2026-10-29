@@ -66,6 +66,8 @@ npm run public:tunnel
 
 ## 正式公网部署
 
+双人协作和免费测试可先使用根目录 `render.yaml`，具体步骤见 [双人协作与免费公网测试](COLLABORATION.md)。Render 自动提供本服务的 `RENDER_EXTERNAL_URL`，服务端将其加入精确来源白名单；自定义域名仍配置 `PUBLIC_ORIGINS`。免费测试站的运行数据会在重启、休眠或重新部署后丢失。
+
 正式上线建议租一台云服务器，然后：
 
 ```bash
@@ -90,6 +92,7 @@ cp .env.example .env
 - `PUBLIC_DIR`：生产静态前端目录，默认 `apps/client/dist`。
 - `CLIENT_ORIGIN`：本地开发前端来源，默认 `http://localhost:5173`。
 - `PUBLIC_ORIGINS` / `CLIENT_ORIGINS`：逗号分隔的公网白名单，例如正式域名。
+- `RENDER_EXTERNAL_URL`：由 Render 平台提供；仅在 `RENDER=true` 时自动允许本服务的网址。
 - `ALLOW_TUNNEL_ORIGINS`：只在临时 tunnel 试玩时设为 `true`；正式长期上线保持 `false`，并改用 `PUBLIC_ORIGINS` 白名单。
 - `ACCOUNT_DATA_FILE`：账号数据 JSON 路径；Docker 或云服务器部署时应放在持久化卷/磁盘上。
 - `MATCH_DATA_DIR`：比赛复盘、快照和训练样本目录；正式部署应挂到持久化卷/磁盘。

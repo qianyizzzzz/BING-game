@@ -9,6 +9,7 @@
   PlayerAction,
   PlayerActionPlan,
   PlayerId,
+  PlayerState,
   SkillId,
   SkillAction,
   SkillTimingPhase,
@@ -16,6 +17,8 @@
 } from "../types";
 import { BASE_ATTACKS, canActionDefend, getStackedAttackStats } from "./attacks";
 import { validateActionSwitch } from "./actionSwitch";
+import { getAttackFieldBlocker } from "./attackFields";
+import { getAttackActionCost, getTurnSkillActionCost } from "./actionCosts";
 import { resolveLightningSpellTargetIds } from "./skillTargets";
 import {
   alivePlayers,
@@ -35,9 +38,15 @@ import {
   getSkillActionCost,
   getSkillAttackStats,
   getSkillPlay,
+  getSkillUseLimit,
   getSmallSkillIds,
   skillHasTypeTag
 } from "../skills/registry";
+import { COMMON_FUSION_SKILL_ID, countSuppressedFusionMaterials, getOwnedSkillIds, getDestroyPowerCooldownCount,
+  getFlashDodgeCooldownCount, getDamageRedirectLimit, getActiveFusionCount, getFusionSkillId,
+  hasEnhancedPutianRange, getFreeSkillChargeId, getAbsoluteGuardCost, getFusionEnhancementCount } from "../skills/fusion";
+import { getHuiyueCooldownCount, isHuiyueActive } from "../skills/fusion";
+import { validateFusionAction } from "./fusion";
 
 const PENDING_DEATH_BUFF_ID = "pending_death";
 const NO_REVIVE_BUFF_ID = "no_revive";
@@ -56,9 +65,7 @@ const XIEYU_SKILL_ID = "skill_72_53933";
 const SHUNSHOU_STEAL_SKILL_ID = "skill_100_45717";
 const SCATTER_REBOUND_SKILL_ID = "skill_58_88471";
 const LIAN_BAO_SKILL_ID = "skill_87_44771";
-const DESTROY_POWER_COOLDOWN_BUFF_ID = "destroy_power_cooldown";
 const FLASH_DODGE_SKILL_ID = "skill_103_56259";
-const FLASH_DODGE_COOLDOWN_BUFF_ID = "flash_dodge_cooldown";
 const SIX_STAR_SKILL_ID = "skill_108_76133";
 const DESTROY_POWER_MODIFIER_CHOICES = new Set<AttackStatModifierChoice>([
   "power_plus_1_level_minus_1",
@@ -78,9 +85,9 @@ const MULTI_TARGET_ATTACK_SKILL_IDS = new Set<SkillId>([
   "skill_36_14343",
   "skill_79_36319",
   "skill_118_53580",
-  "skill_119_78843"
+  "skill_119_78843", getFusionSkillId("冰火双漩")
 ]);
-const VORTEX_SKILL_IDS = new Set<SkillId>(["skill_118_53580", "skill_119_78843"]);
+const VORTEX_SKILL_IDS = new Set<SkillId>(["skill_118_53580", "skill_119_78843", getFusionSkillId("冰火双漩")]);
 
 export function validateAction(
   state: GameState,
@@ -99,6 +106,8 @@ export function validateAction(
   if (state.phase !== "collecting_actions") {
     return invalid("当前不能提交出招");
   }
+
+  if (isHuiyueActive(player, state.turnNumber)) return invalid("辉月生效期间不能出招");
 
   if (state.pendingActions[playerId]) {
     return invalid("你本回合已经提交出招");
@@ -188,6 +197,7 @@ function validateActionPlan(
 
   let totalCost = 0;
   let totalLianBaoFreeStacks = 0;
+  const freeCharges = new Map<string, number>();
   for (const action of plan.actions) {
     const validation = validateSingleAction(state, playerId, action);
     if (!validation.ok) {
@@ -197,9 +207,13 @@ function validateActionPlan(
     if (action.type === "skill" && action.skillId === LIAN_BAO_SKILL_ID) {
       totalLianBaoFreeStacks += action.freeStacks ?? 0;
     }
+    if (action.type === "skill") {
+      const charge = getFreeSkillChargeId(player, action.skillId);
+      if (charge) freeCharges.set(charge, (freeCharges.get(charge) ?? 0) + (action.freeStacks ?? 0));
+    }
 
     if (action.type === "attack") {
-      totalCost += getEffectiveAttackActionCost(player, action);
+      totalCost += getAttackActionCost(state, player, action);
       continue;
     }
 
@@ -216,6 +230,9 @@ function validateActionPlan(
 
   if (totalCost > player.cakes) {
     return invalid(`饼不足，需要 ${totalCost} 个饼`);
+  }
+  for (const [id, spent] of freeCharges) if (spent > (player.buffs.find((buff) => buff.id === id)?.stacks ?? 0)) {
+    return invalid("同一回合的免费次数总数不足");
   }
 
   return valid();
@@ -281,6 +298,7 @@ export function validateActionWindowSkill(
   playerId: PlayerId,
   action: SkillAction
 ): ValidationResult {
+  if (action.skillId === COMMON_FUSION_SKILL_ID) return invalid("请使用公共融合行动");
   const player = findPlayer(state, playerId);
   if (!player) {
     return invalid("玩家不存在");
@@ -324,7 +342,7 @@ function validateAttackAction(
     return invalid("攻击重数必须是 1 到 20 的整数");
   }
 
-  const cost = getEffectiveAttackActionCost(player, action);
+  const cost = getAttackActionCost(state, player, action);
   if (player.cakes < cost) {
     return invalid(`饼不足，需要 ${cost} 个饼`);
   }
@@ -353,19 +371,30 @@ function validateSkillAction(
   action: SkillAction,
   timingPhase: SkillTimingPhase
 ): ValidationResult {
+  if (action.skillId === COMMON_FUSION_SKILL_ID) return validateFusionAction(state, playerId, action);
   const player = findPlayer(state, playerId);
   if (!player) {
     return invalid("玩家不存在");
   }
 
-  if (!player.skills.includes(action.skillId)) {
+  if (!getOwnedSkillIds(player).includes(action.skillId)) {
     return invalid("你没有这个技能");
+  }
+  const materialCount = player.skills.filter((id) => id === action.skillId).length;
+  if (materialCount > 0 && countSuppressedFusionMaterials(player, action.skillId) >= materialCount) {
+    return invalid("这个素材的效果已被融合替代或封印");
   }
 
   const skill = getSkill(action.skillId);
   const play = getSkillPlay(action.skillId);
   if (!skill || !play) {
     return invalid("这个技能当前是锁定技或被动技，不能主动施放");
+  }
+  if (skill.name === "魔域") {
+    if (timingPhase !== "turn_end_action" || state.roundNumber % 3 !== 0) return invalid("魔域只能在第3x轮回合末选择目标");
+    const ids = action.targetIds ?? [];
+    if (ids.length !== 3 || ids.some((id) => id === playerId || !isAliveTarget(state, id))) return invalid("魔域需要选择三次其他存活玩家，允许重复");
+    if (player.buffs.filter((buff) => buff.id === "demon_domain_target").length >= 3 * getActiveFusionCount(player, "魔域")) return invalid("本轮魔域目标已经指定");
   }
 
   if (isPlayerInCollapse(player)) {
@@ -404,6 +433,11 @@ function validateSkillAction(
 
   if (isSkillBlockedByJingu(state, action.skillId)) {
     return invalid(`${skill.name} 已被禁锢封锁，不能使用`);
+  }
+
+  if (action.skillId === getFusionSkillId("辉月")) {
+    if (getHuiyueCooldownCount(player, state.roundNumber) >= getActiveFusionCount(player, "辉月")) return invalid("辉月仍在冷却中");
+    if (player.buffs.some((buff) => buff.id === "huiyue_stasis" && (buff.expiresAtTurn ?? -1) > state.turnNumber)) return invalid("本回合已经使用辉月");
   }
 
   if (!skill.timingPhases.includes(timingPhase)) {
@@ -545,7 +579,7 @@ function validateSkillAction(
   const activeSkillCount = getActiveSkillCount(player, action.skillId);
   if (
     play.usesPerGame &&
-    getSkillUseCount(player, action.skillId) >= play.usesPerGame * activeSkillCount
+    getSkillUseCount(player, action.skillId) >= (getSkillUseLimit(player, action.skillId) ?? play.usesPerGame * activeSkillCount)
   ) {
     return invalid(`${skill.name} 已经达到本局使用次数上限`);
   }
@@ -730,8 +764,8 @@ function validateFlashDodgeUse(
     return invalid("闪现只能在变招阶段使用");
   }
 
-  if (countActiveCooldowns(player, FLASH_DODGE_COOLDOWN_BUFF_ID, roundNumber) >= getActiveSkillCount(player, FLASH_DODGE_SKILL_ID)) {
-    return invalid("闪现 3 轮限用 1 次");
+  if (getFlashDodgeCooldownCount(player, roundNumber) >= getActiveSkillCount(player, FLASH_DODGE_SKILL_ID)) {
+    return invalid("闪现仍在冷却中");
   }
 
   return valid();
@@ -788,7 +822,7 @@ function validateDamageRedirectTarget(
     (item) =>
       item.id === action.targetDamageId &&
       item.targetId === playerId &&
-      item.amount <= 3 &&
+      item.amount > 0 && item.amount <= getDamageRedirectLimit(findPlayer(state, playerId)!) &&
       !(item.redirectedByPlayerIds ?? []).includes(playerId)
   );
   if (!damage) {
@@ -979,10 +1013,10 @@ function validateAttackStatModifier(
   }
 
   if (
-    countActiveCooldowns(player, DESTROY_POWER_COOLDOWN_BUFF_ID, state.roundNumber) >=
+    getDestroyPowerCooldownCount(player, state.roundNumber) >=
     getActiveSkillCount(player, "skill_45_30424")
   ) {
-    return invalid("毁灭之力每2轮限用1次");
+    return invalid("毁灭之力仍在冷却中");
   }
 
   if (
@@ -1031,7 +1065,7 @@ function validateDoubleEdgeSword(
     return invalid("目标的防御出招没有防住这次攻击，不能使用双刃剑");
   }
 
-  if (isAttackGloballyBlockedForDoubleEdge(state, stats)) {
+  if (Boolean(getAttackFieldBlocker(state, playerId, stats, action.targetId))) {
     return invalid("这次攻击已被全局效果无效化，不能使用双刃剑");
   }
 
@@ -1069,6 +1103,15 @@ function validateDoubleEdgeSwordV2(
   }
 
   const stats = getDoubleEdgeAttackStats(state, playerId, pendingAction);
+  const mode = action.doubleEdgeMode ?? "ignore_defense";
+  if (mode === "pierce_rebound") {
+    if (getFusionEnhancementCount(player, DOUBLE_EDGE_SWORD_SKILL_ID, ["破天圣剑"]) <= 0) return invalid("当前双刃剑没有破弹能力");
+    if (player.buffs.some((buff) => buff.id === `double_edge_pierce:${actionIndex}`)) return invalid("这个攻击已经使用过双刃剑破弹");
+    return stats && !Boolean(getAttackFieldBlocker(state, playerId, stats, action.targetId)) ? valid() : invalid("这个攻击当前不能破弹");
+  }
+  if (mode === "ignore_all_defense" && getFusionEnhancementCount(player, DOUBLE_EDGE_SWORD_SKILL_ID, ["破军"]) <= 0) return invalid("当前双刃剑没有群破防能力");
+  if (mode !== "ignore_defense" && mode !== "ignore_all_defense") return invalid("双刃剑模式无效");
+  if (mode === "ignore_all_defense" && player.buffs.some((buff) => buff.id === `double_edge_group:${actionIndex}`)) return invalid("这个攻击已经群破防");
   const targetIds = stats
     ? getDoubleEdgeAttackTargetIds(state, playerId, pendingAction, stats)
     : [];
@@ -1094,7 +1137,7 @@ function validateDoubleEdgeSwordV2(
     return invalid("目标的出招没有防住这次攻击，不能使用双刃剑");
   }
 
-  if (isAttackGloballyBlockedForDoubleEdge(state, stats)) {
+  if (Boolean(getAttackFieldBlocker(state, playerId, stats, action.targetId))) {
     return invalid("这次攻击已被全局效果无效化，不能使用双刃剑");
   }
 
@@ -1192,7 +1235,7 @@ function getAbsoluteGuardCandidate(
 ): {
   sourceId: PlayerId;
   actionIndex: number;
-  mode: "area_to_self" | "single_to_area";
+  mode: "area_to_self" | "single_to_area" | "area_to_sky";
   cost: number;
 } | undefined {
   const sourceId = action.targetId;
@@ -1217,18 +1260,19 @@ function getAbsoluteGuardCandidate(
     return undefined;
   }
 
-  const mode = stats.isArea || isActionForcedArea(state, sourceId, sourceAction, stats)
-    ? "area_to_self"
-    : "single_to_area";
+  const area = stats.isArea || isActionForcedArea(state, sourceId, sourceAction, stats);
+  const guard = findPlayer(state, guardPlayerId)!;
+  if (action.absoluteGuardToSky && (!area || getFusionEnhancementCount(guard, ABSOLUTE_GUARD_SKILL_ID, ["绝对天盾"]) <= 0)) return undefined;
+  const mode = area ? action.absoluteGuardToSky ? "area_to_sky" : "area_to_self" : "single_to_area";
   const rawCost =
     sourceAction.type === "attack"
-      ? getEffectiveAttackActionCost(source, sourceAction)
+      ? getAttackActionCost(state, source, sourceAction)
       : getEffectiveSkillActionCost(source, sourceAction);
   return {
     sourceId,
     actionIndex,
     mode,
-    cost: Math.ceil(rawCost / 2)
+    cost: getAbsoluteGuardCost(guard, state.turnActionCosts?.[sourceId]?.[actionIndex] ?? rawCost)
   };
 }
 
@@ -1341,6 +1385,24 @@ function getDoubleEdgeAttackStats(
   return applyAttackModifiers(cloneGameState(state), playerId, base);
 }
 
+export function getActionAttackTargetIds(state: GameState, sourceId: PlayerId, action: PlayerAction): PlayerId[] {
+  const base = getBaseAttackStatsForAction(action);
+  if (!base) return [];
+  // Preview modifiers may consume pending marks; copy player buffers without cloning the growing event history.
+  const preview = { ...state, players: state.players.map((player) => ({ ...player, buffs: player.buffs.map((buff) => ({ ...buff })) })) };
+  const stats = applyAttackModifiers(preview, sourceId, base);
+  const source = findPlayer(state, sourceId);
+  const index = state.pendingActions[sourceId]?.actions.indexOf(action) ?? -1;
+  const override = source?.buffs.find((buff) => buff.id.startsWith(`absolute_guard:${index}:`));
+  if (override) {
+    const [mode, guardId] = override.id.slice(`absolute_guard:${index}:`.length).split(":");
+    if (mode === "area_to_sky") return [];
+    if (mode === "area_to_self" && guardId) return [guardId];
+    if (mode === "single_to_area") return state.players.filter((player) => player.status === "alive" && player.id !== sourceId).map((player) => player.id);
+  }
+  return getDoubleEdgeAttackTargetIds(state, sourceId, action, stats);
+}
+
 function getDoubleEdgeAttackTargetIds(
   state: GameState,
   sourceId: PlayerId,
@@ -1354,7 +1416,7 @@ function getDoubleEdgeAttackTargetIds(
   );
   if (stats.isArea || forcedArea) {
     const targetIds = alivePlayers(state)
-      .filter((player) => player.id !== sourceId)
+      .filter((player) => player.id !== sourceId || stats.includeSelf)
       .map((player) => player.id);
     return filterPutianTongqingBlindSpotTargetIds(state, sourceId, targetIds);
   }
@@ -1375,7 +1437,7 @@ function filterPutianTongqingBlindSpotTargetIds(
   targetIds: PlayerId[]
 ): PlayerId[] {
   const source = findPlayer(state, sourceId);
-  if (!playerHasActiveSkill(source, PUTIAN_TONGQING_SKILL_ID)) {
+  if (!playerHasActiveSkill(source, PUTIAN_TONGQING_SKILL_ID) || hasEnhancedPutianRange(source)) {
     return targetIds;
   }
 
@@ -1587,12 +1649,11 @@ function validateSkillResourceCost(
 }
 
 function validateLianBaoFreeStacks(
-  player: { buffs: Array<{ id: string; stacks: number }> },
+  player: PlayerState,
   action: SkillAction
 ): ValidationResult {
-  if (action.skillId !== LIAN_BAO_SKILL_ID) {
-    return valid();
-  }
+  const charge = getFreeSkillChargeId(player, action.skillId);
+  if (!charge) return action.freeStacks ? invalid("这个技能当前没有免费机会") : valid();
 
   const freeStacks = action.freeStacks ?? 0;
   if (!Number.isInteger(freeStacks) || freeStacks < 0) {
@@ -1603,7 +1664,7 @@ function validateLianBaoFreeStacks(
     return invalid("免费连爆重数不能超过总重数");
   }
 
-  const available = player.buffs.find((buff) => buff.id === "free_lian_bao")?.stacks ?? 0;
+  const available = player.buffs.find((buff) => buff.id === charge)?.stacks ?? 0;
   if (freeStacks > available) {
     return invalid(`免费连爆次数不足，需要 ${freeStacks} 次`);
   }
@@ -1631,42 +1692,8 @@ function getSkillUseCount(player: { buffs: Array<{ id: string; stacks: number }>
   return player.buffs.find((buff) => buff.id === `skill_used:${skillId}`)?.stacks ?? 0;
 }
 
-function countActiveCooldowns(
-  player: { buffs: Array<{ id: string; expiresAtRound?: number }> },
-  cooldownIdPrefix: string,
-  roundNumber: number
-): number {
-  return player.buffs.filter(
-    (buff) =>
-      buff.id.startsWith(cooldownIdPrefix) &&
-      (buff.expiresAtRound === undefined || buff.expiresAtRound > roundNumber)
-  ).length;
-}
-
-function getEffectiveSkillActionCost(player: { buffs: Array<{ id: string; stacks: number }> }, action: SkillAction): number {
-  if (action.skillId === LIAN_BAO_SKILL_ID) {
-    const freeStacks = Math.min(action.stacks, Math.max(0, action.freeStacks ?? 0));
-    return getSkillActionCost(action.skillId, action.stacks - freeStacks);
-  }
-
-  return getSkillActionCost(action.skillId, action.stacks);
-}
-
-function getEffectiveAttackActionCost(
-  player: { skills: string[]; buffs: Array<{ id: string }> },
-  action: AttackAction
-): number {
-  const stats = getStackedAttackStats(BASE_ATTACKS[action.attackId], action.stacks);
-  const reactorCount = getActiveSkillCount(player, "skill_80_20445");
-  if (reactorCount > 0 && (action.attackId === "he_bao" || action.attackId === "chao_he_bao")) {
-    return Math.max(0, stats.cost - 3 * reactorCount * action.stacks);
-  }
-
-  if (playerHasActiveSkill(player, PUTIAN_TONGQING_SKILL_ID) && action.attackId === "qin") {
-    return stats.cost / 2;
-  }
-
-  return stats.cost;
+function getEffectiveSkillActionCost(player: PlayerState, action: SkillAction): number {
+  return getTurnSkillActionCost(player, action);
 }
 
 function getActionTargetIds(action: AttackAction | SkillAction): PlayerId[] {

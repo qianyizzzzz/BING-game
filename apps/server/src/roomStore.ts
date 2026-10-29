@@ -15,6 +15,8 @@ import {
   createBaseEvent,
   createGame,
   createPlayer,
+  chooseWitherNumber,
+  decomposeSkill,
   enterActionWindow,
   getSkill,
   guessPlayerSkill,
@@ -177,6 +179,21 @@ export class RoomStore {
   ): GameState {
     const state = this.requireRoom(roomId);
     const next = guessPlayerSkill(state, playerId, targetPlayerId, targetSkillId);
+    this.rooms.set(roomId, next);
+    this.recorder.recordState(next);
+    return this.runAiTurns(roomId);
+  }
+
+  chooseWitherNumber(roomId: GameId, playerId: PlayerId, selectionIndex: number, value: number): GameState {
+    const next = chooseWitherNumber(this.requireRoom(roomId), playerId, selectionIndex, value);
+    this.rooms.set(roomId, next);
+    this.recorder.recordState(next);
+    return this.runAiTurns(roomId);
+  }
+
+  decomposeSkill(roomId: GameId, playerId: PlayerId, fusionId: string): GameState {
+    const state = this.requireRoom(roomId);
+    const next = decomposeSkill(state, playerId, fusionId);
     this.rooms.set(roomId, next);
     this.recorder.recordState(next);
     return this.runAiTurns(roomId);
@@ -602,7 +619,7 @@ function sanitizeSkillIds(skillIds: SkillId[], maxCount: number): SkillId[] {
     }
 
     const skill = getSkill(skillId);
-    if (!skill?.implemented) {
+    if (!skill?.implemented || skill.fusion) {
       continue;
     }
 

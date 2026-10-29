@@ -15,6 +15,7 @@ import {
 import { buildBattlePresentation } from "../apps/client/src/lib/battlePresentation";
 import { battleDirectorSeatRole, buildBattleDirectorSnapshot } from "../apps/client/src/lib/battleDirector";
 import { getBattleCueProfile } from "../apps/client/src/lib/battleAudio";
+import { buildSeatFeedbackMap } from "../apps/client/src/lib/tableFeedback";
 
 const now = Date.now();
 
@@ -221,6 +222,11 @@ const cases: Array<{
     expected: { kind: "skill", beat: "skill", soundCue: "skill" }
   },
   {
+    name: "action cancelled",
+    event: { ...baseEvent("cancelled"), type: "action_cancelled", playerId: "p1", reason: "辉月取消出招" },
+    expected: { kind: "skill", beat: "skill", soundCue: "skill" }
+  },
+  {
     name: "defeat",
     event: {
       ...baseEvent("defeat"),
@@ -318,6 +324,18 @@ assert.equal(battleDirectorSeatRole("p1", "p1", ["p2"]), "source");
 assert.equal(battleDirectorSeatRole("p2", "p1", ["p2"]), "target");
 assert.equal(battleDirectorSeatRole("p1", "p1", ["p1"]), "source-target");
 assert.equal(battleDirectorSeatRole("p3", "p1", ["p2"]), undefined);
+
+const switchedDefense: PlayerAction = { type: "defense", defense: "youtiao" };
+const switchedState: PublicGameState = {
+  ...state,
+  revealedActions: { p2: { actions: [switchedDefense] } },
+  eventLog: [reveal, {
+    ...baseEvent("virtual-defense-switch"), type: "action_switched", playerId: "p2",
+    skillId: "fusion_virtual", skillName: "虚幻", actionIndex: 0,
+    before: switchBefore, after: switchedDefense, cost: 1
+  }]
+};
+assert.equal(buildSeatFeedbackMap(switchedState).p2?.label, "油条", "seat reflects the switched defense");
 
 console.log(`turn timeline check passed: ${cases.length} event mappings and presentation cues covered`);
 

@@ -112,6 +112,7 @@ workflow/          制作流程、任务、提示词、审查和试玩模板
 - [产品计划](docs/PRODUCT_PLAN.md)
 - [发布清单](docs/RELEASE_CHECKLIST.md)
 - [公网联机](docs/PUBLIC_PLAY.md)
+- [双人协作与免费公网测试](docs/COLLABORATION.md)
 - [AI 训练](docs/AI_TRAINING.md)
 - [Playtest 报告](docs/PLAYTEST_REPORT.md)
 - [UI 设计方案](docs/UI_DESIGN_PLAN.md)

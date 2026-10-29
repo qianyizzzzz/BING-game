@@ -243,6 +243,17 @@ export function buildSeatFeedbackMap(state: PublicGameState): Record<PlayerId, S
       continue;
     }
 
+    if (event.type === "action_cancelled") {
+      setFeedback(feedback, event.playerId, { animation: "defend", animationKey: event.id, label: "出招已取消", tone: "defense" });
+      continue;
+    }
+
+    if (event.type === "action_switched") {
+      const plan = state.revealedActions?.[event.playerId] ?? { actions: [event.after] };
+      setFeedback(feedback, event.playerId, actionPlanFeedback(event.id, plan));
+      continue;
+    }
+
     if (event.type === "turn_revealed") {
       for (const [playerId, plan] of Object.entries(event.actions)) {
         setFeedback(feedback, playerId, actionPlanFeedback(event.id, plan));

@@ -1,0 +1,26 @@
+# Free collaboration preview. Runtime accounts and replays are disposable.
+services:
+  - type: web
+    name: bing-playtest
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: PUBLIC_DIR
+        value: /app/apps/client/dist
+      - key: ALLOW_TUNNEL_ORIGINS
+        value: "false"
+      - key: ACCOUNT_DATA_FILE
+        value: /app/data/accounts/accounts.json
+      - key: MATCH_DATA_DIR
+        value: /app/data
+      - key: AI_POLICY_PATH
+        value: /app/data/ai/ai-policy.json

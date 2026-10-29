@@ -125,3 +125,9 @@ Characters (avatars) are defined in `lib/characters.ts`. The account model is re
 - **`擒` (qin) base level is 0** — stacking still yields level 0, which means it cannot be countered by level-based defense. Do not change this accidentally.
 - **`PublicGameState` vs `GameState`** — `pendingActions` is stripped from the public state broadcast; use `pendingActionPlayerIds` to know who has submitted without revealing what.
 - **`generatedSkillCatalog.ts` is machine-generated** — changes are overwritten on the next `npm run import:skills`. Put all skill logic in `registry.ts`.
+
+## Collaboration and hosting
+
+Read `docs/COLLABORATION.md` before preparing shared development or deployment. Use a separate branch for each task, preserve uncommitted work, and integrate changes through pull requests. Frontend/art tasks must keep rule calculation in the shared engine. Never force-push or reset another developer's work.
+
+`render.yaml` configures the explicitly selected Free preview service. Keep it free unless the user approves a paid change. Runtime data is disposable on this plan; do not promise persistence or uninterrupted matches across restarts. Only the platform-provided URL of this service is automatically allowed; custom domains use `PUBLIC_ORIGINS`.

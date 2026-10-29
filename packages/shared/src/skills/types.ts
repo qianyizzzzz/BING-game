@@ -33,6 +33,16 @@ export interface RawSkillDefinition {
   sourceRow: number;
 }
 
+export interface FusionRecipe {
+  skill: RawSkillDefinition;
+  materialOptions: Array<[SkillId, SkillId]>;
+  originalEffect: string;
+  retainedMaterialIds: SkillId[];
+  targeting: string;
+  /** Using the resulting skill also spends these materials' limited uses. */
+  materialUseCosts: SkillId[];
+}
+
 export type SkillExposureTiming =
   | "不暴露"
   | "使用时"
@@ -94,6 +104,7 @@ export type SkillEffectId =
 
 export interface SkillPlayDefinition {
   kind: SkillPlayKind;
+  attackName?: string;
   cost: number;
   maxStacks: number;
   targetMode: SkillTargetMode;
@@ -103,6 +114,8 @@ export interface SkillPlayDefinition {
   defenseTag?: DefenseTag | undefined;
   traits?: AttackTrait[] | undefined;
   element?: AttackElement | undefined;
+  elements?: AttackElement[];
+  freezeTurns?: number;
   resourceGainPerStack?: number | undefined;
   selfHeal?: number | undefined;
   selfDamage?: number | undefined;

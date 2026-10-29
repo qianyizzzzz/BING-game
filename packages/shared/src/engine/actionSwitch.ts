@@ -7,11 +7,13 @@ import {
   SkillAction,
   ValidationResult
 } from "../types";
+import { getFusionSkillId } from "../skills/fusion";
 
 export const ACTION_SWITCH_SKILL_IDS = [
   "skill_88_62906",
   "skill_89_99375",
-  "skill_90_32911"
+  "skill_90_32911",
+  getFusionSkillId("虚幻")
 ] as const;
 
 export type ActionSwitchSkillId = (typeof ACTION_SWITCH_SKILL_IDS)[number];
@@ -36,6 +38,11 @@ export function getActionSwitchChoicesForAction(
   skillId: string,
   current: PlayerAction
 ): ActionSwitchChoice[] {
+  if (skillId === getFusionSkillId("虚幻") && current.type === "defense") {
+    const choices = current.defense === "small" || current.defense === "stone" ? ["youtiao"] :
+      current.defense === "youtiao" ? ["small", "stone"] : [];
+    return choices.map((defense) => ({ action: { type: "defense", defense: defense as DefenseAction["defense"] }, cost: 1 }));
+  }
   if (skillId === "skill_88_62906") {
     return getBasicDefenseSwitchChoices(current);
   }
