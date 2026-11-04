@@ -7,11 +7,13 @@ import { addPlayerToGame, advanceActionWindow, applyAttackModifiers, BASE_ATTACK
   getAttackActionCost, getTurnSkillActionCost, getFusionSkillId, getAbsoluteGuardCost, getActionAttackTargetIds,
   chooseWitherNumber, getWitherNumber, getNextWitherSelectionIndex, getAttackFieldBlocker,
   getHuiyueCooldownCount, isHuiyueActive,
+  getSkillCakeCostKind, skillHasCakeCost, applyNegativeStatus, registerNegativeStatus,
+  getNegativeStatusDefinitions, hasNegativeStatusImmunity, NEGATIVE_STATUS_IMMUNITY_BUFF_ID,
   getSmallSkillIds, getStackedAttackStats, guessPlayerSkill, isFusionImplemented,
   isFusionPreparation, reconcileSkillFusions, recordSkillUse, startGame,
   submitActionWindowSkill, submitPlayerAction, toPublicGameState,
   GameState, PlayerState, PlayerAction, SkillAction } from "@bing/shared";
-import { enumerateLegalAiActions } from "../apps/server/src/ai";
+import { chooseAiActionWindowSkill, enumerateLegalAiActions } from "../apps/server/src/ai";
 
 const skill = (name: string) => {
   const found = getAllSkills().find((item) => item.name === name);
@@ -68,7 +70,7 @@ check("72 recipes import with stable distinct IDs, normalized materials, and sep
   }
   assert.ok(recipe("天火之狱").materialOptions[0]!.includes(skill("地狱主宰")));
   assert.ok(recipe("贤者的庇护").materialOptions[0]!.includes(skill("神之庇护")));
-  assert.equal(FUSION_RECIPES.filter((item) => isFusionImplemented(item.skill.id)).length, 49);
+  assert.equal(FUSION_RECIPES.filter((item) => isFusionImplemented(item.skill.id)).length, 72);
 });
 
 check("duplicate materials need two copies; four-choose-two has six legal pairs", () => {
@@ -94,12 +96,11 @@ check("opening fusion is free, repeatable, shares the steal-choice window, and c
   assert.ok(state.actionWindowDeadlineAt! >= original.actionWindowDeadlineAt!);
 });
 
-check("preparation pass prevents late free fusion and unsupported effects cannot be formed", () => {
+check("preparation pass prevents late free fusion and the last three recipes are released", () => {
   const state = game(["神罩", "鬼罩"]);
   state.actionWindowPassPlayerIds.push(owner(state).id);
   assert.throws(() => submitPlayerAction(state, owner(state).id, fusionAction("幻境双罩")), /结束开局准备/);
-  const unsupported = game(["沙子", "沙子"]);
-  assert.throws(() => submitPlayerAction(unsupported, owner(unsupported).id, fusionAction("沙皇")), /尚未开放/);
+  for (const name of ["沙皇", "天魔舞", "猥琐小叔叔"]) assert.equal(isFusionImplemented(recipe(name).skill.id), true);
 });
 
 check("a repeated request cannot fuse a second pair even when four duplicate materials exist", () => {
@@ -494,7 +495,7 @@ check("master's power ignores earth-breaking only for the attack modified by des
 check("master's power does not bypass decay or exempt another player's attack", () => {
   let state = effectGame("宗师之力");
   state.players[2]!.skills = [skill("衰竭")];
-  state = revealEffectTurn(state, { type: "attack", attackId: "sha", stacks: 1, targetId: state.players[1]!.id });
+  state = revealEffectTurn(state, { type: "attack", attackId: "sha", stacks: 2, targetId: state.players[1]!.id });
   state = submitActionWindowSkill(state, owner(state).id,
     { ...cast("毁灭之力"), attackStatModifier: "power_plus_2_level_minus_2", switchActionIndex: 0 });
   state = settleEffectTurn(state);
@@ -582,16 +583,18 @@ check("divine soul adds one extra crystal level per fused copy, leaving extra cr
   assert.equal(applyAttackModifiers(state, owner(state).id, base).level, 4);
 });
 
-check("divine soul keeps attack progress and wins on attack twenty only below the original HP threshold", () => {
-  for (const hp of [3, 4]) {
-    let state = effectGame("神界炼魂");
-    owner(state).hp = hp;
-    owner(state).buffs.push({ id: "bailian_attack_count", name: "攻击次数", stacks: 19 });
-    state = settleEffectTurn(revealEffectTurn(state,
-      { type: "attack", attackId: "sha", stacks: 1, targetId: state.players[1]!.id }));
-    assert.equal(owner(state).buffs.find((buff) => buff.id === "bailian_attack_count")?.stacks, hp === 3 ? 20 : 19);
-    assert.equal(owner(state).buffs.some((buff) => buff.id === "instant_win:bailian"), hp === 3);
-    if (hp === 3) assert.ok(state.winnerIds.includes(owner(state).id));
+check("divine soul keeps attack progress and wins on attack twenty at the owner's half-initial-HP threshold", () => {
+  for (const [baths, threshold] of [[0, 3], [1, 9], [2, 27]] as const) {
+    for (const hp of [threshold, threshold + 1]) {
+      let state = effectGame("神界炼魂", Array<string>(baths).fill("沐浴圣光"));
+      owner(state).hp = hp;
+      owner(state).buffs.push({ id: "bailian_attack_count", name: "攻击次数", stacks: 19 });
+      state = settleEffectTurn(revealEffectTurn(state,
+        { type: "attack", attackId: "sha", stacks: 1, targetId: state.players[1]!.id }));
+      assert.equal(owner(state).buffs.find((buff) => buff.id === "bailian_attack_count")?.stacks, hp === threshold ? 20 : 19);
+      assert.equal(owner(state).buffs.some((buff) => buff.id === "instant_win:bailian"), hp === threshold);
+      if (hp === threshold) assert.ok(state.winnerIds.includes(owner(state).id));
+    }
   }
 });
 
@@ -866,7 +869,7 @@ check("both ice-blade fusions keep damage while suppressing skills and decomposi
   }
 });
 
-check("thunder heart includes its caster in thunder wave and grants four HP instead of defense", () => {
+check("thunder heart immunizes self-inclusion and preserves a separate earth-heart copy's reward", () => {
   for (const extra of [false, true]) {
     let state = effectGame("雷霆之心", extra ? ["大地之心"] : []);
     state = settleEffectTurn(revealEffectTurn(state, cast("三千雷动")));
@@ -989,15 +992,14 @@ function revealWithResources(initial: GameState, actions: PlayerAction[]): GameS
   return state;
 }
 
-check("all 22 clear recipes are playable while the disputed groups remain closed", () => {
+check("the clear recipes and final three acquisitions are released", () => {
   for (const name of CLEAR_EFFECT_BATCH) {
     const state = effectGame(name, [], 4);
     assert.equal(owner(state).skillFusions?.[0]?.skillId, getFusionSkillId(name));
     assert.equal(getSkillCardIds(owner(state)).length, 1);
   }
-  for (const name of ["制裁之刃", "不死鸟之眼", "沙皇", "天魔舞", "杀级换", "六芒星阵", "博学者之怒", "帝灵之境",
-    "反伤刺甲", "弹力球", "空城计", "名刀司命", "神隐双莲", "冰火狂暴曲", "阳炎之怒", "野蛮人", "贤者之书"]) {
-    assert.equal(isFusionImplemented(getFusionSkillId(name)), false, name);
+  for (const name of ["沙皇", "天魔舞", "猥琐小叔叔"]) {
+    assert.equal(isFusionImplemented(getFusionSkillId(name)), true, name);
   }
 });
 
@@ -1058,7 +1060,7 @@ check("nuclear war stacks all discounts to zero, projects only the viewer's pric
   assert.equal(view.players[1]!.attackCostOverrides?.he_bao, 0);
   assert.equal(view.players[0]!.attackCostOverrides, undefined);
   assert.equal(view.players[0]!.skillFusions, undefined);
-  assert.ok(!JSON.stringify(view).includes(getFusionSkillId("核战")));
+  assert.ok(JSON.stringify(view).includes(getFusionSkillId("核战")), "nuclear fusion is publicly declared at opening");
   state = decomposeSkill(endWindow(state), owner(state).id, owner(state).skillFusions![0]!.id);
   assert.equal(getAttackActionCost(state, owner(state), { type: "attack", attackId: "he_bao", stacks: 1 }), 3);
   assert.equal(getAttackActionCost(state, state.players[2]!, { type: "attack", attackId: "he_bao", stacks: 1 }), 6);
@@ -1728,7 +1730,7 @@ check("the real resolver erases two sha but allows a twelve-power twelve-level t
     assert.equal(owner(state).hp, 40 - damage);
     if (damage === 0) {
       assert.ok(owner(state).revealedSkillIds.includes(skill("衰竭")));
-      assert.ok(!owner(state).revealedSkillIds.includes(getFusionSkillId("枯萎")));
+      assert.ok(owner(state).revealedSkillIds.includes(getFusionSkillId("枯萎")), "matching the extra integer reveals wither");
     }
   }
 });
@@ -2079,6 +2081,368 @@ check("cancelling a fusion action removes its new cover while retaining the proc
   assert.equal(owner(state).cakes, 2);
   assert.equal(getSkillUseLimit(owner(state), skill("神罩")), 3);
   assert.ok(owner(state).fusionRequestIds?.includes(action.fusionRequestId!));
+});
+
+check("nature spirit retains both materials and blocks ordinary and mixed fire attacks", () => {
+  for (const extra of [[], ["寒冰剑"]]) {
+    let state = effectGame("自然之灵");
+    state.players[1]!.skills = extra.map(skill);
+    state.players[1]!.cakes = 8;
+    state = revealEffectTurn(state, { type: "gain_cake" }, [
+      { type: "attack", attackId: "huo_wu", stacks: 1, targetId: owner(state).id }
+    ]);
+    if (extra.length) state = submitActionWindowSkill(state, state.players[1]!.id, cast("寒冰剑"));
+    state = settleEffectTurn(state);
+    assert.equal(owner(state).hp, 40);
+    assert.ok(!owner(state).buffs.some((buff) => buff.id.startsWith("skill_disabled_until_round:")));
+    assert.ok(state.eventLog.some((event) => event.type === "attack_blocked" && event.protectionName === "自然之灵"));
+    assert.equal(getActiveSkillCount(owner(state), skill("藤甲")), 1);
+    assert.equal(getActiveSkillCount(owner(state), skill("森林的低吟")), 1);
+  }
+});
+
+check("nature spirit uses holy realm's fire-effect immunity, including burning earth's skill removal", () => {
+  let state = effectGame("自然之灵", ["凛冬之怒"]);
+  state.players[1]!.skills = [skill("火烧大地")];
+  state.players[2]!.skills = [skill("凛冬之怒")];
+  state = submitActionWindowSkill(state, state.players[1]!.id, cast("火烧大地"));
+  assert.equal(owner(state).hp, 40);
+  assert.ok(owner(state).skills.includes(skill("凛冬之怒")));
+  assert.equal(state.players[2]!.hp, 38);
+  assert.ok(!state.players[2]!.skills.includes(skill("凛冬之怒")));
+});
+
+check("nature spirit does not become general elemental immunity, and retains forest healing", () => {
+  let state = effectGame("自然之灵");
+  state.players[1]!.cakes = 4;
+  state = settleEffectTurn(revealEffectTurn(state, { type: "gain_cake" }, [
+    { type: "attack", attackId: "shan_dian", stacks: 1, targetId: owner(state).id }
+  ]));
+  assert.equal(owner(state).hp, 36);
+  state = effectGame("自然之灵");
+  state = settleEffectTurn(revealEffectTurn(state, cast("森林的低吟")));
+  assert.equal(owner(state).hp, 43);
+});
+
+check("sealing or decomposing nature spirit restores fire vulnerability without removing its materials", () => {
+  for (const decompose of [false, true]) {
+    let state = effectGame("自然之灵");
+    if (decompose) state = decomposeSkill(endWindow(state), owner(state).id, owner(state).skillFusions![0]!.id);
+    else owner(state).buffs.push({ id: `sealed_skill:${getFusionSkillId("自然之灵")}`, name: "封印", stacks: 1 });
+    state.players[1]!.cakes = 8;
+    state = settleEffectTurn(revealEffectTurn(state, { type: "gain_cake" }, [
+      { type: "attack", attackId: "huo_wu", stacks: 1, targetId: owner(state).id }
+    ]));
+    assert.ok(owner(state).hp < 40);
+    assert.ok(owner(state).skills.includes(skill("藤甲")));
+  }
+});
+
+check("cake-cost semantics distinguish inherent no-cake controls from priced zero and dynamic controls", () => {
+  assert.equal(getSkillCakeCostKind(skill("毁灭之力")), "none");
+  assert.equal(skillHasCakeCost(skill("毁灭之力")), false);
+  assert.equal(getSkillCakeCostKind(skill("绝对守护")), "dynamic");
+  assert.equal(skillHasCakeCost(skill("绝对守护")), true);
+  assert.equal(skillHasCakeCost(skill("幻防")), true);
+  assert.equal(skillHasCakeCost(getFusionSkillId("虚幻")), true);
+  assert.equal(skillHasCakeCost(skill("寒冰剑")), false);
+});
+
+function usePureSky(initial: GameState, opponentActions: PlayerAction[] = []): GameState {
+  const state = revealEffectTurn(initial, { type: "defense", defense: "small" }, opponentActions);
+  return submitActionWindowSkill(state, owner(state).id, { ...cast("幻防"), switchActionIndex: 0,
+    switchToAction: { type: "defense", defense: "youtiao" } });
+}
+
+check("pure sky activates on paid phantom defense and lasts through the end-action window only", () => {
+  let state = usePureSky(effectGame("纯净苍穹"));
+  assert.equal(owner(state).cakes, 38);
+  assert.ok(hasNegativeStatusImmunity(owner(state), state.turnNumber));
+  state = settleEffectTurn(state);
+  assert.ok(hasNegativeStatusImmunity(owner(state), state.turnNumber));
+  assert.equal(applyNegativeStatus(state, owner(state).id, "frozen", () => assert.fail("late status must be blocked")), false);
+  state = collecting(state);
+  assert.ok(!hasNegativeStatusImmunity(owner(state), state.turnNumber));
+  assert.ok(!owner(state).buffs.some((buff) => buff.id === NEGATIVE_STATUS_IMMUNITY_BUFF_ID));
+  assert.ok(applyNegativeStatus(state, owner(state).id, "frozen", (player) => {
+    player.buffs.push({ id: "frozen", name: "冰冻", stacks: 1, expiresAtTurn: state.turnNumber + 1 });
+  }));
+});
+
+check("a genuinely zero-priced absolute guard still activates pure sky", () => {
+  let state = effectGame("纯净苍穹");
+  state.players[1]!.skills = [skill("核反应堆"), skill("核反应堆")];
+  state = revealEffectTurn(state, { type: "gain_cake" }, [
+    { type: "attack", attackId: "he_bao", stacks: 1, targetId: owner(state).id }
+  ]);
+  const cakes = owner(state).cakes;
+  state = submitActionWindowSkill(state, owner(state).id, { ...cast("绝对守护"),
+    targetId: state.players[1]!.id, switchActionIndex: 0 });
+  assert.equal(owner(state).cakes, cakes);
+  assert.ok(hasNegativeStatusImmunity(owner(state), state.turnNumber));
+});
+
+check("no-cake destruction and frost blade do not activate pure sky", () => {
+  for (const name of ["毁灭之力", "寒冰剑"]) {
+    let state = effectGame("纯净苍穹", [name]);
+    state = revealEffectTurn(state, { type: "attack", attackId: "sha", stacks: 1, targetId: state.players[1]!.id });
+    state = submitActionWindowSkill(state, owner(state).id, { ...cast(name), switchActionIndex: 0,
+      ...(name === "毁灭之力" ? { attackStatModifier: "power_plus_1_level_minus_1" as const } : {}) });
+    assert.ok(!hasNegativeStatusImmunity(owner(state), state.turnNumber));
+  }
+});
+
+check("flash dodges attacks without activating pure sky or clearing immunity granted earlier", () => {
+  assert.equal(getSkillCakeCostKind(skill("闪现")), "none");
+  for (const alreadyActive of [false, true]) {
+    let state = effectGame("纯净苍穹", ["闪现"]);
+    state.players[1]!.cakes = 1;
+    const incoming: PlayerAction[] = [
+      { type: "attack", attackId: "sha", stacks: 1, targetId: owner(state).id }
+    ];
+    state = alreadyActive ? usePureSky(state, incoming) : revealEffectTurn(state, { type: "gain_cake" }, incoming);
+    const cakesBeforeFlash = owner(state).cakes;
+    assert.equal(hasNegativeStatusImmunity(owner(state), state.turnNumber), alreadyActive);
+    state = submitActionWindowSkill(state, owner(state).id, cast("闪现"));
+    assert.equal(owner(state).cakes, cakesBeforeFlash);
+    assert.equal(getFlashDodgeCooldownCount(owner(state), state.roundNumber), 1);
+    assert.equal(hasNegativeStatusImmunity(owner(state), state.turnNumber), alreadyActive);
+    state = settleEffectTurn(state);
+    assert.equal(owner(state).hp, 40);
+    assert.ok(state.eventLog.some((event) => event.type === "attack_blocked" && event.protectionName === "闪现"));
+    assert.equal(hasNegativeStatusImmunity(owner(state), state.turnNumber), alreadyActive);
+  }
+});
+
+check("pure sky blocks ice-vortex freezing but does not block its damage", () => {
+  let state = effectGame("纯净苍穹");
+  state.players[1]!.skills = [skill("冰漩决")];
+  state.players[1]!.cakes = 3;
+  state = settleEffectTurn(usePureSky(state, [{ ...cast("冰漩决"), targetIds: [owner(state).id] }]));
+  assert.equal(owner(state).hp, 39);
+  assert.ok(!owner(state).buffs.some((buff) => buff.id === "frozen"));
+});
+
+check("pure sky blocks electric paralysis through the real hit pipeline", () => {
+  let state = effectGame("纯净苍穹");
+  state.players[1]!.skills = [skill("电击法术")];
+  state = settleEffectTurn(usePureSky(state, [{ ...cast("电击法术"), targetIds: [owner(state).id] }]));
+  assert.ok(!owner(state).buffs.some((buff) => buff.id.startsWith("paralysis_next_action:")));
+  assert.ok(state.eventLog.some((event) => event.type === "system" && event.message.includes("免疫了新增的麻痹")));
+});
+
+check("pure sky only prevents frost-blade skill disability, preserving zero damage and round restart", () => {
+  let state = effectGame("纯净苍穹");
+  state.players[1]!.skills = [skill("寒冰剑")];
+  state.players[1]!.cakes = 1;
+  state = usePureSky(state, [{ type: "attack", attackId: "sha", stacks: 1, targetId: owner(state).id }]);
+  state = submitActionWindowSkill(state, state.players[1]!.id, cast("寒冰剑"));
+  state = settleEffectTurn(state);
+  assert.equal(owner(state).hp, 40);
+  assert.ok(state.turnHealthChanged);
+  assert.ok(!owner(state).buffs.some((buff) => buff.id.startsWith("skill_disabled_until_round:")));
+  state = collecting(state);
+  assert.equal(state.roundNumber, 2);
+});
+
+check("pure sky activation and blocked refreshes never remove, shorten or replace existing negative statuses", () => {
+  let state = revealEffectTurn(effectGame("纯净苍穹"), { type: "defense", defense: "small" });
+  const oldBuffs = [
+    { id: "frozen", name: "冰冻", stacks: 2, expiresAtTurn: state.turnNumber + 2 },
+    { id: "paralysis_next_action:old", name: "麻痹", stacks: 1 }
+  ];
+  owner(state).buffs.push(...structuredClone(oldBuffs));
+  state = submitActionWindowSkill(state, owner(state).id, { ...cast("幻防"), switchActionIndex: 0,
+    switchToAction: { type: "defense", defense: "youtiao" } });
+  for (const status of ["frozen", "skill_disabled", "paralysis"]) {
+    assert.equal(applyNegativeStatus(state, owner(state).id, status, (player) => { player.buffs = []; }), false);
+  }
+  for (const buff of oldBuffs) assert.deepEqual(owner(state).buffs.find((item) => item.id === buff.id), buff);
+});
+
+check("real frost and electric hits cannot refresh or replace existing statuses under pure sky", () => {
+  for (const [name, oldBuff] of [
+    ["冰漩决", { id: "frozen", name: "冰冻", stacks: 2, expiresAtTurn: 4 }],
+    ["电击法术", { id: "paralysis_next_action:old", name: "麻痹", stacks: 1 }]
+  ] as const) {
+    let state = effectGame("纯净苍穹");
+    state.players[1]!.skills = [skill(name)];
+    state.players[1]!.cakes = 3;
+    state = usePureSky(state, [{ ...cast(name), targetIds: [owner(state).id] }]);
+    owner(state).buffs.push({ ...oldBuff });
+    state = settleEffectTurn(state);
+    assert.deepEqual(owner(state).buffs.find((buff) => buff.id === oldBuff.id), oldBuff);
+  }
+});
+
+check("pure sky does not block sealing or burning earth's one-off skill removal", () => {
+  let state = effectGame("纯净苍穹", ["藤甲", "凛冬之怒"]);
+  state.players[1]!.skills = [skill("封印"), skill("火烧大地")];
+  state = usePureSky(state);
+  owner(state).revealedSkillIds.push(skill("藤甲"));
+  state = submitActionWindowSkill(state, state.players[1]!.id, { ...cast("封印"),
+    targetId: owner(state).id, targetSkillId: skill("藤甲") });
+  assert.ok(owner(state).buffs.some((buff) => buff.id === `sealed_skill:${skill("藤甲")}`));
+  state = submitActionWindowSkill(state, state.players[1]!.id, cast("火烧大地"));
+  assert.ok(!owner(state).skills.includes(skill("凛冬之怒")));
+  assert.ok(hasNegativeStatusImmunity(owner(state), state.turnNumber));
+});
+
+check("new negative-status categories automatically share immunity, with explicit registration and no implicit categories", () => {
+  const state = usePureSky(effectGame("纯净苍穹"));
+  assert.deepEqual(getNegativeStatusDefinitions().map((item) => item.id), ["frozen", "skill_disabled", "paralysis"]);
+  registerNegativeStatus({ id: "regression_temporary_restriction", name: "测试临时限制" });
+  assert.equal(applyNegativeStatus(state, owner(state).id, "regression_temporary_restriction", () => assert.fail()), false);
+  assert.throws(() => applyNegativeStatus(state, owner(state).id, "seal", () => assert.fail()), /尚未注册/);
+  assert.throws(() => registerNegativeStatus({ id: "frozen", name: "重复" }), /重复/);
+});
+
+check("failed or sealed control skills cannot grant immunity and decomposition cannot cleanse old statuses", () => {
+  let state = revealEffectTurn(effectGame("纯净苍穹"), { type: "defense", defense: "small" });
+  owner(state).cakes = 0;
+  const action = { ...cast("幻防"), switchActionIndex: 0, switchToAction: { type: "defense", defense: "youtiao" } } as const;
+  assert.throws(() => submitActionWindowSkill(state, owner(state).id, action), /饼不足/);
+  assert.ok(!hasNegativeStatusImmunity(owner(state), state.turnNumber));
+  owner(state).cakes = 3;
+  owner(state).buffs.push({ id: `sealed_skill:${getFusionSkillId("纯净苍穹")}`, name: "封印", stacks: 1 });
+  assert.throws(() => submitActionWindowSkill(state, owner(state).id, action), /封印/);
+  assert.ok(!hasNegativeStatusImmunity(owner(state), state.turnNumber));
+  owner(state).buffs.push({ id: "frozen", name: "冰冻", stacks: 1, expiresAtTurn: state.turnNumber + 2 });
+  state = decomposeSkill(endWindow(state), owner(state).id, owner(state).skillFusions![0]!.id);
+  assert.ok(owner(state).buffs.some((buff) => buff.id === "frozen"));
+});
+
+check("civilized recipes can fuse, retain their materials and explicitly mark chat effects pending", () => {
+  for (const name of ["野蛮人", "贤者之书", "贤者的庇护"]) {
+    let state = effectGame(name);
+    assert.equal(getSkillCardIds(owner(state)).length, 1);
+    assert.ok(getSkill(getFusionSkillId(name))?.description.includes("待定"));
+    for (const id of recipe(name).retainedMaterialIds) assert.equal(getActiveSkillCount(owner(state), id), 1);
+    state = settleEffectTurn(revealEffectTurn(state, { type: "gain_cake" }));
+    assert.ok(state.players.every((player) => player.hp === 40));
+  }
+  assert.equal(getSkill(getFusionSkillId("贤者之书"))?.play, undefined);
+  assert.equal(getSkillUseLimit(owner(effectGame("贤者之书")), skill("卷子")), getSkill(skill("卷子"))?.play?.usesPerGame);
+});
+
+check("barbarian allows exactly two real reversals on separate turns", () => {
+  let state = effectGame("野蛮人");
+  for (let count = 1; count <= 2; count++) {
+    state = revealEffectTurn(state, { type: "gain_cake" });
+    assert.equal(getSkillUseLimit(owner(state), skill("逆转")), 2);
+    state = submitActionWindowSkill(state, owner(state).id, cast("逆转"));
+    assert.equal(useCount(owner(state), "逆转"), count);
+    state = settleEffectTurn(state);
+  }
+  state = revealEffectTurn(state, { type: "gain_cake" });
+  assert.throws(() => submitActionWindowSkill(state, owner(state).id, cast("逆转")), /次数上限/);
+});
+
+check("barbarian inherits a spent reversal and decomposition cannot refill it", () => {
+  let state = game(["逆转", "文明人"]);
+  recordSkillUse(owner(state), skill("逆转"));
+  state = submitPlayerAction(state, owner(state).id, fusionAction("野蛮人")).state;
+  assert.equal(useCount(owner(state), "逆转"), 1);
+  assert.equal(getSkillUseLimit(owner(state), skill("逆转")), 2);
+  state = revealEffectTurn(state, { type: "gain_cake" });
+  state = settleEffectTurn(submitActionWindowSkill(state, owner(state).id, cast("逆转")));
+  state = decomposeSkill(state, owner(state).id, owner(state).skillFusions![0]!.id);
+  assert.equal(useCount(owner(state), "逆转"), 2);
+  assert.equal(getSkillUseLimit(owner(state), skill("逆转")), 1);
+});
+
+check("barbarian bonuses apply per fused copy while extra ordinary reversals retain one use each", () => {
+  const extra = effectGame("野蛮人", ["逆转"]);
+  assert.equal(getSkillUseLimit(owner(extra), skill("逆转")), 3);
+  owner(extra).buffs.push({ id: `sealed_skill:${getFusionSkillId("野蛮人")}`, name: "封印", stacks: 1 });
+  assert.equal(getSkillUseLimit(owner(extra), skill("逆转")), 1);
+  let doubled = game(["逆转", "文明人", "逆转", "文明人"]);
+  doubled = submitPlayerAction(doubled, owner(doubled).id, fusionAction("野蛮人")).state;
+  doubled = submitPlayerAction(doubled, owner(doubled).id, fusionAction("野蛮人")).state;
+  assert.equal(getSkillUseLimit(owner(doubled), skill("逆转")), 4);
+});
+
+function injureSage(initial: GameState): GameState {
+  let state = collecting(initial);
+  state.roundTurnNumber = 3; // The retained divine protection covers only turns one and two.
+  owner(state).hp = 1;
+  state.players[1]!.cakes = 2;
+  state = revealEffectTurn(state, { type: "gain_cake" }, [
+    { type: "attack", attackId: "sha", stacks: 2, targetId: owner(state).id }
+  ]);
+  for (let guard = 0; state.phase === "action_window" && state.activeTimingPhase !== "revival_action" && guard < 20; guard++) {
+    state = advanceActionWindow(state);
+  }
+  assert.equal(state.activeTimingPhase, "revival_action");
+  assert.ok(owner(state).buffs.some((buff) => buff.id === "pending_death"));
+  assert.equal(owner(state).hp, -1);
+  return state;
+}
+
+check("sage protection uses the healing-spell revival path but always restores exactly two HP", () => {
+  for (const baths of [0, 1, 2]) {
+    let state = effectGame("贤者的庇护", Array<string>(baths).fill("沐浴圣光"));
+    state.players[2]!.skills = [skill("血之哀")];
+    state = injureSage(state);
+    state = submitActionWindowSkill(state, owner(state).id, fusionCast("贤者的庇护"));
+    assert.equal(owner(state).hp, 2);
+    assert.equal(owner(state).status, "alive");
+    assert.ok(!owner(state).buffs.some((buff) => buff.id === "pending_death"));
+    assert.equal(owner(state).buffs.find((buff) => buff.id === `skill_used:${getFusionSkillId("贤者的庇护")}`)?.stacks, 1);
+    assert.ok(state.eventLog.some((event) => event.type === "heal" && event.reason === "贤者的庇护" && event.recoveryKind === "revival" && event.amount === 3));
+  }
+});
+
+check("sage protection is unusable while alive or outside the owner's revival window", () => {
+  const state = effectGame("贤者的庇护");
+  assert.throws(() => submitActionWindowSkill(state, owner(state).id, fusionCast("贤者的庇护")), /只能在复活阶段/);
+  const forged = endWindow(state);
+  forged.activeTimingPhase = "revival_action";
+  assert.throws(() => submitActionWindowSkill(forged, owner(forged).id, fusionCast("贤者的庇护")), /只能在复活阶段|只有已死亡/);
+});
+
+check("sage protection preserves divine protection during the first two turns", () => {
+  for (const turn of [1, 2]) {
+    let state = effectGame("贤者的庇护");
+    state.roundTurnNumber = turn;
+    state.players[1]!.cakes = 1;
+    state = settleEffectTurn(revealEffectTurn(state, { type: "gain_cake" }, [
+      { type: "attack", attackId: "sha", stacks: 1, targetId: owner(state).id }
+    ]));
+    assert.equal(owner(state).hp, 40);
+    assert.ok(state.eventLog.some((event) => event.type === "attack_blocked" && event.protectionName === "无敌"));
+  }
+});
+
+check("sage revival has its own one-use ledger and decomposition and re-fusion cannot refill it", () => {
+  let state = injureSage(effectGame("贤者的庇护", ["治愈术"]));
+  state = submitActionWindowSkill(state, owner(state).id, fusionCast("贤者的庇护"));
+  state = decomposeSkill(endWindow(state), owner(state).id, owner(state).skillFusions![0]!.id);
+  assert.equal(getActiveSkillCount(owner(state), skill("神之庇护")), 1);
+  state = settleEffectTurn(revealEffectTurn(state, fusionAction("贤者的庇护")));
+  assert.equal(getSkillUseLimit(owner(state), getFusionSkillId("贤者的庇护")), 1);
+  state = injureSage(state);
+  assert.throws(() => submitActionWindowSkill(state, owner(state).id, fusionCast("贤者的庇护")), /次数上限/);
+  assert.equal(useCount(owner(state), "治愈术"), 0);
+  state = submitActionWindowSkill(state, owner(state).id, cast("治愈术"));
+  assert.equal(owner(state).hp, 6);
+  assert.equal(useCount(owner(state), "治愈术"), 1);
+});
+
+check("sage protection respects fusion seals and the existing no-revival rule", () => {
+  let sealed = injureSage(effectGame("贤者的庇护", ["治愈术"]));
+  owner(sealed).buffs.push({ id: `sealed_skill:${getFusionSkillId("贤者的庇护")}`, name: "封印", stacks: 1 });
+  assert.throws(() => submitActionWindowSkill(sealed, owner(sealed).id, fusionCast("贤者的庇护")), /封锁|封印/);
+  let blocked = effectGame("贤者的庇护");
+  blocked.players[1]!.skills = [skill("裂魂")];
+  blocked = injureSage(blocked);
+  assert.ok(owner(blocked).buffs.some((buff) => buff.id === "no_revive"));
+  assert.throws(() => submitActionWindowSkill(blocked, owner(blocked).id, fusionCast("贤者的庇护")), /无法复活|存活/);
+});
+
+check("AI recognizes sage protection as a legal usable revival", () => {
+  const state = injureSage(effectGame("贤者的庇护"));
+  assert.equal(chooseAiActionWindowSkill(state, owner(state).id)?.skillId, getFusionSkillId("贤者的庇护"));
 });
 
 console.log(`fusion checks passed (${passed})`);

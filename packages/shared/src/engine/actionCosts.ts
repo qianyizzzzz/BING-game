@@ -18,6 +18,7 @@ export function getAttackActionCost(state: Pick<GameState, "players">, player: P
 }
 
 export function getTurnSkillActionCost(player: Pick<PlayerState, "skills" | "buffs" | "skillFusions">, action: SkillAction): number {
+  if (action.skillId === "skill_90_32911" && getActiveFusionCount(player, "杀级换") > 0) return 0;
   const free = getFreeSkillChargeId(player, action.skillId) ? Math.min(action.stacks, Math.max(0, action.freeStacks ?? 0)) : 0;
   return getSkillActionCost(action.skillId, action.stacks - free);
 }

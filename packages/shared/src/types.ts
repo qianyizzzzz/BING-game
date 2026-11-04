@@ -8,6 +8,9 @@ export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 6;
 export const INFINITE_DAMAGE = 999;
 export const RETIRE_EFFECT_POWER = 100000;
+export const VANISH_EFFECT_POWER = RETIRE_EFFECT_POWER * 2;
+export const EXECUTE_EFFECT_POWER = RETIRE_EFFECT_POWER * 3;
+export const EXPLODE_EFFECT_POWER = RETIRE_EFFECT_POWER * 4;
 
 export type PlayerStatus = "alive" | "dead";
 export type PlayerKind = "human" | "ai" | "spectator";
@@ -127,9 +130,16 @@ export interface AttackStats {
   includeSelf?: boolean;
   frostBladeKeepsDamage?: boolean;
   ignoreSwordProtections?: boolean;
+  /** 火眼金睛 (v4): remove 绝弹's permission to reflect nuclear/skill actions. */
+  ignoreAbsoluteRebound?: boolean;
+  requiresAbsoluteRebound?: boolean;
+  /** 根源之目: remove 弹力球's extra resistance to piercing. */
+  ignoreElasticRebound?: boolean;
 }
 
 export interface PlayerState {
+  /** Serialized separately from the finite display value, avoiding JS Infinity/null. */
+  hpIsInfinite?: boolean;
   id: PlayerId;
   accountId?: string;
   name: string;
@@ -154,6 +164,7 @@ export interface PlayerState {
 }
 
 export interface BuffState {
+  infinite?: boolean;
   id: BuffId;
   name: string;
   stacks: number;
@@ -162,7 +173,12 @@ export interface BuffState {
   sourcePlayerId?: PlayerId;
   sourceFusionId?: string;
   fusionMarkKind?: "ice_fire" | "solar_lava" | "ice_rain";
+  /** Revealed action slot receiving a spent offensive mark. */
+  attackActionIndex?: number;
   traumaCakePaid?: boolean;
+  /** Six-star recovery follows the largest individual damage through this turn. */
+  sixStarMaxDamage?: number;
+  sixStarRecoveryPaid?: number;
 }
 
 export interface SkillFusionState {
@@ -170,6 +186,14 @@ export interface SkillFusionState {
   skillId: SkillId;
   materialSkillIds: [SkillId, SkillId];
   witherSelectionIndex?: number;
+  /** Independent acquisition choices; retained when the cover is serialized or resumed. */
+  acquisition?: {
+    smallUsed: boolean;
+    fusionUsed: boolean;
+    mirrorMaterialUsed?: boolean;
+    smallUseRecorded?: boolean;
+    bonusSkillId?: SkillId;
+  };
 }
 
 export interface GainCakeAction {
@@ -214,6 +238,10 @@ export interface DiscardSkillAction {
 
 export type AttackStatModifierChoice =
   | "swap_power_level"
+  | "swap_cost_power"
+  | "swap_cost_level"
+  | "rotate_cost_power_level"
+  | "rotate_cost_level_power"
   | "power_plus_1_level_minus_1"
   | "power_minus_1_level_plus_1"
   | "power_plus_2_level_minus_2"
@@ -267,6 +295,8 @@ export interface GameState {
   damageModifyAfterTurnResolution?: boolean;
   preemptiveRestartSnapshot?: PreemptiveRestartSnapshot;
   actionWindowMode?: ActionWindowMode;
+  /** Ordinary changes are closed; only reversal responses or passing remain. */
+  reversalResponseOnly?: boolean;
   actionWindowDeadlineAt?: number;
   actionWindowPlayerIds: PlayerId[];
   actionWindowPassPlayerIds: PlayerId[];
@@ -276,7 +306,15 @@ export interface GameState {
   pendingActions: PendingActionMap;
   turnActionCosts?: Partial<Record<PlayerId, number[]>>;
   turnActionReceipts?: Partial<Record<PlayerId, TurnActionReceipt>>;
+  turnAttackStats?: Partial<Record<PlayerId, Record<number, AttackStats>>>;
   pendingDamageItems?: PendingDamageItem[];
+  retaliationRevivalPending?: boolean;
+  /** Private, reversible action receipts and attacks captured when reversal is first used. */
+  reversalState?: { turnNumber: number; attacks: import("./engine/scatterRebound").ReboundAttack[];
+    suppressed: boolean; receipts: Partial<Record<PlayerId, TurnActionReceipt>>; fusions: Record<PlayerId, SkillFusionState[]> };
+  /** Private; deliberately excluded from preemptive snapshots and public projections. */
+  retaliationResponses?: { turnNumber: number; counts: Record<PlayerId, Partial<Record<SkillId, number>>> };
+  roundEndDamagePending?: { skipSmallSpaceTick: boolean };
   pendingSkillChoices?: PendingSkillChoice[];
   skillKnowledge: SkillKnowledgeMap;
   eventLog: GameEvent[];
@@ -315,11 +353,17 @@ export interface PublicGameState
     | "damageModifyAfterTurnResolution"
     | "turnActionCosts"
     | "turnActionReceipts"
+    | "turnAttackStats"
+    | "retaliationRevivalPending"
+    | "reversalState"
+    | "retaliationResponses"
+    | "roundEndDamagePending"
   > {
   pendingActionPlayerIds: PlayerId[];
   pendingSkillChoices?: PendingSkillChoice[];
   revealedActions?: PendingActionMap;
   revealedActionCosts?: Partial<Record<PlayerId, number[]>>;
+  revealedAttackStats?: Partial<Record<PlayerId, Record<number, Pick<AttackStats, "cost" | "power" | "level">>>>;
   revealedActionTargets?: Partial<Record<PlayerId, PlayerId[][]>>;
   viewerPlayerId?: PlayerId;
 }
@@ -485,6 +529,10 @@ export interface ClashEvent extends BaseGameEvent {
 }
 
 export interface DamageEvent extends BaseGameEvent {
+  internalDamage?: boolean;
+  reflected?: boolean;
+  infiniteCopies?: boolean;
+  perCopyAmount?: number;
   type: "damage";
   sourceId?: PlayerId;
   targetId: PlayerId;
@@ -496,6 +544,15 @@ export interface DamageEvent extends BaseGameEvent {
 }
 
 export interface PendingDamageItem {
+  /** Recover the actual settled spell damage for its source; prevented or redirected packets do not pay. */
+  drainHealing?: boolean;
+  internalDamage?: boolean;
+  /** Explicit spell damage, independent of elemental attributes. */
+  spellDamage?: boolean;
+  unprocessedSpell?: boolean;
+  retaliation?: boolean;
+  reflected?: boolean;
+  infiniteCopies?: boolean;
   id: string;
   sourceId?: PlayerId;
   targetId: PlayerId;
@@ -521,13 +578,16 @@ export interface PendingSkillChoice {
 }
 
 export interface HealEvent extends BaseGameEvent {
+  /** The intended recipient when ordinary healing was claimed by another player. */
+  originalTargetId?: PlayerId;
+  infinite?: boolean;
   type: "heal";
   sourceId?: PlayerId;
   targetId: PlayerId;
   amount: number;
   reason: string;
-  /** Only ordinary healing is affected by healing suppression or redirection. */
-  recoveryKind?: "healing" | "full_restore" | "revival";
+  /** Only ordinary healing is affected by amplification, suppression or redirection. */
+  recoveryKind?: "healing" | "full_restore" | "revival" | "conversion";
 }
 
 export interface RoundEndedEvent extends BaseGameEvent {

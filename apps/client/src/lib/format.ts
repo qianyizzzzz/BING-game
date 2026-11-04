@@ -8,6 +8,26 @@ import {
   getActionLabel,
   getActionPlanLabel
 } from "@bing/shared";
+import { getSkillCakeCostKind, getSkillPlay, PlayerState, RETIRE_EFFECT_POWER,
+  VANISH_EFFECT_POWER, EXECUTE_EFFECT_POWER, EXPLODE_EFFECT_POWER } from "@bing/shared";
+
+export function formatAttackStatNumber(value: number): string {
+  const sign = value < 0 ? "-" : "";
+  const amount = Math.abs(value);
+  if (amount >= EXPLODE_EFFECT_POWER) return `${sign}爆炸`;
+  if (amount >= EXECUTE_EFFECT_POWER) return `${sign}必杀`;
+  if (amount >= VANISH_EFFECT_POWER) return `${sign}消失`;
+  if (amount >= RETIRE_EFFECT_POWER) return `${sign}退游`;
+  return amount >= INFINITE_DAMAGE ? `${sign}∞` : String(value);
+}
+
+export function formatSkillCakeCost(skillId: string | undefined, actualCost?: number, player?: PlayerState): string {
+  if (!skillId) return "—";
+  const kind = getSkillCakeCostKind(skillId, player);
+  if (kind === "none") return "无耗饼";
+  if (actualCost === undefined && kind === "dynamic") return "按效果计算耗饼";
+  return `${actualCost ?? getSkillPlay(skillId)?.cost ?? 0}饼`;
+}
 
 export function formatDamage(amount: number): string {
   return amount >= INFINITE_DAMAGE ? "∞" : String(amount);
@@ -83,9 +103,14 @@ export function formatEvent(event: GameEvent, state: PublicGameState): string {
     case "clash":
       return event.result;
     case "damage":
-      return `${playerName(state, event.targetId)} 受到 ${formatDamage(event.amount)} 点伤害${event.attackName ? `（${event.attackName}）` : ""}`;
+      if (event.infiniteCopies) return `${playerName(state, event.targetId)} 受到来自 ${playerName(state, event.sourceId)} 的无限份${event.attackName ?? "攻击"}，每份 ${formatDamage(event.perCopyAmount ?? 0)} 点${event.internalDamage ? "反噬伤害" : "伤害"}`;
+      return `${playerName(state, event.targetId)} 受到 ${formatDamage(event.amount)} 点${event.internalDamage ? "反噬伤害" : "伤害"}${event.attackName ? `（${event.attackName}）` : ""}${event.sourceId && !event.internalDamage ? `，来源：${playerName(state, event.sourceId)}` : ""}`;
     case "heal":
-      return `${playerName(state, event.targetId)} 回复 ${event.amount} 血（${event.reason}）`;
+      if (event.recoveryKind === "conversion") return `${playerName(state, event.targetId)} 血量转换增加 ${event.amount}（${event.reason}）`;
+      if (event.recoveryKind === "full_restore") return `${playerName(state, event.targetId)} 恢复满血（${event.reason}）`;
+      if (event.recoveryKind === "revival") return `${playerName(state, event.targetId)} 通过${event.reason}复活`;
+      if (event.originalTargetId) return `${playerName(state, event.targetId)} 回复 ${event.infinite ? "∞" : event.amount} 血（${event.reason}，原定给予 ${playerName(state, event.originalTargetId)}）`;
+      return `${playerName(state, event.targetId)} 回复 ${event.infinite ? "∞" : event.amount} 血（${event.reason}）`;
     case "round_ended":
       return `本轮结束：${event.reason}`;
     case "player_died":

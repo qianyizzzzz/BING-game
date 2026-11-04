@@ -47,11 +47,14 @@ def main() -> None:
 
 def normalize_fusion_rows(rows: list[tuple[int, list[str]]], skills: list[dict]) -> list[dict]:
     by_name = {skill["name"]: skill["id"] for skill in skills}
+    header = rows[0][1]
+    def field(row: list[str], name: str, fallback: int) -> str:
+        return cell(row, header.index(name) if name in header else fallback)
     aliases = {"地狱使徒": "地狱主宰", "神之庇佑": "神之庇护"}
     recipes = []
     seen_ids = set()
     for row_number, row in rows[1:]:
-        name, materials = cell(row, 1), cell(row, 2)
+        name, materials = field(row, "技能名字", 1), field(row, "融合素材", 2)
         if not name:
             continue
         names = [aliases.get(part.strip(), part.strip()) for part in materials.split("+")]
@@ -66,18 +69,18 @@ def normalize_fusion_rows(rows: list[tuple[int, list[str]]], skills: list[dict])
         if fusion_id in seen_ids:
             raise ValueError(f"Duplicate fusion id: {name}")
         seen_ids.add(fusion_id)
-        tags = split_tags(cell(row, 7))
-        effect = cell(row, 4)
+        tags = split_tags(field(row, "属性标签", 7))
+        effect = field(row, "融合效果", 4)
         for old_name, canonical_name in aliases.items():
             effect = effect.replace(old_name, canonical_name)
         skill = {"id": fusion_id, "name": name, "fusion": materials,
-                 "timing": cell(row, 5), "exposureTiming": "不暴露",
+                 "timing": field(row, "使用时机", 5), "exposureTiming": field(row, "暴露时机", -1) or "不暴露",
                  "description": effect, "tags": tags,
-                 "typeTags": split_tags(cell(row, 8)), "sourceRow": row_number}
+                 "typeTags": split_tags(field(row, "技能标签", 8)), "sourceRow": row_number}
         attribute = skill_attribute(tags)
         if attribute:
             skill["attribute"] = attribute
-        original_effect = cell(row, 3)
+        original_effect = field(row, "原效果", 3)
         all_materials = list(dict.fromkeys(material for option in options for material in option))
         if original_effect == "失去":
             retained = []
@@ -88,7 +91,7 @@ def normalize_fusion_rows(rows: list[tuple[int, list[str]]], skills: list[dict])
         else:
             retained = all_materials
         recipes.append({"skill": skill, "materialOptions": options,
-                        "originalEffect": original_effect, "retainedMaterialIds": retained, "targeting": cell(row, 6),
+                        "originalEffect": original_effect, "retainedMaterialIds": retained, "targeting": field(row, "目标选取", 6),
                         "materialUseCosts": list(options[0]) if name == "冰火两仪眼" else []})
     return recipes
 

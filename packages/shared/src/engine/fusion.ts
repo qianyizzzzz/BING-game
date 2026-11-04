@@ -3,6 +3,9 @@ import { ACTION_WINDOW_SECONDS, cloneGameState, createBaseEvent, createId, findP
 import { clearFusionMarks, COMMON_FUSION_SKILL_ID, FUSION_CAKE_COST, getFusionMaterialPair,
   getFusionRecipe, isFusionImplemented, isFusionPreparation } from "../skills/fusion";
 import { getNextWitherSelectionIndex, isValidWitherNumber } from "../skills/fusion";
+import { initializeFusionAcquisition } from "./skillAcquisition";
+import { revealSkillForExposureTiming } from "./gameFactory";
+import { getSkill } from "../skills/registry";
 
 export function chooseWitherNumber(state: GameState, playerId: PlayerId, selectionIndex: number, value: number): GameState {
   if (!isFusionPreparation(state)) throw new Error("枯萎只能在开局准备阶段选数");
@@ -42,6 +45,7 @@ export function validateFusionAction(state: GameState, playerId: PlayerId, actio
   }
   if (!action.targetSkillId || !getFusionRecipe(action.targetSkillId)) return fail("请选择有效的融合配方");
   if (!isFusionImplemented(action.targetSkillId)) return fail("这个融合技能的效果尚未开放");
+  if (getFusionRecipe(action.targetSkillId)?.skill.name === "猥琐小叔叔" && !isFusionPreparation(state)) return fail("猥琐小叔叔只能在开局准备阶段融合并选择技能");
   if (!getFusionMaterialPair(player, action.targetSkillId, action.materialSkillIds)) return fail("融合素材不足、已被覆盖或与配方不符");
   return { ok: true };
 }
@@ -54,8 +58,18 @@ export function applySkillFusion(state: GameState, playerId: PlayerId, skillId: 
   const materials = player && getFusionMaterialPair(player, skillId, selected);
   if (!player || !recipe || !materials || !isFusionImplemented(skillId)) throw new Error("当前无法完成该融合");
   player.skillFusions ??= [];
+  if (recipe.skill.name === "冰火狂暴曲") {
+    player.buffs = player.buffs.filter((buff) => !["lava_mark", "winter_mark", "stone_defense_count", "youtiao_defense_count"].includes(buff.id) &&
+      !/^pending_(lava|winter)_mark(?::|$)/.test(buff.id));
+  }
+  if (recipe.skill.name === "阳炎之怒") {
+    player.buffs = player.buffs.filter((buff) => buff.fusionMarkKind === "solar_lava" ||
+      (!["lava_mark", "stone_defense_count"].includes(buff.id) && !/^pending_lava_mark(?::|$)/.test(buff.id)));
+  }
   const selection = recipe.skill.name === "枯萎" ? { witherSelectionIndex: getNextWitherSelectionIndex(player) } : {};
   player.skillFusions.push({ id: createId("fusion_instance"), skillId, materialSkillIds: [...materials], ...selection });
+  initializeFusionAcquisition(player, player.skillFusions.at(-1)!);
+  if (getSkill(skillId)?.exposureTiming === "开局") revealSkillForExposureTiming(state, playerId, skillId, "开局", "融合开局宣告");
   if (recipe.skill.name === "逐日之弓" && isFusionPreparation(state)) {
     state.pendingSkillChoices ??= [];
     for (const other of state.players.filter((item) => item.id !== player.id && item.status === "alive")) {
@@ -108,6 +122,21 @@ export function decomposeSkill(state: GameState, playerId: PlayerId, fusionId: s
     }
   }
   owner.skillFusions = owner.skillFusions!.filter((item) => item.id !== fusionId);
+  if (getFusionRecipe(fusion.skillId)?.skill.name === "沙皇") {
+    for (let used = 0; used < Number(Boolean(fusion.acquisition?.smallUsed)) + Number(Boolean(fusion.acquisition?.fusionUsed)); used++) {
+      const index = owner.skills.indexOf("skill_4_65637"); if (index >= 0) owner.skills.splice(index, 1);
+    }
+  }
+  if (fusion.acquisition?.bonusSkillId) {
+    const index = owner.skills.indexOf(fusion.acquisition.bonusSkillId);
+    if (index >= 0) owner.skills.splice(index, 1);
+    if (!owner.skills.includes(fusion.acquisition.bonusSkillId)) {
+      owner.revealedSkillIds = owner.revealedSkillIds.filter((id) => id !== fusion.acquisition!.bonusSkillId);
+      for (const knowledge of Object.values(next.skillKnowledge)) if (knowledge?.[playerId]) {
+        knowledge[playerId] = knowledge[playerId]!.filter((id) => id !== fusion.acquisition!.bonusSkillId);
+      }
+    }
+  }
   owner.buffs = owner.buffs.filter((buff) => buff.id !== "demon_domain_target" || buff.sourceFusionId !== fusionId);
   clearFusionMarks(owner, fusionId);
   next.eventLog.push({ ...createBaseEvent(next, "system"), type: "system", privatePlayerId: playerId,

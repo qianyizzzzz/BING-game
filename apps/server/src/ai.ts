@@ -14,6 +14,15 @@ import {
   alivePlayers,
   canPlayerSeeSkill,
   getActionSwitchChoicesForAction,
+  getAttackMarkKind,
+  getAttackMarkCount,
+  getAttackMarkChoices,
+  getAttackMarkCapacity,
+  getActionSwitchPlan,
+  getLevelSwapModifiers,
+  hasEnhancedLevelSwap,
+  previewPlayerAttackStats,
+  applyAttackStatModifierChoice,
   getActiveSkillCount,
   getLightningSpellTargetPlan,
   getSkill,
@@ -21,6 +30,8 @@ import {
   getSkillPlay,
   getSkillUseLimit,
   getOwnedSkillIds,
+  getAcquisitionSkillChoices,
+  getFusionRecipe,
   getDamageRedirectLimit,
   getFusionSkillId,
   getActionAttackTargetIds,
@@ -251,8 +262,8 @@ function buildAiSkillActions(
     return buildAiAttackStatModifierSkills(state, self, skillId);
   }
 
-  if (skillId === "skill_4_65637") {
-    return buildAiSandTransformSkills(state, self);
+  if (play.effect === "sand_transform") {
+    return buildAiSandTransformSkills(state, self, skillId);
   }
 
   if (skillId === "skill_68_57581") {
@@ -294,6 +305,10 @@ function buildAiSkillActions(
     return [];
   }
 
+  if (getAttackMarkKind(skillId)) return getAttackMarkChoices(state, self.id).flatMap(({ actionIndex }) =>
+    Array.from({ length: Math.min(maxStacks, getAttackMarkCapacity(self, skillId, actionIndex)) }, (_, index): SkillAction =>
+      ({ type: "skill", skillId, stacks: index + 1, switchActionIndex: actionIndex })));
+
   const actions: SkillAction[] = [];
   const charge = getFreeSkillChargeId(self, skillId);
   const availableFree = self.buffs.find((buff) => buff.id === charge)?.stacks ?? 0;
@@ -332,7 +347,7 @@ function buildAiActionSwitchSkills(
   }
 
   return plan.actions.flatMap((current, actionIndex) =>
-    getActionSwitchChoicesForAction(skillId, current)
+    getActionSwitchChoicesForAction(skillId, current, self)
       .filter((choice) => self.cakes >= choice.cost)
       .map((choice) => ({
         type: "skill" as const,
@@ -360,15 +375,13 @@ function buildAiAttackStatModifierSkills(
     }
 
     if (skillId === "skill_91_89631") {
-      return [
-        {
+      return getLevelSwapModifiers(self, current).map((attackStatModifier) => ({
           type: "skill" as const,
           skillId,
           stacks: 1,
           switchActionIndex: actionIndex,
-          attackStatModifier: "swap_power_level" as const
-        }
-      ];
+          attackStatModifier
+        }));
     }
 
     return DESTROY_POWER_MODIFIER_CHOICES.map((attackStatModifier) => ({
@@ -381,13 +394,12 @@ function buildAiAttackStatModifierSkills(
   });
 }
 
-function buildAiSandTransformSkills(state: GameState, self: PlayerState): SkillAction[] {
+function buildAiSandTransformSkills(state: GameState, self: PlayerState, skillId = "skill_4_65637"): SkillAction[] {
   const occupied = new Set(
     alivePlayers(state)
-      .filter((player) => player.id !== self.id)
-      .flatMap((player) => player.skills)
+      .flatMap((player) => getOwnedSkillIds(player))
   );
-  const targetSkillId = getSmallSkillIds().find((skillId) => !occupied.has(skillId));
+  const targetSkillId = getAcquisitionSkillChoices(self, skillId).find((id) => skillId === getFusionSkillId("猥琐小叔叔") || !occupied.has(id));
   if (!targetSkillId) {
     return [];
   }
@@ -395,7 +407,7 @@ function buildAiSandTransformSkills(state: GameState, self: PlayerState): SkillA
   return [
     {
       type: "skill",
-      skillId: "skill_4_65637",
+      skillId,
       stacks: 1,
       targetSkillId
     }
@@ -547,11 +559,13 @@ function enumerateExposedSkillTargetActions(
   skillId: string
 ): SkillAction[] {
   return enemies.flatMap((enemy) =>
-    enemy.skills
+    getOwnedSkillIds(enemy)
       .filter((targetSkillId) => {
         const skill = getSkill(targetSkillId);
         return (
           Boolean(skill) &&
+          (skillId !== "skill_101_4254" || !getFusionRecipe(targetSkillId)) &&
+          (skillId !== getFusionSkillId("天魔舞") || Boolean(getFusionRecipe(targetSkillId)) && targetSkillId !== skillId) &&
           (skillId !== "skill_5_34881" || skillHasTypeTag(skill, "锁定技")) &&
           canPlayerSeeSkill(state, self.id, enemy.id, targetSkillId)
         );
@@ -607,6 +621,8 @@ function getSkillUseCount(player: PlayerState, skillId: string): number {
 }
 
 function getAvailableSkillResourceStacks(player: PlayerState, skillId: string): number | undefined {
+  const marks = getAttackMarkCount(player, skillId);
+  if (marks !== undefined) return marks;
   if (skillId === "skill_37_68416") {
     return player.buffs.find((buff) => buff.id === "guidao_charge")?.stacks ?? 0;
   }
@@ -843,7 +859,7 @@ function scoreAiEffectSkill(
     score += 18 + incomingPressure * 8 + lowHpBonus;
   }
 
-  if (play.effect === "lava_mark" || play.effect === "winter_mark") {
+  if (getAttackMarkKind(action.skillId)) {
     score += hasPendingOffense(state, self.id) ? 34 + action.stacks * 8 : -18;
   }
 
@@ -935,6 +951,21 @@ function scoreNoDirectEffectWindow(
   enemies: PlayerState[],
   action: SkillAction
 ): number {
+  if (action.skillId === "skill_90_32911" && getFusionEnhancementCount(self, action.skillId, ["杀级换"]) > 0) {
+    const plan = getActionSwitchPlan(state, self.id, action);
+    if (!plan) return -80;
+    const before = previewPlayerAttackStats(state, self.id);
+    const changed = structuredClone(state);
+    changed.pendingActions[self.id]!.actions[plan.actionIndex] = plan.after;
+    const after = previewPlayerAttackStats(changed, self.id);
+    const original = before.stats[plan.actionIndex];
+    const switched = after.stats[plan.actionIndex];
+    if (!original || !switched) return -80;
+    const price = after.costs.reduce((sum, cost) => sum + cost, 0) - before.costs.reduce((sum, cost) => sum + cost, 0);
+    const gain = (attackStatValue(switched) - attackStatValue(original)) * 4 - price * 8;
+    return gain > 0 ? 24 + gain : -60;
+  }
+  if (action.skillId === getFusionSkillId("贤者的庇护")) return 95;
   if (action.skillId === getFusionSkillId("辉月")) {
     const incoming = Object.entries(state.pendingActions).flatMap(([id, plan]) => id === self.id ? [] :
       (plan?.actions ?? []).filter((candidate) => getActionAttackTargetIds(state, id, candidate).includes(self.id)));
@@ -1019,6 +1050,18 @@ function scoreAttackStatModifierWindow(
   self: PlayerState,
   action: SkillAction
 ): number {
+  if (action.skillId === "skill_91_89631" && hasEnhancedLevelSwap(self)) {
+    const index = normalizeActionIndex(action.switchActionIndex);
+    const current = previewPlayerAttackStats(state, self.id);
+    const candidate = previewPlayerAttackStats(state, self.id, { id: "candidate", actionIndex: index,
+      modifier: action.attackStatModifier ?? "swap_power_level", enhanced: true });
+    const before = current.stats[index];
+    const after = candidate.stats[index];
+    if (!before || !after || candidate.failures.some((item) => item.id === "candidate")) return -80;
+    const price = candidate.costs.reduce((sum, cost) => sum + cost, 0) - current.costs.reduce((sum, cost) => sum + cost, 0);
+    const gain = (attackStatValue(after) - attackStatValue(before)) * 4 - price * 8;
+    return gain > 0 ? 24 + gain : -60;
+  }
   const plan = state.pendingActions[self.id];
   const current = plan?.actions[normalizeActionIndex(action.switchActionIndex)];
   const before = current ? estimatePendingAttackStats(current) : undefined;
@@ -1049,72 +1092,12 @@ function estimatePendingAttackStats(action: PlayerAction): AttackStats | undefin
   return undefined;
 }
 
-function applyAttackStatModifierChoice(
-  attack: AttackStats,
-  modifier: AttackStatModifierChoice
-): AttackStats {
-  switch (modifier) {
-    case "swap_power_level":
-      return {
-        ...attack,
-        power: attack.level,
-        level: attack.power
-      };
-    case "power_plus_1_level_minus_1":
-      return {
-        ...attack,
-        power: addFiniteStat(attack.power, 1),
-        level: Math.max(0, addFiniteStat(attack.level, -1))
-      };
-    case "power_minus_1_level_plus_1":
-      return {
-        ...attack,
-        power: Math.max(0, addFiniteStat(attack.power, -1)),
-        level: addFiniteStat(attack.level, 1)
-      };
-    case "power_plus_2_level_minus_2":
-      return {
-        ...attack,
-        power: addFiniteStat(attack.power, 2),
-        level: Math.max(0, addFiniteStat(attack.level, -2))
-      };
-    case "power_minus_2_level_plus_2":
-      return {
-        ...attack,
-        power: Math.max(0, addFiniteStat(attack.power, -2)),
-        level: addFiniteStat(attack.level, 2)
-      };
-    case "power_times_3_level_to_zero":
-      return {
-        ...attack,
-        power: multiplyFiniteStat(attack.power, 3),
-        level: 0
-      };
-    case "power_to_zero_level_times_4":
-      return {
-        ...attack,
-        power: 0,
-        level: multiplyFiniteStat(attack.level, 4)
-      };
-    default:
-      return attack;
-  }
-}
-
 function attackStatValue(stats: Pick<AttackStats, "power" | "level">): number {
   return boundedStatValue(stats.power) * 8 + boundedStatValue(stats.level) * 3;
 }
 
 function boundedStatValue(value: number): number {
   return value >= INFINITE_DAMAGE ? 16 : value;
-}
-
-function addFiniteStat(value: number, delta: number): number {
-  return value >= INFINITE_DAMAGE ? value : value + delta;
-}
-
-function multiplyFiniteStat(value: number, factor: number): number {
-  return value >= INFINITE_DAMAGE ? value : value * factor;
 }
 
 function normalizeActionIndex(value: number | undefined): number {

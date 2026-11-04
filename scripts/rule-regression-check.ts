@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import {
   ActionSubmission,
   ACTION_WINDOW_SECONDS,
@@ -2352,7 +2352,7 @@ run("infinite war spirit keeps negative hp without healing", () => {
   assert.equal(buffStacks(player(next, ids.A), "war_spirit"), 1);
 });
 
-run("zhong keeps only one active shield at a time", () => {
+run("zhong keeps a separate shield for each target across turns", () => {
   const { state, ids } = makeGame(["A", "B", "C"]);
   seat(state, ids.A, { cakes: 2, skills: ["skill_85_26345"] });
 
@@ -2369,8 +2369,8 @@ run("zhong keeps only one active shield at a time", () => {
   }, ids);
   const shields = player(second, ids.A).buffs.filter((buff) => buff.id === "jin_zhong_zhao");
 
-  assert.equal(shields.length, 1);
-  assert.equal(shields[0]?.sourcePlayerId, ids.C);
+  assert.equal(shields.length, 2);
+  assert.deepEqual(shields.map((buff) => buff.sourcePlayerId).sort(), [ids.B, ids.C].sort());
 });
 
 run("frost blade hit causes no damage but forces a round restart and disables target skills", () => {
@@ -3622,6 +3622,7 @@ run("reversal swaps a single targeted attack and removes cake gain", () => {
     skillId: "skill_93_50224",
     stacks: 1
   });
+  for (let guard = 0; state.phase === "action_window" && state.activeTimingPhase !== "turn_end_action" && guard < 30; guard++) state = advanceActionWindow(state);
 
   assert.equal(player(state, ids.A).hp, 6);
   assert.equal(player(state, ids.A).cakes, 0);
@@ -3648,6 +3649,7 @@ run("reversal splits area attacks into single reversed attacks", () => {
     skillId: "skill_93_50224",
     stacks: 1
   });
+  for (let guard = 0; state.phase === "action_window" && state.activeTimingPhase !== "turn_end_action" && guard < 30; guard++) state = advanceActionWindow(state);
 
   assert.equal(player(state, ids.A).hp, 6);
   assert.equal(player(state, ids.C).hp, 6);
@@ -3683,6 +3685,7 @@ run("reversal preserves modified attack stats after the source changes", () => {
     skillId: "skill_93_50224",
     stacks: 1
   });
+  for (let guard = 0; state.phase === "action_window" && state.activeTimingPhase !== "turn_end_action" && guard < 30; guard++) state = advanceActionWindow(state);
 
   assert.equal(player(state, ids.A).hp, 3);
   assert.equal(player(state, ids.B).hp, 6);
@@ -3711,14 +3714,15 @@ run("reversal suppresses cake, saint, and forest gains", () => {
     skillId: "skill_93_50224",
     stacks: 1
   });
+  for (let guard = 0; state.phase === "action_window" && state.activeTimingPhase !== "turn_end_action" && guard < 30; guard++) state = advanceActionWindow(state);
 
   assert.equal(player(state, ids.A).cakes, 0);
-  assert.equal(player(state, ids.C).cakes, 0);
+  assert.equal(player(state, ids.C).cakes, 1);
   assert.equal(player(state, ids.D).hp, 4);
   assert.equal(player(state, ids.B).hp, 5);
 });
 
-run("reversal resolves clashes before aggregate rebound chains", () => {
+run("reversal swaps declarations before retargeting and resolving the resulting attacks", () => {
   let { state, ids } = makeGame(["P", "AI1", "AI2", "AI3"], {
     skillMode: "test_select",
     skillCount: 1
@@ -3741,11 +3745,13 @@ run("reversal resolves clashes before aggregate rebound chains", () => {
     skillId: "skill_93_50224",
     stacks: 1
   });
+  for (let guard = 0; state.phase === "action_window" && state.activeTimingPhase !== "turn_end_action" && guard < 30; guard++) state = advanceActionWindow(state);
 
   assert.equal(player(state, ids.P).hp, 6);
-  assert.equal(player(state, ids.AI1).hp, -12);
+  assert.equal(player(state, ids.AI1).hp, -15);
   assert.equal(player(state, ids.AI2).hp, 6);
-  assert.equal(player(state, ids.AI3).hp, 6);
+  // Retarget first: AI1 takes 21 total damage; AI3 receives its own 3-power attack as internal injury.
+  assert.equal(player(state, ids.AI3).hp, 3);
 });
 
 run("past time small space removes its player from main-space win checks", () => {

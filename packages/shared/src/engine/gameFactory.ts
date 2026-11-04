@@ -16,6 +16,7 @@ import { getIntroSmallSkillIds, getSkill, skillHasTypeTag } from "../skills/regi
 import { COMMON_FUSION_SKILL_ID, countSuppressedFusionMaterials, getOwnedSkillIds, getFusionRecipe, isFusionActive,
   HUIYUE_BUFF_ID, isHuiyueActive } from "../skills/fusion";
 import { getAttackActionCost, getTurnSkillActionCost } from "./actionCosts";
+import { previewPlayerAttackStats } from "./attackStatModifiers";
 import { ATTACK_ORDER } from "./attacks";
 import { getActionAttackTargetIds } from "./validation";
 import { SkillExposureTiming } from "../skills/types";
@@ -164,6 +165,7 @@ export function addSpectatorToGame(
   spectator.kind = "spectator";
   spectator.status = "dead";
   spectator.hp = 0;
+  delete spectator.hpIsInfinite;
   spectator.cakes = 0;
   spectator.skills = [];
   spectator.revealedSkillIds = [];
@@ -245,6 +247,7 @@ function applyStartOfGameSkills(state: GameState): void {
     const initialHp = getPlayerInitialHp(player);
     if (initialHp !== INITIAL_HP) {
       player.hp = initialHp;
+      delete player.hpIsInfinite;
       state.eventLog.push({
         ...createBaseEvent(state, "system"),
         type: "system",
@@ -650,6 +653,7 @@ export function recordSkillUsed(
   state.eventLog.push({
     ...createBaseEvent(state, "skill_used"),
     type: "skill_used",
+    ...(getFusionRecipe(skillId) && !findPlayer(state, playerId)?.revealedSkillIds.includes(skillId) ? { privatePlayerId: playerId } : {}),
     playerId,
     skillId,
     skillName: skill?.name ?? skillId,
@@ -679,10 +683,8 @@ function triggerSkillRevealWatchers(state: GameState, revealedPlayerId: PlayerId
       stacks: 1
     });
     for (let index = 0; index < getActiveSkillCount(watcher, "skill_109_65084"); index += 1) {
-      revealedPlayer.hp -= 2;
-      state.eventLog.push({
-        ...createBaseEvent(state, "damage"),
-        type: "damage",
+      (state.pendingDamageItems ??= []).push({
+        id: createId("spell_damage"), spellDamage: true, unprocessedSpell: true,
         sourceId: watcher.id,
         targetId: revealedPlayerId,
         amount: 2,
@@ -761,6 +763,11 @@ export function toPublicGameState(
     damageModifyAfterTurnResolution: _damageModifyAfterTurnResolution,
     turnActionCosts: _turnActionCosts,
     turnActionReceipts: _turnActionReceipts,
+    turnAttackStats: _turnAttackStats,
+    retaliationRevivalPending: _retaliationRevivalPending,
+    reversalState: _reversalState,
+    retaliationResponses: _retaliationResponses,
+    roundEndDamagePending: _roundEndDamagePending,
     ...publicFields
   } = state;
   const players = publicFields.players.map((player) => {
@@ -832,6 +839,9 @@ export function toPublicGameState(
       ...(revealedActions ? { revealedActions } : {}),
       ...(revealedActions ? { revealedActionTargets: Object.fromEntries(Object.entries(state.pendingActions).map(([id, plan]) =>
         [id, plan?.actions.map((action) => getActionAttackTargetIds(state, id, action)) ?? []])) } : {}),
+      ...(revealedActions ? { revealedAttackStats: Object.fromEntries(Object.keys(state.pendingActions).map((id) => [id,
+        Object.fromEntries(Object.entries(state.turnAttackStats?.[id] ?? previewPlayerAttackStats(state, id).stats)
+          .map(([index, stats]) => [index, { cost: stats.cost, power: stats.power, level: stats.level }]))])) } : {}),
       ...(revealedActions ? { revealedActionCosts: Object.fromEntries(Object.entries(state.pendingActions).map(([id, plan]) => {
         const owner = findPlayer(state, id)!;
         return [id, state.turnActionCosts?.[id] ?? plan?.actions.map((action) => action.type === "attack" ? getAttackActionCost(state, owner, action) :

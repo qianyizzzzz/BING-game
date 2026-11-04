@@ -74,7 +74,7 @@ export function PlayerCard({ player, state, isViewer, highlighted = false }: Pla
             <HeartPulse className="h-4 w-4" aria-hidden="true" />
             血量
           </div>
-          <div className="mt-1 text-2xl font-bold text-red-900">{player.hp}</div>
+          <div className="mt-1 text-2xl font-bold text-red-900">{player.hpIsInfinite ? (player.hp < 0 ? "−∞" : "∞") : player.hp}</div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-red-100">
             <div
               className="h-full rounded-full bg-red-500 transition-all"
@@ -117,6 +117,7 @@ function getVisibleStatusBuffs(
   buffs: PlayerState["buffs"]
 ): PlayerState["buffs"] {
   const priority = (buff: PlayerState["buffs"][number]): number => {
+    if (buff.id === "temp_negative_status_immunity") return -1;
     if (buff.id === "frozen") {
       return 0;
     }
@@ -153,6 +154,7 @@ function getVisibleStatusBuffs(
 }
 
 function statusBuffLabel(buff: PlayerState["buffs"][number]): string {
+  if (buff.id === "temp_negative_status_immunity") return "免疫不良";
   if (buff.id === "frozen") {
     return buff.stacks > 1 ? `冰冻${buff.stacks}` : "冰冻";
   }

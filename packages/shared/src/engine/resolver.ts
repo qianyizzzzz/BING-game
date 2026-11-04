@@ -1,4 +1,5 @@
 ﻿import {
+  AttackElement,
   AttackStatModifierChoice,
   AttackStats,
   AttackBlockedEvent,
@@ -24,6 +25,12 @@
   SkillTimingPhase,
   SubmitActionResult
 } from "../types";
+import { getAttackMarkKind, getAttackMarkChoices, queueAttackMarks, recordIceFireDefenses, recordSolarDefenses } from "./attackMarks";
+import { SPELL_DAMAGE_NAMES, spellDamageMultiplier } from "./spellDamage";
+import { isAttackDamageItem } from "./damageKinds";
+import { resolveOrdinaryHealing } from "./healing";
+import { RETALIATION_RESPONSE_LIMIT, takeRetaliationResponses } from "./retaliationResponses";
+import { resolveFusionAcquisition, grantInitializedSkill } from "./skillAcquisition";
 import {
   BASE_ATTACKS,
   addAttackElement,
@@ -35,6 +42,9 @@ import {
   getStackedAttackStats
 } from "./attacks";
 import { applyActionSwitch, getActionSwitchPlan } from "./actionSwitch";
+import { applyReboundSkillModifiers, getReboundInteraction } from "./reboundRules";
+import { resolveReboundAttacks, type ReboundAttack } from "./scatterRebound";
+import { applyHealthAmounts } from "./infiniteValues";
 import { getAttackFieldBlocker } from "./attackFields";
 import { getAttackActionCost, getTurnSkillActionCost } from "./actionCosts";
 import { resolveLightningSpellTargetIds } from "./skillTargets";
@@ -79,6 +89,7 @@ import {
   getSkillActionCost,
   getSkillAttackStats,
   getSkillPlay,
+  skillHasCakeCost,
   getSkillUseLimit,
   getSmallSkillIds,
   skillHasTypeTag
@@ -89,21 +100,22 @@ import { COMMON_FUSION_SKILL_ID, getFusionRecipe, getOwnedSkillIds, getUnfusedSk
   getActiveFusionCount, getFusionSkillId, hasEnhancedPutianRange, getFreeSkillChargeId, getAbsoluteGuardCost } from "../skills/fusion";
 import { HUIYUE_BUFF_ID, isHuiyueActive, getReadyHuiyueFusionId } from "../skills/fusion";
 import { applySkillFusion, fuseSkillsInPreparation } from "./fusion";
+import { applyNegativeStatus, NEGATIVE_STATUS_IMMUNITY_BUFF_ID } from "./negativeStatuses";
+import { ATTACK_STAT_MODIFIER_BUFF_PREFIX, previewPlayerAttackStats, attackStatModifierLabel,
+  hasEnhancedLevelSwap, PlayerAttackStatPreview, payableAttackCost } from "./attackStatModifiers";
 
-interface AttackInstance {
-  key: string;
-  sourceId: PlayerId;
-  originalTargetId: PlayerId;
-  targetId: PlayerId;
-  actionIndex: number;
-  stats: AttackStats;
-  reflected: boolean;
-  skipClash?: boolean;
-  notLastHit?: boolean;
-}
+type AttackInstance = ReboundAttack;
 
 interface HealthDelta {
+  infiniteDamage?: boolean;
+  infiniteHealing?: boolean;
+  /** A shield rejects the entire attack, including later damage hits sharing this key. */
+  blockedAttackKeys?: Set<string>;
+  reflectedAttackKeys?: Set<string>;
+  landedAttackKeys?: Set<string>;
+  appliedHitEffectKeys?: Set<string>;
   damage: number;
+  lastDamageInternal?: boolean;
   healing: number;
   damageAtZero?: number;
   pendingHitEffects?: Array<{ attack: AttackInstance; actions: Record<PlayerId, PlayerActionPlan> }>;
@@ -113,31 +125,23 @@ interface HealthDelta {
 }
 
 interface DamageContext {
+  drainHealing?: boolean;
+  internalDamage?: boolean;
+  offenseSnapshot?: AttackInstance["offenseSnapshot"];
+  spellDamage?: boolean;
+  retaliation?: boolean;
+  reflected?: boolean;
+  infiniteCopies?: boolean;
+  originSourceId?: PlayerId;
   fromAttack?: boolean;
   isLastHit?: boolean;
   attackKey?: string;
-}
-
-interface ReversedDamageIntent {
-  sourceId?: PlayerId;
-  targetId: PlayerId;
-  amount: number;
-  attackName?: string;
-  stats?: AttackStats;
-  attack?: AttackInstance;
-  isLastHit?: boolean;
-}
-
-interface ReboundDamagePacket extends ReversedDamageIntent {
-  sourceId: PlayerId;
-  visitedRebounderIds: PlayerId[];
 }
 
 const SKILL_GUESS_FAILED_BUFF_PREFIX = "skill_guess_failed";
 const PENDING_DEATH_BUFF_ID = "pending_death";
 const NO_REVIVE_BUFF_ID = "no_revive";
 const FROST_BLADE_ATTACK_BUFF_ID = "frost_blade_attack";
-const ATTACK_STAT_MODIFIER_BUFF_PREFIX = "pending_attack_stat_modifier:";
 const DOUBLE_EDGE_SWORD_SKILL_ID = "skill_31_80497";
 const DOUBLE_EDGE_IGNORE_DEFENSE_BUFF_PREFIX = "double_edge_ignore_defense:";
 const LIEGONG_SKILL_ID = "skill_60_57192";
@@ -162,6 +166,7 @@ const REVERSAL_SKILL_ID = "skill_93_50224";
 const REVERSAL_TURN_BUFF_ID = "reversal_turn";
 const PAST_TIME_SKILL_ID = "skill_104_71181";
 const HELL_OVERLORD_SKILL_ID = "skill_112_59292";
+const SAGE_PROTECTION_SKILL_ID = getFusionSkillId("贤者的庇护");
 const SELF_DESTRUCTER_DEATH_SKILL_ID = "skill_102_5546";
 const SELF_DESTRUCT_COUNT_BUFF_ID = "self_destruct_count";
 const LATE_SELF_DESTRUCT_USED_BUFF_ID = "late_self_destruct_used";
@@ -172,15 +177,17 @@ const FLASH_DODGE_BUFF_ID = "temp_flash_dodge";
 const FLASH_DODGE_COOLDOWN_BUFF_ID = "flash_dodge_cooldown";
 const SIX_STAR_SKILL_ID = "skill_108_76133";
 const SIX_STAR_DAMAGE_IMMUNITY_BUFF_ID = "temp_six_star_immunity";
-const SAINT_SKILL_IDS = new Set<SkillId>(["skill_61_59049", "skill_62_8008", getFusionSkillId("圣灵觉醒")]);
+const SAINT_DAMAGE_TO_ZERO_SKILL_IDS = new Set<SkillId>(["skill_62_8008", getFusionSkillId("圣灵觉醒")]);
 const FOREST_LOW_SING_SKILL_ID = "skill_77_30612";
 const PARALYSIS_NEXT_ACTION_BUFF_PREFIX = "paralysis_next_action:";
 const PARALYSIS_NO_CAKE_GAIN_BUFF_ID = "paralysis_no_cake_gain";
+const TURN_DAMAGE_TAKEN_BUFF_PREFIX = "damage_taken_turn:";
 const ACTIVE_REVIVAL_SKILL_IDS: SkillId[] = [
   "skill_64_60978",
   "skill_66_82448",
   "skill_68_57581",
-  HELL_OVERLORD_SKILL_ID
+  HELL_OVERLORD_SKILL_ID,
+  SAGE_PROTECTION_SKILL_ID
 ];
 const ELECTRIC_SHOCK_SKILL_ID = "skill_36_14343";
 const MULTI_TARGET_ATTACK_SKILL_IDS = new Set<SkillId>([
@@ -381,6 +388,7 @@ function submitDiscardSkillAction(
   playerId: PlayerId,
   targetSkillId: SkillId | undefined
 ): SubmitActionResult {
+  if (state.reversalResponseOnly) throw new Error("普通变招已结束，当前只能使用逆转响应或跳过");
   const player = findPlayer(state, playerId);
   if (!player || player.status !== "alive") {
     throw new Error("当前玩家不能丢弃技能");
@@ -446,35 +454,7 @@ function hasSkillBeenActivated(
 }
 
 function applyDiscardSkillHeal(state: GameState, playerId: PlayerId): void {
-  const player = findPlayer(state, playerId);
-  if (!player || player.status !== "alive") {
-    return;
-  }
-
-  if (isGlobalSkillActive(state, "skill_12_79004")) {
-    for (const owner of activePlayersWithSkill(state, "skill_12_79004")) {
-      revealSkillOnTrigger(state, owner.id, "skill_12_79004", "触发血之哀");
-    }
-    state.eventLog.push({
-      ...createBaseEvent(state, "system"),
-      type: "system",
-      message: `${player.name} 的丢弃技能回血被血之哀压制`
-    });
-    return;
-  }
-
-  player.hp += 1;
-  if (player.hp > 0) {
-    clearPendingDeath(player);
-  }
-  state.eventLog.push({
-    ...createBaseEvent(state, "heal"),
-    type: "heal",
-    sourceId: playerId,
-    targetId: playerId,
-    amount: 1,
-    reason: "丢弃技能"
-  });
+  applyHealNow(state, playerId, 1, playerId, "丢弃技能");
 }
 
 function isSelfDestructSubmission(submission: ActionSubmission): boolean {
@@ -519,6 +499,7 @@ function submitSelfDestructAction(
 }
 
 function canUseLateSelfDestruct(state: GameState, playerId: PlayerId): boolean {
+  if (state.reversalResponseOnly) return false;
   if (state.phase !== "action_window" || state.activeTimingPhase !== "turn_change_action") {
     return false;
   }
@@ -814,6 +795,7 @@ export function submitActionWindowSkill(
   }
 
   const wasRevivalWindow = isRevivalWindow(next);
+  const wasDamageModifyWindow = isDamageModifyWindow(next);
   revealSkillOnUse(next, playerId, action.skillId, "使用技能");
   recordSkillUsed(next, playerId, action.skillId, "action_window");
   const cost = getEffectiveSkillActionCost(player, action, next, playerId);
@@ -823,6 +805,7 @@ export function submitActionWindowSkill(
 
   const play = getSkillPlay(action.skillId);
   const skillDisabled = isPlayerSkillDisabled(player);
+  if (!skillDisabled) activatePureSkyImmunity(next, player, action.skillId);
   let healthChangeOccurred = false;
 
   if (!skillDisabled && action.skillId === "skill_10_9488") {
@@ -879,6 +862,14 @@ export function submitActionWindowSkill(
     healthChangeOccurred = resolveImmediateSkillEffect(next, playerId, action);
     if (healthChangeOccurred) {
       next.turnHealthChanged = true;
+    }
+    if (wasDamageModifyWindow && next.phase === "action_window" && next.activeTimingPhase === "turn_damage_modify" &&
+      !next.pendingDamageItems?.length) {
+      markSkillUse(player, action.skillId);
+      finishDamageModifyWindow(next);
+      advanceFullySkippedActionWindows(next);
+      next.updatedAt = Date.now();
+      return next;
     }
     if (isDamageModifyWindow(next)) {
       markSkillUse(player, action.skillId);
@@ -950,18 +941,13 @@ export function submitActionWindowSkill(
       (next.turnResolutionStarted &&
         (next.activeTimingPhase === "turn_end_action" ||
           action.skillId === DOUBLE_EDGE_SWORD_SKILL_ID)));
-  const shouldFinishTurnChangeAfterReversal =
-    !skillDisabled &&
-    action.skillId === REVERSAL_SKILL_ID &&
-    next.phase === "action_window" &&
-    next.activeTimingPhase === "turn_change_action";
-
   markSkillUse(player, action.skillId);
   next.actionWindowPassPlayerIds = next.actionWindowPassPlayerIds.filter((id) => id !== playerId);
-  if (shouldFinishTurnChangeAfterReversal) {
-    advanceCurrentActionWindow(next);
+  if (next.reversalResponseOnly) {
+    markSkippedActionWindowPasses(next);
     advanceFullySkippedActionWindows(next);
-  } else if (shouldFinishGame(next)) {
+  }
+  if (shouldFinishGame(next)) {
     finishGame(next);
   } else if (
     healthChangeOccurred &&
@@ -1024,6 +1010,7 @@ export function guessPlayerSkill(
       : `${actor.name} 猜中了 ${target.name} 的 ${targetSkill.name}，该技能已经暴露`
   });
 
+  if (handlePendingDamageItems(next)) { next.updatedAt = Date.now(); return next; }
   const healthChangeOccurred = next.players.some(
     (player) => beforeHp.get(player.id) !== player.hp
   );
@@ -1119,6 +1106,7 @@ function beginSkippedAwareActionPrompt(
   timingPhase: SkillTimingPhase,
   options: { preservePendingActions?: boolean; promptSeconds?: number } = {}
 ): void {
+  if (state.roundEndDamagePending && !["turn_damage_modify", "revival_action"].includes(timingPhase)) return;
   const promptOptions =
     timingPhase === "revival_action"
       ? {
@@ -1259,6 +1247,7 @@ function tickSmallSpaces(state: GameState): void {
 
 export function resolveTurn(state: GameState): GameState {
   const next = cloneGameState(state);
+  delete next.turnAttackStats;
   next.phase = "resolving";
 
   const revealedActions = getRevealedActions(next);
@@ -1268,6 +1257,10 @@ export function resolveTurn(state: GameState): GameState {
     actions: revealedActions
   });
 
+  // Interval damage remains in round history, but is not damage from this turn.
+  for (const player of next.players) {
+    player.buffs = player.buffs.filter((buff) => !buff.id.startsWith(TURN_DAMAGE_TAKEN_BUFF_PREFIX));
+  }
   applyActionCostsAndGains(next, revealedActions);
   next.turnResolutionStarted = true;
   delete next.turnHealthChanged;
@@ -1283,9 +1276,11 @@ export function resolveTurn(state: GameState): GameState {
 }
 
 function finishTurnResolution(state: GameState): void {
+  delete state.reversalResponseOnly;
   state.phase = "resolving";
   const revealedActions = getRevealedActions(state);
-  const createdAttacks = createAttackInstances(state, revealedActions);
+  const createdAttacks = state.reversalState?.turnNumber === state.turnNumber
+    ? state.reversalState.attacks : createAttackInstances(state, revealedActions);
   const reversed = isReversalActive(state);
   const attacksBeforeRebound = reversed
     ? reverseAttackInstances(state, createdAttacks)
@@ -1295,13 +1290,12 @@ function finishTurnResolution(state: GameState): void {
     : revealedActions;
 
   const healthDeltas = new Map<PlayerId, HealthDelta>();
-  if (reversed) {
-    resolveReversedAttacks(state, attacksBeforeRebound, resolutionActions, healthDeltas);
-  } else {
+  {
     const attacks = applyRebounds(
       state,
       attacksBeforeRebound,
-      resolutionActions
+      resolutionActions,
+      healthDeltas
     );
     const handledAttackKeys = new Set<string>();
     resolveClashes(state, attacks, handledAttackKeys, healthDeltas, resolutionActions);
@@ -1313,7 +1307,7 @@ function finishTurnResolution(state: GameState): void {
       resolutionActions
     );
   }
-  resolveActiveSkillEffects(state, revealedActions, healthDeltas);
+  resolveActiveSkillEffects(state, reversed ? resolutionActions : revealedActions, healthDeltas);
 
   if (applyHealthDeltas(state, healthDeltas)) {
     state.turnHealthChanged = true;
@@ -1328,6 +1322,11 @@ function finishTurnResolution(state: GameState): void {
 
 function finishRevivalWindow(state: GameState): void {
   updateDeaths(state, { allowPending: false });
+  if (state.retaliationRevivalPending) {
+    delete state.retaliationRevivalPending;
+    if (!handlePendingDamageItems(state)) completeDamagePoint(state);
+    return;
+  }
   if (!state.turnResolutionStarted) {
     const healthChangeOccurred = Boolean(state.turnHealthChanged);
     const returnPhase = state.damageModifyReturnPhase ?? state.activeTimingPhase;
@@ -1363,9 +1362,15 @@ function finishDamageModifyWindow(state: GameState): void {
 }
 
 function handlePendingDamageItems(state: GameState): boolean {
-  let guard = 0;
-  while ((state.pendingDamageItems?.length ?? 0) > 0 && guard < 8) {
-    guard += 1;
+  while ((state.pendingDamageItems?.length ?? 0) > 0) {
+    if (state.pendingDamageItems?.some((item) => item.retaliation) && updateDeaths(state, { allowPending: true })) {
+      state.retaliationRevivalPending = true;
+      beginSkippedAwareActionPrompt(state, "revival_action");
+      return true;
+    }
+    state.pendingDamageItems = (state.pendingDamageItems ?? []).filter((item) => !item.retaliation ||
+      (findPlayer(state, item.sourceId ?? "")?.status === "alive" && !isDeathCandidate(findPlayer(state, item.sourceId ?? "")!)));
+    if (!state.pendingDamageItems?.length) break;
     if (usesSkillActionWindows(state) && alivePlayers(state).some((player) => playerCanUseDamageModifyAction(state, player))) {
       beginDamageModifyPrompt(state);
       return state.phase === "action_window" && state.activeTimingPhase === "turn_damage_modify";
@@ -1373,6 +1378,12 @@ function handlePendingDamageItems(state: GameState): boolean {
 
     if (applyPendingDamageItems(state)) {
       state.turnHealthChanged = true;
+    }
+    // A zero-HP response may be the only producer of the next wave. Keep it in this loop.
+    if (!state.pendingDamageItems?.length && updateDeaths(state, { allowPending: true })) {
+      state.retaliationRevivalPending = true;
+      beginSkippedAwareActionPrompt(state, "revival_action");
+      return true;
     }
   }
 
@@ -1382,8 +1393,8 @@ function handlePendingDamageItems(state: GameState): boolean {
 function beginDamageModifyPrompt(state: GameState): void {
   if (state.activeTimingPhase !== "turn_damage_modify") {
     state.damageModifyReturnPhase = state.activeTimingPhase;
+    state.damageModifyAfterTurnResolution = state.phase === "resolving";
   }
-  state.damageModifyAfterTurnResolution = state.phase === "resolving";
   beginSkippedAwareActionPrompt(state, "turn_damage_modify", {
     preservePendingActions: true,
     promptSeconds: ACTION_WINDOW_SECONDS
@@ -1428,8 +1439,10 @@ function getIceRainMarkDamageItems(
   return (state.pendingDamageItems ?? []).filter((item) => {
     if (
       item.targetId !== playerId ||
+      !isAttackDamageItem(item) ||
       item.amount <= 0 ||
       !item.sourceId ||
+      item.sourceId === playerId ||
       hasPendingDamageModifier(item, "ice_rain")
     ) {
       return false;
@@ -1453,12 +1466,13 @@ function getCrossGuardDamageItems(
   }
 
   return (state.pendingDamageItems ?? []).filter((item) => {
-    if (item.amount <= 0) {
+    if (item.amount <= 0 || !isAttackDamageItem(item)) {
       return false;
     }
 
     if (
       item.targetId === playerId &&
+      !item.internalDamage &&
       player.buffs.some((buff) => buff.id === "huyou_mark" && buff.stacks > 0)
     ) {
       return !hasPendingDamageModifier(item, "huyou");
@@ -1480,6 +1494,27 @@ function hasPendingDamageModifier(item: PendingDamageItem, modifierId: string): 
 }
 
 function completeDamagePoint(state: GameState): void {
+  if (state.roundEndDamagePending) {
+    if (updateDeaths(state, { allowPending: true })) {
+      state.retaliationRevivalPending = true;
+      beginSkippedAwareActionPrompt(state, "revival_action");
+      return;
+    }
+    if (handlePendingDamageItems(state)) return;
+    const options = state.roundEndDamagePending;
+    delete state.roundEndDamagePending;
+    clearSixStarProtection(state);
+    endRound(state, { ...options, skipRoundEndSkills: true });
+    if (state.turnResolutionStarted) state.turnNumber += 1;
+    delete state.preemptiveRestartSnapshot;
+    delete state.turnActionReceipts;
+    delete state.turnAttackStats;
+    delete state.turnResolutionStarted;
+    delete state.turnHealthChanged;
+    state.pendingActions = {};
+    beginSkippedAwareActionPrompt(state, "round_pre_interval_action");
+    return;
+  }
   const returnPhase = state.damageModifyReturnPhase ?? "round_pre_interval_action";
   if (shouldResumeTurnChangeBeforeResolution(state, returnPhase)) {
     delete state.damageModifyReturnPhase;
@@ -1489,6 +1524,16 @@ function completeDamagePoint(state: GameState): void {
   }
 
   const pendingDeathWindow = updateDeaths(state, { allowPending: true });
+  if (state.pendingDamageItems?.length) {
+    if (pendingDeathWindow) {
+      state.retaliationRevivalPending = true;
+      beginSkippedAwareActionPrompt(state, "revival_action");
+      return;
+    }
+    if (handlePendingDamageItems(state)) return;
+    completeDamagePoint(state);
+    return;
+  }
   clearTurnTemporaryBuffs(state);
   state.pendingActions = {};
 
@@ -1574,17 +1619,19 @@ function beginTurnEndAfterDamage(state: GameState): void {
 }
 
 function finishTurnAfterEndAction(state: GameState): void {
+  clearSixStarProtection(state);
   const healthChangeOccurred = Boolean(state.turnHealthChanged);
 
   if (healthChangeOccurred) {
     endRound(state);
+    if (state.roundEndDamagePending) return;
   } else {
     state.roundTurnNumber += 1;
   }
 
   state.turnNumber += 1;
   for (const player of state.players) player.buffs = player.buffs.filter((buff) =>
-    buff.id !== HUIYUE_BUFF_ID || (buff.expiresAtTurn ?? -1) >= state.turnNumber);
+    ![HUIYUE_BUFF_ID, NEGATIVE_STATUS_IMMUNITY_BUFF_ID].includes(buff.id) || (buff.expiresAtTurn ?? -1) >= state.turnNumber);
   state.pendingActions = {};
   delete state.turnResolutionStarted;
   delete state.turnHealthChanged;
@@ -1592,6 +1639,8 @@ function finishTurnAfterEndAction(state: GameState): void {
   delete state.damageModifyAfterTurnResolution;
   delete state.preemptiveRestartSnapshot;
   delete state.turnActionReceipts;
+  delete state.turnAttackStats;
+  delete state.reversalState;
   state.turnStartedAt = Date.now();
 
   if (shouldFinishGame(state)) {
@@ -1626,6 +1675,9 @@ function finishGame(state: GameState): void {
   state.actionWindowPlayerIds = [];
   state.actionWindowPassPlayerIds = [];
   state.winnerIds = winners;
+  for (const id of winners) if (getActiveFusionCount(findPlayer(state, id), "黑白板") > 0) {
+    revealSkillOnWin(state, id, getFusionSkillId("黑白板"), "黑白板胜利");
+  }
   state.eventLog.push({
     ...createBaseEvent(state, "game_finished"),
     type: "game_finished",
@@ -1774,6 +1826,7 @@ function beginTurnActionPhase(state: GameState): void {
   delete state.pendingDamageItems;
   state.pendingActions = {};
   delete state.turnActionReceipts;
+  delete state.turnAttackStats;
   clearSkipUntilTurnActionBuffs(state);
   state.turnStartedAt = Date.now();
   applyTurnStartSkills(state);
@@ -1813,7 +1866,10 @@ function capturePreemptiveRestartSnapshot(state: GameState): void {
 }
 
 function restorePreemptiveRestartSnapshot(state: GameState): void {
+  delete state.reversalResponseOnly;
+  delete state.reversalState;
   delete state.turnActionReceipts;
+  delete state.turnAttackStats;
   const snapshot = state.preemptiveRestartSnapshot;
   if (!snapshot) {
     return;
@@ -1994,6 +2050,7 @@ function applyActionCostsAndGains(
         continue;
       }
 
+      activatePureSkyImmunity(state, player, action.skillId);
       if (play?.kind !== "resource") {
         if (play?.kind === "effect") {
           applySkillPreparationEffect(state, playerId, action);
@@ -2058,13 +2115,7 @@ function cancelSubmittedActionForHuiyue(state: GameState, player: PlayerState): 
 }
 
 function rememberRoundActionUse(
-  player: {
-    id: PlayerId;
-    buffs: Array<{ id: string; name: string; stacks: number; expiresAtRound?: number }>;
-    skills: string[];
-    skillFusions?: PlayerState["skillFusions"];
-    hp: number;
-  },
+  player: PlayerState,
   plan: PlayerActionPlan,
   state: GameState
 ): void {
@@ -2092,7 +2143,7 @@ function rememberRoundActionUse(
   if (
     attackActionCount > 0 &&
     playerHasActiveSkill(player, "skill_117_55768") &&
-    player.hp <= Math.floor(INITIAL_HP / 2)
+    player.hp <= Math.floor(getPlayerInitialHp(player) / 2)
   ) {
     addCountingMark(player, "bailian_attack_count", "百炼攻击计数", attackActionCount);
     const counter = player.buffs.find((buff) => buff.id === "bailian_attack_count");
@@ -2107,10 +2158,14 @@ function rememberRoundActionUse(
     }
   }
 
+  recordIceFireDefenses(player, plan.actions.filter((action) => action.type === "defense" &&
+    ["small", "youtiao", "stone"].includes(action.defense)).length);
+
   const stoneDefenses = plan.actions.filter(
     (action) => action.type === "defense" && action.defense === "stone"
   ).length;
-  const lavaSkillCount = getActiveSkillCount(player, "skill_21_36332");
+  recordSolarDefenses(player, plan.actions.filter((action) => action.type === "defense" && ["stone", "youtiao"].includes(action.defense)).length);
+  const lavaSkillCount = getActiveSkillCount(player, "skill_21_36332") - getFusionEnhancementCount(player, "skill_21_36332", ["阳炎之怒"]);
   if (stoneDefenses > 0 && lavaSkillCount > 0) {
     addCountingMark(player, "stone_defense_count", "石头计数", stoneDefenses);
     const counter = player.buffs.find((buff) => buff.id === "stone_defense_count");
@@ -2281,25 +2336,15 @@ function applySkillPreparationEffect(
     return;
   }
 
-  if (play.effect === "lava_mark" || play.effect === "winter_mark") {
-    const sourceBuffId = play.effect === "lava_mark" ? "lava_mark" : "winter_mark";
-    const pendingBuffId =
-      play.effect === "lava_mark" ? "pending_lava_mark" : "pending_winter_mark";
-    const markName = play.effect === "lava_mark" ? "熔岩" : "凛冬";
-    if (!consumePlayerBuff(player, sourceBuffId, action.stacks)) {
-      return;
-    }
-
-    upsertBuff(player, {
-      id: pendingBuffId,
-      name: `${markName}强化`,
-      stacks: action.stacks,
-      expiresAtTurn: state.turnNumber
-    });
+  if (getAttackMarkKind(skill.id)) {
+    const kind = getAttackMarkKind(skill.id);
+    const markName = kind === "lava" ? "熔岩" : kind === "winter" ? "凛冬" : "冰火";
+    const index = action.switchActionIndex ?? getAttackMarkChoices(state, player.id)[0]!.actionIndex;
+    queueAttackMarks(state, player, action);
     state.eventLog.push({
       ...createBaseEvent(state, "system"),
       type: "system",
-      message: `${player.name} 消耗 ${action.stacks} 层${markName}印记，强化本回合攻击`
+      message: `${player.name} 消耗 ${action.stacks} 层${markName}印记，强化本回合第${index + 1}个攻击`
     });
   }
 
@@ -2330,7 +2375,7 @@ function applySkillPreparationEffect(
   }
 
   if (skill.id === "skill_25_51277") {
-    const enhanced = getFusionEnhancementCount(player, skill.id, ["魔女斗篷"]) > 0;
+    const enhanced = getFusionEnhancementCount(player, skill.id, ["魔女斗篷", "红莲斗篷"]) > 0;
     addDefenseValue(state, player.id, enhanced ? 10 : 8, skill.name);
   }
 
@@ -2340,58 +2385,90 @@ function applySkillPreparationEffect(
   }
 }
 
-function applyReversalPreparationEffect(
-  state: GameState,
-  player: NonNullable<ReturnType<typeof findPlayer>>,
-  skillName: string
-): void {
-  if (isReversalActive(state)) {
-    return;
-  }
-
-  upsertBuff(player, {
-    id: REVERSAL_TURN_BUFF_ID,
-    name: skillName,
-    stacks: 1,
-    expiresAtTurn: state.turnNumber,
-    sourcePlayerId: player.id
-  });
-  suppressReversedResourceActions(state);
-  state.eventLog.push({
-    ...createBaseEvent(state, "system"),
-    type: "system",
-    message: `${player.name} 使用 ${skillName}，逆转所有指向性出招并结束变招阶段`
-  });
+function isDirectionalAction(action: PlayerAction): boolean {
+  if (action.type === "attack") return true;
+  if (action.type === "defense") return action.defense === "rebound";
+  if (action.type !== "skill") return false;
+  const play = getSkillPlay(action.skillId);
+  return play?.kind === "attack" || action.skillId === ELECTRIC_SHOCK_SKILL_ID ||
+    Boolean(action.targetId || action.targetIds?.length || play?.allEnemyDamage !== undefined);
 }
 
-function suppressReversedResourceActions(state: GameState): void {
-  for (const [playerId, plan] of Object.entries(state.pendingActions)) {
-    const player = findPlayer(state, playerId);
-    if (!player || !plan) {
-      continue;
+function captureOffense(state: GameState, attack: AttackInstance, attacks: AttackInstance[]): NonNullable<AttackInstance["offenseSnapshot"]> {
+  const source = findPlayer(state, attack.sourceId), target = findPlayer(state, attack.targetId)!;
+  const last = isLastHitAttack(attack, attacks);
+  let critical = 1;
+  for (let i = 0; i < getActiveFusionCount(source, "无尽战刃"); i++) if (Math.random() < .5) critical *= 2;
+  return { guding: target.cakes <= 0 ? 2 ** getActiveSkillCount(source, "skill_29_96125") : 1,
+    sniper: last ? 2 ** getActiveSkillCount(source, "skill_28_42646") : 1,
+    bonus: target.hp >= Math.floor(getPlayerInitialHp(target) / 2) ? getActiveFusionCount(source, "破军") : 0,
+    critical, retirement: last && target.cakes === 0 && getActiveFusionCount(source, "暗影狙击") > 0,
+    iceRain: getActiveSkillCount(source, "skill_20_63089"),
+    echo: Boolean(source && getFusionEnhancementCount(source, "skill_78_18866", ["回响之杖"]) > 0),
+    freeRi: Boolean(source && getFusionEnhancementCount(source, "skill_82_45540", ["后羿•七日连珠"]) > 0) };
+}
+
+function applyReversalPreparationEffect(state: GameState, player: PlayerState, skillName: string): void {
+  if (state.reversalState?.turnNumber !== state.turnNumber) {
+    const attacks = createAttackInstances(state, getRevealedActions(state));
+    for (const attack of attacks) attack.offenseSnapshot = captureOffense(state, attack, attacks);
+    state.reversalState = { turnNumber: state.turnNumber, attacks, suppressed: false, receipts: {}, fusions: {} };
+  }
+  const cache = state.reversalState;
+  state.reversalResponseOnly = true;
+  state.actionWindowPassPlayerIds = [];
+  const cancelling = isReversalActive(state);
+  for (const owner of state.players) owner.buffs = owner.buffs.filter((buff) => buff.id !== REVERSAL_TURN_BUFF_ID);
+  if (!cancelling) upsertBuff(player, { id: REVERSAL_TURN_BUFF_ID, name: skillName, stacks: 1,
+    expiresAtTurn: state.turnNumber, sourcePlayerId: player.id });
+  if (cancelling) {
+    for (const [id, receipt] of Object.entries(cache.receipts)) {
+      const owner = findPlayer(state, id); if (!owner || !receipt) continue;
+      changeActionReceiptEffect(state, owner, receipt, 1);
+      owner.skillFusions = [...(owner.skillFusions ?? []), ...(cache.fusions[id] ?? [])];
     }
-
-    if (plan.actions.length === 1 && plan.actions[0]?.type === "gain_cake") {
-      changeCakes(state, playerId, Math.max(0, player.cakes - 1), "逆转扣除出饼收益");
-      continue;
+  } else {
+    cache.receipts = {}; cache.fusions = {};
+    for (const [id, plan] of Object.entries(state.pendingActions)) {
+      if (!plan || plan.actions.some(isDirectionalAction)) continue;
+      const owner = findPlayer(state, id), receipt = state.turnActionReceipts?.[id];
+      if (!owner || !receipt) continue;
+      cache.receipts[id] = receipt;
+      cache.fusions[id] = (owner.skillFusions ?? []).filter((fusion) => receipt.addedFusionIds.includes(fusion.id));
+      changeActionReceiptEffect(state, owner, receipt, -1);
+      owner.skillFusions = owner.skillFusions?.filter((fusion) => !receipt.addedFusionIds.includes(fusion.id));
     }
+  }
+  cache.suppressed = !cancelling;
+  state.eventLog.push({ ...createBaseEvent(state, "system"), type: "system", message: cancelling
+    ? `${player.name} 使用 ${skillName}，取消上一次逆转，恢复原出招及其消耗、收益`
+    : `${player.name} 使用 ${skillName}，保存攻击加成并逆转所有指向性出招，非指向性出招取消并退还消耗` });
+}
 
-    if (isPlayerSkillDisabled(player)) {
-      continue;
-    }
-
-    for (const action of plan.actions) {
-      if (action.type !== "skill" || !SAINT_SKILL_IDS.has(action.skillId)) {
-        continue;
-      }
-
-      const gain = (getSkillPlay(action.skillId)?.resourceGainPerStack ?? 0) * action.stacks;
-      if (gain > 0) {
-        const current = findPlayer(state, playerId);
-        changeCakes(state, playerId, Math.max(0, (current?.cakes ?? 0) - gain), "逆转使圣不加饼");
+/** Apply only the original submission's deltas; preserve later window actions and their costs. */
+function changeActionReceiptEffect(state: GameState, player: PlayerState,
+  receipt: NonNullable<GameState["turnActionReceipts"]>[string] & {}, direction: 1 | -1): void {
+  changeCakes(state, player.id, Math.max(0, player.cakes + direction * (receipt.cakesGained - receipt.cakesSpent)),
+    direction < 0 ? "逆转取消出招并退还消耗" : "二次逆转恢复出招消耗和收益");
+  const key = (buff: PlayerState["buffs"][number]) => JSON.stringify([buff.id, buff.sourcePlayerId, buff.sourceFusionId]);
+  const before = new Map(receipt.buffsBefore.map((buff) => [key(buff), buff]));
+  const after = new Map(receipt.buffsAfter.map((buff) => [key(buff), buff]));
+  for (const buffKey of new Set([...before.keys(), ...after.keys()])) {
+    const sample = before.get(buffKey) ?? after.get(buffKey)!;
+    if (sample.id.startsWith(SKILL_ACTIVATED_BUFF_PREFIX)) continue;
+    const sum = (buffs: PlayerState["buffs"]) => buffs.filter((buff) => key(buff) === buffKey).reduce((n, buff) => n + buff.stacks, 0);
+    const delta = direction * (sum(receipt.buffsAfter) - sum(receipt.buffsBefore));
+    if (delta > 0) {
+      const current = player.buffs.find((buff) => key(buff) === buffKey);
+      if (current) current.stacks += delta; else player.buffs.push({ ...sample, stacks: delta });
+    } else if (delta < 0) {
+      let remaining = -delta;
+      for (const buff of player.buffs.filter((buff) => key(buff) === buffKey)) {
+        const removed = Math.min(buff.stacks, remaining); buff.stacks -= removed; remaining -= removed;
       }
     }
   }
+  player.buffs = player.buffs.filter((buff) => buff.stacks > 0);
 }
 
 function queueAttackStatModifier(
@@ -2404,7 +2481,7 @@ function queueAttackStatModifier(
   const actionIndex = normalizeAttackStatActionIndex(action.switchActionIndex);
   const modifier =
     skillId === "skill_91_89631"
-      ? "swap_power_level"
+      ? action.attackStatModifier ?? "swap_power_level"
       : action.attackStatModifier;
   if (!modifier) {
     return;
@@ -2420,6 +2497,11 @@ function queueAttackStatModifier(
     const fusion = player.skillFusions?.find((item) => isFusionActive(player, item) &&
       getFusionRecipe(item.skillId)?.skill.name === "宗师之力");
     if (fusion) modifierBuff.sourceFusionId = fusion.id;
+  }
+  if (skillId === "skill_91_89631" && hasEnhancedLevelSwap(player)) {
+    const fusion = player.skillFusions?.find((fusion) => isFusionActive(player, fusion) &&
+      getFusionRecipe(fusion.skillId)?.skill.name === "杀级换")?.id;
+    if (fusion) modifierBuff.sourceFusionId = fusion;
   }
   player.buffs.push(modifierBuff);
 
@@ -2598,6 +2680,8 @@ function getDoubleEdgeAttackStats(
   actionIndex: number,
   action: PlayerAction
 ): AttackStats | undefined {
+  const preview = previewPlayerAttackStats(state, playerId).stats[actionIndex];
+  if (preview) return preview;
   const isElectricShockAction =
     action.type === "skill" && action.skillId === ELECTRIC_SHOCK_SKILL_ID;
   const baseStats =
@@ -2613,11 +2697,8 @@ function getDoubleEdgeAttackStats(
   }
 
   let stats = isElectricShockAction
-    ? baseStats
-    : applyAttackModifiers(cloneGameState(state), playerId, baseStats);
-  if (!isElectricShockAction) {
-    stats = applyPendingAttackStatModifiers(cloneGameState(state), playerId, actionIndex, stats);
-  }
+    ? applyReboundSkillModifiers(findPlayer(state, playerId), baseStats)
+    : applyAttackModifiers(cloneGameState(state), playerId, baseStats, actionIndex);
   return stats;
 }
 
@@ -2709,7 +2790,7 @@ function getAbsoluteGuardCandidate(
     sourceId,
     actionIndex,
     mode,
-    cost: getAbsoluteGuardCost(guard, state.turnActionCosts?.[sourceId]?.[actionIndex] ?? rawCost)
+    cost: getAbsoluteGuardCost(guard, payableAttackCost(stats.cost))
   };
 }
 
@@ -2829,7 +2910,7 @@ function createTemporaryProtectionBuff(
   return undefined;
 }
 
-function markSkillUse(player: { buffs: Array<{ id: string; name: string; stacks: number }> }, skillId: string): void {
+function markSkillUse(player: { buffs: Array<{ id: string; name: string; stacks: number }>; skillFusions?: PlayerState["skillFusions"] }, skillId: string): void {
   recordSkillUse(player, skillId);
 }
 
@@ -2916,7 +2997,7 @@ function consumeSkillResourceBuffs(
 }
 
 function consumePlayerBuff(
-  player: { buffs: Array<{ id: string; stacks: number }> },
+  player: { buffs: Array<{ id: string; stacks: number; infinite?: boolean }> },
   buffId: string,
   amount: number
 ): boolean {
@@ -2925,7 +3006,7 @@ function consumePlayerBuff(
     return false;
   }
 
-  buff.stacks -= amount;
+  if (!buff.infinite) buff.stacks -= amount;
   player.buffs = player.buffs.filter((item) => item.stacks > 0);
   return true;
 }
@@ -2935,6 +3016,21 @@ function createAttackInstances(
   plans: Record<PlayerId, PlayerActionPlan>
 ): AttackInstance[] {
   const attacks: AttackInstance[] = [];
+  const previews = new Map<PlayerId, PlayerAttackStatPreview>();
+  for (const sourceId of Object.keys(plans)) previews.set(sourceId, previewPlayerAttackStats(state, sourceId));
+  state.turnAttackStats = Object.fromEntries([...previews].map(([id, preview]) => [id, structuredClone(preview.stats)]));
+  for (const [sourceId, preview] of previews) {
+    const source = findPlayer(state, sourceId)!;
+    const difference = preview.costs.reduce((sum, cost) => sum + cost, 0) - preview.originalCosts.reduce((sum, cost) => sum + cost, 0);
+    if (difference !== 0) {
+      changeCakes(state, sourceId, source.cakes - difference, difference > 0 ? "变招费用结算：补扣差额" : "变招费用结算：退还差额");
+      if (state.turnActionReceipts?.[sourceId]) state.turnActionReceipts[sourceId]!.cakesSpent += difference;
+    }
+    state.turnActionCosts ??= {};
+    state.turnActionCosts[sourceId] = preview.costs;
+    for (const failure of preview.failures) state.eventLog.push({ ...createBaseEvent(state, "system"), type: "system",
+      message: `${source.name} 第${failure.actionIndex + 1}个攻击的属性交换失败：${failure.error}` });
+  }
 
   for (const [sourceId, plan] of Object.entries(plans)) {
     for (const [actionIndex, action] of plan.actions.entries()) {
@@ -2957,10 +3053,13 @@ function createAttackInstances(
         continue;
       }
       let stats = isElectricShockAction
-        ? baseStats
-        : applyAttackModifiers(state, sourceId, baseStats);
+        ? applyReboundSkillModifiers(source, baseStats)
+        : applyAttackModifiers(state, sourceId, baseStats, actionIndex);
       if (!isElectricShockAction) {
-        stats = applyPendingAttackStatModifiers(state, sourceId, actionIndex, stats);
+        const modified = previews.get(sourceId)?.stats[actionIndex];
+        if (modified) stats = { ...stats, cost: modified.cost, power: modified.power,
+          level: modified.level, traits: modified.traits, ignoreEarthBreak: Boolean(modified.ignoreEarthBreak) };
+        if (source) source.buffs = source.buffs.filter((buff) => !buff.id.startsWith(`${ATTACK_STAT_MODIFIER_BUFF_PREFIX}${actionIndex}:`));
       }
       if (source?.buffs.some((buff) => buff.id === `double_edge_pierce:${actionIndex}`)) stats = {
         ...stats, traits: Array.from(new Set([...stats.traits, "pierce_rebound"]))
@@ -3010,6 +3109,7 @@ function createAttackInstances(
         if (!isElectricShockAction && isDecayBlockingAttack(state, sourceId, stats, targetId)) continue;
         const instance: AttackInstance = {
           key: `${sourceId}:${targetId}:${attacks.length}`,
+          reboundFamilyKey: `${sourceId}:${actionIndex}`,
           sourceId,
           originalTargetId: targetId,
           targetId,
@@ -3141,6 +3241,7 @@ function reverseAttackInstances(
   return attacks.map((attack, index) => ({
     ...attack,
     key: `${attack.key}:reversed:${index}`,
+    reboundFamilyKey: `${attack.reboundFamilyKey ?? `${attack.sourceId}:${attack.actionIndex}`}:reversed:${attack.targetId}`,
     sourceId: attack.targetId,
     originalTargetId: attack.sourceId,
     targetId: attack.sourceId,
@@ -3177,10 +3278,8 @@ function createReversedResolutionActions(
     }
 
     for (const action of plan.actions) {
-      if (action.type === "gain_cake") {
-        targetPlan.actions.push({ type: "gain_cake" });
-      } else if (action.type === "defense" && action.defense !== "rebound") {
-        targetPlan.actions.push({ type: "defense", defense: action.defense });
+      if (action.type === "skill" && getSkillPlay(action.skillId)?.kind !== "attack" && action.targetId) {
+        actions[action.targetId]?.actions.push({ ...action, targetId: playerId });
       }
     }
   }
@@ -3254,127 +3353,6 @@ function attackInstanceToResolutionAction(attack: AttackInstance): PlayerAction 
   };
 }
 
-function applyPendingAttackStatModifiers(
-  state: GameState,
-  ownerId: PlayerId,
-  actionIndex: number,
-  stats: AttackStats
-): AttackStats {
-  const owner = findPlayer(state, ownerId);
-  if (!owner) {
-    return stats;
-  }
-
-  // Crystal levels are final bonuses; power/level swaps and destruction do not consume them.
-  const crystalLevels = getActiveSkillCount(owner, "skill_33_55159") +
-    getFusionEnhancementCount(owner, "skill_33_55159", ["神域之种", "神界炼魂"]);
-  let modified = crystalLevels > 0 ? { ...stats, level: stats.level - crystalLevels } : stats;
-  const consumed = new Set<string>();
-  owner.buffs.forEach((buff, buffIndex) => {
-    const parsed = parsePendingAttackStatModifierBuff(buff.id);
-    if (!parsed || parsed.actionIndex !== actionIndex) {
-      return;
-    }
-
-    modified = applyAttackStatModifierChoice(modified, parsed.modifier);
-    if (buff.sourceFusionId) modified = { ...modified, ignoreEarthBreak: true };
-    consumed.add(`${buff.id}:${buffIndex}`);
-  });
-
-  if (consumed.size > 0) {
-    let index = -1;
-    owner.buffs = owner.buffs.filter((buff) => {
-      index += 1;
-      return !consumed.has(`${buff.id}:${index}`);
-    });
-  }
-
-  return crystalLevels > 0 ? { ...modified, level: modified.level + crystalLevels } : modified;
-}
-
-function applyAttackStatModifierChoice(
-  attack: AttackStats,
-  modifier: AttackStatModifierChoice
-): AttackStats {
-  const power = attack.power;
-  const level = attack.level;
-  switch (modifier) {
-    case "swap_power_level":
-      return {
-        ...attack,
-        power: level,
-        level: power
-      };
-    case "power_plus_1_level_minus_1":
-      return {
-        ...attack,
-        power: addFiniteStat(power, 1),
-        level: Math.max(0, addFiniteStat(level, -1))
-      };
-    case "power_minus_1_level_plus_1":
-      return {
-        ...attack,
-        power: Math.max(0, addFiniteStat(power, -1)),
-        level: addFiniteStat(level, 1)
-      };
-    case "power_plus_2_level_minus_2":
-      return {
-        ...attack,
-        power: addFiniteStat(power, 2),
-        level: Math.max(0, addFiniteStat(level, -2))
-      };
-    case "power_minus_2_level_plus_2":
-      return {
-        ...attack,
-        power: Math.max(0, addFiniteStat(power, -2)),
-        level: addFiniteStat(level, 2)
-      };
-    case "power_times_3_level_to_zero":
-      return {
-        ...attack,
-        power: multiplyFiniteStat(power, 3),
-        level: 0
-      };
-    case "power_to_zero_level_times_4":
-      return {
-        ...attack,
-        power: 0,
-        level: multiplyFiniteStat(level, 4)
-      };
-    default:
-      return attack;
-  }
-}
-
-function addFiniteStat(value: number, delta: number): number {
-  return value >= INFINITE_DAMAGE ? value : value + delta;
-}
-
-function multiplyFiniteStat(value: number, factor: number): number {
-  return value >= INFINITE_DAMAGE ? value : value * factor;
-}
-
-function parsePendingAttackStatModifierBuff(
-  id: string
-): { actionIndex: number; modifier: AttackStatModifierChoice } | undefined {
-  if (!id.startsWith(ATTACK_STAT_MODIFIER_BUFF_PREFIX)) {
-    return undefined;
-  }
-
-  const [actionIndexText, modifier] = id
-    .slice(ATTACK_STAT_MODIFIER_BUFF_PREFIX.length)
-    .split(":");
-  const actionIndex = Number(actionIndexText);
-  if (!Number.isInteger(actionIndex) || !isAttackStatModifierChoice(modifier)) {
-    return undefined;
-  }
-
-  return {
-    actionIndex,
-    modifier
-  };
-}
-
 function pendingAttackStatModifierBuffId(
   actionIndex: number,
   modifier: AttackStatModifierChoice
@@ -3395,41 +3373,6 @@ function isAttackLikeAction(
   );
 }
 
-function isAttackStatModifierChoice(
-  value: string | undefined
-): value is AttackStatModifierChoice {
-  return (
-    value === "swap_power_level" ||
-    value === "power_plus_1_level_minus_1" ||
-    value === "power_minus_1_level_plus_1" ||
-    value === "power_plus_2_level_minus_2" ||
-    value === "power_minus_2_level_plus_2" ||
-    value === "power_times_3_level_to_zero" ||
-    value === "power_to_zero_level_times_4"
-  );
-}
-
-function attackStatModifierLabel(modifier: AttackStatModifierChoice): string {
-  switch (modifier) {
-    case "swap_power_level":
-      return "攻击与等级交换";
-    case "power_plus_1_level_minus_1":
-      return "攻击+1，等级-1";
-    case "power_minus_1_level_plus_1":
-      return "攻击-1，等级+1";
-    case "power_plus_2_level_minus_2":
-      return "攻击+2，等级-2";
-    case "power_minus_2_level_plus_2":
-      return "攻击-2，等级+2";
-    case "power_times_3_level_to_zero":
-      return "攻击×3，等级变为0";
-    case "power_to_zero_level_times_4":
-      return "攻击变为0，等级×4";
-    default:
-      return "攻击属性变化";
-  }
-}
-
 function isDecayBlockingAttack(
   state: GameState,
   sourceId: PlayerId,
@@ -3440,6 +3383,9 @@ function isDecayBlockingAttack(
   if (!blocker) return false;
   if (blocker.skillId === "skill_44_20092" && targetId) awardRevenge(state, findPlayer(state, sourceId), targetId, true);
   for (const id of blocker.ownerIds) revealSkillOnTrigger(state, id, blocker.skillId, `触发${blocker.name}`);
+  if (blocker.skillId === "skill_11_89360" && stats.level !== 0 && stats.power !== 0 && stats.power < INFINITE_DAMAGE) {
+    for (const id of blocker.ownerIds) revealSkillOnTrigger(state, id, getFusionSkillId("枯萎"), "枯萎额外正整数无效化攻击");
+  }
   state.eventLog.push({
     ...createBaseEvent(state, "system"),
     type: "system",
@@ -3448,177 +3394,18 @@ function isDecayBlockingAttack(
   return true;
 }
 
-function applyRebounds(
-  state: GameState,
-  attacks: AttackInstance[],
-  actions: Record<PlayerId, PlayerActionPlan>
-): AttackInstance[] {
-  const resolved: AttackInstance[] = [];
-
-  for (const attack of attacks) {
-    const scatter = tryScatterRebound(state, attack, actions);
-    if (scatter) {
-      resolved.push(...scatter);
-      continue;
-    }
-
-    const finalAttack = resolveReboundChain(state, attack, actions);
-    if (finalAttack) {
-      resolved.push(finalAttack);
-    }
-  }
-
-  return resolved;
-}
-
-function tryScatterRebound(
-  state: GameState,
-  attack: AttackInstance,
-  actions: Record<PlayerId, PlayerActionPlan>
-): AttackInstance[] | undefined {
-  const targetAction = getReboundAction(actions[attack.targetId]);
-  const reflector = findPlayer(state, attack.targetId);
-  if (
-    targetAction?.defense !== "rebound" ||
-    !reflector ||
-    !playerHasActiveSkill(reflector, SCATTER_REBOUND_SKILL_ID)
-  ) {
-    return undefined;
-  }
-
-  const absoluteRebound =
-    playerHasActiveSkill(reflector, "skill_57_59843") &&
-    (attack.stats.isSkill ||
-      attack.stats.id === "he_bao" ||
-      attack.stats.id === "chao_he_bao");
-
-  if (attack.stats.traits.includes("pierce_rebound") && !absoluteRebound) {
-    state.eventLog.push({
-      ...createBaseEvent(state, "rebound_broken"),
-      type: "rebound_broken",
-      sourceId: attack.sourceId,
-      targetId: attack.targetId,
-      attackName: attack.stats.name
+function applyRebounds(state: GameState, attacks: AttackInstance[], actions: Record<PlayerId, PlayerActionPlan>,
+  healthDeltas: Map<PlayerId, HealthDelta>): AttackInstance[] {
+  const paidBacklashes = new Set<string>();
+  return resolveReboundAttacks(state, attacks, actions,
+    (attack) => applyBlockedAttackEffects(state, attack, healthDeltas),
+    (attack, defenses) => {
+      if (attack.stats.id !== KOU_ATTACK_SKILL_ID || !defenses.some((defense) => defense.targetId === attack.sourceId)) return;
+      const key = `${attack.reboundFamilyKey ?? `${attack.sourceId}:${attack.actionIndex}`}:${attack.targetId}`;
+      if (paidBacklashes.has(key)) return;
+      paidBacklashes.add(key);
+      addDamage(state, healthDeltas, attack.sourceId, 3, attack.sourceId, "抠反噬");
     });
-    return [attack];
-  }
-
-  if (attack.stats.isSkill && !absoluteRebound) {
-    state.eventLog.push({
-      ...createBaseEvent(state, "attack_blocked"),
-      type: "attack_blocked",
-      sourceId: attack.sourceId,
-      targetId: attack.targetId,
-      attackName: attack.stats.name,
-      defense: "rebound"
-    });
-    return [];
-  }
-
-  const targets = alivePlayers(state).filter((player) => player.id !== attack.targetId);
-  revealSkillOnUse(state, reflector.id, SCATTER_REBOUND_SKILL_ID, "散弹触发");
-  state.eventLog.push({
-    ...createBaseEvent(state, "system"),
-    type: "system",
-    message: `${reflector.name} 的散弹反弹将 ${attack.stats.name} 扩散给除自己外所有人`
-  });
-
-  return targets.map((target, index) => {
-    state.eventLog.push({
-      ...createBaseEvent(state, "attack_reflected"),
-      type: "attack_reflected",
-      sourceId: attack.sourceId,
-      originalTargetId: attack.targetId,
-      reflectedTargetId: target.id,
-      attackName: attack.stats.name
-    });
-    return {
-      ...attack,
-      key: `${attack.key}:scatter:${target.id}:${index}`,
-      targetId: target.id,
-      reflected: true
-    };
-  });
-}
-
-function resolveReboundChain(
-  state: GameState,
-  attack: AttackInstance,
-  actions: Record<PlayerId, PlayerActionPlan>
-): AttackInstance | undefined {
-  let current = attack;
-  const visitedReflectors = new Set<PlayerId>();
-  const path: PlayerId[] = [];
-
-  while (true) {
-    const targetAction = getReboundAction(actions[current.targetId]);
-    if (targetAction?.defense !== "rebound") {
-      return current;
-    }
-
-    if (visitedReflectors.has(current.targetId)) {
-      state.eventLog.push({
-        ...createBaseEvent(state, "system"),
-        type: "system",
-        message: `反弹形成环：${[...path, current.targetId]
-          .map((playerId) => getPlayerName(state, playerId))
-          .join(" → ")}，环上无人受伤`
-      });
-      return undefined;
-    }
-
-    const reflector = findPlayer(state, current.targetId);
-    const absoluteRebound =
-      playerHasActiveSkill(reflector, "skill_57_59843") &&
-      (current.stats.isSkill ||
-        current.stats.id === "he_bao" ||
-        current.stats.id === "chao_he_bao");
-
-    if (current.stats.traits.includes("pierce_rebound") && !absoluteRebound) {
-      state.eventLog.push({
-        ...createBaseEvent(state, "rebound_broken"),
-        type: "rebound_broken",
-        sourceId: current.sourceId,
-        targetId: current.targetId,
-        attackName: current.stats.name
-      });
-      return current;
-    }
-
-    if (current.stats.isSkill && !absoluteRebound) {
-      state.eventLog.push({
-        ...createBaseEvent(state, "attack_blocked"),
-        type: "attack_blocked",
-        sourceId: current.sourceId,
-        targetId: current.targetId,
-        attackName: current.stats.name,
-        defense: "rebound"
-      });
-      return undefined;
-    }
-
-    if (!targetAction.targetId) {
-      return current;
-    }
-
-    visitedReflectors.add(current.targetId);
-    path.push(current.targetId);
-    state.eventLog.push({
-      ...createBaseEvent(state, "attack_reflected"),
-      type: "attack_reflected",
-      sourceId: current.sourceId,
-      originalTargetId: current.targetId,
-      reflectedTargetId: targetAction.targetId,
-      attackName: current.stats.name
-    });
-
-    current = {
-      ...current,
-      key: `${current.key}:reflected:${targetAction.targetId}`,
-      targetId: targetAction.targetId,
-      reflected: true
-    };
-  }
 }
 
 function resolveClashes(
@@ -3629,13 +3416,13 @@ function resolveClashes(
   actions: Record<PlayerId, PlayerActionPlan>
 ): void {
   for (const attack of attacks) {
-    if (handledAttackKeys.has(attack.key) || attack.reflected || attack.skipClash) {
+    if (handledAttackKeys.has(attack.key) || attack.sourceId === attack.targetId || attack.skipClash) {
       continue;
     }
 
     const counter = attacks.find(
       (candidate) =>
-        !candidate.reflected &&
+        candidate.sourceId !== candidate.targetId &&
         !candidate.skipClash &&
         candidate.key !== attack.key &&
         !handledAttackKeys.has(candidate.key) &&
@@ -3655,166 +3442,6 @@ function resolveClashes(
     handledAttackKeys.add(counter.key);
     resolveSingleClash(state, attack, counter, healthDeltas, actions);
   }
-}
-
-function resolveReversedAttacks(
-  state: GameState,
-  attacks: AttackInstance[],
-  actions: Record<PlayerId, PlayerActionPlan>,
-  healthDeltas: Map<PlayerId, HealthDelta>
-): void {
-  const handledAttackKeys = new Set<string>();
-  const intents: ReversedDamageIntent[] = [];
-
-  resolveReversedClashes(state, attacks, handledAttackKeys, intents, healthDeltas);
-  collectReversedUnopposedAttackIntents(
-    state,
-    attacks,
-    handledAttackKeys,
-    actions,
-    intents,
-    healthDeltas
-  );
-  resolveReversedDamageIntents(state, actions, intents, healthDeltas);
-}
-
-function resolveReversedClashes(
-  state: GameState,
-  attacks: AttackInstance[],
-  handledAttackKeys: Set<string>,
-  intents: ReversedDamageIntent[],
-  healthDeltas: Map<PlayerId, HealthDelta>
-): void {
-  for (const attack of attacks) {
-    if (handledAttackKeys.has(attack.key) || attack.reflected || attack.skipClash) {
-      continue;
-    }
-
-    const counter = attacks.find(
-      (candidate) =>
-        !candidate.reflected &&
-        !candidate.skipClash &&
-        candidate.key !== attack.key &&
-        !handledAttackKeys.has(candidate.key) &&
-        candidate.sourceId === attack.targetId &&
-        candidate.targetId === attack.sourceId
-    );
-
-    if (!counter) {
-      continue;
-    }
-
-    if (applyLiegongCross(state, attack, counter)) {
-      continue;
-    }
-
-    handledAttackKeys.add(attack.key);
-    handledAttackKeys.add(counter.key);
-    resolveSingleReversedClash(state, attack, counter, intents, healthDeltas);
-  }
-}
-
-function resolveSingleReversedClash(
-  state: GameState,
-  a: AttackInstance,
-  b: AttackInstance,
-  intents: ReversedDamageIntent[],
-  healthDeltas: Map<PlayerId, HealthDelta>
-): void {
-  const special = resolveSpecialReversedClash(state, a, b, intents, healthDeltas);
-  if (special) {
-    return;
-  }
-
-  if (a.stats.level === b.stats.level) {
-    state.eventLog.push({
-      ...createBaseEvent(state, "clash"),
-      type: "clash",
-      attackerAId: a.sourceId,
-      attackerBId: b.sourceId,
-      result: `${a.stats.name} 与 ${b.stats.name} 等级相同，互相抵消`
-    });
-    return;
-  }
-
-  const high = a.stats.level > b.stats.level ? a : b;
-  const low = high === a ? b : a;
-  const damage = calculateClashDamage(high.stats, low.stats);
-  intents.push({
-    sourceId: high.sourceId,
-    targetId: low.sourceId,
-    amount: damage,
-    attackName: high.stats.name,
-    stats: high.stats,
-    attack: high
-  });
-  state.eventLog.push({
-    ...createBaseEvent(state, "clash"),
-    type: "clash",
-    attackerAId: a.sourceId,
-    attackerBId: b.sourceId,
-    result: `${high.stats.name} 等级更高，对 ${getPlayerName(state, low.sourceId)} 造成 ${formatDamage(damage)} 点伤害`
-  });
-}
-
-function resolveSpecialReversedClash(
-  state: GameState,
-  a: AttackInstance,
-  b: AttackInstance,
-  intents: ReversedDamageIntent[],
-  healthDeltas: Map<PlayerId, HealthDelta>
-): boolean {
-  if (resolveDingSpecialClash(state, a, b, healthDeltas)) {
-    return true;
-  }
-
-  const isShaVsQin =
-    (a.stats.id === "sha" && b.stats.id === "qin") ||
-    (a.stats.id === "qin" && b.stats.id === "sha");
-
-  if (isShaVsQin) {
-    const sha = a.stats.id === "sha" ? a : b;
-    const qin = sha === a ? b : a;
-    if (qin.stats.level >= sha.stats.level) {
-      return false;
-    }
-
-    const damage = calculateClashDamage(sha.stats, qin.stats);
-    intents.push({
-      sourceId: sha.sourceId,
-      targetId: qin.sourceId,
-      amount: damage,
-      attackName: sha.stats.name,
-      stats: sha.stats,
-      attack: sha
-    });
-    addHeal(state, healthDeltas, sha.sourceId, qin.stats.stacks, sha.sourceId, "杀擒对撞回血");
-    state.eventLog.push({
-      ...createBaseEvent(state, "clash"),
-      type: "clash",
-      attackerAId: a.sourceId,
-      attackerBId: b.sourceId,
-      result: `杀 vs 擒：${getPlayerName(state, sha.sourceId)} 等级更高，按对撞造成 ${formatDamage(damage)} 点伤害并额外回复 ${qin.stats.stacks} 血`
-    });
-    return true;
-  }
-
-  const isShaVsNanMan =
-    (a.stats.id === "sha" && b.stats.id === "nan_man") ||
-    (a.stats.id === "nan_man" && b.stats.id === "sha");
-
-  if (isShaVsNanMan) {
-    state.eventLog.push({
-      ...createBaseEvent(state, "clash"),
-      type: "clash",
-      attackerAId: a.sourceId,
-      attackerBId: b.sourceId,
-      result: "杀 vs 南蛮入侵：相互抵消"
-    });
-    return true;
-  }
-
-  return false;
 }
 
 function resolveDingSpecialClash(
@@ -3846,7 +3473,8 @@ function resolveDingSpecialClash(
       2,
       other.sourceId,
       "丁与抠特殊对撞",
-      other.stats
+      other.stats,
+      attackDamageContext(other)
     );
     state.eventLog.push({
       ...createBaseEvent(state, "clash"),
@@ -3868,306 +3496,6 @@ function resolveDingSpecialClash(
   return true;
 }
 
-function collectReversedUnopposedAttackIntents(
-  state: GameState,
-  attacks: AttackInstance[],
-  handledAttackKeys: Set<string>,
-  actions: Record<PlayerId, PlayerActionPlan>,
-  intents: ReversedDamageIntent[],
-  healthDeltas: Map<PlayerId, HealthDelta>
-): void {
-  for (const attack of attacks) {
-    if (handledAttackKeys.has(attack.key)) {
-      continue;
-    }
-
-    const target = findPlayer(state, attack.targetId);
-    if (!target || target.status !== "alive") {
-      continue;
-    }
-
-    const hasRebound = getReboundActions(actions[attack.targetId]).length > 0;
-    if (!hasRebound) {
-      const targetAction = getDefensiveActionForAttack(state, attack, actions[attack.targetId]);
-      const defendedByAction = canActionDefend(targetAction, attack.stats.defenseTag);
-      if (
-        (defendedByAction && !consumeDoubleEdgeDefenseIgnore(state, attack, targetAction)) ||
-        canShaParryNanMan(attack, actions[attack.targetId])
-      ) {
-        const event: AttackBlockedEvent = {
-          ...createBaseEvent(state, "attack_blocked"),
-          type: "attack_blocked",
-          sourceId: attack.sourceId,
-          targetId: attack.targetId,
-          attackName: attack.stats.name,
-          blockKind: "block"
-        };
-        const defense = getDefenseForEvent(targetAction);
-        if (defense) {
-          event.defense = defense;
-        }
-        state.eventLog.push(event);
-        awardGuidaoCharge(state, attack, targetAction);
-        applyBlockedAttackEffects(state, attack, healthDeltas);
-        continue;
-      }
-
-      if (
-        absorbWithGhostSkillShieldV2(
-          state,
-          attack.targetId,
-          attack.sourceId,
-          attack.stats.name,
-          attack.stats
-        )
-      ) {
-        continue;
-      }
-    }
-
-    const isLastHit = isLastHitAttack(attack, attacks);
-    if (attack.stats.id === "skill_96_33279" || attack.stats.damageHits === 2) {
-      intents.push(createReversedDamageIntent(attack, isLastHit));
-      intents.push(createReversedDamageIntent(attack, isLastHit));
-    } else {
-      intents.push(createReversedDamageIntent(attack, isLastHit));
-    }
-  }
-}
-
-function createReversedDamageIntent(
-  attack: AttackInstance,
-  isLastHit: boolean
-): ReversedDamageIntent {
-  return {
-    sourceId: attack.sourceId,
-    targetId: attack.targetId,
-    amount: attack.stats.power,
-    attackName: attack.stats.name,
-    stats: attack.stats,
-    attack,
-    isLastHit
-  };
-}
-
-function resolveReversedDamageIntents(
-  state: GameState,
-  actions: Record<PlayerId, PlayerActionPlan>,
-  intents: ReversedDamageIntent[],
-  healthDeltas: Map<PlayerId, HealthDelta>
-): void {
-  const reboundGroups = new Map<PlayerId, ReversedDamageIntent[]>();
-  for (const intent of intents) {
-    if (collectReboundableIntent(state, actions, intent, healthDeltas, reboundGroups)) {
-      continue;
-    }
-    applyReversedIntentWithoutRebound(state, actions, intent, healthDeltas);
-  }
-
-  const queue: ReboundDamagePacket[] = [];
-  for (const [rebounderId, items] of reboundGroups.entries()) {
-    enqueueReboundPackets(state, actions, queue, rebounderId, items, [rebounderId]);
-  }
-
-  let guard = 0;
-  while (queue.length > 0 && guard < 64) {
-    guard += 1;
-    const packet = queue.shift()!;
-    if (collectReboundPacket(state, actions, packet, healthDeltas, queue)) {
-      continue;
-    }
-    applyReversedIntentWithoutRebound(state, actions, packet, healthDeltas);
-  }
-}
-
-function collectReboundableIntent(
-  state: GameState,
-  actions: Record<PlayerId, PlayerActionPlan>,
-  intent: ReversedDamageIntent,
-  healthDeltas: Map<PlayerId, HealthDelta>,
-  reboundGroups: Map<PlayerId, ReversedDamageIntent[]>
-): boolean {
-  const reboundActions = getReboundActions(actions[intent.targetId]);
-  if (reboundActions.length === 0 || !intent.stats) {
-    return false;
-  }
-
-  const target = findPlayer(state, intent.targetId);
-  const absoluteRebound =
-    playerHasActiveSkill(target, "skill_57_59843") &&
-    (intent.stats.isSkill ||
-      intent.stats.id === "he_bao" ||
-      intent.stats.id === "chao_he_bao");
-
-  if (intent.stats.traits.includes("pierce_rebound") && !absoluteRebound) {
-    state.eventLog.push({
-      ...createBaseEvent(state, "rebound_broken"),
-      type: "rebound_broken",
-      sourceId: intent.sourceId ?? intent.targetId,
-      targetId: intent.targetId,
-      attackName: intent.attackName ?? intent.stats.name
-    });
-    return false;
-  }
-
-  if (intent.stats.isSkill && !absoluteRebound) {
-    state.eventLog.push({
-      ...createBaseEvent(state, "attack_blocked"),
-      type: "attack_blocked",
-      sourceId: intent.sourceId ?? intent.targetId,
-      targetId: intent.targetId,
-      attackName: intent.attackName ?? intent.stats.name,
-      defense: "rebound",
-      blockKind: "block"
-    });
-    return true;
-  }
-
-  const items = reboundGroups.get(intent.targetId) ?? [];
-  items.push(intent);
-  reboundGroups.set(intent.targetId, items);
-  return true;
-}
-
-function collectReboundPacket(
-  state: GameState,
-  actions: Record<PlayerId, PlayerActionPlan>,
-  packet: ReboundDamagePacket,
-  healthDeltas: Map<PlayerId, HealthDelta>,
-  queue: ReboundDamagePacket[]
-): boolean {
-  const reboundActions = getReboundActions(actions[packet.targetId]);
-  if (reboundActions.length === 0) {
-    return false;
-  }
-
-  if (packet.visitedRebounderIds.includes(packet.targetId)) {
-    state.eventLog.push({
-      ...createBaseEvent(state, "system"),
-      type: "system",
-      message: `反弹形成环：${[...packet.visitedRebounderIds, packet.targetId]
-        .map((playerId) => getPlayerName(state, playerId))
-        .join(" → ")}，环上无人受伤`
-    });
-    return true;
-  }
-
-  enqueueReboundPackets(
-    state,
-    actions,
-    queue,
-    packet.targetId,
-    [packet],
-    [...packet.visitedRebounderIds, packet.targetId]
-  );
-  return true;
-}
-
-function enqueueReboundPackets(
-  state: GameState,
-  actions: Record<PlayerId, PlayerActionPlan>,
-  queue: ReboundDamagePacket[],
-  rebounderId: PlayerId,
-  items: ReversedDamageIntent[],
-  visitedRebounderIds: PlayerId[]
-): void {
-  const total = items.reduce((sum, item) => sum + item.amount, 0);
-  if (total <= 0) {
-    return;
-  }
-
-  const rebounder = findPlayer(state, rebounderId);
-  const stats = items[0]?.stats;
-  const attackName = items.length === 1 ? items[0]?.attackName : "反弹";
-  for (const reboundAction of getReboundActions(actions[rebounderId])) {
-    if (!reboundAction.targetId) {
-      continue;
-    }
-
-    state.eventLog.push({
-      ...createBaseEvent(state, "attack_reflected"),
-      type: "attack_reflected",
-      sourceId: rebounderId,
-      originalTargetId: rebounderId,
-      reflectedTargetId: reboundAction.targetId,
-      attackName: attackName ?? "反弹"
-    });
-    const packet: ReboundDamagePacket = {
-      sourceId: rebounderId,
-      targetId: reboundAction.targetId,
-      amount: total,
-      attackName: attackName ?? `${rebounder?.name ?? "玩家"}的反弹`,
-      visitedRebounderIds
-    };
-    if (stats) {
-      packet.stats = stats;
-    }
-    queue.push(packet);
-  }
-}
-
-function applyReversedIntentWithoutRebound(
-  state: GameState,
-  actions: Record<PlayerId, PlayerActionPlan>,
-  intent: ReversedDamageIntent,
-  healthDeltas: Map<PlayerId, HealthDelta>
-): void {
-  const target = findPlayer(state, intent.targetId);
-  if (!target || target.status !== "alive" || intent.amount <= 0) {
-    return;
-  }
-
-  const targetAction = intent.attack
-    ? getDefensiveActionForAttack(state, intent.attack, actions[intent.targetId])
-    : getDefensiveActionWithIndex(actions[intent.targetId])?.action;
-  if (canActionDefend(targetAction, intent.stats?.defenseTag ?? "unblockable")) {
-    const event: AttackBlockedEvent = {
-      ...createBaseEvent(state, "attack_blocked"),
-      type: "attack_blocked",
-      sourceId: intent.sourceId ?? intent.targetId,
-      targetId: intent.targetId,
-      attackName: intent.attackName ?? intent.stats?.name ?? "攻击",
-      blockKind: "block"
-    };
-    const defense = getDefenseForEvent(targetAction);
-    if (defense) {
-      event.defense = defense;
-    }
-    state.eventLog.push(event);
-    if (intent.attack) {
-      awardGuidaoCharge(state, intent.attack, targetAction);
-      applyBlockedAttackEffects(state, intent.attack, healthDeltas);
-    }
-    return;
-  }
-
-  const context: DamageContext = { fromAttack: true };
-  if (intent.attack) context.attackKey = intent.attack.key;
-  if (intent.isLastHit !== undefined) {
-    context.isLastHit = intent.isLastHit;
-  }
-
-  const eventStart = state.eventLog.length;
-  addDamage(
-    state,
-    healthDeltas,
-    intent.targetId,
-    intent.amount,
-    intent.sourceId,
-    intent.attackName,
-    intent.stats,
-    context
-  );
-  if (intent.attack) {
-    applySkillHitEffectsIfAttackHit(
-      state,
-      eventStart,
-      intent.attack,
-      actions,
-      healthDeltas
-    );
-  }
-}
 
 function applyLiegongCross(
   state: GameState,
@@ -4259,7 +3587,7 @@ function resolveSingleClash(
     high.sourceId,
     high.stats.name,
     high.stats,
-    { fromAttack: true, attackKey: high.key }
+    attackDamageContext(high)
   );
   applySkillHitEffectsIfAttackHit(
     state,
@@ -4310,7 +3638,7 @@ function resolveSpecialClash(
       sha.sourceId,
       sha.stats.name,
       sha.stats,
-      { fromAttack: true, attackKey: sha.key }
+      attackDamageContext(sha)
     );
     applySkillHitEffectsIfAttackHit(
       state,
@@ -4368,8 +3696,9 @@ function resolveUnopposedAttacks(
     const targetAction = getDefensiveActionForAttack(state, attack, actions[attack.targetId]);
     const defendedByAction = canActionDefend(targetAction, attack.stats.defenseTag);
     if (
-      (defendedByAction && !consumeDoubleEdgeDefenseIgnore(state, attack, targetAction)) ||
-      canShaParryNanMan(attack, actions[attack.targetId])
+      attack.sourceId !== attack.targetId &&
+      ((defendedByAction && !consumeDoubleEdgeDefenseIgnore(state, attack, targetAction)) ||
+      canShaParryNanMan(attack, actions[attack.targetId]))
     ) {
       const event: AttackBlockedEvent = {
         ...createBaseEvent(state, "attack_blocked"),
@@ -4390,7 +3719,7 @@ function resolveUnopposedAttacks(
     }
 
     const isLastHit = isLastHitAttack(attack, attacks);
-    if (
+    if (attack.sourceId !== attack.targetId &&
       absorbWithGhostSkillShieldV2(
         state,
         attack.targetId,
@@ -4411,7 +3740,7 @@ function resolveUnopposedAttacks(
         attack.sourceId,
         attack.stats.name,
         attack.stats,
-        { fromAttack: true, attackKey: attack.key }
+        attackDamageContext(attack, isLastHit)
       );
       addDamage(
         state,
@@ -4421,7 +3750,7 @@ function resolveUnopposedAttacks(
         attack.sourceId,
         attack.stats.name,
         attack.stats,
-        { fromAttack: true, isLastHit, attackKey: attack.key }
+        attackDamageContext(attack, isLastHit)
       );
     } else {
       addDamage(
@@ -4432,7 +3761,7 @@ function resolveUnopposedAttacks(
         attack.sourceId,
         attack.stats.name,
         attack.stats,
-        { fromAttack: true, isLastHit, attackKey: attack.key }
+        attackDamageContext(attack, isLastHit)
       );
     }
     applySkillHitEffectsIfAttackHit(
@@ -4443,6 +3772,13 @@ function resolveUnopposedAttacks(
       healthDeltas
     );
   }
+}
+
+function attackDamageContext(attack: AttackInstance, isLastHit = false): DamageContext {
+  return { fromAttack: true, attackKey: attack.key, isLastHit, reflected: attack.reflected,
+    ...(attack.offenseSnapshot ? { offenseSnapshot: attack.offenseSnapshot } : {}),
+    ...(attack.infiniteCopies ? { infiniteCopies: true } : {}),
+    ...(attack.originSourceId ? { originSourceId: attack.originSourceId } : {}) };
 }
 
 function canShaParryNanMan(
@@ -4590,21 +3926,25 @@ function awardGuidaoCharge(
 
   const gained = attack.stats.stacks * guidaoCount;
   addCountingMark(target, "guidao_charge", "鬼道次数", gained);
+  if (attack.infiniteCopies) {
+    const charge = target.buffs.find((buff) => buff.id === "guidao_charge")!;
+    charge.stacks = INFINITE_DAMAGE;
+    charge.infinite = true;
+  }
   state.eventLog.push({
     ...createBaseEvent(state, "system"),
     type: "system",
-    message: `${target.name} 小防成功，获得 ${gained} 次鬼道`
+    message: `${target.name} 小防成功，获得 ${attack.infiniteCopies ? "无限" : gained} 次鬼道`
   });
 }
 
 function isLastHitAttack(attack: AttackInstance, attacks: AttackInstance[]): boolean {
-  if (attack.reflected || attack.notLastHit) {
+  if (attack.sourceId === attack.targetId || attack.notLastHit) {
     return false;
   }
 
   return attacks.some(
     (candidate) =>
-      !candidate.reflected &&
       candidate.sourceId === attack.targetId &&
       candidate.targetId !== attack.sourceId
   );
@@ -4716,6 +4056,12 @@ function resolveActiveSkillEffects(
       if (!skill || !play || play.kind !== "effect") {
         continue;
       }
+
+      const acquired = resolveFusionAcquisition(state, sourceId, action);
+      if (acquired) {
+        if (acquired === "duplicate") addDefeatEffect(state, healthDeltas, sourceId, 2, sourceId, "沙子变化失败");
+        continue;
+      }
       if (skill.id === getFusionSkillId("冰火两仪眼")) {
         addHeal(state, healthDeltas, sourceId, 4, sourceId, skill.name);
         for (const target of alivePlayers(state).filter((player) => player.id !== sourceId)) {
@@ -4737,7 +4083,7 @@ function resolveActiveSkillEffects(
       }
 
       if (skill.id === DOUBLE_EDGE_SWORD_SKILL_ID) {
-        applyDoubleEdgeSwordCost(state, sourceId, skill.name, action.doubleEdgeMode === "pierce_rebound" ? 2 : 1);
+        addDamage(state, healthDeltas, sourceId, action.doubleEdgeMode === "pierce_rebound" ? 2 : 1, sourceId, skill.name);
         continue;
       }
 
@@ -4836,8 +4182,8 @@ function resolveActiveSkillEffects(
         continue;
       }
 
-      if (skill.id === "skill_64_60978") {
-        resolveHealingRevival(state, sourceId);
+      if (skill.id === "skill_64_60978" || skill.id === SAGE_PROTECTION_SKILL_ID) {
+        resolveHealingRevival(state, sourceId, skill.name, skill.id === SAGE_PROTECTION_SKILL_ID ? 2 : undefined);
         continue;
       }
 
@@ -4856,16 +4202,18 @@ function resolveActiveSkillEffects(
         if (player) {
           const before = player.hp;
           const multiplier = getFusionEnhancementCount(player, skill.id, ["神之子"]) > 0 ? 3 : 1;
-          player.hp = Math.abs(player.hp) * multiplier + (play.selfHeal ?? 0);
-          state.eventLog.push({
-            ...createBaseEvent(state, "heal"),
-            type: "heal",
-            sourceId,
-            targetId: sourceId,
-            amount: Math.max(0, player.hp - before),
-            reason: skill.name,
-            recoveryKind: "revival"
-          });
+          const reviving = isPendingDeathPlayer(player);
+          player.hp = Math.abs(before) * multiplier;
+          if (reviving) {
+            player.hp += play.selfHeal ?? 0;
+            clearPendingDeath(player);
+            state.eventLog.push({ ...createBaseEvent(state, "heal"), type: "heal", sourceId, targetId: sourceId,
+              amount: Math.max(0, player.hp - before), reason: skill.name, recoveryKind: "revival" });
+          } else {
+            if (player.hp !== before) state.eventLog.push({ ...createBaseEvent(state, "heal"), type: "heal",
+              sourceId, targetId: sourceId, amount: Math.max(0, player.hp - before), reason: skill.name, recoveryKind: "conversion" });
+            addHeal(state, healthDeltas, sourceId, play.selfHeal ?? 0, sourceId, skill.name);
+          }
         }
         continue;
       }
@@ -4874,7 +4222,7 @@ function resolveActiveSkillEffects(
         continue;
       }
 
-      if (play.selfDamage && !isSkillEffectImmune(state, sourceId, skill, sourceId)) {
+      if (play.selfDamage) {
         addDamage(
           state,
           healthDeltas,
@@ -4887,7 +4235,9 @@ function resolveActiveSkillEffects(
       }
 
       if (play.selfHeal && !isSkillEffectImmune(state, sourceId, skill, sourceId)) {
-        addHeal(state, healthDeltas, sourceId, play.selfHeal, sourceId, skill.name);
+        const multiplier = skill.id === FOREST_LOW_SING_SKILL_ID && source &&
+          getFusionEnhancementCount(source, skill.id, ["博学者之怒"]) > 0 ? 2 : 1;
+        addHeal(state, healthDeltas, sourceId, play.selfHeal * multiplier, sourceId, skill.name);
       }
 
       const targets = selectSkillEffectTargets(state, sourceId, action.targetId, play, skill);
@@ -4939,30 +4289,6 @@ function resolveImmediateSkillEffect(
   );
   const changedByPending = Boolean(state.turnHealthChanged) && !beforeTurnHealthChanged;
   return changedByDeltas || changedDirectly || changedByPending;
-}
-
-function applyDoubleEdgeSwordCost(
-  state: GameState,
-  playerId: PlayerId,
-  skillName: string,
-  amount: number
-): void {
-  const player = findPlayer(state, playerId);
-  if (!player || player.status !== "alive") {
-    return;
-  }
-
-  player.hp -= amount;
-  const event: DamageEvent = {
-    ...createBaseEvent(state, "damage"),
-    type: "damage",
-    sourceId: playerId,
-    targetId: playerId,
-    amount,
-    attackName: skillName
-  };
-  state.eventLog.push(event);
-  rememberDamageTaken(state, playerId, playerId, amount);
 }
 
 function getSkillEffectDamageStats(
@@ -5031,8 +4357,7 @@ function mirrorExposedSkill(
     return;
   }
 
-  source.skills.push(targetSkillId);
-  revealSkillToAll(state, sourceId, targetSkillId, "镜像法术复制");
+  grantInitializedSkill(state, sourceId, targetSkillId, "镜像法术复制");
   state.eventLog.push({
     ...createBaseEvent(state, "system"),
     type: "system",
@@ -5177,7 +4502,7 @@ function resolveDamageRedirect(
 ): void {
   const source = findPlayer(state, sourceId);
   const target = findPlayer(state, targetId);
-  const damage = state.pendingDamageItems?.find(
+  let damage = state.pendingDamageItems?.find(
     (item) =>
       item.id === damageId &&
       item.targetId === sourceId &&
@@ -5188,11 +4513,11 @@ function resolveDamageRedirect(
     return;
   }
 
-  damage.targetId = targetId;
-  damage.redirectedByPlayerIds = [
-    ...(damage.redirectedByPlayerIds ?? []),
-    sourceId
-  ];
+  damage = materializeSingleDamageCopy(state, damage);
+  state.pendingDamageItems = state.pendingDamageItems!.filter((item) => item.id !== damage!.id);
+  const beforeIds = new Set(state.pendingDamageItems.map((item) => item.id));
+  addDamage(state, new Map(), targetId, damage.amount, sourceId, "斗转星移", undefined, { spellDamage: true });
+  for (const item of state.pendingDamageItems) if (!beforeIds.has(item.id)) item.redirectedByPlayerIds = [...(damage.redirectedByPlayerIds ?? []), sourceId];
   state.eventLog.push({
     ...createBaseEvent(state, "system"),
     type: "system",
@@ -5205,19 +4530,33 @@ function resolveSixStar(
   state: GameState,
   healthDeltas: Map<PlayerId, HealthDelta>,
   sourceId: PlayerId,
-  skillName: string
+  skillName: string,
+  observedDamage?: number
 ): void {
   const source = findPlayer(state, sourceId);
+  // Revealing six-star may itself trigger spell damage. Price that damage before finding the maximum.
+  const unprocessed = (state.pendingDamageItems ?? []).filter((item) => item.targetId === sourceId && item.unprocessedSpell);
+  if (unprocessed.length) {
+    state.pendingDamageItems = state.pendingDamageItems!.filter((item) => !unprocessed.includes(item));
+    for (const item of unprocessed) addDamage(state, healthDeltas, sourceId, item.amount, item.sourceId,
+      item.attackName, undefined, { spellDamage: true });
+  }
   const damage = getHighestPendingDamageItem(state, sourceId);
-  if (!source || !damage) {
+  if (!source || (!damage && observedDamage === undefined)) {
     return;
   }
 
   const removed = (state.pendingDamageItems ?? []).filter(
-    (item) => item.targetId === sourceId && item.amount > 0
+    (item) => item.targetId === sourceId && item.amount >= 0
   );
   state.pendingDamageItems = (state.pendingDamageItems ?? []).filter((item) => !removed.includes(item));
-  addHeal(state, healthDeltas, sourceId, damage.amount + 6, sourceId, skillName);
+  let protection = source.buffs.find((buff) => buff.id === SIX_STAR_DAMAGE_IMMUNITY_BUFF_ID);
+  if (!protection) {
+    protection = { id: SIX_STAR_DAMAGE_IMMUNITY_BUFF_ID, name: skillName, stacks: 1, expiresAtTurn: state.turnNumber };
+    source.buffs.push(protection);
+  }
+  const maximum = Math.max(protection.sixStarMaxDamage ?? 0, damage?.amount ?? 0, observedDamage ?? 0);
+  protection.sixStarMaxDamage = maximum;
   for (const item of removed) {
     pushAttackBlockedEvent(state, {
       sourceId: item.sourceId,
@@ -5230,9 +4569,28 @@ function resolveSixStar(
   state.eventLog.push({
     ...createBaseEvent(state, "system"),
     type: "system",
-    message: `${source.name} 发动${skillName}，免疫当前待承受伤害，并将最高的 ${damage.amount} 点伤害转化为 ${damage.amount + 6} 点治疗`
+    message: `${source.name} 发动${skillName}，免疫当前待承受伤害，本回合最高单次伤害 ${maximum}，累计治疗额度 ${maximum + 6}`
   });
   refreshDamageModifyPasses(state);
+}
+
+/** Queue recovery at a health settlement point, including callers with a throwaway damage map. */
+function collectSixStarRecovery(state: GameState, healthDeltas: Map<PlayerId, HealthDelta>): void {
+  for (const player of alivePlayers(state)) {
+    const protection = player.buffs.find((buff) => buff.id === SIX_STAR_DAMAGE_IMMUNITY_BUFF_ID &&
+      (buff.expiresAtTurn ?? -1) >= state.turnNumber && buff.sixStarMaxDamage !== undefined);
+    if (!protection) continue;
+    const amount = protection.sixStarMaxDamage! + 6;
+    const due = Math.max(0, amount - (protection.sixStarRecoveryPaid ?? 0));
+    if (!due) continue;
+    // A suppressed heal is still spent; ending blood sorrow cannot retroactively restore it.
+    protection.sixStarRecoveryPaid = amount;
+    addHeal(state, healthDeltas, player.id, due, player.id, protection.name);
+  }
+}
+
+function clearSixStarProtection(state: GameState): void {
+  for (const player of state.players) player.buffs = player.buffs.filter((buff) => buff.id !== SIX_STAR_DAMAGE_IMMUNITY_BUFF_ID);
 }
 
 function resolveIceRainMarkUse(
@@ -5240,11 +4598,13 @@ function resolveIceRainMarkUse(
   playerId: PlayerId,
   damageId: string
 ): void {
-  const damage = getPendingDamageItem(state, damageId);
+  let damage = getPendingDamageItem(state, damageId);
   if (
     !damage ||
+    !isAttackDamageItem(damage) ||
     damage.targetId !== playerId ||
     !damage.sourceId ||
+    damage.sourceId === playerId ||
     hasPendingDamageModifier(damage, "ice_rain")
   ) {
     return;
@@ -5255,6 +4615,7 @@ function resolveIceRainMarkUse(
     return;
   }
 
+  damage = materializeSingleDamageCopy(state, damage);
   damage.amount = Math.max(0, damage.amount - 2);
   addPendingDamageModifier(damage, "ice_rain");
   state.eventLog.push({
@@ -5271,19 +4632,21 @@ function resolveCrossGuardMarkUse(
   damageId: string
 ): void {
   const player = findPlayer(state, playerId);
-  const damage = getPendingDamageItem(state, damageId);
-  if (!player || !damage || damage.amount <= 0) {
+  let damage = getPendingDamageItem(state, damageId);
+  if (!player || !damage || damage.amount <= 0 || !isAttackDamageItem(damage)) {
     return;
   }
 
   if (damage.targetId === playerId) {
     if (
+      damage.internalDamage ||
       hasPendingDamageModifier(damage, "huyou") ||
       !consumePlayerBuff(player, "huyou_mark", 1)
     ) {
       return;
     }
     const factor = getFusionEnhancementCount(player, CROSS_GUARD_SKILL_ID, ["神域守护"]) > 0 ? 3 : 2;
+    damage = materializeSingleDamageCopy(state, damage);
     damage.amount = Math.floor(damage.amount / factor);
     addPendingDamageModifier(damage, "huyou");
     state.eventLog.push({
@@ -5303,6 +4666,7 @@ function resolveCrossGuardMarkUse(
     return;
   }
 
+  damage = materializeSingleDamageCopy(state, damage);
   damage.amount *= getFusionEnhancementCount(player, CROSS_GUARD_SKILL_ID, ["神域守护"]) > 0 ? 3 : 2;
   addPendingDamageModifier(damage, "cross");
   state.eventLog.push({
@@ -5311,6 +4675,16 @@ function resolveCrossGuardMarkUse(
     message: `${player.name} 消耗十字印记，使 ${getPlayerName(state, damage.targetId)} 承受的 ${damage.attackName ?? "伤害"} 伤害翻倍`
   });
   refreshDamageModifyPasses(state);
+}
+
+/** A single-target modifier consumes one copy; the infinite family remains intact. */
+function materializeSingleDamageCopy(state: GameState, item: PendingDamageItem): PendingDamageItem {
+  if (!item.infiniteCopies) return item;
+  const copy = structuredClone(item);
+  copy.id = createId("damage_copy");
+  delete copy.infiniteCopies;
+  state.pendingDamageItems!.push(copy);
+  return copy;
 }
 
 function getPendingDamageItem(state: GameState, damageId: string): PendingDamageItem | undefined {
@@ -5428,7 +4802,7 @@ function resolveSameFate(
     return;
   }
 
-  const damageTaken = getRoundDamageTaken(source, state.roundNumber);
+  const damageTaken = getTurnDamageTaken(source, state.turnNumber);
   if (damageTaken <= 0) {
     state.eventLog.push({
       ...createBaseEvent(state, "system"),
@@ -5462,13 +4836,13 @@ function resolveSameFate(
   });
 }
 
-function resolveHealingRevival(state: GameState, sourceId: PlayerId): void {
+function resolveHealingRevival(state: GameState, sourceId: PlayerId, reason = "治愈术", hp?: number): void {
   const source = findPlayer(state, sourceId);
   if (!source) {
     return;
   }
 
-  reviveToFullHp(state, source, "治愈术");
+  reviveToHp(state, source, reason, hp);
 }
 
 function resolveLishang(
@@ -5912,17 +5286,36 @@ function isFireSkillId(skillId: string): boolean {
   return getSkill(skillId)?.attribute === "fire";
 }
 
+function activatePureSkyImmunity(state: GameState, player: PlayerState, skillId: SkillId): void {
+  const skill = getSkill(skillId);
+  if (!skill || !skillHasTypeTag(skill, "控制技") || !skillHasCakeCost(skillId, player) ||
+    getActiveFusionCount(player, "纯净苍穹") === 0) return;
+  upsertBuff(player, { id: NEGATIVE_STATUS_IMMUNITY_BUFF_ID, name: "免疫不良", stacks: 1,
+    expiresAtTurn: state.turnNumber });
+  markSkillActivated(state, player.id, getFusionSkillId("纯净苍穹"));
+  revealSkillOnUse(state, player.id, getFusionSkillId("纯净苍穹"), "纯净苍穹启用免疫不良");
+}
+
+/** Holy Realm and Nature Spirit share one attribute-immunity path. */
+function getAttributeImmunitySkill(player: PlayerState | undefined, elements: readonly AttackElement[]): SkillId | undefined {
+  if (elements.some((element) => element !== "physical") && playerHasActiveSkill(player, "skill_75_68329")) {
+    return "skill_75_68329";
+  }
+  if (elements.includes("fire") && getActiveFusionCount(player, "自然之灵") > 0) return getFusionSkillId("自然之灵");
+  return undefined;
+}
+
 function isAttributeSkillEffectImmune(
   state: GameState,
   playerId: PlayerId,
   skill: NonNullable<ReturnType<typeof getSkill>>
 ): boolean {
   const player = findPlayer(state, playerId);
-  const active = Boolean(skill.attribute && playerHasActiveSkill(player, "skill_75_68329"));
-  if (active) {
-    revealSkillOnTrigger(state, playerId, "skill_75_68329", "触发圣灵之境");
+  const protection = getAttributeImmunitySkill(player, skill.attribute ? [skill.attribute] : []);
+  if (protection) {
+    revealSkillOnTrigger(state, playerId, protection, `触发${getSkill(protection)!.name}`);
   }
-  return active;
+  return Boolean(protection);
 }
 
 function isSkillEffectImmune(
@@ -5958,12 +5351,14 @@ function isPurificationImmune(
 function resolveBurningEarth(
   state: GameState,
   healthDeltas: Map<PlayerId, HealthDelta>,
-  sourceId: PlayerId
+  sourceId: PlayerId,
+  context: DamageContext = {}
 ): void {
   const sourceSkill = getSkill("skill_13_68869");
   const targets = alivePlayers(state).filter((player) => player.id !== sourceId);
   for (const target of targets) {
     if (sourceSkill && isSkillEffectImmune(state, target.id, sourceSkill, sourceId)) {
+      if (getActiveFusionCount(target, "帝灵之境") > 0) addDamage(state, healthDeltas, target.id, 1, sourceId, "火烧大地", undefined, { spellDamage: true });
       continue;
     }
 
@@ -5975,7 +5370,7 @@ function resolveBurningEarth(
       amount,
       sourceId,
       "火烧大地",
-      fireDamageStats("skill_13_68869", "火烧大地", amount)
+      fireDamageStats("skill_13_68869", "火烧大地", amount), context
     );
   }
   removeEnemyIceSkills(state, sourceId);
@@ -6148,15 +5543,12 @@ function applyElectricShockParalysis(
   }
 
   const fixedAction = getParalysisFixedAction(state.pendingActions[targetId]);
-  target.buffs = target.buffs.filter(
-    (buff) => !buff.id.startsWith(PARALYSIS_NEXT_ACTION_BUFF_PREFIX)
-  );
-  target.buffs.push({
-    id: paralysisNextActionBuffId(fixedAction),
-    name: "麻痹",
-    stacks: 1,
-    sourcePlayerId: attack.sourceId
+  const applied = applyNegativeStatus(state, targetId, "paralysis", (player) => {
+    player.buffs = player.buffs.filter((buff) => !buff.id.startsWith(PARALYSIS_NEXT_ACTION_BUFF_PREFIX));
+    player.buffs.push({ id: paralysisNextActionBuffId(fixedAction), name: "麻痹", stacks: 1,
+      sourcePlayerId: attack.sourceId });
   });
+  if (!applied) return;
   state.eventLog.push({
     ...createBaseEvent(state, "system"),
     type: "system",
@@ -6181,14 +5573,15 @@ function isElectricShockParalysisImmune(
     return true;
   }
 
-  if (playerHasActiveSkill(target, "skill_75_68329")) {
+  const attributeProtection = getAttributeImmunitySkill(target, getAttackElements(attack.stats));
+  if (attributeProtection) {
     pushAttackBlockedEvent(state, {
       sourceId: attack.sourceId,
       targetId,
       attackName: attack.stats.name,
       blockKind: "immune",
-      protectionName: "圣灵之境",
-      protectionSkillId: "skill_75_68329"
+      protectionName: getSkill(attributeProtection)!.name,
+      protectionSkillId: attributeProtection
     });
     return true;
   }
@@ -6256,6 +5649,10 @@ function applySkillHitEffects(
   actions: Record<PlayerId, PlayerActionPlan>,
   healthDeltas: Map<PlayerId, HealthDelta>
 ): void {
+  const hits = ensureDelta(healthDeltas, attack.targetId).appliedHitEffectKeys ??= new Set();
+  if (hits.has(attack.key)) return;
+  hits.add(attack.key);
+  // Electric shock is a non-attack action: its paralysis is the action itself, not an on-hit reward.
   const source = findPlayer(state, attack.sourceId);
   const target = findPlayer(state, attack.targetId);
   if (!source || !target) {
@@ -6265,7 +5662,7 @@ function applySkillHitEffects(
   if (attack.stats.id === LU_ATTACK_SKILL_ID) {
     const before = source.buffs.find((buff) => buff.id === "lu_growth")?.stacks ?? 0;
     if (before < 3) {
-      addCountingMark(source, "lu_growth", "撸成长", 1);
+      addCountingMark(source, "lu_growth", "撸成长", attack.infiniteCopies ? 3 - before : 1);
       const after = Math.min(3, source.buffs.find((buff) => buff.id === "lu_growth")?.stacks ?? 0);
       state.eventLog.push({
         ...createBaseEvent(state, "system"),
@@ -6275,12 +5672,13 @@ function applySkillHitEffects(
     }
   }
 
-  const iceRainCount = getActiveSkillCount(source, "skill_20_63089");
+  const iceRainCount = attack.offenseSnapshot?.iceRain ?? getActiveSkillCount(source, "skill_20_63089");
   if (iceRainCount > 0 && attack.stats.id === "wan_jian") {
     addCountingMark(target, `ice_rain:${source.id}`, `冰雨：${source.name}`, iceRainCount);
     const iceRainBuff = target.buffs.find((buff) => buff.id === `ice_rain:${source.id}`);
     if (iceRainBuff) {
       iceRainBuff.sourcePlayerId = source.id;
+      if (attack.infiniteCopies) { iceRainBuff.stacks = INFINITE_DAMAGE; iceRainBuff.infinite = true; }
     }
     state.eventLog.push({
       ...createBaseEvent(state, "system"),
@@ -6298,13 +5696,11 @@ function applySkillHitEffects(
     !isAttackAttributeEffectImmune(state, attack, target.id)
   ) {
     const freezeTurns = Math.min(3, Math.max(1, attack.stats.freezeTurns ?? 1));
-    const existingFrozen = target.buffs.find((buff) => buff.id === "frozen");
-    const expiresAtTurn = state.turnNumber + freezeTurns;
-    upsertBuff(target, {
-      id: "frozen",
-      name: "冰冻",
-      stacks: Math.max(existingFrozen?.stacks ?? 0, freezeTurns),
-      expiresAtTurn: Math.max(existingFrozen?.expiresAtTurn ?? 0, expiresAtTurn)
+    applyNegativeStatus(state, target.id, "frozen", (player) => {
+      const existingFrozen = player.buffs.find((buff) => buff.id === "frozen");
+      upsertBuff(player, { id: "frozen", name: "冰冻",
+        stacks: Math.max(existingFrozen?.stacks ?? 0, freezeTurns),
+        expiresAtTurn: Math.max(existingFrozen?.expiresAtTurn ?? 0, state.turnNumber + freezeTurns) });
     });
   }
 
@@ -6315,7 +5711,8 @@ function applySkillHitEffects(
   if (attack.stats.id === "skill_78_18866") {
     applyFireballSplash(state, attack, actions, healthDeltas);
   }
-  if (attack.stats.id === "skill_82_45540" && getFusionEnhancementCount(source, "skill_82_45540", ["后羿•七日连珠"]) > 0) {
+  if (attack.stats.id === "skill_82_45540" && (attack.offenseSnapshot?.freeRi ??
+    getFusionEnhancementCount(source, "skill_82_45540", ["后羿•七日连珠"]) > 0)) {
     addCountingMark(source, "free_ri", "免费日机会", 1);
   }
 
@@ -6326,8 +5723,7 @@ function applySkillHitEffects(
   }
 
   if (effect === "zhong_shield") {
-    source.buffs = source.buffs.filter((buff) => buff.id !== "jin_zhong_zhao");
-    source.buffs.push({
+    upsertBuff(source, {
       id: "jin_zhong_zhao",
       name: `金钟罩：${getPlayerName(state, attack.targetId)}`,
       stacks: 1,
@@ -6344,6 +5740,10 @@ function applySkillHitEffects(
 
   if (effect === "lian_bao_free") {
     addCountingMark(source, "free_lian_bao", "免费连爆机会", 1);
+    if (attack.infiniteCopies) {
+      const free = source.buffs.find((buff) => buff.id === "free_lian_bao")!;
+      free.stacks = INFINITE_DAMAGE; free.infinite = true;
+    }
     state.eventLog.push({
       ...createBaseEvent(state, "system"),
       type: "system",
@@ -6359,7 +5759,9 @@ function applySkillHitEffectsIfAttackHit(
   actions: Record<PlayerId, PlayerActionPlan>,
   healthDeltas: Map<PlayerId, HealthDelta>
 ): void {
-  if (!attackCountsAsHit(state, eventStart, attack)) {
+  const delta = healthDeltas.get(attack.targetId);
+  if (delta?.reflectedAttackKeys?.has(attack.key) && !delta.landedAttackKeys?.has(attack.key)) return;
+  if (healthDeltas.get(attack.targetId)?.blockedAttackKeys?.has(attack.key) || !attackCountsAsHit(state, eventStart, attack)) {
     return;
   }
 
@@ -6407,15 +5809,9 @@ function isAttackAttributeEffectImmune(
   targetId: PlayerId
 ): boolean {
   const target = findPlayer(state, targetId);
-  if (!target || !playerHasActiveSkill(target, "skill_75_68329")) {
-    return false;
-  }
-
-  if (getAttackElements(attack.stats).every((element) => element === "physical")) {
-    return false;
-  }
-
-  revealSkillOnTrigger(state, targetId, "skill_75_68329", "触发圣灵之境");
+  const protection = getAttributeImmunitySkill(target, getAttackElements(attack.stats));
+  if (!protection) return false;
+  revealSkillOnTrigger(state, targetId, protection, `触发${getSkill(protection)!.name}`);
   return true;
 }
 
@@ -6426,7 +5822,7 @@ function applyFireballSplash(
   healthDeltas: Map<PlayerId, HealthDelta>
 ): void {
   const source = findPlayer(state, attack.sourceId);
-  const enhanced = source && getFusionEnhancementCount(source, "skill_78_18866", ["回响之杖"]) > 0;
+  const enhanced = attack.offenseSnapshot?.echo ?? Boolean(source && getFusionEnhancementCount(source, "skill_78_18866", ["回响之杖"]) > 0);
   const alive = alivePlayers(state);
   const targetIndex = alive.findIndex((player) => player.id === attack.targetId);
   for (const candidate of alivePlayers(state)) {
@@ -6461,7 +5857,8 @@ function applyFireballSplash(
       amount,
       attack.sourceId,
       "火球溅射",
-      splashStats
+      splashStats,
+      { spellDamage: true, ...(attack.infiniteCopies ? { infiniteCopies: true } : {}) }
     );
   }
 }
@@ -6471,6 +5868,7 @@ function applyHealthDeltas(
   healthDeltas: Map<PlayerId, HealthDelta>
 ): boolean {
   let changed = false;
+  collectSixStarRecovery(state, healthDeltas);
 
   const immuneAttacks = applyLightningBodyImmunity(state);
   for (const delta of healthDeltas.values()) {
@@ -6488,7 +5886,11 @@ function applyHealthDeltas(
     }
 
     const before = player.hp;
-    player.hp = (delta.damageAtZero !== undefined ? -Math.max(0, delta.damage - delta.damageAtZero) : player.hp - delta.damage) + delta.healing;
+    applyHealthAmounts(player, delta.damage, delta.healing, delta.infiniteDamage, delta.infiniteHealing, delta.damageAtZero);
+    if (delta.damage > 0) {
+      player.buffs = player.buffs.filter((buff) => buff.id !== "internal_zero_hp");
+      if (player.hp === 0 && delta.lastDamageInternal) player.buffs.push({ id: "internal_zero_hp", name: "反噬归零", stacks: 1 });
+    }
 
     if (delta.damage > 0) {
       changed = true;
@@ -6522,7 +5924,11 @@ function updateDeaths(
   state: GameState,
   options: { allowPending?: boolean } = {}
 ): boolean {
+  const recovery = new Map<PlayerId, HealthDelta>();
+  collectSixStarRecovery(state, recovery);
+  if (recovery.size && applyHealthDeltas(state, recovery)) state.turnHealthChanged = true;
   for (const player of state.players) {
+    if (player.hp !== 0) player.buffs = player.buffs.filter((buff) => !["lotus_zero_hp_triggered", "internal_zero_hp"].includes(buff.id));
     if (player.status !== "alive") {
       continue;
     }
@@ -6533,17 +5939,22 @@ function updateDeaths(
     }
 
     if (!isDeathCandidate(player)) {
-      if (player.hp === 0 && playerHasActiveSkill(player, "skill_23_90895")) {
-        player.hp += 1;
+      const twins = getActiveFusionCount(player, "神隐双莲");
+      if (player.hp === 0 && !player.buffs.some((buff) => buff.id === "lotus_zero_hp_triggered") &&
+        (twins > 0 || playerHasActiveSkill(player, "skill_23_90895"))) {
+        player.buffs.push({ id: "lotus_zero_hp_triggered", name: "本次零血回复已触发", stacks: 1 });
+        const healing = twins > 0 ? 3 * twins : 1;
+        const healingDeltas = new Map<PlayerId, HealthDelta>();
+        addHeal(state, healingDeltas, player.id, healing, player.id, twins > 0 ? "神隐双莲" : "神隐红莲");
+        if (healingDeltas.size && applyHealthDeltas(state, healingDeltas)) state.turnHealthChanged = true;
+        if (twins > 0) addScheduledCakeBuff(player, `qinglian_cake_round:${state.roundNumber + 1}`,
+          "神隐双莲轮初加饼", twins, state.roundNumber + 2);
         clearPendingDeath(player);
-        state.eventLog.push({
-          ...createBaseEvent(state, "heal"),
-          type: "heal",
-          sourceId: player.id,
-          targetId: player.id,
-          amount: 1,
-          reason: "神隐红莲"
-        });
+        if (twins === 0 && !player.buffs.some((buff) => buff.id === "internal_zero_hp") &&
+          getFusionEnhancementCount(player, "skill_23_90895", ["红莲斗篷"]) > 0 &&
+          takeRetaliationResponses(state, player.id, getFusionSkillId("红莲斗篷")) > 0) {
+          resolveBurningEarth(state, new Map(), player.id, { retaliation: true });
+        }
         continue;
       }
 
@@ -6575,7 +5986,7 @@ function updateDeaths(
     ) {
       if (!fatalDamageEvents.some(isFireDamageEvent)) changeCakes(state, player.id,
         player.cakes - (getFusionEnhancementCount(player, "skill_65_71994", ["天火之狱"]) > 0 ? 3 : 4), "浴火重生消耗");
-      reviveToFullHp(state, player, "浴火重生");
+      reviveToHp(state, player, "浴火重生");
       continue;
     }
 
@@ -6587,6 +5998,9 @@ function updateDeaths(
     finalizePlayerCannotContinue(state, player, fatalDamageEvents, 1);
   }
 
+  if (alivePlayers(state).some((player) => player.buffs.some((buff) => buff.id === SIX_STAR_DAMAGE_IMMUNITY_BUFF_ID &&
+    (buff.expiresAtTurn ?? -1) >= state.turnNumber && buff.sixStarMaxDamage !== undefined &&
+    buff.sixStarMaxDamage + 6 > (buff.sixStarRecoveryPaid ?? 0)))) return updateDeaths(state, options);
   return hasPendingDeaths(state);
 }
 
@@ -6606,14 +6020,15 @@ function canRebirthByFire(
   );
 }
 
-function reviveToFullHp(
+function reviveToHp(
   state: GameState,
   player: NonNullable<ReturnType<typeof findPlayer>>,
-  reason: string
+  reason: string,
+  nextHp = getPlayerInitialHp(player)
 ): void {
   const before = player.hp;
-  const nextHp = getPlayerInitialHp(player);
   player.hp = nextHp;
+  delete player.hpIsInfinite;
   clearPendingDeath(player);
   state.eventLog.push({
     ...createBaseEvent(state, "heal"),
@@ -6702,10 +6117,6 @@ function applyDeathWatchSkills(
       continue;
     }
 
-    if (isGlobalSkillActive(state, "skill_12_79004")) {
-      continue;
-    }
-
     const healing = fatalDamageEvents.reduce(
       (sum, event) => sum + Math.floor(event.amount / 2),
       0
@@ -6714,15 +6125,7 @@ function applyDeathWatchSkills(
       continue;
     }
 
-    player.hp += healing;
-    state.eventLog.push({
-      ...createBaseEvent(state, "heal"),
-      type: "heal",
-      sourceId: player.id,
-      targetId: player.id,
-      amount: healing,
-      reason: "死神之镰"
-    });
+    applyHealNow(state, player.id, healing, player.id, "死神之镰");
   }
 }
 
@@ -6934,16 +6337,18 @@ function clearTurnTemporaryBuffs(state: GameState): void {
   for (const player of state.players) {
     player.buffs = player.buffs.filter(
       (buff) =>
+        (buff.id === SIX_STAR_DAMAGE_IMMUNITY_BUFF_ID && state.turnResolutionStarted &&
+          (buff.expiresAtTurn ?? -1) >= state.turnNumber) ||
         !temporaryBuffIds.has(buff.id) &&
         (buff.expiresAtRound === undefined || buff.expiresAtRound > state.roundNumber) &&
-        (buff.expiresAtTurn === undefined || (buff.id === HUIYUE_BUFF_ID ? buff.expiresAtTurn >= state.turnNumber : buff.expiresAtTurn > state.turnNumber))
+        (buff.expiresAtTurn === undefined || ([HUIYUE_BUFF_ID, NEGATIVE_STATUS_IMMUNITY_BUFF_ID].includes(buff.id) ? buff.expiresAtTurn >= state.turnNumber : buff.expiresAtTurn > state.turnNumber))
     );
   }
 }
 
 function endRound(
   state: GameState,
-  options: { skipSmallSpaceTick?: boolean } = {}
+  options: { skipSmallSpaceTick?: boolean; skipRoundEndSkills?: boolean } = {}
 ): void {
   state.eventLog.push({
     ...createBaseEvent(state, "round_ended"),
@@ -6951,7 +6356,19 @@ function endRound(
     reason: "有人血量发生变化，所有饼清零"
   });
 
-  applyRoundEndSkills(state);
+  if (!options.skipRoundEndSkills) {
+    applyRoundEndSkills(state);
+    if (state.pendingDamageItems?.length) {
+      state.roundEndDamagePending = { skipSmallSpaceTick: Boolean(options.skipSmallSpaceTick) };
+      if (handlePendingDamageItems(state)) return;
+      if (updateDeaths(state, { allowPending: true })) {
+        state.retaliationRevivalPending = true;
+        beginSkippedAwareActionPrompt(state, "revival_action");
+        return;
+      }
+      delete state.roundEndDamagePending;
+    }
+  }
   updateDeaths(state);
 
   const preservedCakes = new Map<PlayerId, number>();
@@ -7004,7 +6421,8 @@ function applyRoundStartSkills(state: GameState): void {
       legacyCount > 0 &&
       player.buffs.some((buff) => buff.id === `took_damage_round:${state.roundNumber - 1}`)
     ) {
-      changeCakes(state, player.id, player.cakes + 2 * legacyCount, `遗计轮初+${2 * legacyCount}饼`);
+      const gain = 2 * legacyCount + getFusionEnhancementCount(player, "skill_49_75347", ["空城计"]);
+      changeCakes(state, player.id, player.cakes + gain, `遗计轮初+${gain}饼`);
     }
 
     const qinglianBuff = player.buffs.find(
@@ -7047,16 +6465,15 @@ function applyTraumaRecoveryAtRoundEnd(state: GameState, player: PlayerState): v
     if (fusion && getFusionRecipe(fusion.skillId)?.skill.name === "灵魂修复") {
       const before = player.hp;
       player.hp = getPlayerInitialHp(player);
+      delete player.hpIsInfinite;
       if (player.hp > 0) clearPendingDeath(player);
       state.eventLog.push({ ...createBaseEvent(state, "heal"), type: "heal", sourceId: player.id,
         targetId: player.id, amount: Math.max(0, player.hp - before), reason: "灵魂修复", recoveryKind: "full_restore" });
-    } else if (!isGlobalSkillActive(state, "skill_12_79004")) {
+    } else {
       const enhanced = fusion && getFusionRecipe(fusion.skillId)?.skill.name === "霸者重装" &&
         getFusionEnhancementCount(player, "skill_120_85509", ["霸者重装"]) > 0;
       const healing = (enhanced ? 4 : 3) * buff.stacks;
-      player.hp += healing;
-      state.eventLog.push({ ...createBaseEvent(state, "heal"), type: "heal", sourceId: player.id,
-        targetId: player.id, amount: healing, reason: "创伤聚合", recoveryKind: "healing" });
+      applyHealNow(state, player.id, healing, player.id, "创伤聚合");
     }
   }
 }
@@ -7071,24 +6488,7 @@ function applyRoundEndSkills(state: GameState): void {
     const sanctuaryCount = state.roundNumber % 3 === 0 ? getActiveSkillCount(player, "skill_71_40087") :
       getFusionEnhancementCount(player, "skill_71_40087", ["霸者重装"]);
     if (sanctuaryCount > 0) {
-      if (isGlobalSkillActive(state, "skill_12_79004")) {
-        state.eventLog.push({
-          ...createBaseEvent(state, "system"),
-          type: "system",
-          message: `${player.name} 的圣域回血被血之哀压制`
-        });
-      } else {
-        const healing = 3 * sanctuaryCount;
-        player.hp += healing;
-        state.eventLog.push({
-          ...createBaseEvent(state, "heal"),
-          type: "heal",
-          sourceId: player.id,
-          targetId: player.id,
-          amount: healing,
-          reason: "圣域"
-        });
-      }
+      applyHealNow(state, player.id, 3 * sanctuaryCount, player.id, "圣域");
     }
 
     const domains = state.roundNumber % 3 === 0 ? getActiveFusionCount(player, "魔域") : 0;
@@ -7102,9 +6502,7 @@ function applyRoundEndSkills(state: GameState): void {
         const target = requested?.status === "alive" && requested.id !== player.id ? requested :
           alivePlayers(state).filter((other) => other.id !== player.id).sort((a, b) => b.hp - a.hp)[0];
         if (!target) continue;
-        target.hp -= 1;
-        state.eventLog.push({ ...createBaseEvent(state, "damage"), type: "damage", sourceId: player.id, targetId: target.id, amount: 1, attackName: "魔域" });
-        addHeal(state, deltas, player.id, 1, player.id, "魔域");
+        addDamage(state, deltas, target.id, 1, player.id, "魔域", undefined, { spellDamage: true, drainHealing: true });
       }
       applyHealthDeltas(state, deltas);
     }
@@ -7128,18 +6526,9 @@ function applyRoundEndSkills(state: GameState): void {
       if (!target) {
         continue;
       }
-      target.hp -= 1;
-      if (!isGlobalSkillActive(state, "skill_12_79004")) {
-        player.hp += 1;
-      }
-      state.eventLog.push({
-        ...createBaseEvent(state, "damage"),
-        type: "damage",
-        sourceId: player.id,
-        targetId: target.id,
-        amount: 1,
-        attackName: "邪域"
-      });
+      const deltas = new Map<PlayerId, HealthDelta>();
+      addDamage(state, deltas, target.id, 1, player.id, "邪域", undefined, { spellDamage: true, drainHealing: true });
+      applyHealthDeltas(state, deltas);
       }
     }
   }
@@ -7197,6 +6586,29 @@ function calculateClashDamage(high: AttackStats, low: AttackStats): number {
   return Math.ceil(((high.level - low.level) / high.level) * high.power);
 }
 
+/** Immunity counters can themselves be immune; iterate instead of recursing through addDamage. */
+function resolveImperialSpiritResponses(
+  state: GameState, healthDeltas: Map<PlayerId, HealthDelta>, targetId: PlayerId,
+  sourceId: PlayerId | undefined, attackName: string | undefined
+): void {
+  const skillId = getFusionSkillId("帝灵之境");
+  while (true) {
+    pushAttackBlockedEvent(state, { sourceId, targetId, attackName: attackName ?? "法伤",
+      blockKind: "immune", protectionName: "帝灵之境" });
+    if (!sourceId || sourceId === targetId || takeRetaliationResponses(state, targetId, skillId) === 0) return;
+    if (getActiveFusionCount(findPlayer(state, sourceId), "帝灵之境") > 0) {
+      const previousTarget = targetId;
+      targetId = sourceId;
+      sourceId = previousTarget;
+      attackName = "帝灵之境";
+      continue;
+    }
+    addDamage(state, healthDeltas, sourceId, 1, targetId, "帝灵之境",
+      fireDamageStats(skillId, "帝灵之境", 1), { spellDamage: true, retaliation: true });
+    return;
+  }
+}
+
 function addDamage(
   state: GameState,
   healthDeltas: Map<PlayerId, HealthDelta>,
@@ -7208,11 +6620,87 @@ function addDamage(
   context: DamageContext = {}
 ): void {
   const target = findPlayer(state, targetId);
-  if (!target || amount <= 0) {
+  if (!target) {
     return;
   }
 
+  if (sourceId === targetId && sourceId && stats?.id !== ELECTRIC_SHOCK_SKILL_ID) {
+    context = { ...context, internalDamage: true, isLastHit: false };
+  }
+
+  const spell = Boolean(context.spellDamage || (!context.fromAttack && attackName && SPELL_DAMAGE_NAMES.has(attackName)));
+  if (spell) {
+    context = { ...context, spellDamage: true };
+    amount *= spellDamageMultiplier(sourceId ? findPlayer(state, sourceId) : undefined);
+    if (getActiveFusionCount(target, "帝灵之境") > 0) {
+      resolveImperialSpiritResponses(state, healthDeltas, targetId, sourceId, attackName);
+      return;
+    }
+  }
+
+  const sniperRetirement = Boolean(context.fromAttack && (context.offenseSnapshot ? context.offenseSnapshot.retirement :
+    context.isLastHit && target.cakes === 0 && getActiveFusionCount(sourceId ? findPlayer(state, sourceId) : undefined, "暗影狙击") > 0));
   const attackDefeatLevel = getAttackDefeatLevel(stats);
+  const protectionLevel = attackDefeatLevel && attackDefeatLevel > 2 ? attackDefeatLevel : sniperRetirement ? 2 : attackDefeatLevel;
+  const sixStar = target.buffs.find((buff) => buff.id === SIX_STAR_DAMAGE_IMMUNITY_BUFF_ID &&
+    (buff.expiresAtTurn ?? -1) >= state.turnNumber && buff.sixStarMaxDamage !== undefined);
+  if (sixStar && (protectionLevel ?? 1) <= 1 && amount <= INFINITE_DAMAGE && (stats?.power ?? amount) <= INFINITE_DAMAGE) {
+    const adjusted = applyLockedDamageRules(state, targetId, amount, sourceId, attackName, stats, healthDeltas, context);
+    resolveSixStar(state, healthDeltas, targetId, sixStar.name, Math.max(0, adjusted));
+    pushAttackBlockedEvent(state, { sourceId, targetId, attackName: attackName ?? stats?.name ?? "伤害",
+      blockKind: "immune", protectionName: "六芒星" });
+    rememberBlockedAttack(healthDeltas, targetId, context);
+    return;
+  }
+  if (context.attackKey && healthDeltas.get(targetId)?.blockedAttackKeys?.has(context.attackKey)) return;
+
+  if (stats && isAttackDamage(stats, context) && getActiveFusionCount(target, "六芒星阵") > 0 &&
+    !target.buffs.some((buff) => buff.id === SIX_STAR_DAMAGE_IMMUNITY_BUFF_ID ||
+      !context.internalDamage && buff.id === "temp_invulnerable")) {
+    const roll = Math.floor(Math.random() * 12) + 1;
+    state.eventLog.push({ ...createBaseEvent(state, "system"), type: "system", privatePlayerId: targetId, message: `六芒星阵D12：${roll}` });
+    const protectionEligible = (getAttackDefeatLevel(stats) ?? 1) <= 1 && stats.power <= INFINITE_DAMAGE &&
+      !sniperRetirement;
+    if ((roll <= 2 || roll === 3) && protectionEligible) {
+      upsertBuff(target, { id: roll === 3 ? SIX_STAR_DAMAGE_IMMUNITY_BUFF_ID : "temp_invulnerable", name: "六芒星阵", stacks: 1, expiresAtTurn: state.turnNumber });
+      if (roll === 3) {
+        const adjusted = applyLockedDamageRules(state, targetId, amount, sourceId, attackName, stats, healthDeltas, context);
+        queuePendingDamage(state, targetId, adjusted, sourceId, attackName, stats, context);
+        resolveSixStar(state, healthDeltas, targetId, "六芒星阵", Math.max(0, adjusted));
+      }
+      // Invulnerability from rolls 1/2 cannot stop backlash; roll 3 is actual damage immunity.
+      if (roll === 3 || !context.internalDamage) {
+        rememberBlockedAttack(healthDeltas, targetId, context);
+        return;
+      }
+    }
+    if (roll === 4 && sourceId && !context.internalDamage) {
+      state.eventLog.push({ ...createBaseEvent(state, "attack_reflected"), type: "attack_reflected", sourceId,
+        originalTargetId: targetId, reflectedTargetId: sourceId, attackName: attackName ?? stats.name });
+      if (context.attackKey) (ensureDelta(healthDeltas, targetId).reflectedAttackKeys ??= new Set()).add(context.attackKey);
+      const redirected: AttackInstance = { key: `${context.attackKey ?? createId("attack")}:six_star_return`,
+        sourceId, targetId: sourceId, originalTargetId: targetId, actionIndex: 0, stats, reflected: true,
+        ...(context.infiniteCopies ? { infiniteCopies: true } : {}),
+        ...(context.offenseSnapshot ? { offenseSnapshot: context.offenseSnapshot } : {}) };
+      const start = state.eventLog.length;
+      addDamage(state, healthDeltas, sourceId, amount, sourceId, attackName, stats,
+        { ...context, attackKey: redirected.key, reflected: true, isLastHit: false });
+      applySkillHitEffectsIfAttackHit(state, start, redirected, getRevealedActions(state), healthDeltas);
+      return;
+    }
+  }
+
+  if (blockInvulnerableAttack(state, targetId, sourceId, attackName, stats, context,
+    protectionLevel)) {
+    rememberBlockedAttack(healthDeltas, targetId, context);
+    return;
+  }
+  if (amount <= 0) {
+    if (!context.internalDamage && sourceId && isAttackDamage(stats, context) && !stats?.ignoreSwordProtections &&
+      absorbWithShieldV2(state, targetId, sourceId, amount, attackName)) rememberBlockedAttack(healthDeltas, targetId, context);
+    else rememberAttackHit(healthDeltas, targetId, context);
+    return;
+  }
   if (attackDefeatLevel) {
     addDefeatEffect(
       state,
@@ -7221,7 +6709,8 @@ function addDamage(
       attackDefeatLevel,
       sourceId,
       attackName ?? stats?.name ?? "无法继续游戏效果",
-      stats
+      stats,
+      context
     );
     return;
   }
@@ -7242,32 +6731,48 @@ function addDamage(
     context
   );
   if (lockedAdjusted <= 0) {
+    rememberAttackHit(healthDeltas, targetId, context);
     return;
   }
 
   const normalizedAmount = Math.min(lockedAdjusted, INFINITE_DAMAGE);
-  if (sourceId && absorbWithTemporaryProtectionV2(state, targetId, sourceId, normalizedAmount, attackName, stats, context)) {
+  if (!context.internalDamage && sourceId && absorbWithTemporaryProtectionV2(state, targetId, sourceId, normalizedAmount, attackName, stats, context)) {
     return;
   }
 
-  if (sourceId && !stats?.ignoreSwordProtections && absorbWithShieldV2(state, targetId, sourceId, normalizedAmount, attackName)) {
+  if (!context.internalDamage && sourceId && !stats?.ignoreSwordProtections && absorbWithShieldV2(state, targetId, sourceId, normalizedAmount, attackName) && !context.infiniteCopies) {
+    rememberBlockedAttack(healthDeltas, targetId, context);
     return;
   }
+  if (!context.internalDamage && context.infiniteCopies && sourceId && !stats?.ignoreSwordProtections) {
+    // Every finite shield absorbs one copy; infinitely many other copies remain.
+    while (target.buffs.some((buff) => buff.id === "jin_zhong_zhao" && buff.sourcePlayerId === sourceId && buff.stacks > 0)) {
+      absorbWithShieldV2(state, targetId, sourceId, normalizedAmount, attackName);
+    }
+  }
 
-  const finalAmount = absorbWithDefenseValueV2(
+  let finalAmount = context.internalDamage ? normalizedAmount : absorbWithDefenseValueV2(
     state,
     targetId,
     normalizedAmount,
     attackName,
     stats,
-    sourceId
+    sourceId,
+    context
   );
+  if (!context.internalDamage && context.infiniteCopies && normalizedAmount > 0 && !context.spellDamage) {
+    const defense = target.buffs.find((buff) => buff.id === "defense_value" && buff.stacks > 0);
+    if (!defense?.infinite) {
+      target.buffs = target.buffs.filter((buff) => buff.id !== "defense_value");
+      finalAmount = normalizedAmount;
+    }
+  }
   if (finalAmount <= 0) {
     return;
   }
-  if (context.fromAttack && context.isLastHit && target.cakes === 0 &&
-    getActiveFusionCount(sourceId ? findPlayer(state, sourceId) : undefined, "暗影狙击") > 0) {
-    addDefeatEffect(state, healthDeltas, targetId, 2, sourceId, "暗影狙击", stats);
+  rememberAttackHit(healthDeltas, targetId, context);
+  if (sniperRetirement) {
+    addDefeatEffect(state, healthDeltas, targetId, 2, sourceId, "暗影狙击", stats, context);
     return;
   }
 
@@ -7291,9 +6796,15 @@ function queuePendingDamage(
     id: createId("pending_damage"),
     targetId,
     amount,
-    fromAttack: Boolean(context.fromAttack),
+    fromAttack: isAttackDamage(stats, context),
     isLastHit: Boolean(context.isLastHit)
   };
+  if (context.spellDamage) item.spellDamage = true;
+  if (context.drainHealing) item.drainHealing = true;
+  if (context.retaliation) item.retaliation = true;
+  if (context.reflected) item.reflected = true;
+  if (context.internalDamage) item.internalDamage = true;
+  if (context.infiniteCopies) item.infiniteCopies = true;
   if (sourceId) {
     item.sourceId = sourceId;
   }
@@ -7325,17 +6836,28 @@ function applyPendingDamageItems(state: GameState): boolean {
       continue;
     }
 
-    ensureDelta(healthDeltas, item.targetId).damage += item.amount;
+    if (item.unprocessedSpell) {
+      addDamage(state, healthDeltas, item.targetId, item.amount, item.sourceId, item.attackName, undefined,
+        { spellDamage: true, drainHealing: Boolean(item.drainHealing) });
+      continue;
+    }
     const delta = ensureDelta(healthDeltas, item.targetId);
-    if (item.fromAttack && target.hp > 0 && delta.damageAtZero === undefined &&
-      state.pendingActions[target.id]?.actions.some((action) => action.type === "skill" && SAINT_SKILL_IDS.has(action.skillId) &&
+    if (item.infiniteCopies) delta.infiniteDamage = true;
+    const totalAmount = item.infiniteCopies ? INFINITE_DAMAGE : item.amount;
+    delta.damage += totalAmount;
+    if (item.fromAttack && !item.internalDamage && !state.reversalState?.suppressed && target.hp > 0 && delta.damageAtZero === undefined &&
+      state.pendingActions[target.id]?.actions.some((action) => action.type === "skill" && SAINT_DAMAGE_TO_ZERO_SKILL_IDS.has(action.skillId) &&
         getActiveSkillCount(target, action.skillId) > 0)) delta.damageAtZero = delta.damage;
     const event: DamageEvent = {
       ...createBaseEvent(state, "damage"),
       type: "damage",
       targetId: item.targetId,
-      amount: item.amount
+      amount: totalAmount
     };
+    if (item.infiniteCopies) { event.infiniteCopies = true; event.perCopyAmount = item.amount; }
+    if (item.reflected) event.reflected = true;
+    if (item.internalDamage) event.internalDamage = true;
+    delta.lastDamageInternal = Boolean(item.internalDamage);
     if (item.sourceId) {
       event.sourceId = item.sourceId;
     }
@@ -7352,29 +6874,47 @@ function applyPendingDamageItems(state: GameState): boolean {
       event.traits = [...item.traits];
     }
     state.eventLog.push(event);
-    rememberDamageTaken(state, item.targetId, item.sourceId, item.amount);
+    if (item.drainHealing && item.spellDamage && item.sourceId) {
+      addHeal(state, healthDeltas, item.sourceId, item.amount, item.sourceId, item.attackName ?? "吸血", Boolean(item.infiniteCopies));
+    }
+    rememberDamageTaken(state, item.targetId, item.sourceId, totalAmount, isAttackDamageItem(item));
+    if (item.infiniteCopies) for (const buff of target.buffs) {
+      if (buff.id.startsWith("damage_taken_") || isAttackDamageItem(item) && ["huyou_mark", "cross_mark"].includes(buff.id)) {
+        buff.stacks = INFINITE_DAMAGE; buff.infinite = true;
+      }
+    }
 
     const source = item.sourceId ? findPlayer(state, item.sourceId) : undefined;
     if (item.fromAttack) awardRevenge(state, source, item.targetId);
     for (const other of alivePlayers(state)) {
       const count = other.id === item.targetId ? 0 : getActiveFusionCount(other, "暗影战斧");
-      if (count > 0) addHeal(state, healthDeltas, other.id,
-        (item.amount >= INFINITE_DAMAGE ? INFINITE_DAMAGE : Math.floor(item.amount / 4)) * count, other.id, "暗影战斧");
+      const healing = (item.amount >= INFINITE_DAMAGE ? INFINITE_DAMAGE : Math.floor(item.amount / 4)) * count;
+      if (healing > 0) addHeal(state, healthDeltas, other.id,
+        item.infiniteCopies ? INFINITE_DAMAGE : healing, other.id, "暗影战斧", item.infiniteCopies);
     }
 
     const imperialFlameCount = getActiveSkillCount(target, "skill_76_76044");
-    if (item.sourceId && imperialFlameCount > 0 && item.attackName !== "帝炎之境") {
-      for (let index = 0; index < imperialFlameCount; index += 1) {
-        addDamage(
-          state,
-          healthDeltas,
-          item.sourceId,
-          1,
-          item.targetId,
-          "帝炎之境",
-          fireDamageStats("skill_76_76044", "帝炎之境", 1)
-        );
+    if (!item.internalDamage && item.sourceId && imperialFlameCount > 0) {
+      const inherited = Math.min(imperialFlameCount, getFusionEnhancementCount(target, "skill_76_76044", ["帝灵之境"]));
+      // A retained material response belongs to its fusion, not an extra raw-skill quota.
+      for (const [skillId, count] of [["skill_76_76044", imperialFlameCount - inherited],
+        [getFusionSkillId("帝灵之境"), inherited]] as const) {
+        if (count === 0) continue;
+        const responses = takeRetaliationResponses(state, item.targetId, skillId,
+          item.infiniteCopies ? RETALIATION_RESPONSE_LIMIT : count, "帝炎之境");
+        for (let index = 0; index < responses; index += 1) {
+          addDamage(state, healthDeltas, item.sourceId, 1, item.targetId, "帝炎之境",
+            fireDamageStats("skill_76_76044", "帝炎之境", 1), { spellDamage: true, retaliation: true });
+        }
       }
+    }
+
+    const armor = getActiveFusionCount(target, "反伤刺甲");
+    if (!item.internalDamage && item.sourceId && item.sourceId !== target.id && armor > 0) {
+      const responses = takeRetaliationResponses(state, target.id, getFusionSkillId("反伤刺甲"),
+        item.infiniteCopies ? RETALIATION_RESPONSE_LIMIT : 1);
+      for (let index = 0; index < responses; index += 1) addDamage(state, healthDeltas, item.sourceId,
+        Math.ceil(item.amount / 2) * armor, target.id, "反伤刺甲", undefined, { spellDamage: true, retaliation: true });
     }
 
     const bloodthirstCount = getActiveSkillCount(source, "skill_46_3651");
@@ -7383,7 +6923,7 @@ function applyPendingDamageItems(state: GameState): boolean {
       const healing = Math.floor(item.amount / 2) * enhancedCount +
         Math.floor(item.amount / 4) * Math.max(0, bloodthirstCount - enhancedCount);
       if (healing > 0) {
-        addHeal(state, healthDeltas, source.id, healing, source.id, "嗜血");
+        addHeal(state, healthDeltas, source.id, item.infiniteCopies ? INFINITE_DAMAGE : healing, source.id, "嗜血", item.infiniteCopies);
       }
     }
   }
@@ -7398,10 +6938,16 @@ function addDefeatEffect(
   defeatLevel: DefeatLevel,
   sourceId?: PlayerId,
   reason?: string,
-  stats?: AttackStats
+  stats?: AttackStats,
+  context: DamageContext = {}
 ): void {
   const target = findPlayer(state, targetId);
   if (!target || target.status !== "alive") {
+    return;
+  }
+
+  if (!context.internalDamage && blockInvulnerableAttack(state, targetId, sourceId, reason, stats, context, defeatLevel)) {
+    rememberBlockedAttack(healthDeltas, targetId, context);
     return;
   }
 
@@ -7413,7 +6959,8 @@ function addDefeatEffect(
       INFINITE_DAMAGE,
       sourceId,
       reason,
-      stats
+      stats,
+      context
     );
     return;
   }
@@ -7462,18 +7009,15 @@ function isDefeatEffectBlocked(
     return true;
   }
 
-  if (
-    playerHasActiveSkill(target, "skill_75_68329") &&
-    stats &&
-    !isNonSpellDamage(stats)
-  ) {
+  const attributeProtection = stats && getAttributeImmunitySkill(target, getAttackElements(stats));
+  if (stats && attributeProtection) {
     pushAttackBlockedEvent(state, {
       sourceId,
       targetId,
       attackName: reason ?? stats.name,
       blockKind: "immune",
-      protectionName: "圣灵之境",
-      protectionSkillId: "skill_75_68329"
+      protectionName: getSkill(attributeProtection)!.name,
+      protectionSkillId: attributeProtection
     });
     return true;
   }
@@ -7525,17 +7069,18 @@ function nullifyFrostBladeDamage(
 
   state.turnHealthChanged = true;
   const frostBlade = getSkill("skill_18_34323");
-  const immune = frostBlade
+  const elementImmune = frostBlade
     ? isSkillEffectImmune(state, target.id, frostBlade, source.id)
     : false;
-  if (!immune) {
-    upsertBuff(target, {
+  const applied = !elementImmune && applyNegativeStatus(state, targetId, "skill_disabled", (player) => {
+    upsertBuff(player, {
       id: `${SKILL_DISABLED_BUFF_PREFIX}${state.roundNumber + 1}`,
       name: "技能失效",
       stacks: 1,
       sourcePlayerId: source.id
     });
-  }
+  });
+  const immune = !applied;
 
   const damageDescription = stats.frostBladeKeepsDamage ? `保留 ${finalAmount} 点伤害` : `原本 ${finalAmount} 点伤害归零`;
   state.eventLog.push({
@@ -7546,6 +7091,62 @@ function nullifyFrostBladeDamage(
       : `${source.name} 的寒冰剑命中 ${target.name}，${damageDescription}，${target.name} 技能失效 1 轮`
   });
   return !stats.frostBladeKeepsDamage;
+}
+
+function rememberBlockedAttack(healthDeltas: Map<PlayerId, HealthDelta>, targetId: PlayerId, context: DamageContext): void {
+  if (context.attackKey) (ensureDelta(healthDeltas, targetId).blockedAttackKeys ??= new Set()).add(context.attackKey);
+}
+
+function rememberAttackHit(healthDeltas: Map<PlayerId, HealthDelta>, targetId: PlayerId, context: DamageContext): void {
+  if (context.fromAttack && context.attackKey) {
+    (ensureDelta(healthDeltas, targetId).landedAttackKeys ??= new Set()).add(context.attackKey);
+  }
+}
+
+/** Invulnerability rejects an attack before any damage or on-hit processing, including zero power. */
+function blockInvulnerableAttack(
+  state: GameState, targetId: PlayerId, sourceId: PlayerId | undefined, attackName: string | undefined,
+  stats: AttackStats | undefined, context: DamageContext, defeatLevel?: DefeatLevel
+): boolean {
+  const target = findPlayer(state, targetId);
+  // Electric shock is a non-attack action represented internally as a zero-power packet.
+  if (context.internalDamage || !target || !stats || !isAttackDamage(stats, context) || stats.id === ELECTRIC_SHOCK_SKILL_ID) return false;
+  const block = (protectionName: string, protectionSkillId?: SkillId) => {
+    pushAttackBlockedEvent(state, { sourceId, targetId, attackName: attackName ?? stats.name,
+      blockKind: "invulnerable", protectionName, ...(protectionSkillId ? { protectionSkillId } : {}) });
+    return true;
+  };
+  if (state.roundTurnNumber <= 2 && getActiveFusionCount(target, "空城计") > 0 &&
+    (defeatLevel === undefined || defeatLevel <= 2) && stats.power <= RETIRE_EFFECT_POWER) {
+    return block("空城计", getFusionSkillId("空城计"));
+  }
+  if ((defeatLevel ?? 1) > 1 || stats.power > INFINITE_DAMAGE) return false;
+  if (isHuiyueActive(target, state.turnNumber)) return block("辉月");
+  const invulnerable = target.buffs.find((buff) => buff.id === "temp_invulnerable" && buff.stacks > 0);
+  if (invulnerable) return block(invulnerable.sourcePlayerId === "skill_25_51277" ? "暗影盾" : "无敌");
+  if (!stats.ignoreSwordProtections && context.isLastHit && playerHasActiveSkill(target, "skill_26_70243")) {
+    return block("无敌", "skill_26_70243");
+  }
+  const ignoreProtection = stats.traits.includes("ignore_protection");
+  if (!ignoreProtection && playerHasActiveSkill(target, "skill_32_19017") && state.roundTurnNumber <=
+    (getFusionEnhancementCount(target, "skill_32_19017", ["神域之种"]) > 0 ? 3 : 2)) return block("无敌", "skill_32_19017");
+  if (!ignoreProtection && sourceId && playerHasActiveSkill(target, "skill_99_65551") &&
+    alivePlayers(state).length > 3 && areAdjacentPlayers(state, targetId, sourceId)) return block("无敌", "skill_99_65551");
+  return false;
+}
+
+function applyOffensiveDamageRules(state: GameState, targetId: PlayerId, amount: number,
+  sourceId: PlayerId | undefined, stats: AttackStats | undefined, context: DamageContext): number {
+  if (!isAttackDamage(stats, context) || amount >= INFINITE_DAMAGE) return amount;
+  const source = findPlayer(state, sourceId ?? ""), target = findPlayer(state, targetId)!;
+  const saved = context.offenseSnapshot;
+  const guding = saved?.guding ?? (target.cakes <= 0 ? 2 ** getActiveSkillCount(source, "skill_29_96125") : 1);
+  const sniper = sourceId === targetId ? 1 : saved?.sniper ?? (context.isLastHit ? 2 ** getActiveSkillCount(source, "skill_28_42646") : 1);
+  amount = amount * guding * sniper + (saved?.bonus ??
+    (target.hp >= Math.floor(getPlayerInitialHp(target) / 2) ? getActiveFusionCount(source, "破军") : 0));
+  if (saved) return amount * saved.critical;
+  for (let i = 0; i < getActiveFusionCount(source, "无尽战刃"); i++) if (Math.random() < .5) amount *= 2;
+  return amount;
 }
 
 function applyLockedDamageRules(
@@ -7562,73 +7163,18 @@ function applyLockedDamageRules(
   if (!target) {
     return 0;
   }
-  const source = sourceId ? findPlayer(state, sourceId) : undefined;
+  const source = findPlayer(state, context.originSourceId ?? sourceId ?? "");
   const ignoreProtection = Boolean(stats?.traits.includes("ignore_protection"));
 
-  if (
-    !stats?.ignoreSwordProtections && context.isLastHit &&
-    isAttackDamage(stats, context) &&
-    playerHasActiveSkill(target, "skill_26_70243")
-  ) {
-    pushAttackBlockedEvent(state, {
-      sourceId,
-      targetId,
-      attackName: attackName ?? stats?.name ?? "攻击",
-      blockKind: "invulnerable",
-      protectionName: "无敌",
-      protectionSkillId: "skill_26_70243"
-    });
-    return 0;
-  }
-
-  if (
-    playerHasActiveSkill(target, "skill_75_68329") &&
-    stats &&
-    !isNonSpellDamage(stats)
-  ) {
+  const attributeProtection = stats && getAttributeImmunitySkill(target, getAttackElements(stats));
+  if (stats && attributeProtection) {
     pushAttackBlockedEvent(state, {
       sourceId,
       targetId,
       attackName: attackName ?? stats.name,
       blockKind: "immune",
-      protectionName: "圣灵之境",
-      protectionSkillId: "skill_75_68329"
-    });
-    return 0;
-  }
-
-  if (
-    !ignoreProtection &&
-    isAttackDamage(stats, context) &&
-    playerHasActiveSkill(target, "skill_32_19017") &&
-    state.roundTurnNumber <= (getFusionEnhancementCount(target, "skill_32_19017", ["神域之种"]) > 0 ? 3 : 2)
-  ) {
-    pushAttackBlockedEvent(state, {
-      sourceId,
-      targetId,
-      attackName: attackName ?? stats?.name ?? "攻击",
-      blockKind: "invulnerable",
-      protectionName: "无敌",
-      protectionSkillId: "skill_32_19017"
-    });
-    return 0;
-  }
-
-  if (
-    !ignoreProtection &&
-    sourceId &&
-    isAttackDamage(stats, context) &&
-    playerHasActiveSkill(target, "skill_99_65551") &&
-    alivePlayers(state).length > 3 &&
-    areAdjacentPlayers(state, targetId, sourceId)
-  ) {
-    pushAttackBlockedEvent(state, {
-      sourceId,
-      targetId,
-      attackName: attackName ?? stats?.name ?? "攻击",
-      blockKind: "invulnerable",
-      protectionName: "无敌",
-      protectionSkillId: "skill_99_65551"
+      protectionName: getSkill(attributeProtection)!.name,
+      protectionSkillId: attributeProtection
     });
     return 0;
   }
@@ -7668,46 +7214,27 @@ function applyLockedDamageRules(
   }
 
   if (
+    !context.internalDamage &&
     !ignoreProtection &&
     getActiveSkillCount(target, "skill_51_92674") > 0 &&
     isFireDamage(stats) &&
     amount < INFINITE_DAMAGE
   ) {
     revealSkillOnTrigger(state, targetId, "skill_51_92674", "触发藤甲");
-    amount += getActiveSkillCount(target, "skill_51_92674");
+    amount += Math.max(0, getActiveSkillCount(target, "skill_51_92674") - getFusionEnhancementCount(target, "skill_51_92674", ["反伤刺甲"]));
   }
 
   const baguaCount = getActiveSkillCount(target, "skill_50_50034");
-  if (!ignoreProtection && baguaCount > 0 && amount < INFINITE_DAMAGE) {
+  // Damage origin and element are independent: fire attacks qualify, fire spells do not.
+  if (!context.internalDamage && isAttackDamage(stats, context) && !ignoreProtection && baguaCount > 0 && amount < INFINITE_DAMAGE) {
     revealSkillOnTrigger(state, targetId, "skill_50_50034", "触发八卦阵");
-    amount = Math.max(0, amount - baguaCount);
+    amount = Math.max(0, amount - baguaCount - getFusionEnhancementCount(target, "skill_50_50034", ["六芒星阵"]));
   }
 
-  const gudingCount = getActiveSkillCount(source, "skill_29_96125");
-  if (
-    gudingCount > 0 &&
-    isAttackDamage(stats, context) &&
-    target.cakes <= 0 &&
-    amount < INFINITE_DAMAGE
-  ) {
-    amount *= 2 ** gudingCount;
-  }
-
-  const sniperCount = getActiveSkillCount(source, "skill_28_42646");
-  if (
-    sniperCount > 0 &&
-    context.isLastHit &&
-    amount < INFINITE_DAMAGE
-  ) {
-    amount *= 2 ** sniperCount;
-  }
-  if (isAttackDamage(stats, context) && source && amount < INFINITE_DAMAGE) {
-    amount += target.hp >= Math.floor(getPlayerInitialHp(target) / 2) ? getActiveFusionCount(source, "破军") : 0;
-    for (let i = 0; i < getActiveFusionCount(source, "无尽战刃"); i++) if (Math.random() < 0.5) amount *= 2;
-  }
+  amount = applyOffensiveDamageRules(state, targetId, amount, sourceId, stats, context);
 
   if (
-    !stats?.ignoreSwordProtections && playerHasActiveSkill(target, "skill_114_87583") &&
+    isAttackDamage(stats, context) && !stats?.ignoreSwordProtections && playerHasActiveSkill(target, "skill_114_87583") &&
     target.hp - amount < 0 &&
     amount !== 1 &&
     amount < INFINITE_DAMAGE
@@ -7722,6 +7249,9 @@ function applyLockedDamageRules(
     });
     return 0;
   }
+
+  if (isAttackDamage(stats, context) && target.hp === 0 && getActiveFusionCount(target, "名刀司命") > 0 &&
+    (state.roundTurnNumber < 3 || state.roundTurnNumber > 5)) return 0;
 
   return amount;
 }
@@ -7740,21 +7270,12 @@ function absorbWithTemporaryProtectionV2(
     return false;
   }
 
-  if (isHuiyueActive(target, state.turnNumber)) {
-    pushAttackBlockedEvent(state, { sourceId, targetId, attackName: attackName ?? stats?.name ?? "攻击",
-      blockKind: "invulnerable", protectionName: "辉月" });
-    return true;
-  }
-
   const protection = target.buffs.find((buff) => {
     if (buff.stacks <= 0) {
       return false;
     }
     if (stats?.ignoreSwordProtections && [FLASH_DODGE_BUFF_ID, "temp_shield_normal", "temp_shield_skill"].includes(buff.id)) return false;
     if (buff.id === FLASH_DODGE_BUFF_ID || buff.id === SIX_STAR_DAMAGE_IMMUNITY_BUFF_ID) {
-      return true;
-    }
-    if (buff.id === "temp_invulnerable") {
       return true;
     }
     if (buff.id === "temp_shield_normal") {
@@ -7835,7 +7356,7 @@ function absorbWithShieldV2(
   attackName: string | undefined
 ): boolean {
   const target = findPlayer(state, targetId);
-  if (!target || amount <= 0 || amount > INFINITE_DAMAGE) {
+  if (!target || amount < 0 || amount > INFINITE_DAMAGE) {
     return false;
   }
 
@@ -7897,10 +7418,11 @@ function absorbWithDefenseValueV2(
   amount: number,
   attackName: string | undefined,
   stats: AttackStats | undefined,
-  sourceId?: PlayerId
+  sourceId?: PlayerId,
+  context: DamageContext = {}
 ): number {
   const target = findPlayer(state, targetId);
-  if (!target || amount <= 0 || amount >= INFINITE_DAMAGE || !isNonSpellDamage(stats)) {
+  if (!target || amount <= 0 || amount >= INFINITE_DAMAGE || context.spellDamage || !isNonSpellDamage(stats)) {
     return amount;
   }
 
@@ -7908,6 +7430,7 @@ function absorbWithDefenseValueV2(
   if (!defense) {
     return amount;
   }
+  if (defense.infinite) return 0;
 
   const absorbed = Math.min(defense.stacks, amount);
   defense.stacks -= absorbed;
@@ -7938,7 +7461,7 @@ function isAttackDamage(
   stats: AttackStats | undefined,
   context: DamageContext
 ): boolean {
-  return Boolean(stats && context.fromAttack);
+  return Boolean(stats && context.fromAttack && stats.id !== ELECTRIC_SHOCK_SKILL_ID);
 }
 
 function getAttackDefeatLevel(stats: AttackStats | undefined): DefeatLevel | undefined {
@@ -7975,13 +7498,16 @@ function addHeal(
   targetId: PlayerId,
   amount: number,
   sourceId: PlayerId | undefined,
-  reason: string
+  reason: string,
+  infinite = false
 ): void {
   if (amount <= 0) {
     return;
   }
 
-  if (isGlobalSkillActive(state, "skill_12_79004")) {
+  const resolved = resolveOrdinaryHealing(state, targetId, amount, isGlobalSkillActive(state, "skill_12_79004"), infinite);
+  if (!resolved) return;
+  if (resolved.suppressed) {
     for (const owner of activePlayersWithSkill(state, "skill_12_79004")) {
       revealSkillOnTrigger(state, owner.id, "skill_12_79004", "触发血之哀");
     }
@@ -7993,20 +7519,35 @@ function addHeal(
     return;
   }
 
-  const delta = ensureDelta(healthDeltas, targetId);
-  delta.healing += amount;
+  const delta = ensureDelta(healthDeltas, resolved.targetId);
+  if (infinite) delta.infiniteHealing = true;
+  delta.healing += resolved.amount;
   const event: HealEvent = {
     ...createBaseEvent(state, "heal"),
     type: "heal",
-    targetId,
-    amount,
+    targetId: resolved.targetId,
+    amount: resolved.amount,
     reason,
     recoveryKind: "healing"
   };
+  if (infinite) event.infinite = true;
+  if (resolved.targetId !== targetId) event.originalTargetId = targetId;
   if (sourceId) {
     event.sourceId = sourceId;
   }
   state.eventLog.push(event);
+}
+
+/** Immediate additive recoveries share the same modifiers without moving their timing point. */
+function applyHealNow(state: GameState, targetId: PlayerId, amount: number, sourceId: PlayerId | undefined, reason: string): void {
+  const deltas = new Map<PlayerId, HealthDelta>();
+  addHeal(state, deltas, targetId, amount, sourceId, reason);
+  if (!deltas.size) return;
+  applyHealthDeltas(state, deltas);
+  for (const id of deltas.keys()) {
+    const recipient = findPlayer(state, id);
+    if (recipient && recipient.hp > 0) clearPendingDeath(recipient);
+  }
 }
 
 function applyLightningBodyImmunity(state: GameState): Set<string> {
@@ -8023,12 +7564,16 @@ function applyLightningBodyImmunity(state: GameState): Set<string> {
       hits.push(item);
       attacks.set(key, hits);
     }
-    if (attacks.size < 2) continue;
+    const hasInfinite = [...attacks.values()].some((hits) => hits.some((item) => item.infiniteCopies));
+    if (attacks.size < 2 && !hasInfinite) continue;
     const [keptKey] = [...attacks].reduce((lowest, current) =>
       (current[1][0]!.attackPower ?? current[1][0]!.amount) < (lowest[1][0]!.attackPower ?? lowest[1][0]!.amount)
         ? current : lowest);
     for (const [key, hits] of attacks) {
-      if (key === keptKey) continue;
+      if (key === keptKey) {
+        for (const item of hits) delete item.infiniteCopies;
+        continue;
+      }
       ignoredKeys.add(key);
       for (const item of hits) ignoredItems.add(item.id);
       const first = hits[0]!;
@@ -8041,6 +7586,11 @@ function applyLightningBodyImmunity(state: GameState): Set<string> {
           message: `电闪雷鸣免疫一个攻击，获得 ${gained} 次鬼道` });
       }
     }
+    if (hasInfinite && getFusionEnhancementCount(target, "skill_38_81245", ["电闪雷鸣"]) > 0) {
+      addCountingMark(target, "guidao_charge", "鬼道次数", INFINITE_DAMAGE);
+      const charge = target.buffs.find((buff) => buff.id === "guidao_charge")!;
+      charge.stacks = INFINITE_DAMAGE; charge.infinite = true;
+    }
   }
   if (ignoredItems.size) state.pendingDamageItems = (state.pendingDamageItems ?? []).filter((item) => !ignoredItems.has(item.id));
   return ignoredKeys;
@@ -8050,7 +7600,8 @@ function rememberDamageTaken(
   state: GameState,
   targetId: PlayerId,
   sourceId: PlayerId | undefined,
-  amount: number
+  amount: number,
+  fromAttack = false
 ): void {
   const target = findPlayer(state, targetId);
   if (!target) {
@@ -8076,8 +7627,12 @@ function rememberDamageTaken(
     damageTakenBuff.expiresAtRound = state.roundNumber + 2;
   }
 
+  const turnDamageId = `${TURN_DAMAGE_TAKEN_BUFF_PREFIX}${state.turnNumber}`;
+  addCountingMark(target, turnDamageId, "本回合累计受伤", amount);
+  target.buffs.find((buff) => buff.id === turnDamageId)!.expiresAtTurn = state.turnNumber + 1;
+
   const crossGuardCount = getActiveSkillCount(target, "skill_73_76567");
-  if (crossGuardCount > 0) {
+  if (fromAttack && crossGuardCount > 0) {
     addCountingMark(target, "huyou_mark", "护佑印记", crossGuardCount);
     addCountingMark(target, "cross_mark", "十字印记", crossGuardCount);
   }
@@ -8107,6 +7662,10 @@ function rememberDamageTaken(
       stacks: 1
     });
   }
+}
+
+function getTurnDamageTaken(player: PlayerState, turnNumber: number): number {
+  return player.buffs.find((buff) => buff.id === `${TURN_DAMAGE_TAKEN_BUFF_PREFIX}${turnNumber}`)?.stacks ?? 0;
 }
 
 function getRoundDamageTaken(
@@ -8214,7 +7773,7 @@ function areNeighborPlayers(
 }
 
 function consumeSourceMark(
-  player: { buffs: Array<{ id: string; stacks: number }> } | undefined,
+  player: { buffs: Array<{ id: string; stacks: number; infinite?: boolean }> } | undefined,
   buffId: string
 ): boolean {
   if (!player) {
@@ -8226,7 +7785,7 @@ function consumeSourceMark(
     return false;
   }
 
-  buff.stacks -= 1;
+  if (!buff.infinite) buff.stacks -= 1;
   player.buffs = player.buffs.filter((item) => item.stacks > 0);
   return true;
 }

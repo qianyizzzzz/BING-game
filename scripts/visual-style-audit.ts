@@ -45,8 +45,8 @@ expectNearby(".poker-table-board .seat-skill-card", [
   "box-shadow: inset 0 -1px 0 rgba(36, 31, 25, 0.06) !important"
 ]);
 expectNearby(".table-action-dock", [
-  "min-width: 360px !important",
-  "max-height: min(420px, calc(100vh - 210px)) !important"
+  "min-width: 440px !important",
+  "max-height: min(760px, calc(100dvh - 144px)) !important"
 ]);
 
 for (const token of ["\uFFFD", "楗?", "缇庢湳", "鍔ㄧ敾", "鏂囧"]) {

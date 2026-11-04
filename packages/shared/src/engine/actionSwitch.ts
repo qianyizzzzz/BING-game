@@ -4,10 +4,11 @@ import {
   GameState,
   PlayerAction,
   PlayerId,
+  PlayerState,
   SkillAction,
   ValidationResult
 } from "../types";
-import { getFusionSkillId } from "../skills/fusion";
+import { getFusionSkillId, getFusionEnhancementCount } from "../skills/fusion";
 
 export const ACTION_SWITCH_SKILL_IDS = [
   "skill_88_62906",
@@ -36,7 +37,8 @@ export function isActionSwitchSkillId(skillId: string): skillId is ActionSwitchS
 
 export function getActionSwitchChoicesForAction(
   skillId: string,
-  current: PlayerAction
+  current: PlayerAction,
+  player?: PlayerState
 ): ActionSwitchChoice[] {
   if (skillId === getFusionSkillId("虚幻") && current.type === "defense") {
     const choices = current.defense === "small" || current.defense === "stone" ? ["youtiao"] :
@@ -52,7 +54,8 @@ export function getActionSwitchChoicesForAction(
   }
 
   if (skillId === "skill_90_32911") {
-    return getShaQinSwitchChoices(current);
+    return getShaQinSwitchChoices(current).map((choice) => ({ ...choice,
+      cost: player && getFusionEnhancementCount(player, skillId, ["杀级换"]) > 0 ? 0 : choice.cost }));
   }
 
   return [];
@@ -74,7 +77,7 @@ export function getActionSwitchPlan(
     return undefined;
   }
 
-  const choice = getActionSwitchChoicesForAction(action.skillId, before).find((item) =>
+  const choice = getActionSwitchChoicesForAction(action.skillId, before, state.players.find((player) => player.id === playerId)).find((item) =>
     sameSwitchAction(item.action, action.switchToAction!)
   );
   if (!choice) {

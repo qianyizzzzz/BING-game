@@ -138,7 +138,7 @@ export function PlayerSeat({
         <div className="seat-resource">
           <HeartPulse className="h-3.5 w-3.5" aria-hidden="true" />
           <span>生命</span>
-          <ResourceValue value={player.hp} />
+          <ResourceValue value={player.hp} {...(player.hpIsInfinite ? { displayValue: player.hp < 0 ? "−∞" : "∞" } : {})} />
         </div>
         <div className="seat-resource">
           <Cookie className="h-3.5 w-3.5" aria-hidden="true" />
@@ -152,7 +152,7 @@ export function PlayerSeat({
         </div>
       </div>
 
-      <div className="seat-hp-track" aria-label={`生命值 ${player.hp}`}>
+      <div className="seat-hp-track" aria-label={`生命值 ${player.hpIsInfinite ? "无限" : player.hp}`}>
         <span style={{ width: `${hpPercent}%` }} />
       </div>
 
@@ -256,6 +256,7 @@ function getVisibleSeatBuffs(
   buffs: PlayerState["buffs"]
 ): PlayerState["buffs"] {
   const priority = (buff: PlayerState["buffs"][number]): number => {
+    if (buff.id === "temp_negative_status_immunity") return -1;
     if (buff.id === "huiyue_stasis") return -1;
     if (buff.id === "frozen") {
       return 0;
@@ -293,6 +294,7 @@ function getVisibleSeatBuffs(
 }
 
 function seatBuffLabel(buff: PlayerState["buffs"][number]): string {
+  if (buff.id === "temp_negative_status_immunity") return "免疫不良";
   if (buff.id === "frozen") {
     return buff.stacks > 1 ? `冰冻${buff.stacks}` : "冰冻";
   }
@@ -324,6 +326,7 @@ function seatBuffLabel(buff: PlayerState["buffs"][number]): string {
 }
 
 function seatBuffTitle(buff: PlayerState["buffs"][number]): string {
+  if (buff.infinite) return `${buff.name} ×∞`;
   if (buff.id.startsWith("puppet_of:")) {
     return buff.name;
   }

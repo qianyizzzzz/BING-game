@@ -47,12 +47,18 @@ import { COMMON_FUSION_SKILL_ID, countSuppressedFusionMaterials, getOwnedSkillId
   hasEnhancedPutianRange, getFreeSkillChargeId, getAbsoluteGuardCost, getFusionEnhancementCount } from "../skills/fusion";
 import { getHuiyueCooldownCount, isHuiyueActive } from "../skills/fusion";
 import { validateFusionAction } from "./fusion";
+import { getLevelSwapModifiers, hasEnhancedLevelSwap, previewPlayerAttackStats, payableAttackCost } from "./attackStatModifiers";
+import { getAttackMarkKind, getAttackMarkCount, getAttackMarkChoices, getAttackMarkCapacity } from "./attackMarks";
+import { isAttackDamageItem } from "./damageKinds";
+import { getAcquisitionSkillChoices, MIRROR_SKILL_ID } from "./skillAcquisition";
+import { getFusionRecipe, isFusionPreparation } from "../skills/fusion";
 
 const PENDING_DEATH_BUFF_ID = "pending_death";
 const NO_REVIVE_BUFF_ID = "no_revive";
 const DOUBLE_EDGE_SWORD_SKILL_ID = "skill_31_80497";
 const DOUBLE_EDGE_IGNORE_DEFENSE_BUFF_PREFIX = "double_edge_ignore_defense:";
 const HELL_OVERLORD_SKILL_ID = "skill_112_59292";
+const SAGE_PROTECTION_SKILL_ID = getFusionSkillId("贤者的庇护");
 const LIEGONG_SKILL_ID = "skill_60_57192";
 const LIEGONG_CROSS_BUFF_PREFIX = "liegong_cross:";
 const ABSOLUTE_GUARD_SKILL_ID = "skill_74_34920";
@@ -79,7 +85,8 @@ const ACTIVE_REVIVAL_SKILL_IDS = new Set([
   "skill_64_60978",
   "skill_66_82448",
   "skill_68_57581",
-  HELL_OVERLORD_SKILL_ID
+  HELL_OVERLORD_SKILL_ID,
+  SAGE_PROTECTION_SKILL_ID
 ]);
 const MULTI_TARGET_ATTACK_SKILL_IDS = new Set<SkillId>([
   "skill_36_14343",
@@ -315,6 +322,9 @@ export function validateActionWindowSkill(
   if (getSkillPlay(action.skillId)?.kind === "attack") {
     return invalid("技能攻击只能在出招阶段使用");
   }
+  if (state.reversalResponseOnly && state.activeTimingPhase === "turn_change_action" && action.skillId !== "skill_93_50224") {
+    return invalid("普通变招已结束，当前只能使用逆转响应或跳过");
+  }
 
   return validateSkillAction(state, playerId, action, state.activeTimingPhase);
 }
@@ -417,7 +427,7 @@ function validateSkillAction(
   }
 
   if (
-    (action.skillId === "skill_64_60978" || action.skillId === "skill_68_57581") &&
+    (action.skillId === "skill_64_60978" || action.skillId === "skill_68_57581" || action.skillId === SAGE_PROTECTION_SKILL_ID) &&
     (!pendingDeathWindow || !pendingDeathPlayer)
   ) {
     return invalid(`${skill.name} 只能在复活阶段使用`);
@@ -472,6 +482,16 @@ function validateSkillAction(
     return resourceValidation;
   }
 
+  if (getAttackMarkKind(action.skillId)) {
+    const choices = getAttackMarkChoices(state, playerId);
+    if (!choices.length) return invalid("当前没有可使用印记强化的攻击");
+    if (action.switchActionIndex === undefined && choices.length > 1) return invalid("请选择使用印记强化的攻击");
+    if (action.switchActionIndex !== undefined && (!Number.isInteger(action.switchActionIndex) ||
+      !choices.some((choice) => choice.actionIndex === action.switchActionIndex))) return invalid("只能选择自己本回合发出的攻击");
+    const index = action.switchActionIndex ?? choices[0]!.actionIndex;
+    if (action.stacks > getAttackMarkCapacity(player, action.skillId, index)) return invalid("同一次攻击最多使用3层同类印记");
+  }
+
   const actionSwitchValidation = validateActionSwitch(state, playerId, action);
   if (!actionSwitchValidation.ok) {
     return actionSwitchValidation;
@@ -521,7 +541,7 @@ function validateSkillAction(
     return absoluteGuardValidation;
   }
 
-  const sandTargetValidation = validateSandTransformTarget(action, skill);
+  const sandTargetValidation = validateSandTransformTarget(state, player, action, skill);
   if (!sandTargetValidation.ok) {
     return sandTargetValidation;
   }
@@ -668,7 +688,7 @@ function validateExposedSkillTarget(
   action: SkillAction,
   skill: NonNullable<ReturnType<typeof getSkill>>
 ): ValidationResult {
-  if (skill.id === "skill_4_65637" || skill.id === "skill_68_57581") {
+  if (skill.play?.effect === "sand_transform" || skill.id === "skill_68_57581") {
     return valid();
   }
 
@@ -689,12 +709,17 @@ function validateExposedSkillTarget(
     return invalid("技能目标不存在或已死亡");
   }
 
-  if (!target.skills.includes(action.targetSkillId)) {
+  if (!getOwnedSkillIds(target).includes(action.targetSkillId)) {
     return invalid("目标玩家没有这个技能");
   }
 
   if (!canPlayerSeeSkill(state, playerId, action.targetId, action.targetSkillId)) {
     return invalid("你当前视野里看不到这个技能");
+  }
+
+  if (skill.id === MIRROR_SKILL_ID && getFusionRecipe(action.targetSkillId)) return invalid("普通镜像只能复制小技能，二融合请使用天魔舞入口");
+  if (skill.id === getFusionSkillId("天魔舞") && (!getFusionRecipe(action.targetSkillId) || action.targetSkillId === skill.id)) {
+    return invalid("天魔舞只能复制其他已暴露二融合，不能自我复制");
   }
 
   if (skill.id === "skill_5_34881") {
@@ -708,10 +733,12 @@ function validateExposedSkillTarget(
 }
 
 function validateSandTransformTarget(
+  state: GameState,
+  player: PlayerState,
   action: SkillAction,
   skill: NonNullable<ReturnType<typeof getSkill>>
 ): ValidationResult {
-  if (skill.id !== "skill_4_65637") {
+  if (skill.play?.effect !== "sand_transform") {
     return valid();
   }
 
@@ -719,8 +746,9 @@ function validateSandTransformTarget(
     return invalid("沙子必须选择一个小技能作为变化目标");
   }
 
-  if (!getSmallSkillIds().includes(action.targetSkillId)) {
-    return invalid("沙子只能变化为小技能池中的技能");
+  if (skill.id === getFusionSkillId("猥琐小叔叔") && !isFusionPreparation(state)) return invalid("猥琐小叔叔只能在开局准备选择技能");
+  if (!getAcquisitionSkillChoices(player, skill.id).includes(action.targetSkillId)) {
+    return invalid("只能选择此入口允许的技能，不能自我复制或重复选择素材");
   }
 
   if (!getSkill(action.targetSkillId)) {
@@ -855,11 +883,13 @@ function validateDamageMarkUse(
   if (!damage || damage.amount <= 0) {
     return invalid("这条伤害不存在或不能被印记影响");
   }
+  if (!isAttackDamageItem(damage)) return invalid("十字与冰雨印记只能作用于攻击伤害");
 
   if (action.skillId === ICE_RAIN_SKILL_ID) {
     if (
       damage.targetId !== playerId ||
       !damage.sourceId ||
+      damage.sourceId === playerId ||
       hasDamageModifier(damage, "ice_rain") ||
       !findPlayer(state, damage.sourceId)?.buffs.some(
         (buff) => buff.id === `ice_rain:${playerId}` && buff.stacks > 0
@@ -871,6 +901,7 @@ function validateDamageMarkUse(
   }
 
   if (damage.targetId === playerId) {
+    if (damage.internalDamage) return invalid("反噬伤害不能使用护佑减伤");
     if (
       hasDamageModifier(damage, "huyou") ||
       !player.buffs.some((buff) => buff.id === "huyou_mark" && buff.stacks > 0)
@@ -1006,9 +1037,13 @@ function validateAttackStatModifier(
   }
 
   if (action.skillId === "skill_91_89631") {
-    if (action.attackStatModifier && action.attackStatModifier !== "swap_power_level") {
-      return invalid("级换只能交换攻击和等级");
-    }
+    const modifier = action.attackStatModifier ?? "swap_power_level";
+    if (!getLevelSwapModifiers(player, pendingAction).includes(modifier)) return invalid(hasEnhancedLevelSwap(player)
+      ? "无耗饼攻击没有耗饼数值，不能交换所选数值" : "普通级换只能交换攻击和等级");
+    const preview = previewPlayerAttackStats(state, playerId, { id: "candidate", actionIndex,
+      modifier, enhanced: hasEnhancedLevelSwap(player) });
+    const failure = preview.failures.find((item) => item.id === "candidate");
+    if (failure) return invalid(failure.error);
     return valid();
   }
 
@@ -1272,7 +1307,7 @@ function getAbsoluteGuardCandidate(
     sourceId,
     actionIndex,
     mode,
-    cost: getAbsoluteGuardCost(guard, state.turnActionCosts?.[sourceId]?.[actionIndex] ?? rawCost)
+    cost: getAbsoluteGuardCost(guard, payableAttackCost(stats.cost))
   };
 }
 
@@ -1372,6 +1407,9 @@ function getDoubleEdgeAttackStats(
   playerId: PlayerId,
   action: PlayerAction
 ): AttackStats | undefined {
+  const index = state.pendingActions[playerId]?.actions.indexOf(action) ?? -1;
+  const preview = previewPlayerAttackStats(state, playerId).stats[index];
+  if (preview) return preview;
   const base =
     action.type === "attack"
       ? getStackedAttackStats(BASE_ATTACKS[action.attackId], action.stacks)
@@ -1382,7 +1420,7 @@ function getDoubleEdgeAttackStats(
     return undefined;
   }
 
-  return applyAttackModifiers(cloneGameState(state), playerId, base);
+  return applyAttackModifiers(cloneGameState(state), playerId, base, index);
 }
 
 export function getActionAttackTargetIds(state: GameState, sourceId: PlayerId, action: PlayerAction): PlayerId[] {
@@ -1390,7 +1428,8 @@ export function getActionAttackTargetIds(state: GameState, sourceId: PlayerId, a
   if (!base) return [];
   // Preview modifiers may consume pending marks; copy player buffers without cloning the growing event history.
   const preview = { ...state, players: state.players.map((player) => ({ ...player, buffs: player.buffs.map((buff) => ({ ...buff })) })) };
-  const stats = applyAttackModifiers(preview, sourceId, base);
+  const actionIndex = state.pendingActions[sourceId]?.actions.indexOf(action) ?? -1;
+  const stats = applyAttackModifiers(preview, sourceId, base, actionIndex);
   const source = findPlayer(state, sourceId);
   const index = state.pendingActions[sourceId]?.actions.indexOf(action) ?? -1;
   const override = source?.buffs.find((buff) => buff.id.startsWith(`absolute_guard:${index}:`));
@@ -1632,9 +1671,11 @@ function isAttackLikeAction(
 }
 
 function validateSkillResourceCost(
-  player: { buffs: Array<{ id: string; stacks: number }> },
+  player: PlayerState,
   action: SkillAction
 ): ValidationResult {
+  const marks = getAttackMarkCount(player, action.skillId);
+  if (marks !== undefined) return marks >= action.stacks ? valid() : invalid("印记不足");
   const resource = skillResourceRequirement(action.skillId);
   if (!resource) {
     return valid();

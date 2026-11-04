@@ -6,7 +6,7 @@ export { FUSION_RECIPES };
 export const COMMON_FUSION_SKILL_ID = "common_fusion";
 export const FUSION_CAKE_COST = 2;
 
-// Only complete effects are playable. Other spreadsheet recipes remain discoverable.
+// Released effects and explicitly approved placeholders; other recipes remain discoverable.
 const IMPLEMENTED_FUSIONS = new Set([
   "交流电", "幻境双罩", "生死符", "极寒风暴", "毁灭之盾", "神之子", "泣血之刃", "末世",
   "风语之森", "血魔之怒", "神界炼魂", "宗师之力", "魔女斗篷", "烽火赤壁", "神域之种", "虚无",
@@ -14,7 +14,10 @@ const IMPLEMENTED_FUSIONS = new Set([
   "冰火两仪眼", "虚幻", "暗影狙击", "暗影战斧", "后羿•七日连珠", "圣灵觉醒", "阳光之夜",
   "破天圣剑", "破军", "无尽战刃", "天火之狱", "山崩地裂", "绝对天盾", "神域守护",
   "黑白板", "冰火双漩", "大抠天下", "回响之杖", "永夜之刃", "核战", "逐日之弓", "魔域",
-  "电闪雷鸣", "灵魂修复", "枯萎", "辉月"
+  "电闪雷鸣", "灵魂修复", "枯萎", "辉月", "自然之灵", "纯净苍穹",
+  "野蛮人", "贤者之书", "贤者的庇护", "杀级换", "冰火狂暴曲", "空城计", "弹力球", "根源之目",
+  "六芒星阵", "博学者之怒", "帝灵之境", "反伤刺甲", "神隐双莲", "名刀司命", "红莲斗篷", "阳炎之怒",
+  "制裁之刃", "不死鸟之眼", "沙皇", "天魔舞", "猥琐小叔叔"
 ]);
 type FusionOwner = {
   skills: SkillId[];
@@ -168,7 +171,13 @@ export function getSkillCardIds(player: Pick<PlayerState, "skills" | "skillFusio
 }
 
 export function getUnfusedSkillIds(player: Pick<PlayerState, "skills" | "skillFusions">): SkillId[] {
-  return getSkillCardIds(player).filter((skillId) => !getFusionRecipe(skillId));
+  const available = getSkillCardIds(player).filter((skillId) => !getFusionRecipe(skillId));
+  // The uncle's third skill is part of this cover, not a free material for another cover.
+  for (const fusion of player.skillFusions ?? []) {
+    const id = fusion.acquisition?.bonusSkillId;
+    if (id) { const index = available.indexOf(id); if (index >= 0) available.splice(index, 1); }
+  }
+  return available;
 }
 
 export function hasFusionMaterials(player: Pick<PlayerState, "skills" | "skillFusions">, materials: readonly SkillId[]): boolean {
@@ -200,15 +209,20 @@ export function getFusionUseBonus(player: FusionOwner, skillId: SkillId): number
     if (name === "烽火赤壁" && skillId === "skill_13_68869") return sum + 2;
     if (name === "空之轨迹" && skillId === "skill_104_71181") return sum + 1;
     if (name === "逐日之弓" && skillId === "skill_100_45717") return sum + 1;
+    if (name === "野蛮人" && skillId === "skill_93_50224") return sum + 1;
     return sum;
   }, 0);
 }
 
 export function countSuppressedFusionMaterials(player: FusionOwner, skillId: SkillId): number {
-  return (player.skillFusions ?? []).filter((fusion) =>
-    player.buffs.some((buff) => buff.id === `sealed_skill:${fusion.skillId}`) ||
-    !getFusionRecipe(fusion.skillId)?.retainedMaterialIds.includes(skillId))
-    .reduce((sum, fusion) => sum + fusion.materialSkillIds.filter((id) => id === skillId).length, 0);
+  return (player.skillFusions ?? []).reduce((sum, fusion) => {
+    const count = fusion.materialSkillIds.filter((id) => id === skillId).length;
+    if (player.buffs.some((buff) => buff.id === `sealed_skill:${fusion.skillId}`)) return sum + count + Number(fusion.acquisition?.bonusSkillId === skillId);
+    if (getFusionRecipe(fusion.skillId)?.skill.name === "沙皇" && skillId === "skill_4_65637") {
+      return sum + 1 + Number(Boolean(fusion.acquisition?.smallUsed));
+    }
+    return sum + (getFusionRecipe(fusion.skillId)?.retainedMaterialIds.includes(skillId) ? 0 : count);
+  }, 0);
 }
 
 export function clearFusionMarks(player: Pick<PlayerState, "buffs">, fusionId: string): void {
@@ -234,7 +248,16 @@ export function reconcileSkillFusions(player: Pick<PlayerState, "skills" | "skil
   });
 }
 
-export function recordSkillUse(player: { buffs: BuffState[] }, skillId: SkillId): void {
+export function recordSkillUse(player: { buffs: BuffState[]; skillFusions?: SkillFusionState[] | undefined }, skillId: SkillId): void {
+  if (skillId === "skill_101_4254") {
+    const mirror = player.skillFusions?.find((fusion) => getFusionRecipe(fusion.skillId)?.skill.name === "天魔舞" &&
+      fusion.acquisition?.smallUsed && !fusion.acquisition.smallUseRecorded);
+    if (mirror?.acquisition) {
+      mirror.acquisition.smallUseRecorded = true;
+      if (mirror.acquisition.mirrorMaterialUsed) return;
+      mirror.acquisition.mirrorMaterialUsed = true;
+    }
+  }
   const costs = [skillId, ...(getFusionRecipe(skillId)?.materialUseCosts ?? [])];
   for (const usedId of costs) {
     const id = `skill_used:${usedId}`;

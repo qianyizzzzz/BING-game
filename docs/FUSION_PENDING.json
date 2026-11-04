@@ -1,0 +1,12 @@
+{
+  "updatedAt": "2026-11-04",
+  "totalRecipes": 72,
+  "releasedRecipes": 72,
+  "addedThisBatch": ["沙皇", "天魔舞", "猥琐小叔叔"],
+  "unreleased": [],
+  "deferredEffects": [
+    { "name": "野蛮人", "remaining": "聊天扣血及文明人失效。等待聊天功能；逆转2次已实现。" },
+    { "name": "贤者之书", "remaining": "文明人聊天触发加2血，按用户指示保留待定。" },
+    { "name": "贤者的庇护", "remaining": "文明人聊天触发加2血，按用户指示保留待定；固定2血复活已实现。" }
+  ]
+}

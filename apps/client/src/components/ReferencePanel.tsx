@@ -10,6 +10,7 @@ import {
   getAllSkills
 } from "@bing/shared";
 import { getSkillVisualProfile, skillCardStyle, skillCostPipCount } from "../lib/skillVisuals";
+import { formatSkillCakeCost } from "../lib/format";
 
 type Tab = "attacks" | "skills" | "attributes";
 type SkillCategoryFilter = SkillCategory | "all";
@@ -152,6 +153,7 @@ export function ReferencePanel() {
           <div className="reference-gallery reference-info-grid">
             <InfoBlock title="防御标签" text="小防防、油条防、石头防要求对应防御；任意防三种基础防都能挡；饼防只能出饼挡；无法防只能靠反弹或特殊技能处理。" />
             <InfoBlock title="攻击等级" text="攻击对撞时先比等级。等级高者按差值公式造成伤害，等级相同互相抵消。" />
+            <InfoBlock title="反噬伤害" text="攻击转回自身，以及全力一击、血水屏障、双刃剑等自身伤害，属于反噬。反噬可被免疫，不能被无敌、闪避、护盾、减伤拦截；电闪雷鸣免疫反噬攻击时也奖励鬼道。已被永夜等效果无效化的攻击不产生反噬。" />
             <InfoBlock title="元素" text="火、电、冰、毒等属性会被部分技能引用。当前基础版先记录属性，后续扩展会继续接入元素联动。" />
             <InfoBlock title="技能类型" text="主动技能会出现在出招面板；锁定技自动生效；控制技和限定技会逐步接入更完整的时机系统。" />
           </div>
@@ -369,10 +371,10 @@ function categoryLabel(category: ReturnType<typeof getAllSkills>[number]["catego
 
 function playLabel(skill: ReturnType<typeof getAllSkills>[number]): string {
   if (skill.play?.kind === "attack") {
-    return `可施放 / ${skill.play.cost}饼`;
+    return `可施放 / ${formatSkillCakeCost(skill.id)}`;
   }
   if (skill.play?.kind === "resource") {
-    return `资源 / ${skill.play.cost}饼`;
+    return `资源 / ${formatSkillCakeCost(skill.id)}`;
   }
   return skill.implemented ? "自动生效" : "待接入";
 }

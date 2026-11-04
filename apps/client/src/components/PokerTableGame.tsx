@@ -34,6 +34,7 @@ export function PokerTableGame({
   state,
   viewerPlayerId
 }: PokerTableGameProps) {
+  const [actionDockCollapsed, setActionDockCollapsed] = useState(false);
   const orderedPlayers = useMemo(
     () =>
       orderPlayersForViewer(
@@ -179,7 +180,20 @@ export function PokerTableGame({
     return () => window.clearInterval(timer);
   }, [activeDeadline]);
 
-  const actionDock = actionPanel ? <div className="table-action-dock">{actionPanel}</div> : null;
+  const actionDock = actionPanel ? (
+    <div className={`table-action-dock${actionDockCollapsed ? " table-action-dock-collapsed" : ""}`}>
+      <button
+        aria-expanded={!actionDockCollapsed}
+        className="action-dock-toggle"
+        data-testid="toggle-action-dock"
+        onClick={() => setActionDockCollapsed((collapsed) => !collapsed)}
+        type="button"
+      >
+        {actionDockCollapsed ? "展开行动" : "收起"}
+      </button>
+      {actionPanel}
+    </div>
+  ) : null;
 
   return (
     <>
@@ -463,6 +477,8 @@ export function PokerTableGame({
 }
 
 interface ResourceDelta {
+  infiniteDamage?: boolean;
+  infiniteHealing?: boolean;
   playerId: PlayerId;
   name: string;
   hpDelta: number;
@@ -650,6 +666,7 @@ function buildResourceDeltas(
     if (event.type === "damage") {
       const delta = ensureDelta(event.targetId);
       delta.hpDelta -= event.amount;
+      if (event.infiniteCopies) delta.infiniteDamage = true;
       delta.reasons.push(event.attackName ?? "受到伤害");
       continue;
     }
@@ -657,6 +674,7 @@ function buildResourceDeltas(
     if (event.type === "heal") {
       const delta = ensureDelta(event.targetId);
       delta.hpDelta += event.amount;
+      if (event.infinite) delta.infiniteHealing = true;
       delta.reasons.push(event.reason);
       continue;
     }
@@ -674,7 +692,7 @@ function buildResourceDeltas(
   }
 
   return Array.from(deltas.values()).filter(
-    (delta) => delta.hpDelta !== 0 || delta.cakeDelta !== 0
+    (delta) => delta.hpDelta !== 0 || delta.cakeDelta !== 0 || delta.infiniteDamage || delta.infiniteHealing
   );
 }
 
@@ -709,7 +727,10 @@ function formatResourceDeltaReasons(delta: ResourceDelta): string {
 
 function formatDeltaParts(delta: ResourceDelta): string {
   const parts: string[] = [];
-  if (delta.hpDelta !== 0) {
+  if (delta.infiniteDamage || delta.infiniteHealing) {
+    if (delta.infiniteDamage) parts.push("受伤∞");
+    if (delta.infiniteHealing) parts.push("回血∞");
+  } else if (delta.hpDelta !== 0) {
     parts.push(`血${formatSignedDelta(delta.hpDelta)}`);
   }
   if (delta.cakeDelta !== 0) {

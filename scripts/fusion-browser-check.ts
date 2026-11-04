@@ -172,7 +172,7 @@ try {
     const opponent = await emit(d, "room:join", { roomId: room.roomId, playerName: "对手" });
     let extraPlayer: Socket | undefined;
     let extraPlayerId: string | undefined;
-    if (name === "电闪雷鸣") {
+    if (name === "电闪雷鸣" || name === "冰火狂暴曲") {
       extraPlayer = await connect();
       extraPlayerId = (await emit(extraPlayer, "room:join", { roomId: room.roomId, playerName: "第二名攻击者" })).playerId;
     }
@@ -180,10 +180,16 @@ try {
       await emit(await connect(), "room:join", { roomId: room.roomId, playerName });
     }
     await emit(c, "room:update_settings", { roomId: room.roomId,
-      config: { skillMode: "test_select", skillCount: 2, turnTimeLimitSeconds: 180, firstTurnNoAttack: false } });
+      config: { skillMode: "test_select", skillCount: ["杀级换", "根源之目"].includes(name) ? 3 : 2, turnTimeLimitSeconds: 180, firstTurnNoAttack: false } });
     const recipe = FUSION_RECIPES.find((item) => item.skill.name === name)!;
     await emit(c, "room:update_player_skills", { roomId: room.roomId,
-      targetPlayerId: room.playerId, skillIds: recipe.materialOptions[0] });
+      targetPlayerId: room.playerId, skillIds: name === "杀级换" ? [...recipe.materialOptions[0]!, skillId("毁灭之力")] :
+        name === "根源之目" ? [...recipe.materialOptions[0]!, skillId("钟")] : recipe.materialOptions[0] });
+    if (name === "弹力球" || name === "根源之目") {
+      await emit(d, "room:update_player_skills", { roomId: room.roomId, targetPlayerId: opponent.playerId,
+        skillIds: name === "弹力球" ? [skillId("火眼金睛"), skillId("钟")] :
+          FUSION_RECIPES.find((item) => item.skill.name === "弹力球")!.materialOptions[0] });
+    }
     if (name === "灵魂修复") {
       await emit(d, "room:update_player_skills", { roomId: room.roomId,
         targetPlayerId: opponent.playerId, skillIds: [skillId("血之哀")] });
@@ -191,6 +197,14 @@ try {
     if (name === "辉月") {
       await emit(d, "room:update_player_skills", { roomId: room.roomId,
         targetPlayerId: opponent.playerId, skillIds: [skillId("青釭剑")] });
+    }
+    if (name === "空城计") {
+      await emit(d, "room:update_player_skills", { roomId: room.roomId,
+        targetPlayerId: opponent.playerId, skillIds: [skillId("卷子"), skillId("电击法术")] });
+    }
+    if (name === "自然之灵" || name === "纯净苍穹") {
+      await emit(d, "room:update_player_skills", { roomId: room.roomId,
+        targetPlayerId: opponent.playerId, skillIds: [skillId(name === "自然之灵" ? "火烧大地" : "冰漩决")] });
     }
     let latest: PublicGameState = room.state;
     c.on("room:state", (state) => { latest = state; });
@@ -225,6 +239,12 @@ try {
       await batchPage.setViewportSize({ width: 390, height: 844 });
       await panel.screenshot({ path: path.join(output, "fusion-wither-choice-mobile.png") });
     }
+    if (name === "贤者之书") {
+      await panel.getByText("保留文明人与卷子；文明人因聊天触发的+2血效果待定，当前不生效。卷子保持原有规则。", { exact: true }).waitFor();
+      await batchPage.setViewportSize({ width: 390, height: 844 });
+      await panel.screenshot({ path: path.join(output, "fusion-sage-book-pending-mobile.png") });
+      await batchPage.setViewportSize({ width: 1280, height: 900 });
+    }
     await panel.getByRole("button", { name: "免费融合", exact: true }).click();
     await panel.getByRole("button", { name: `分解${name}`, exact: true }).waitFor();
     if (name === "枯萎") {
@@ -258,13 +278,240 @@ try {
         await advanceRoom(snapshot);
       }
     }
+    async function waitForRoom(check: () => boolean) {
+      for (let attempt = 0; attempt < 100; attempt++) {
+        if (check()) return;
+        await batchPage.waitForTimeout(50);
+      }
+      assert.ok(check(), "expected room state after browser action");
+    }
+    if (name === "弹力球" || name === "根源之目") {
+      if (name === "根源之目") {
+        const result = await emit(d, "game:submit_action", { roomId: room.roomId, action: { type: "skill", skillId: "common_fusion",
+          targetSkillId: FUSION_RECIPES.find((item) => item.skill.name === "弹力球")!.skill.id,
+          stacks: 1, fusionRequestId: `browser-ball-${Date.now()}` } });
+        assert.equal(result.state.players.find((player: any) => player.id === opponent.playerId).skillFusions[0].skillId,
+          FUSION_RECIPES.find((item) => item.skill.name === "弹力球")!.skill.id);
+      }
+      await collectCakes(1);
+      if (name === "弹力球") {
+        await batchPage.getByTestId("action-mode-defense").click();
+        await batchPage.getByTestId("defense-select").selectOption("rebound");
+        await batchPage.getByTestId("submit-action").click();
+        latest = (await emit(d, "game:submit_action", { roomId: room.roomId,
+          action: { type: "skill", skillId: skillId("钟"), stacks: 1, targetId: room.playerId } })).state;
+      } else {
+        await batchPage.getByTestId("action-mode-attack").click();
+        await batchPage.getByTestId("attack-row-kind-0").selectOption(`skill:${skillId("钟")}`);
+        await batchPage.getByTestId("submit-action").click();
+        latest = (await emit(d, "game:submit_action", { roomId: room.roomId, action: { type: "defense", defense: "rebound" } })).state;
+      }
+      latest = await advanceRoom(latest, true);
+      assert.ok(!latest.eventLog.some((event) => event.type === "attack_reflected"));
+      if (name === "弹力球") {
+        assert.deepEqual(latest.players.map((player) => player.hp), [6, 6]);
+        assert.ok(latest.eventLog.some((event) => event.type === "attack_blocked" && event.targetId === room.playerId));
+        assert.ok(!latest.players[1]!.buffs.some((buff) => buff.id === "jin_zhong_zhao"));
+      } else {
+        assert.equal(latest.players[1]!.hp, 5);
+        assert.ok(latest.eventLog.some((event) => event.type === "rebound_broken" && event.targetId === opponent.playerId));
+      }
+      await batchPage.locator(".battle-stage-overlay").waitFor({ state: "hidden" });
+      await batchPage.screenshot({ path: path.join(output, `fusion-${name === "弹力球" ? "elastic-block" : "origin-pierce"}-desktop.png`) });
+      await batchPage.setViewportSize({ width: 390, height: 844 });
+      await batchPage.locator("section.action-board").scrollIntoViewIfNeeded();
+      await batchPage.screenshot({ path: path.join(output, `fusion-${name === "弹力球" ? "elastic-block" : "origin-pierce"}-mobile.png`) });
+    }
+    if (name === "空城计") {
+      await batchPage.getByTestId("fusion-controls").locator("summary").click();
+      latest = await advanceRoom(latest);
+      await batchPage.getByTestId("submit-action").click();
+      latest = (await emit(d, "game:submit_action", { roomId: room.roomId,
+        action: { type: "skill", skillId: skillId("卷子"), stacks: 1, targetId: room.playerId } })).state;
+      latest = await advanceRoom(latest, true);
+      assert.equal(latest.players[0]!.status, "alive");
+      assert.equal(latest.players[0]!.hp, 6);
+      assert.ok(latest.eventLog.some((event) => event.type === "attack_blocked" && event.protectionName === "空城计"));
+      await batchPage.locator(".battle-stage-overlay").waitFor({ state: "hidden" });
+      await batchPage.screenshot({ path: path.join(output, "fusion-empty-fortress-retirement-desktop.png") });
+      await batchPage.setViewportSize({ width: 390, height: 844 });
+      await batchPage.locator("section.action-board").scrollIntoViewIfNeeded();
+      await batchPage.screenshot({ path: path.join(output, "fusion-empty-fortress-retirement-mobile.png") });
+      latest = await advanceRoom(latest);
+      assert.equal(latest.roundTurnNumber, 2);
+      await batchPage.getByTestId("submit-action").click();
+      latest = (await emit(d, "game:submit_action", { roomId: room.roomId,
+        action: { type: "skill", skillId: skillId("电击法术"), stacks: 1, targetIds: [room.playerId] } })).state;
+      latest = await advanceRoom(latest, true);
+      assert.ok(latest.players[0]!.buffs.some((buff) => buff.id.startsWith("paralysis_next_action:")));
+    }
+    if (name === "冰火狂暴曲") {
+      await batchPage.getByTestId("fusion-controls").locator("summary").click();
+      latest = await advanceRoom(latest);
+      for (const defense of ["small", "youtiao", "stone"]) {
+        await emit(c, "game:submit_action", { roomId: room.roomId, action: { type: "defense", defense } });
+        await emit(d, "game:submit_action", { roomId: room.roomId, action: { type: "gain_cake" } });
+        latest = (await emit(extraPlayer!, "game:submit_action", { roomId: room.roomId, action: { type: "gain_cake" } })).state;
+        latest = await advanceRoom(latest);
+      }
+      assert.equal(latest.players[0]!.buffs.find((buff) => buff.id === "ice_fire_mark")?.stacks, 1);
+      for (let turn = 0; turn < 2; turn++) {
+        await emit(c, "game:submit_action", { roomId: room.roomId, action: { type: "gain_cake" } });
+        await emit(d, "game:submit_action", { roomId: room.roomId, action: { type: "gain_cake" } });
+        latest = (await emit(extraPlayer!, "game:submit_action", { roomId: room.roomId, action: { type: "gain_cake" } })).state;
+        latest = await advanceRoom(latest);
+      }
+      await emit(c, "game:submit_action", { roomId: room.roomId, action: { actions: [
+        { type: "attack", attackId: "sha", stacks: 1, targetId: opponent.playerId },
+        { type: "attack", attackId: "sha", stacks: 1, targetId: extraPlayerId }
+      ] } });
+      await emit(d, "game:submit_action", { roomId: room.roomId, action: { type: "gain_cake" } });
+      latest = (await emit(extraPlayer!, "game:submit_action", { roomId: room.roomId, action: { type: "gain_cake" } })).state;
+      await emit(c, "game:enter_action_window", { roomId: room.roomId });
+      await batchPage.getByTestId("window-skill-select").selectOption(recipe.skill.id);
+      const attackChoice = batchPage.getByTestId("mark-attack-select");
+      assert.equal(await attackChoice.locator("option").count(), 2);
+      await attackChoice.selectOption("1");
+      await batchPage.locator(".battle-stage-overlay").waitFor({ state: "hidden" });
+      await attackChoice.scrollIntoViewIfNeeded();
+      await batchPage.screenshot({ path: path.join(output, "fusion-ice-fire-attack-choice-desktop.png") });
+      await batchPage.setViewportSize({ width: 390, height: 844 });
+      await attackChoice.scrollIntoViewIfNeeded();
+      const selectBox = await attackChoice.boundingBox();
+      assert.ok(selectBox && selectBox.x >= 0 && selectBox.x + selectBox.width <= 391);
+      await batchPage.screenshot({ path: path.join(output, "fusion-ice-fire-attack-choice-mobile.png") });
+      await batchPage.getByRole("button", { name: "使用技能", exact: true }).click();
+      await waitForRoom(() => latest.revealedAttackStats?.[room.playerId]?.[1]?.power === 2);
+      assert.equal(latest.revealedAttackStats?.[room.playerId]?.[0]?.power, 1);
+      latest = await advanceRoom(latest, true);
+      assert.equal(latest.players[1]!.hp, 5);
+      assert.equal(latest.players[2]!.hp, 4);
+      assert.ok(!latest.players[1]!.buffs.some((buff) => buff.id === "frozen"));
+      assert.equal(latest.players[2]!.buffs.find((buff) => buff.id === "frozen")?.stacks, 1);
+    }
+    if (name === "杀级换") {
+      await collectCakes(3);
+      await batchPage.getByTestId("action-mode-attack").click();
+      await batchPage.getByTestId("submit-action").click();
+      await emit(d, "game:submit_action", { roomId: room.roomId, action: { type: "gain_cake" } });
+      await emit(c, "game:enter_action_window", { roomId: room.roomId });
+      for (const attackId of ["qin", "sha"]) {
+        await batchPage.getByTestId("window-skill-select").selectOption(skillId("杀换"));
+        await batchPage.locator(".stat-chip").filter({ hasText: "消耗" }).getByText("无耗饼", { exact: true }).waitFor();
+        await batchPage.getByRole("button", { name: "使用技能", exact: true }).click();
+        await waitForRoom(() => {
+          const action = latest.revealedActions?.[room.playerId]?.actions[0];
+          return action?.type === "attack" && action.attackId === attackId;
+        });
+        assert.equal(latest.players[0]!.cakes, 2);
+      }
+      await batchPage.getByTestId("window-skill-select").selectOption(skillId("毁灭之力"));
+      await batchPage.getByTestId("attack-stat-modifier-select").selectOption("0:power_to_zero_level_times_4");
+      await batchPage.getByRole("button", { name: "使用技能", exact: true }).click();
+      await waitForRoom(() => latest.revealedAttackStats?.[room.playerId]?.[0]?.level === 4);
+      await batchPage.getByTestId("window-skill-select").selectOption(skillId("级换"));
+      assert.equal(await batchPage.getByTestId("attack-stat-modifier-select").locator("option").count(), 5);
+      await batchPage.getByTestId("attack-stat-modifier-select").selectOption("0:rotate_cost_power_level");
+      await batchPage.getByRole("button", { name: "使用技能", exact: true }).click();
+      await waitForRoom(() => latest.revealedAttackStats?.[room.playerId]?.[0]?.cost === 0);
+      assert.deepEqual(latest.revealedAttackStats?.[room.playerId]?.[0], { cost: 0, power: 4, level: 1 });
+      assert.equal(latest.players[0]!.cakes, 2, "refund waits for the hit point");
+      const end = await advanceRoom(latest, true);
+      assert.equal(end.players[0]!.cakes, 3);
+      assert.equal(end.players[1]!.hp, 2);
+      await batchPage.locator(".battle-stage-overlay").waitFor({ state: "hidden" });
+      await batchPage.screenshot({ path: path.join(output, "fusion-sha-level-refund-desktop.png") });
+      await batchPage.setViewportSize({ width: 390, height: 844 });
+      await batchPage.locator("section.action-board").scrollIntoViewIfNeeded();
+      await batchPage.screenshot({ path: path.join(output, "fusion-sha-level-refund-mobile.png") });
+    }
+    if (name === "野蛮人") {
+      await collectCakes(1);
+      for (let count = 1; count <= 2; count++) {
+        await batchPage.getByTestId("submit-action").click();
+        await emit(d, "game:submit_action", { roomId: room.roomId, action: { type: "gain_cake" } });
+        await emit(c, "game:enter_action_window", { roomId: room.roomId });
+        await batchPage.getByTestId("window-skill-select").selectOption(skillId("逆转"));
+        await batchPage.getByRole("button", { name: "使用技能", exact: true }).click();
+        await waitForRoom(() => latest.players[0]!.buffs.some((buff) => buff.id === `skill_used:${skillId("逆转")}` && buff.stacks === count));
+        await advanceRoom(latest);
+      }
+      await batchPage.locator(".battle-stage-overlay").waitFor({ state: "hidden" });
+      await batchPage.screenshot({ path: path.join(output, "fusion-barbarian-two-reversals.png") });
+    }
+    if (name === "贤者的庇护") {
+      await collectCakes(7);
+      await batchPage.getByTestId("submit-action").click();
+      let snapshot = (await emit(d, "game:submit_action", { roomId: room.roomId,
+        action: { type: "attack", attackId: "sha", stacks: 7, targetId: room.playerId } })).state;
+      for (let guard = 0; snapshot.phase === "action_window" && snapshot.activeTimingPhase !== "revival_action" && guard < 20; guard++) {
+        await emit(c, "game:pass_action_window", { roomId: room.roomId });
+        snapshot = (await emit(d, "game:pass_action_window", { roomId: room.roomId })).state;
+      }
+      assert.equal(snapshot.activeTimingPhase, "revival_action");
+      assert.equal(snapshot.players[0]!.hp, -1);
+      await emit(c, "game:enter_action_window", { roomId: room.roomId });
+      await batchPage.getByTestId("window-skill-select").selectOption(recipe.skill.id);
+      await batchPage.getByRole("button", { name: "使用技能", exact: true }).click();
+      await waitForRoom(() => latest.players[0]!.hp === 2);
+      assert.ok(!latest.players[0]!.buffs.some((buff) => buff.id === "pending_death"));
+      assert.ok(latest.eventLog.some((event) => event.type === "heal" && event.reason === name && event.recoveryKind === "revival"));
+      await batchPage.locator(".battle-stage-overlay").waitFor({ state: "hidden" });
+      await batchPage.screenshot({ path: path.join(output, "fusion-sage-revival-desktop.png") });
+      await batchPage.setViewportSize({ width: 390, height: 844 });
+      await batchPage.getByTestId("action-board").scrollIntoViewIfNeeded();
+      await batchPage.screenshot({ path: path.join(output, "fusion-sage-revival-mobile.png") });
+    }
+    if (name === "自然之灵") {
+      await collectCakes(5);
+      await batchPage.getByTestId("submit-action").click();
+      const end = await advanceRoom((await emit(d, "game:submit_action", { roomId: room.roomId,
+        action: { type: "attack", attackId: "huo_wu", stacks: 1, targetId: room.playerId } })).state, true);
+      assert.equal(end.players[0]!.hp, 6);
+      assert.ok(end.eventLog.some((event) => event.type === "attack_blocked" && event.protectionName === "自然之灵"));
+      const spell = (await emit(d, "game:submit_window_skill", { roomId: room.roomId,
+        action: { type: "skill", skillId: skillId("火烧大地"), stacks: 1 } })).state;
+      assert.equal(spell.players[0]!.hp, 6);
+      await batchPage.locator(".battle-stage-overlay").waitFor({ state: "hidden" });
+      await batchPage.screenshot({ path: path.join(output, "fusion-nature-fire-immunity-desktop.png") });
+      await batchPage.setViewportSize({ width: 390, height: 844 });
+      await batchPage.getByTestId("action-board").scrollIntoViewIfNeeded();
+      await batchPage.screenshot({ path: path.join(output, "fusion-nature-fire-immunity-mobile.png") });
+    }
+    if (name === "纯净苍穹") {
+      await collectCakes(3);
+      await batchPage.getByTestId("action-mode-defense").click();
+      await batchPage.getByTestId("defense-select").selectOption("small");
+      await batchPage.getByTestId("submit-action").click();
+      await emit(d, "game:submit_action", { roomId: room.roomId,
+        action: { type: "skill", skillId: skillId("冰漩决"), stacks: 1, targetIds: [room.playerId] } });
+      // Hold the five-second prompt before waiting for the reveal animation and UI controls.
+      await emit(c, "game:enter_action_window", { roomId: room.roomId });
+      await batchPage.getByTestId("window-skill-select").selectOption(skillId("幻防"));
+      await batchPage.getByRole("button", { name: "使用技能", exact: true }).click();
+      await batchPage.locator(".poker-seat-viewer").getByText("免疫不良", { exact: true }).waitFor();
+      assert.equal(latest.players[0]!.cakes, 1);
+      const end = await advanceRoom(latest, true);
+      assert.equal(end.players[0]!.hp, 5);
+      assert.ok(!end.players[0]!.buffs.some((buff) => buff.id === "frozen"));
+      assert.ok(end.players[0]!.buffs.some((buff) => buff.id === "temp_negative_status_immunity"));
+      await batchPage.locator(".battle-stage-overlay").waitFor({ state: "hidden" });
+      await batchPage.screenshot({ path: path.join(output, "fusion-pure-sky-immunity-desktop.png") });
+      const next = await advanceRoom(end);
+      assert.ok(!next.players[0]!.buffs.some((buff) => buff.id === "temp_negative_status_immunity"));
+      await batchPage.setViewportSize({ width: 390, height: 844 });
+      await batchPage.locator(".battle-stage-overlay").waitFor({ state: "hidden" });
+      await batchPage.getByTestId("submit-action").scrollIntoViewIfNeeded();
+      assert.equal(await batchPage.getByTestId("submit-action").isEnabled(), true);
+      await batchPage.screenshot({ path: path.join(output, "fusion-pure-sky-next-turn-mobile.png") });
+    }
     if (name === "辉月") {
       await collectCakes(2);
       await batchPage.getByTestId("action-mode-attack").click();
       await batchPage.getByTestId("submit-action").click();
       await emit(d, "game:submit_action", { roomId: room.roomId,
         action: { type: "attack", attackId: "sha", stacks: 1, targetId: room.playerId } });
-      await batchPage.getByTestId("enter-action-window").click();
+      await emit(c, "game:enter_action_window", { roomId: room.roomId });
       await batchPage.getByTestId("window-skill-select").selectOption(recipe.skill.id);
       await batchPage.getByRole("button", { name: "使用技能", exact: true }).click();
       await batchPage.locator(".poker-seat-viewer .seat-feedback-bubble").filter({ hasText: /^出招已取消$/ }).waitFor();
@@ -390,7 +637,7 @@ try {
       await batchPage.getByTestId("defense-select").selectOption("small");
       await batchPage.getByTestId("submit-action").click();
       await emit(d, "game:submit_action", { roomId: room.roomId, action: { type: "gain_cake" } });
-      await batchPage.getByTestId("enter-action-window").click();
+      await emit(c, "game:enter_action_window", { roomId: room.roomId });
       await batchPage.getByTestId("window-skill-select").selectOption(recipe.skill.id);
       await batchPage.getByRole("button", { name: "使用技能", exact: true }).click();
       await batchPage.waitForTimeout(150);
@@ -468,6 +715,16 @@ try {
   }
   assert.deepEqual(errors, []);
   const scenarioChecks: Record<string, string> = {
+    "弹力球": "UI fusion and rebound block Eye-enhanced Zhong without reflection, damage or on-hit shield",
+    "根源之目": "UI fusion retains Zhong selection and pierces the other player's Elastic Ball, dealing damage",
+    "空城计": "absolute invulnerability blocks a retirement scroll on desktop and mobile; non-attack electric shock still applies paralysis on the second turn",
+    "冰火狂暴曲": "mixed defenses grant one mark; desktop and mobile can select the second own attack; only its target takes enhanced damage and freeze",
+    "杀级换": "free sha/qin switches, ordered destruction and triple rotation, five permutations and delayed one-cake refund",
+    "野蛮人": "two ordinary reversals used through browser controls on separate turns",
+    "贤者之书": "approved pending chat effect and retained materials displayed on mobile",
+    "贤者的庇护": "lethal attack opens revival UI, sage protection selected and restores exactly two HP",
+    "自然之灵": "nature spirit blocks fire attack and burning-earth spell damage on desktop and mobile",
+    "纯净苍穹": "paid phantom defense grants immunity, ice vortex still damages but cannot freeze, immunity expires before next turn",
     "魔女斗篷": "witch cloak shield effects through browser controls",
     "斗战胜佛": "golden cudgel submitted from mobile controls, costs three cakes and is blocked by small defense",
     "核战": "zero-cake nuclear attack from mobile",

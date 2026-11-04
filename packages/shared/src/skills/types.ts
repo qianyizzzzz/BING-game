@@ -92,6 +92,7 @@ export type SkillEffectId =
   | "gain_defense_value"
   | "lava_mark"
   | "winter_mark"
+  | "ice_fire_mark"
   | "blizzard_double_hit"
   | "abs_plus"
   | "odd_hp_damage"
@@ -103,6 +104,8 @@ export type SkillEffectId =
   | "sand_transform";
 
 export interface SkillPlayDefinition {
+  /** Inherent cake pricing, independent of the amount actually paid. */
+  cakeCostKind?: "none" | "fixed" | "dynamic";
   kind: SkillPlayKind;
   attackName?: string;
   cost: number;
