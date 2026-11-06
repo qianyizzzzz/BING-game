@@ -1,0 +1,32 @@
+Use case: stylized-concept.
+Image 1 is a STYLE AND CARD-LAYOUT REFERENCE from the established Chinese epic fantasy collectible card series. Create a NEW completed DRAGON-element 王者卡, "龙·龙卷残云", ID 10507.
+USER REQUIREMENT: an EASTERN / CHINESE DRAGON, with a dominant CRIMSON RED color scheme.
+Preserve the established full front-on 1024x1536 portrait 2:3 card canvas, regal sculptural metal frame quality, similar border width, top-center rank plaque, upper-right circular attribute medallion, large illustrated center, lower title nameplate and ID footer. Entire new DRAGON artwork and DRAGON-specific ornament; do not copy the star spheres, orbital circles or purple background from the reference.
+
+Main illustration:
+ONE magnificent, physically solid, colossal Chinese LONG DRAGON flies through a towering cyclone of crimson storm clouds and rushing scarlet vapor. A true wingless Eastern dragon: very long powerful serpentine body, ONE majestic expressive dragon head, branching antler-like gold horns, long flowing whiskers, a rich swept-back golden mane, red armored scales, a pale-gold segmented underside, FOUR correctly attached clawed limbs and a tapering serpentine tail. No wings, no Western dragon anatomy, no humanoid body.
+The head is the clear focal point in the upper-middle of the illustration, shown in a powerful three-quarter view, fierce intelligent gaze and a slightly open roaring mouth. Head, horns and whiskers remain entirely inside the art window, below the rank plaque and away from text. Highly detailed snout, brows, long moustache and layered scales, majestic rather than grotesque.
+The dragon's immense body coils in a dynamic flowing S-curve down through the central and lower artwork, with one foreground coil larger and sharply detailed and another curling into the storm behind it. Strong, anatomically coherent continuity from the single head through the long body to the ONE tail; deliberate overlaps with convincing depth, no duplicated heads or disjointed body pieces. The tail whips into the spiral of clouds.
+Dominant colors: rich cinnabar, vermilion, scarlet and deep oxblood-red scales. Fine gold edging on scales, antique-gold horns, warm-gold mane and claws provide regal accents. Dark burgundy shaded undersides and black-red storm depths make the bright crimson dragon read clearly. Keep red dominant, not a mostly gold or orange creature.
+The cyclone visibly follows the dragon's coiling motion: great layered crimson and charcoal-red stormbanks, curved wind wakes, torn red mist, a few thin gold-white lightning streaks in the distant clouds. Strong sense of sweeping away all clouds, overwhelming force and flight, not a stationary portrait. The dragon has real scales and flesh, not a body made of fire.
+No terrain, horizon, city, palace or buildings. Abstract immense storm space only. No sun, planets, constellation spheres, fireball, floating crystal or secondary creature.
+Epic monumental fantasy cinematic painterly realism, extremely refined dragon anatomy and material texture, dramatic atmospheric depth and controlled highlights. Clear thumbnail silhouette with rich detail visible up close.
+
+DRAGON-specific FRAME:
+Completely replace the reference's star and orbit ornament.
+Antique-gold structural trim over deep cinnabar-red and black-red enamel, layered sculpted dragon-scale relief, elegant Chinese cloud-scroll curves, dragon-spine ridges and horn-like corner flourishes. Majestic, richly crafted, coherent with the same 王者 series.
+Top crown: sweeping gold dragon-antler forms and fan-like scale relief around a small dark-red jewel, architectural and regal, not another living dragon head. Side rails have interlocking gold-edged scarlet scales and elegant sculpted coiling dragon-body patterns. Corners use gold claws/scale/horn motifs as clearly decorative relief, never extra living creatures.
+Keep a similar border width and all information layout positions. Enough calm dark-red plaque surface behind the gold text for excellent readability. No sunburst, ice, purple gems, star crown, orbital rings, wings or cannon decoration.
+Upper-right circular badge: dark scarlet enamel, gold scale-pattern rim, the exact large gold Chinese character "龙".
+
+The ONLY text, exact and clearly readable:
+Top-center rank plaque: "王者卡"
+Upper-right attribute: "龙"
+Bottom title nameplate: "龙·龙卷残云"
+Footer: "ID 10507"
+Use simplified 龙 consistently. Preserve plaque sizes, type scale and positions from the series. No extra words, numbers, ability text, logos or watermark.
+
+Strict constraints:
+Exactly ONE living Eastern dragon. No human, rider, humanoid, angel, other animal, second dragon or disconnected dragon head. Four attached dragon limbs only, normal coherent Eastern dragon anatomy. No bat wings or feathered wings.
+One finished full card, no design sheet, no tilted mockup or tabletop. Entire outer silhouette and ornament tips stay within image edges with narrow transparent padding.
+Artwork is opaque inside the central illustration window under the border. Genuine alpha transparency ONLY outside the card silhouette and projecting frame ornament. No opaque background rectangle or checkerboard outside the card.

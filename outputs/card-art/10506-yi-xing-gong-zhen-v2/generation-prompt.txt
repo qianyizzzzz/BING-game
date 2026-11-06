@@ -1,0 +1,25 @@
+Use case: precise-object-edit.
+Image 1 is the EDIT TARGET: the purple-and-gold "星·异星共振" card, ID 10506.
+Change ONLY the arrangement and number of the celestial spheres inside the illustration. Preserve the purple/gold palette, beautiful marbled alien-star textures, golden resonance energy, purple cosmic nebula and the entire existing card frame.
+
+Requested composition is EXACT:
+- ONE large spherical star precisely in the center of the illustration aperture, approximately full-canvas position (512,750) on the 1024x1536 image. Large sphere diameter about 290-310 pixels.
+- EXACTLY SIX SMALLER SPHERES, all the SAME diameter around 90-105 pixels, evenly spaced on ONE circular orbit centered on the big sphere.
+- Equal angular spacing of 60 degrees, equal distance from the large sphere, about 290-300 pixels center-to-center radius. Front-facing circular arrangement, not an oblique ellipse. Six satellites placed at clock positions 12, 2, 4, 6, 8 and 10.
+- Approximate satellite centers: top (512,450), upper-right (772,600), lower-right (772,900), bottom (512,1050), lower-left (252,900), upper-left (252,600).
+- The large sphere is therefore centered WITHIN the ring of six satellites, not off to the left or below. Leave clear visible gaps between all seven spheres. All six small spheres completely visible, with no clipping or occlusion.
+- TOTAL SEVEN spheres in the artwork: one big central star + six smaller surrounding stars. No eighth sphere, no other round orbiting particles, no leftover sphere in the previous off-center position. Background stars may be tiny pointed sparkles, not extra balls.
+
+All spheres retain the original rich amethyst/plum substance, turbulent purple interior and luminous golden stellar veins. The central star is the strongest focus. Delicate golden resonance threads connect each smaller star to the central star and ripple between neighbors. A graceful thin gold orbital circle and fine expanding transparent wavefronts reinforce their synchronized resonance. Keep these threads and rings airy so the exact six-satellite arrangement remains immediately obvious. Deep purple nebular space and quiet contrast gaps behind the spheres.
+Maintain the epic cinematic painterly realism, regal purple and gold, metallic highlights and dimensional volumetric light. Do not turn this into an annotated infographic; no diagrams, arrows, labels or extra symbols.
+
+STRICT PRESERVATION:
+Keep the entire existing frame unchanged: gold eight-point star crown, orbital crest, purple enamel, gold filigree, corner amethysts, attribute medallion, all plaque shapes, typography and positions.
+Keep the EXACT original inscriptions:
+"王者卡"
+"星"
+"星·异星共振"
+"ID 10506"
+No other text. Preserve full 1024x1536 portrait 2:3 canvas and straight front-on card view.
+No people, humanoids, creatures, wings, buildings, landscape or weapons.
+Artwork fully opaque inside illustration aperture, underneath the border. Preserve original alpha transparency ONLY outside the outer card silhouette. No background rectangle or checkerboard outside the card.

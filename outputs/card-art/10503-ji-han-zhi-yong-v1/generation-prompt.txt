@@ -1,0 +1,33 @@
+Use case: stylized-concept.
+Image 1 is a STYLE AND LAYOUT REFERENCE for the same Chinese epic fantasy collectible card series. Create a NEW completed ICE-element card, "冰·极寒之拥", ID 10503, 王者卡.
+Keep the established 1024x1536 portrait 2:3 canvas, full front-on card, monumental sculptural craftsmanship, readable top-center rank plaque, upper-right circular attribute badge, large central illustration, bottom title nameplate and serial footer. Create distinct ICE artwork and ICE frame decoration.
+
+Central illustration concept: "the embrace of absolute cold."
+A colossal floating formation of translucent glacier ice curls inward from two sides, forming interlocking crescent-shaped glacial shells enclosing a single elongated, jagged, faceted ice-crystal heart. The great embracing crescents are natural crystalline structures, NEVER hands, arms, wings or a creature. They create a strong, monumental circular/spiral silhouette around the suspended angular crystal heart, with intentional dark negative gaps between the layers.
+The crystal heart is a vertically elongated, ancient, clear-blue hexagonal prism fractured into a few large nested facets, NOT a sphere or sun. A brilliant frozen white-cyan light glows from deep INSIDE the solid ice. Extraordinary optical detail: refracted light through thick ice, layered blue inclusions, trapped silvery frost veins, hairline cracks, frosted edges contrasting with clear polished faces.
+The crescent glacial shells have huge sculptural blue-white ice surfaces, deep cobalt shadowed undersides, embedded crystalline strata, icicles and rime. Densely layered small crystals along the outer edges contrast with broad readable main facets. One shell curves forward in the near plane and another recedes behind the core, making the enveloping space feel monumental and deep.
+Around the formation, a spiral of blizzard snow, suspended sharp ice shards and glass-like frozen wavefronts conveys ice sealing space and reflecting force outward. A few small shards in the foreground, many tiny particles far away. Cold concentric shockwaves refract through the ice walls rather than looking like a diagram or HUD.
+Abstract cosmic polar setting with midnight-blue and deep teal void, soft silver-blue nebular frost, distant subdued lavender aurora wisps near the outer art edges. No ground or horizon. Keep a few calm deep-blue regions to make the luminous solid ice distinct.
+The mood is majestic, ominously still, crushingly cold and inviolable: the whole space is being enclosed and frozen. Epic cinematic painterly realism, clear scale, rich dimensional light, precise ice structure. Bright ice-white and cyan highlights, deep sapphire shadows, restrained violet atmospheric accents. Avoid uniform blue glow or fine-detail clutter obscuring the main crescent shape.
+No recognizable landscape, blue daytime sky, buildings or earthly cloud banks.
+
+ICE-SPECIFIC BORDER:
+Redesign the reference's light/sunburst ornament into an ice-crown frame while retaining the same rank and information layout.
+Use sculpted platinum and pale antique-gold structural trims, thick translucent ice-blue crystal ridges, frost-etched dark-blue metal, downward icicles, branching sixfold frost engravings and sharp glacial facets. Upper crest is an imposing crown of long solid ice spires around a central hexagonal snow-crystal relief; NOT a circular sun or radiating gold sunburst.
+Both side rails and all four corners visibly incorporate frozen crystal growths and angular ice structures, framing rather than covering the main art. Keep a similar border width to the reference. Cool opalescent frost sheen and restrained cyan illumination in crystal seams; retain small pale-gold trims tying the card to the same 王者 series.
+Dark midnight-blue inset plaques, large sharp formal gold Chinese typography with high contrast.
+Upper-right circular attribute badge: pale icy-blue crystal interior, frosted silver-and-pale-gold rim, exact large gold Chinese character "冰".
+No fire tongues, flames, molten rock, orange seams, sun rays or pearl-white light-element rails.
+
+The ONLY text, exact and fully readable:
+top-center: "王者卡"
+upper-right attribute: "冰"
+bottom-center title: "冰·极寒之拥"
+footer: "ID 10503"
+Keep the established type scale, text positions and quiet margins. No abilities, additional numbers, extra labels, watermarks or logos.
+
+Strict constraints:
+No humans, humanoids, face, head, hands, arms, legs, angels, gods, ice giants, statues, animals, dragons, phoenixes, birds or creatures. Do not shape the ice like a body, hands or wings.
+This is a pure elemental crystalline phenomenon.
+One completed card, no variants or design board, no tabletop mockup, no perspective tilt. Full outer silhouette and all ice spikes contained within image, with narrow transparent padding.
+Central illustration fully opaque and fills the art aperture under the frame. Genuine alpha transparency ONLY outside the card's outer silhouette and projecting ice tips. No background rectangle or checkerboard behind the card.

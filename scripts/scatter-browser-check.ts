@@ -4,7 +4,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
 import { io, Socket } from "socket.io-client";
-import { getAllSkills, PublicGameState, PlayerAction } from "@bing/shared";
+import { formatPlayerHp, getAllSkills, PublicGameState, PlayerAction } from "@bing/shared";
 
 const port = Number(process.env.SCATTER_TEST_PORT ?? 3109);
 const url = `http://127.0.0.1:${port}`;
@@ -86,17 +86,17 @@ try {
   assert.equal(state.players.find((player) => player.id === ids[0])!.hpIsInfinite, true);
   await page.getByRole("tab", { name: "技能", exact: true }).click();
   await page.getByText("鬼道剩余 ∞ 次", { exact: false }).first().waitFor();
-  await page.locator(`[data-player-id="${ids[0]}"]`).getByText("∞", { exact: true }).waitFor();
+  await page.locator(`[data-player-id="${ids[0]}"]`).getByText(formatPlayerHp(state.players.find(player => player.id === ids[0])!), { exact: true }).waitFor();
   await page.locator(".battle-stage-overlay").waitFor({ state: "hidden", timeout: 20_000 });
-  assert.ok((await page.locator("body").innerText()).includes("受伤∞"));
+  assert.ok((await page.locator("body").innerText()).includes("血−2∞"));
   await page.screenshot({ path: path.join(output, "infinite-ghost-desktop.png"), fullPage: true });
   // A new round resets cakes; earn one before triggering scatter again.
   state = await turn([gain, gain, gain, gain]);
   state = await turn([shot, b, c, gain]);
-  assert.equal(state.players.find((player) => player.id === ids[0])!.hpIsInfinite, true);
+  assert.equal(state.players.find((player) => player.id === ids[0])!.hpIsInfinite, undefined);
   assert.equal(state.players.find((player) => player.id === ids[3])!.hpIsInfinite, true);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator(`[data-player-id="${ids[3]}"]`).getByText("∞", { exact: true }).waitFor();
+  await page.locator(`[data-player-id="${ids[3]}"]`).getByText(formatPlayerHp(state.players.find(player => player.id === ids[3])!), { exact: true }).waitFor();
   await page.getByTestId("action-mode-attack").click();
   await page.getByTestId("attack-row-kind-0").selectOption(`skill:${skill("鬼道")}`);
   const submit = page.getByTestId("submit-action");

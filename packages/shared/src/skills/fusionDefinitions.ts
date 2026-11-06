@@ -9,9 +9,25 @@ export const FUSION_EXPOSURE_TIMINGS: Record<string, SkillExposureTiming> = {
 };
 const acquisitionPhases: SkillDefinition["timingPhases"] = ["round_pre_interval_action", "round_before_action",
   "turn_before_action", "turn_change_action", "turn_end_action", "turn_after_interval_action", "round_after_interval_action"];
+const anytimePhases: SkillDefinition["timingPhases"] = [...acquisitionPhases, "turn_damage_modify"];
 
 /** Explicit executable definitions; spreadsheet prose is never treated as code. */
 export const FUSION_DEFINITIONS: Record<string, Partial<SkillDefinition>> = {
+  "四大皆空": { category: "limited", timingPhases: anytimePhases,
+    description: "一局一次，按获得顺序编号选择全场至多16个小技能并一次性消除。可选隐藏技能或融合素材。",
+    play: { kind: "effect", cost: 0, maxStacks: 1, targetMode: "none", usesPerGame: 1 } },
+  "老虎机": { category: "raw", timingPhases: anytimePhases,
+    description: "三份再来一次都变换后，若结果不完全相同，可恢复这一组。结果可作为融合素材，恢复时解除依赖这些结果的融合。",
+    play: { kind: "effect", cost: 0, maxStacks: 1, targetMode: "none" } },
+  "破晓": { description: "保留后羿·七日连珠和逐日之弓。日从本局第一次出招开始逐重累计，第x重的攻击为x，无上限。多重日的攻击相加。与魂耀九州同时生效时，每重额外加3攻。" },
+  "天空之城": { description: "保留空城计和空之轨迹。每轮前3回合绝对无敌。闪现改为当回合绝对无敌，沿用原冷却。过往时空结束返回时，立即触发遗计。" },
+  "炽焰": { description: "保留四个素材。保护火系技能免遭属性消除。火烧大地一局限2次，每次对除你外所有人各造成2点火系法伤，并消除其冰系技能。每层熔岩印记使所选攻击的攻、等各加3。火焰刀使每重杀的攻、等各加2。火漩决耗1饼。" },
+  "极寒": { description: "保留四个素材。保护冰系技能免遭属性消除。霜落大地一局限2次，每次自己加8血，符合原条件的其他玩家加2血，仍消除其他玩家的火系技能。每层凛冬印记使所选攻击的攻、等各加1，保留原冰冻效果。寒冰剑命中时保留伤害和技能失效。冰漩决耗1饼。" },
+  "三元协奏曲": { category: "raw", timingPhases: ["turn_action"],
+    play: { kind: "effect", cost: 3, maxStacks: 1, targetMode: "none", selfHeal: 6 } },
+  "星怒": { category: "control", timingPhases: ["turn_change_action"],
+    play: { kind: "effect", cost: 0, maxStacks: 1, targetMode: "none" } },
+  "外星人": { timingPhases: ["passive_check"], description: "保留逆转，增加1次使用机会，共2次。融合保留既有使用记录。" },
   "沙皇": { category: "raw", timingPhases: acquisitionPhases,
     description: "保留一个普通沙子选择小技能，另一个强化沙子选择除沙皇外的二融合，各限变化一次。获得完整初始效果，二融合可分解，其素材不能单独参与融合。场上任意存活玩家已有所选技能时变化失败并退游。分解保留已获得技能，只恢复尚未使用的沙子。",
     play: { kind: "effect", cost: 0, maxStacks: 1, targetMode: "none", usesPerGame: 1, effect: "sand_transform" } },
@@ -45,7 +61,7 @@ export const FUSION_DEFINITIONS: Record<string, Partial<SkillDefinition>> = {
     description: "保留空与遗计；融合素材中的遗计在上一轮受伤后，本轮轮初改为+3饼。每轮前2回合绝对无敌，完整抵挡不高于退游的攻击及其命中效果；青釭、破天、卷子、暗影狙击、山崩地裂均不能穿透。不能抵挡消失及更高效果的攻击，也不抵挡非攻击出招或出招以外的效果。" },
   "冰火狂暴曲": { category: "locked", timingPhases: ["passive_check", "turn_change_action"],
     description: "替代熔岩之怒与凛冬之怒。小防、油条、石头混合累计，每出3次获得1层冰火印记，最高3层。变招阶段选择自己的一次攻击，消耗x层，使该攻击变为冰火系，攻击+x、等级+x，命中后施加x回合冰冻。融合时清空素材印记与防御计数；分解时清空冰火印记与防御计数。",
-    play: { kind: "effect", cost: 0, maxStacks: 3, targetMode: "none", effect: "ice_fire_mark" } },
+    play: { kind: "effect", cost: 0, maxStacks: 6, targetMode: "none", effect: "ice_fire_mark" } },
   "杀级换": { category: "passive", timingPhases: ["passive_check"],
     description: "保留杀换与级换；杀换变为无耗饼。级换可按使用顺序交换最终攻击、等级、耗饼数，包括三项轮换。无耗饼攻击只能交换攻等；免费连爆仍有0耗饼值。变招结束统一补扣或退还差额，饼不足或无限耗饼时该次交换失败。负耗饼保留原值，实际费用按0计算。" },
   "野蛮人": { category: "passive", timingPhases: ["passive_check"],
@@ -70,6 +86,9 @@ export const FUSION_DEFINITIONS: Record<string, Partial<SkillDefinition>> = {
     play: { kind: "resource", cost: 1, maxStacks: 20, targetMode: "none", resourceGainPerStack: 4 } },
   "山崩地裂": { category: "attack", exposureTiming: "使用时", timingPhases: ["turn_action"],
     play: { kind: "attack", cost: 3, maxStacks: 20, targetMode: "single", power: 5, level: 5, defenseTag: "cake", element: "physical" } },
+  "大雪球": { category: "attack", timingPhases: ["turn_action"],
+    play: { kind: "attack", cost: 1, maxStacks: 1, targetMode: "single", power: 2, level: 2,
+      defenseTag: "youtiao", element: "ice", freezeTurns: 2 } },
   "冰火双漩": { category: "attack", exposureTiming: "使用时", timingPhases: ["turn_action"],
     play: { kind: "attack", cost: 3, maxStacks: 20, targetMode: "single", power: 4, level: 3, defenseTag: "stone",
       element: "ice", elements: ["ice", "fire"], freezeTurns: 2 } },

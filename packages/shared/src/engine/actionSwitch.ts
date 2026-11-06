@@ -55,7 +55,7 @@ export function getActionSwitchChoicesForAction(
 
   if (skillId === "skill_90_32911") {
     return getShaQinSwitchChoices(current).map((choice) => ({ ...choice,
-      cost: player && getFusionEnhancementCount(player, skillId, ["杀级换"]) > 0 ? 0 : choice.cost }));
+      cost: player && getFusionEnhancementCount(player, skillId, ["杀级换", "火•杀•换"]) > 0 ? 0 : choice.cost }));
   }
 
   return [];

@@ -2,12 +2,19 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Compass, Crown, Gauge, RadioTower, UsersRound } from "lucide-react";
 import {
-  ACTION_PROMPT_SECONDS,
-  ACTION_WINDOW_SECONDS,
   GameEvent,
+  CombatValue,
   PlayerId,
-  PublicGameState
+  PublicGameState,
+  addCombatValues,
+  combatValue,
+  compareCombatValues,
+  formatCombatValue,
+  INFINITY_VALUE,
+  projectCombatValue,
+  subtractCombatValues
 } from "@bing/shared";
+import { getActionPromptSeconds, getActionWindowSeconds, getCurrentTurnLimitSeconds } from "@bing/shared";
 import { battleDirectorSeatRole, useBattleDirector } from "../lib/battleDirector";
 import type { BattlePresentationCue } from "../lib/battlePresentation";
 import { formatDamage, playerName } from "../lib/format";
@@ -19,6 +26,8 @@ import { TableScene3D } from "./TableScene3D";
 
 interface PokerTableGameProps {
   actionPanel?: ReactNode;
+  readingBigCards?: boolean;
+  onReadBigCards?: (() => void) | undefined;
   highlightedPlayerIds?: Set<PlayerId>;
   isOwner: boolean;
   onKickPlayer?: (playerId: PlayerId) => void;
@@ -28,6 +37,8 @@ interface PokerTableGameProps {
 
 export function PokerTableGame({
   actionPanel,
+  readingBigCards = false,
+  onReadBigCards,
   highlightedPlayerIds = new Set(),
   isOwner,
   onKickPlayer,
@@ -35,6 +46,9 @@ export function PokerTableGame({
   viewerPlayerId
 }: PokerTableGameProps) {
   const [actionDockCollapsed, setActionDockCollapsed] = useState(false);
+  useEffect(() => {
+    if (readingBigCards) setActionDockCollapsed(true);
+  }, [readingBigCards]);
   const orderedPlayers = useMemo(
     () =>
       orderPlayersForViewer(
@@ -80,7 +94,7 @@ export function PokerTableGame({
   );
   const readoutResourceDeltaText = formatResourceDeltaSummary(readoutResourceDeltas);
   const readoutResourceDeltaDetails = formatResourceDeltaDetails(readoutResourceDeltas);
-  const readoutHpDeltaCount = readoutResourceDeltas.filter((delta) => delta.hpDelta !== 0).length;
+  const readoutHpDeltaCount = readoutResourceDeltas.filter((delta) => delta.hpDelta.length > 0).length;
   const readoutCakeDeltaCount = readoutResourceDeltas.filter((delta) => delta.cakeDelta !== 0).length;
   const readoutProgress =
     director.isPlaying && director.battleSteps.length > 0
@@ -90,11 +104,11 @@ export function PokerTableGame({
         : "等待亮招";
   const readoutAmountLabel =
     typeof readoutStep?.amount === "number"
-      ? `${readoutStep.kind === "heal" ? "治疗" : "伤害"} ${formatDamage(readoutStep.amount)}`
+      ? `${readoutStep.kind === "heal" ? "治疗" : "伤害"} ${readoutStep.amountText ?? formatDamage(readoutStep.amount)}`
       : "";
   const summaryAmountLabel =
     typeof summaryStep?.amount === "number"
-      ? `${summaryStep.kind === "heal" ? "治疗" : "伤害"} ${formatDamage(summaryStep.amount)}`
+      ? `${summaryStep.kind === "heal" ? "治疗" : "伤害"} ${summaryStep.amountText ?? formatDamage(summaryStep.amount)}`
       : "";
   const readoutSummaryAction = summaryStep?.label ?? "等待亮招";
   const readoutSummarySource = summaryStep?.sourceName ?? "桌面";
@@ -119,9 +133,9 @@ export function PokerTableGame({
   const deadlineTotalSeconds =
     state.phase === "action_window"
       ? state.actionWindowMode === "prompt"
-        ? ACTION_PROMPT_SECONDS
-        : ACTION_WINDOW_SECONDS
-      : Math.max(1, state.config.turnTimeLimitSeconds);
+        ? getActionPromptSeconds(state)
+        : getActionWindowSeconds(state)
+      : getCurrentTurnLimitSeconds(state);
   const deadlineProgress =
     deadlineSeconds === null
       ? 0
@@ -182,6 +196,10 @@ export function PokerTableGame({
 
   const actionDock = actionPanel ? (
     <div className={`table-action-dock${actionDockCollapsed ? " table-action-dock-collapsed" : ""}`}>
+      {onReadBigCards && !actionDockCollapsed ? (
+        <button className="action-dock-toggle" data-testid="read-big-cards" style={{ right: 90 }}
+          onClick={() => { setActionDockCollapsed(true); onReadBigCards(); }} type="button">查看大卡</button>
+      ) : null}
       <button
         aria-expanded={!actionDockCollapsed}
         className="action-dock-toggle"
@@ -477,11 +495,9 @@ export function PokerTableGame({
 }
 
 interface ResourceDelta {
-  infiniteDamage?: boolean;
-  infiniteHealing?: boolean;
   playerId: PlayerId;
   name: string;
-  hpDelta: number;
+  hpDelta: CombatValue;
   cakeDelta: number;
   reasons: string[];
 }
@@ -512,11 +528,11 @@ function ResourceDeltaStrip({
           <span
             className={[
               "battle-resource-delta-chip",
-              delta.hpDelta < 0 ? "battle-resource-delta-danger" : "",
-              delta.hpDelta > 0 || delta.cakeDelta > 0 ? "battle-resource-delta-good" : ""
+              compareCombatValues(delta.hpDelta, []) < 0 ? "battle-resource-delta-danger" : "",
+              compareCombatValues(delta.hpDelta, []) > 0 || delta.cakeDelta > 0 ? "battle-resource-delta-good" : ""
             ].join(" ")}
             data-cake-delta={delta.cakeDelta}
-            data-hp-delta={delta.hpDelta}
+            data-hp-delta={projectCombatValue(delta.hpDelta)}
             data-resource-delta-name={delta.name}
             data-resource-delta-player-id={delta.playerId}
             data-resource-delta-reasons={formatResourceDeltaReasons(delta)}
@@ -654,7 +670,7 @@ function buildResourceDeltas(
     const delta: ResourceDelta = {
       playerId,
       name: playerName(state, playerId),
-      hpDelta: 0,
+      hpDelta: [],
       cakeDelta: 0,
       reasons: []
     };
@@ -664,17 +680,18 @@ function buildResourceDeltas(
 
   for (const event of events) {
     if (event.type === "damage") {
+      if (event.pointDefeatLevel) continue;
       const delta = ensureDelta(event.targetId);
-      delta.hpDelta -= event.amount;
-      if (event.infiniteCopies) delta.infiniteDamage = true;
+      delta.hpDelta = subtractCombatValues(delta.hpDelta, event.amountValue ??
+        (event.infiniteCopies ? INFINITY_VALUE : combatValue(event.amount)));
       delta.reasons.push(event.attackName ?? "受到伤害");
       continue;
     }
 
     if (event.type === "heal") {
       const delta = ensureDelta(event.targetId);
-      delta.hpDelta += event.amount;
-      if (event.infinite) delta.infiniteHealing = true;
+      delta.hpDelta = addCombatValues(delta.hpDelta, event.amountValue ??
+        (event.infinite ? INFINITY_VALUE : combatValue(event.amount)));
       delta.reasons.push(event.reason);
       continue;
     }
@@ -692,7 +709,7 @@ function buildResourceDeltas(
   }
 
   return Array.from(deltas.values()).filter(
-    (delta) => delta.hpDelta !== 0 || delta.cakeDelta !== 0 || delta.infiniteDamage || delta.infiniteHealing
+    (delta) => delta.hpDelta.length > 0 || delta.cakeDelta !== 0
   );
 }
 
@@ -727,11 +744,9 @@ function formatResourceDeltaReasons(delta: ResourceDelta): string {
 
 function formatDeltaParts(delta: ResourceDelta): string {
   const parts: string[] = [];
-  if (delta.infiniteDamage || delta.infiniteHealing) {
-    if (delta.infiniteDamage) parts.push("受伤∞");
-    if (delta.infiniteHealing) parts.push("回血∞");
-  } else if (delta.hpDelta !== 0) {
-    parts.push(`血${formatSignedDelta(delta.hpDelta)}`);
+  if (delta.hpDelta.length) {
+    const sign = compareCombatValues(delta.hpDelta, []) > 0 ? "+" : "";
+    parts.push(`血${sign}${formatCombatValue(delta.hpDelta)}`);
   }
   if (delta.cakeDelta !== 0) {
     parts.push(`饼${formatSignedDelta(delta.cakeDelta)}`);

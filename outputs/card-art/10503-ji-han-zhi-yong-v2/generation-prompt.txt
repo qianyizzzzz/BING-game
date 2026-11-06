@@ -1,0 +1,20 @@
+Use case: precise-object-edit.
+Image 1 is the EDIT TARGET: the completed ICE card "冰·极寒之拥", ID 10503.
+Change ONLY the central illustration to make "embrace / enfolding" much stronger.
+
+Two requested changes:
+1. SHRINK THE CENTRAL VERTICAL ICE CRYSTAL by approximately 50% in BOTH WIDTH AND HEIGHT relative to the reference. The current central crystal is approximately 210px wide and 500px tall; make it approximately 105-115px wide and 240-260px tall on the same 1024x1536 canvas. Keep a single clearly visible faceted blue-white crystal with its beautiful internal glow and detailed refractions, suspended near the same central position. The core should now feel small and precious within a vastly larger enveloping ice formation.
+2. Reshape the huge surrounding glacial crescents into a visibly CLOSER EMBRACE. The great curved ice walls curl inward toward the smaller crystal from opposite sides, their tapered tips bending toward one another and partly overlapping. Layer three or four broad curved crystalline sheets around the core: a great rear arc above and behind it, substantial lateral enfolding walls, and a nearer lower arc sweeping protectively across the foreground below the small crystal. These connected overlapping curves form a deep cupped oval/cocoon around the crystal, nearly enclosing it while leaving it fully readable through the central opening. The INNER tips should approach the little crystal more closely, producing a clear sheltered pocket and strong inward gathering. Preserve the outer monumental scale of the ice structures.
+Make the action feel like an all-encompassing embrace of absolute cold. The dominant subject is the ENVELOPING ICE, not the central gem. Show convincing near/middle/far layers through overlap, shadowed inner ice, luminous rim refraction and suspended frost drifting inward. Keep broad readable ice surfaces, rime, intricate ice edges, icicles and fine blue fractures. Elegant sweeping shapes, majestic scale and rich dimensionality.
+These are entirely natural glacier/crystal structures: NO literal hands, arms, fingers, people, faces, humanoids, animals or creatures.
+Keep the established deep sapphire space, sparse silver-blue frost currents, a little lavender nebula near the art edges, surrounding tiny shards and sophisticated epic cinematic realism. No additional large central objects, no landscape, no sky, no sun, no floating extra gems competing with the main one.
+
+Strict invariants:
+Preserve EXACTLY the existing card frame and all its positions, ice spire crown, snowflake crest, gold/platinum trims, frosted rails, side gems, lower ornaments, rank and name plaques, upper-right attribute badge, dark-blue surfaces and typography.
+Keep the EXACT readable inscriptions:
+"王者卡"
+"冰"
+"冰·极寒之拥"
+"ID 10503"
+No other text. Keep original 1024x1536 portrait canvas, same 2:3 aspect ratio and front-on perspective. Do not crop, enlarge or tilt the card.
+Changes stay inside the illustration window underneath the existing frame. Central art remains fully opaque. Preserve the existing alpha transparency outside the outer card silhouette.

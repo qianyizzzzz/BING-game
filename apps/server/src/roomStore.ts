@@ -25,8 +25,10 @@ import {
   startGame,
   submitActionWindowSkill,
   submitPlayerAction,
+  submitPointGameAction, hasPendingPointGame, POINT_GAME_MOVES, getBlindSkillChoices, type PointGameAction,
   toPublicGameState
 } from "@bing/shared";
+import { createId, getBigCard, isBigSkillMode, MAX_BIG_CARDS_PER_PLAYER, sanitizeBigCardIds } from "@bing/shared";
 import { chooseAiAction, chooseAiActionWindowSkill } from "./ai";
 import { MatchRecorder } from "./matchRecorder";
 
@@ -166,6 +168,13 @@ export class RoomStore {
     const state = this.requireRoom(roomId);
     this.recorder.recordDecision(state, playerId, action);
     const next = submitActionWindowSkill(state, playerId, action);
+    this.rooms.set(roomId, next);
+    this.recorder.recordState(next);
+    return this.runAiTurns(roomId);
+  }
+
+  submitPointGame(roomId: GameId, playerId: PlayerId, action: PointGameAction): GameState {
+    const next = submitPointGameAction(this.requireRoom(roomId), playerId, action);
     this.rooms.set(roomId, next);
     this.recorder.recordState(next);
     return this.runAiTurns(roomId);
@@ -324,7 +333,8 @@ export class RoomStore {
 
     const next = structuredClone(state);
     const requestedSkillMode = config.skillMode ?? next.config.skillMode;
-    let skillCount = clampNumber(config.skillCount ?? next.config.skillCount, 0, 3);
+    let skillCount = clampNumber(config.skillCount ?? next.config.skillCount, 0,
+      isBigSkillMode(requestedSkillMode) ? MAX_BIG_CARDS_PER_PLAYER : 3);
     if (
       config.skillMode &&
       config.skillMode !== "none" &&
@@ -372,7 +382,7 @@ export class RoomStore {
       throw new Error("游戏开始后不能调整测试技能");
     }
 
-    if (state.config.skillMode !== "test_select" || state.config.skillCount <= 0) {
+    if (!["test_select", "big_test_select"].includes(state.config.skillMode) || state.config.skillCount <= 0) {
       throw new Error("只有测试自选技能模式可以指定技能");
     }
 
@@ -401,15 +411,24 @@ export class RoomStore {
       throw new Error("目标玩家不存在");
     }
 
-    const nextSkillIds = sanitizeSkillIds(skillIds, next.config.skillCount);
-    nextTarget.skills = nextSkillIds;
+    const bigMode = next.config.skillMode === "big_test_select";
+    const nextSkillIds = bigMode ? sanitizeBigCardIds(skillIds, next.config.skillCount) : sanitizeSkillIds(skillIds, next.config.skillCount);
+    if (bigMode) {
+      nextTarget.skills = [];
+      nextTarget.bigCards = nextSkillIds.map((cardId) => ({ instanceId: createId("big_card"), cardId }));
+    } else {
+      nextTarget.skills = nextSkillIds;
+      delete nextTarget.bigCards;
+    }
     nextTarget.revealedSkillIds = [];
     next.skillKnowledge = {};
     next.updatedAt = Date.now();
     next.eventLog.push({
       ...createBaseEvent(next, "system"),
       type: "system",
-      message: `${actor.name} 更新了 ${target.name} 的测试技能：${formatSkillNames(nextSkillIds)}`
+      message: `${actor.name} 更新了 ${target.name} 的${bigMode ? "测试大技能" : "测试技能"}：${bigMode
+        ? nextSkillIds.map((id) => getBigCard(id)!.name).join("、") || "未选择"
+        : formatSkillNames(nextSkillIds)}`
     });
     this.rooms.set(roomId, next);
     this.recorder.recordState(next);
@@ -496,6 +515,23 @@ export class RoomStore {
     ) {
       madeMove = false;
 
+      if (hasPendingPointGame(current)) {
+        const removal = current.verdictTurn?.removalPlayerId;
+        const game = current.verdictTurn?.games.find((entry) => !entry.winnerId);
+        const actor = current.players.find((player) => player.kind === "ai" && (removal ? player.id === removal : game &&
+          [game.sourceId, game.targetId].includes(player.id) && !game.moves[player.id]));
+        if (actor) {
+          const action: PointGameAction = removal ? { kind: "remove", instanceIds: getBlindSkillChoices(current, actor.id, false)
+            .slice(0, 16).map((choice) => choice.instanceId) } : { kind: "move", gameId: game!.id, round: game!.round,
+            move: POINT_GAME_MOVES[Math.floor(Math.random() * POINT_GAME_MOVES.length)]! };
+          current = submitPointGameAction(current, actor.id, action);
+          this.rooms.set(roomId, current);
+          this.recorder.recordState(current);
+          madeMove = true;
+        }
+        continue;
+      }
+
       if (current.phase === "action_window") {
         for (const player of current.players) {
           if (
@@ -516,6 +552,7 @@ export class RoomStore {
             const currentPlayer = current.players.find((item) => item.id === player.id);
             if (
               current.phase === "action_window" &&
+              !hasPendingPointGame(current) &&
               currentPlayer?.status === "alive" &&
               !current.actionWindowPassPlayerIds.includes(player.id)
             ) {
@@ -528,7 +565,7 @@ export class RoomStore {
           this.recorder.recordState(current);
           madeMove = true;
 
-          if (current.phase !== "action_window") {
+          if (current.phase !== "action_window" || hasPendingPointGame(current)) {
             break;
           }
         }
@@ -582,13 +619,33 @@ function normalizeSkillMode(
   if (skillCount <= 0) {
     return "none";
   }
-  if (mode === "small_intro" || mode === "test_select") {
+  if (mode === "small_intro" || mode === "test_select" || isBigSkillMode(mode)) {
     return mode;
   }
   return "none";
 }
 
 function syncLobbySkillsWithMode(state: GameState): void {
+  if (isBigSkillMode(state.config.skillMode)) {
+    for (const player of state.players) {
+      player.skills = [];
+      player.revealedSkillIds = [];
+      delete player.skillFusions;
+      delete player.bigCardSlotCount;
+      if (state.config.skillMode === "big_test_select" && player.kind !== "spectator") {
+        const valid = sanitizeBigCardIds((player.bigCards ?? []).map((card) => card.cardId), state.config.skillCount);
+        player.bigCards = (player.bigCards ?? []).filter((card) => valid.includes(card.cardId)).slice(0, state.config.skillCount);
+      } else {
+        player.bigCards = [];
+      }
+    }
+    state.skillKnowledge = {};
+    return;
+  }
+  for (const player of state.players) {
+    delete player.bigCards;
+    delete player.bigCardSlotCount;
+  }
   if (state.config.skillMode === "test_select") {
     for (const player of state.players) {
       if (player.kind !== "spectator") {

@@ -1,0 +1,33 @@
+Use case: stylized-concept.
+Image 1 is a STYLE AND LAYOUT REFERENCE from an established Chinese epic fantasy collectible card series. Create a NEW completed DESTRUCTION-element 王者卡 named "毁·聚能湮灭炮", ID 10504.
+Preserve the series' overall card layout, proportions and high-end sculptural metal craftsmanship, but create entirely NEW DESTRUCTION-specific illustration and frame ornament. Full card front, orthographic presentation, portrait 2:3, 1024x1536.
+
+Main artwork: the charged annihilation cannon.
+A colossal ANCIENT ARCANE CANNON floats in deep cosmic void, visibly a powerful constructed superweapon, not a person, sphere, crystal or magical creature. Three-quarter view: its massive sculpted dark barrel and layered energy chamber occupy the lower-left and lower-middle of the illustration. The cannon's firing axis runs diagonally upward toward the upper-right, allowing the viewer to see its immense circular emitter and the long accelerating energy path.
+Design the weapon as a monumental relic of a lost cosmic civilization: blackened titan metal, antique gold reinforcing ribs, angular monolithic armored housing, deep segmented compression chambers, finely carved arcane channels, several enormous broken concentric focusing rings aligned ahead of the muzzle. It is a single elegant, readable monumental cannon, with sufficient broad solid forms to read clearly at thumbnail size. No tank, vehicle, human gun grip, wheels, cockpit or operator.
+The weapon is firing at the exact instant when its accumulated power is released: an intensely concentrated WHITE-VIOLET beam shoots from the muzzle through the aligned focusing rings toward the upper-right. The beam is the brightest linear feature but NOT so broad that it obscures the weapon. Dense magenta-violet compression currents coil around it, with thin black-violet gravitational distortion surrounding the luminous energy. The energy chamber near the barrel glows deep crimson and violet, showing power drawn inward and then discharged.
+Across the distant upper-right background, a vast abstract plane of void fractures and disintegrates into angular particles where the beam strikes. Nearby floating obsidian fragments are visibly being stripped into luminous dust. Thin faint curved shield shells around the rear chamber suggest stored force and protection. Clear hierarchy: primary cannon, secondary beam and focusing rings, tertiary peripheral debris.
+No landscape, buildings or planets. Background is deep charcoal-black and aubergine cosmic emptiness with subtle muted violet and crimson nebular dust confined mainly to the illustration edges. Strong near/middle/far depth, majestic scale, dramatic cinematic chiaroscuro, highly refined painterly realism and carved material detail. Preserve the distinction between dark solid metal, luminous focused energy, and distant space.
+Use obsidian black, dark antique gold, muted crimson, rich violet and brilliant pearl-violet highlights. This is DESTRUCTION and ANNIHILATION, not fire, ice or lightning. Do not cover the entire picture with electrical bolts, orange flames or indiscriminate glow.
+
+DESTRUCTION-specific FRAME:
+Keep the reference's rank/name/attribute/serial positions and similar border width, while replacing ALL ice decoration.
+A noble, menacing frame of blackened dark metal with antique-gold beveled structural trim, fractured obsidian armor facets and recessed crimson-violet energy fissures. Interrupted circular focusing motifs and carefully composed angular breaks evoke compression and annihilation.
+Top crown: imposing angular black-gold crest built around a broken concentric energy ring, with restrained purple-white light in the central gap. Sculptural, majestic and timeless. No snowflakes, icicles, solar rays, animal heads, skulls or demon faces.
+Side rails: repeated dark-metal compression ribs and broken ring segments, small subtle purple energy conduits. Corners: fractured but structurally deliberate black-gold relief, a few small levitating shards close to the perimeter. Keep ornaments inside the canvas, maintain readable silhouette, and reserve uninterrupted dark plaque backgrounds for text.
+Upper-right circular attribute badge: dark-violet inset, antique-gold rim, exact large gold Chinese character "毁".
+Rank/name/serial plaques: deep black-purple inset, clear formal gold Chinese typography in the same scale as the series.
+No ice, bright blue crystals, flames or white-gold light-element decorations.
+
+The ONLY exact text:
+Top rank plaque: "王者卡"
+Upper-right attribute: "毁"
+Bottom nameplate: "毁·聚能湮灭炮"
+Footer: "ID 10504"
+Render every character correctly and fully legibly. In 湮, use the water radical 氵, not the fire radical. Do not substitute 烟. No extra inscriptions, ability text, numbers, logos or watermark.
+All text stays in the established template positions with quiet margins.
+
+Strict constraints:
+Absolutely NO humans, humanoids, heads, faces, arms, hands, legs, gods, robots, pilots, creatures, animals or dragons. The weapon is unmanned and not body-shaped.
+One finished card, no design sheet, no perspective mockup, no tabletop photo. Preserve all of the same information layout, top rank plaque, upper-right badge, lower nameplate and footer.
+Central illustration fully opaque and edge-to-edge under the frame. Genuine alpha transparency ONLY outside the outer card silhouette and a few projecting ornament tips. No opaque background rectangle or checkerboard outside the card.

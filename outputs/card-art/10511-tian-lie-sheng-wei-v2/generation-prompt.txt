@@ -1,0 +1,29 @@
+Use case: precise-object-edit.
+Image 1 is the EDIT TARGET: the black-and-crimson WAR card "战·天裂圣威", ID 10511.
+Revise ONLY the central illustration. User request: change to a CENTERED VERTICAL DOWNWARD CLEAVE, with MUCH MORE FORCE AND TEARING POWER.
+
+Replace the current diagonal axe pose and diagonal curved slash with a decisive VERTICAL composition:
+- The single massive black-red battle axe is centered on the illustration's vertical axis x=512, not offset right or tilted diagonally across the image.
+- It is in an active DOWNWARD CHOP: the great heavy axe head leads in the middle-lower foreground, its broad curved cutting edge facing DOWNWARD, while the long dark shaft trails vertically ABOVE the head toward the top of the art window. The weapon is descending, not resting upright as a display.
+- Approximate layout on 1024x1536 canvas: dark haft runs from (512,320) to (512,740); the colossal axe head dominates the central/lower area around (512,850), with its broad lower cutting edge reaching about y=1090. Adjust the physical axe anatomy coherently so head, socket and shaft form ONE connected weapon.
+- View the head slightly three-quarter to reveal its great thickness, broad black forged faces, deep beveled edge and worn metal texture. A large weighty axe blade, NOT a sword, abstract glyph, thin emblem or toy. Keep the weapon centered and the primary cutting action straight down.
+
+Strengthen the impact:
+A colossal VERTICAL SCARLET RIFT tears through the black storm space directly along the axe's chopping axis, from the upper background down toward the lower-center foreground. Its irregular ripping edges glow blood-crimson, with narrow bright red-white seams at the most intense points. The slash opens the sky into two huge dark halves.
+Cloud masses, black stone fragments and splinters are violently forced LEFT and RIGHT from the central cleave. Strong opposing lateral pressure waves and ragged torn veils visibly reveal the destructive force. Large near fragments, smaller receding pieces and dust streaming outward give convincing scale and depth.
+The axe head's downward cutting edge has concentrated crimson energy, with a powerful near-impact flare and short downward motion streaks. Keep the main weapon sharply readable; motion blur stays mainly on haze, trailing shaft aura and debris.
+Very clear directional hierarchy: weapon and rift travel straight DOWN, torn matter explodes OUTWARD to both sides. Do not add a dominant diagonal slash, horizontal cut or circular vortex.
+Make the head feel immense and crushingly heavy, the severed storm space deep, and the torn edges jagged and dimensional. Dark negative areas around the blade contrast with vivid scarlet reflected light. Preserve the main red-and-black palette, minimal antique-gold details. No orange fire field or lightning-bolt motif.
+High-end epic fantasy cinematic painterly realism, sophisticated material texture, monumental brutal force, dramatic perspective and atmospheric depth. Not cartoon, not flat icon, no excessive bloom obscuring the blade or torn sky.
+
+STRICT INVARIANTS:
+Keep the entire existing armor-like black-red card frame, antique-gold thin trim, red jewel crest, attribute badge, rivets, all plaque shapes, typography, positions and margins UNCHANGED.
+Exact readable text:
+"王者卡"
+"战"
+"战·天裂圣威"
+"ID 10511"
+No other text, symbols, abilities, numbers, logos or watermark.
+No people, humanoids, wielders, hands, arms, faces, creatures or figures. One magically suspended axe only, no second weapon.
+Same 1024x1536 portrait 2:3 canvas, full front-on card, no crop or perspective tilt of the card itself. Keep all new action inside the art window, above the nameplate and below the rank plaque.
+Central art fully opaque; preserve original genuine alpha transparency outside the outer card silhouette.

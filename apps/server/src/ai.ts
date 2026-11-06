@@ -1,6 +1,5 @@
 import {
   AttackStats,
-  AttackStatModifierChoice,
   ATTACK_ORDER,
   BASE_ATTACKS,
   GameState,
@@ -20,6 +19,7 @@ import {
   getAttackMarkCapacity,
   getActionSwitchPlan,
   getLevelSwapModifiers,
+  getDestructionModifiers,
   hasEnhancedLevelSwap,
   previewPlayerAttackStats,
   applyAttackStatModifierChoice,
@@ -27,6 +27,8 @@ import {
   getLightningSpellTargetPlan,
   getSkill,
   getSkillAttackStats,
+  getHunyaoPursuitTargets,
+  isHunyaoPursuit,
   getSkillPlay,
   getSkillUseLimit,
   getOwnedSkillIds,
@@ -50,14 +52,6 @@ import { getPolicyBonus } from "./aiPolicy";
 
 const WINDOW_SKILL_SCORE_FLOOR = 22;
 const HELL_OVERLORD_SKILL_ID = "skill_112_59292";
-const DESTROY_POWER_MODIFIER_CHOICES: AttackStatModifierChoice[] = [
-  "power_plus_1_level_minus_1",
-  "power_minus_1_level_plus_1",
-  "power_plus_2_level_minus_2",
-  "power_minus_2_level_plus_2",
-  "power_times_3_level_to_zero",
-  "power_to_zero_level_times_4"
-];
 const LUANWU_SKILL_ID = "skill_54_99719";
 const SHENZU_CRYSTAL_SKILL_ID = "skill_98_7182";
 
@@ -273,6 +267,9 @@ function buildAiSkillActions(
   if (skillId === HELL_OVERLORD_SKILL_ID) {
     return buildAiHellOverlordSkills(state, self);
   }
+  if (isHunyaoPursuit(skillId)) {
+    return getHunyaoPursuitTargets(state, skillId).map((target) => ({ type: "skill", skillId, stacks: 1, targetId: target.id }));
+  }
 
   if (skillId === "skill_94_627") {
     return buildAiDamageRedirectSkills(state, self, enemies);
@@ -384,7 +381,7 @@ function buildAiAttackStatModifierSkills(
         }));
     }
 
-    return DESTROY_POWER_MODIFIER_CHOICES.map((attackStatModifier) => ({
+    return getDestructionModifiers(self).map((attackStatModifier) => ({
       type: "skill" as const,
       skillId,
       stacks: 1,

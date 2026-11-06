@@ -57,20 +57,20 @@ function check(name: string, run: () => void) {
 }
 
 check("72 recipes import with stable distinct IDs, normalized materials, and separate small-skill pool", () => {
-  assert.equal(FUSION_RECIPES.length, 72);
+  assert.equal(FUSION_RECIPES.filter((recipe) => (recipe.tier ?? 2) === 2).length, 72);
   assert.equal(getAllSkills().length, 120);
-  assert.equal(getAllSkills({ includeFusions: true }).length, 192);
-  assert.equal(new Set(FUSION_RECIPES.map((item) => item.skill.id)).size, 72);
+  assert.equal(getAllSkills({ includeFusions: true }).length, 120 + FUSION_RECIPES.length);
+  assert.equal(new Set(FUSION_RECIPES.map((item) => item.skill.id)).size, FUSION_RECIPES.length);
   for (const item of FUSION_RECIPES) {
     assert.ok(!getSmallSkillIds().includes(item.skill.id));
     for (const pair of item.materialOptions) {
-      assert.equal(pair.length, 2);
-      for (const material of pair) assert.ok(getSmallSkillIds().includes(material));
+      assert.equal(pair.reduce((sum, id) => sum + (FUSION_RECIPES.find((recipe) => recipe.skill.id === id)?.tier ??
+        (getSmallSkillIds().includes(id) ? 1 : 2)), 0), item.tier ?? 2);
     }
   }
   assert.ok(recipe("天火之狱").materialOptions[0]!.includes(skill("地狱主宰")));
   assert.ok(recipe("贤者的庇护").materialOptions[0]!.includes(skill("神之庇护")));
-  assert.equal(FUSION_RECIPES.filter((item) => isFusionImplemented(item.skill.id)).length, 72);
+  assert.equal(FUSION_RECIPES.filter((item) => (item.tier ?? 2) === 2 && isFusionImplemented(item.skill.id)).length, 72);
 });
 
 check("duplicate materials need two copies; four-choose-two has six legal pairs", () => {
@@ -2290,7 +2290,8 @@ check("pure sky does not block sealing or burning earth's one-off skill removal"
 
 check("new negative-status categories automatically share immunity, with explicit registration and no implicit categories", () => {
   const state = usePureSky(effectGame("纯净苍穹"));
-  assert.deepEqual(getNegativeStatusDefinitions().map((item) => item.id), ["frozen", "skill_disabled", "paralysis"]);
+  assert.deepEqual(getNegativeStatusDefinitions().map((item) => item.id), ["frozen", "skill_disabled", "paralysis", "burning",
+    "limited_disabled", "control_disabled", "mitigation_disabled", "fenjin", "star_group_attack_disabled", "temporary_skill_absorption"]);
   registerNegativeStatus({ id: "regression_temporary_restriction", name: "测试临时限制" });
   assert.equal(applyNegativeStatus(state, owner(state).id, "regression_temporary_restriction", () => assert.fail()), false);
   assert.throws(() => applyNegativeStatus(state, owner(state).id, "seal", () => assert.fail()), /尚未注册/);

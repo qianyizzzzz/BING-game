@@ -227,7 +227,9 @@ check("retire moved out of power no longer retires the target through its old tr
   state = reveal(state, cast("卷子", { targetId: state.players[1]!.id }));
   state = destroy(state, "power_times_3_level_to_zero");
   state = modify(state, "swap_power_level");
-  assert.deepEqual(values(state), [0, 0, RETIRE_EFFECT_POWER]);
+  const stats = previewPlayerAttackStats(state, state.players[0]!.id).stats[0]!;
+  assert.deepEqual([stats.cost, stats.power], [0, 0]);
+  assert.deepEqual(stats.levelValue, [{ exponent: 1.9, coefficient: 3 }]);
   state = finish(state);
   assert.equal(state.players[1]!.status, "alive");
   assert.equal(state.players[1]!.hp, 40);
@@ -286,7 +288,8 @@ check("public previews expose authoritative numbers after reveal without exposin
   state = destroy(state, "power_to_zero_level_times_4");
   state = modify(state, "rotate_cost_power_level");
   const other = toPublicGameState(state, state.players[1]!.id);
-  assert.deepEqual(other.revealedAttackStats?.[state.players[0]!.id]?.[0], { cost: 0, power: 4, level: 1 });
+  const publicStats = other.revealedAttackStats?.[state.players[0]!.id]?.[0];
+  assert.deepEqual([publicStats?.cost, publicStats?.power, publicStats?.level], [0, 4, 1]);
   assert.ok(!("turnAttackStats" in other));
   assert.ok(!("pendingActions" in other));
   assert.ok(!JSON.stringify(other).includes(getFusionSkillId("杀级换")));

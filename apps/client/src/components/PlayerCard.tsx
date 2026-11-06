@@ -1,5 +1,6 @@
 import { Bot, CheckCircle2, Cookie, HeartPulse, UserRound, XCircle } from "lucide-react";
-import { DEFEAT_LEVEL_LABELS, PublicGameState, PlayerState } from "@bing/shared";
+import { DEFEAT_LEVEL_LABELS, PublicGameState, PlayerState, formatPlayerHp, isAllSkillsSealedBuff } from "@bing/shared";
+import { formatStatusDuration } from "../lib/format";
 
 interface PlayerCardProps {
   player: PlayerState;
@@ -74,7 +75,7 @@ export function PlayerCard({ player, state, isViewer, highlighted = false }: Pla
             <HeartPulse className="h-4 w-4" aria-hidden="true" />
             血量
           </div>
-          <div className="mt-1 text-2xl font-bold text-red-900">{player.hpIsInfinite ? (player.hp < 0 ? "−∞" : "∞") : player.hp}</div>
+          <div className="mt-1 text-2xl font-bold text-red-900">{formatPlayerHp(player)}</div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-red-100">
             <div
               className="h-full rounded-full bg-red-500 transition-all"
@@ -101,7 +102,7 @@ export function PlayerCard({ player, state, isViewer, highlighted = false }: Pla
           {visibleBuffs.slice(0, 4).map((buff) => (
             <span
               className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-xs font-bold text-violet-700"
-              key={`${buff.id}-${buff.name}`}
+              key={`${buff.id}-${buff.name}-${buff.expiresAtRound === undefined ? "turn" : "round"}`}
               title={statusBuffTitle(buff)}
             >
               {statusBuffLabel(buff)}
@@ -124,7 +125,7 @@ function getVisibleStatusBuffs(
     if (buff.id.startsWith("paralysis_next_action:")) {
       return 1;
     }
-    if (buff.id.startsWith("sealed_skill:")) {
+    if (isAllSkillsSealedBuff(buff.id) || buff.id.startsWith("sealed_skill:")) {
       return 2;
     }
     if (buff.id === "no_revive") {
@@ -156,12 +157,12 @@ function getVisibleStatusBuffs(
 function statusBuffLabel(buff: PlayerState["buffs"][number]): string {
   if (buff.id === "temp_negative_status_immunity") return "免疫不良";
   if (buff.id === "frozen") {
-    return buff.stacks > 1 ? `冰冻${buff.stacks}` : "冰冻";
+    return buff.infinite ? "冰冻∞" : buff.stacks > 1 ? `冰冻${buff.stacks}` : "冰冻";
   }
   if (buff.id.startsWith("paralysis_next_action:")) {
     return "麻痹";
   }
-  if (buff.id.startsWith("sealed_skill:")) {
+  if (isAllSkillsSealedBuff(buff.id) || buff.id.startsWith("sealed_skill:")) {
     return "封锁";
   }
   if (buff.id === "no_revive") {
@@ -186,11 +187,9 @@ function statusBuffLabel(buff: PlayerState["buffs"][number]): string {
 }
 
 function statusBuffTitle(buff: PlayerState["buffs"][number]): string {
+  if (isAllSkillsSealedBuff(buff.id) || buff.id === "frozen") return `${buff.name} ${formatStatusDuration(buff)}`;
   if (buff.id.startsWith("puppet_of:")) {
     return buff.name;
-  }
-  if (buff.id === "frozen") {
-    return buff.stacks > 1 ? `冰冻 ${buff.stacks} 回合` : "冰冻";
   }
   const label = statusBuffLabel(buff);
   return buff.stacks > 1 ? `${label} x${buff.stacks}` : label;

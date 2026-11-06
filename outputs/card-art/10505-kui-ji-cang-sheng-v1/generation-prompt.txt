@@ -1,0 +1,35 @@
+Use case: stylized-concept.
+Image 1 is a STYLE AND LAYOUT REFERENCE from the established Chinese epic fantasy collectible card series. Create a NEW complete SPACE-element 王者卡: "空·窥觊苍生", ID 10505.
+Preserve the series' portrait 2:3 1024x1536 canvas, full front-on card, sculptural precious-metal craftsmanship, similar border width, large art aperture, top-center rank plaque, upper-right circular attribute badge, lower nameplate and serial footer. All illustration and elemental ornament must be new and SPACE-specific.
+
+Central artwork: omniscient sight through folded space.
+A monumental, mysteriously beautiful DIMENSIONAL APERTURE floats in an abstract cosmic void. Its main silhouette is an immense open DIAMOND / tilted rectangular portal, formed by layered black-jade and silvery glass-like planes with pale-gold structural edges. Several nested rectangular openings at subtly impossible opposing angles recede through one another into an apparently endless interior. The center is a deep, calm, dark-teal opening rather than a glowing ball.
+Space visibly FOLDS at the edges of this aperture: impossible interlocking geometry, sharp luminous seams, translucent mirrored sheets that bend and join disconnected distances. One immense folded plane sweeps behind the opening and a second comes forward toward the viewer, creating clear depth and a majestic architectural silhouette. Broad elegant negative spaces are essential; not a busy kaleidoscope.
+Within the deep portal, a small distant SKY CITY of ancient luminous ivory towers floats suspended upside-down above its faint mirrored counterpart, with dark empty space between them. It is entirely uninhabited; this city occupies only a small portion of the deep interior and establishes world-scale power, not the main subject.
+Around the main portal, a small number of large levitating mirror fragments and thin floating window-like planes offer fragmentary views into OTHER small dimensions: a distant gold-white radiance, a muted crimson nebular world, an icy blue abyss. Keep these subdued and clearly secondary, like every realm is exposed to the same detached gaze. Do not display literal eyes, people or a collage of many separate scenes. The window views have no text, symbols or interfaces.
+A few pairs of reflections are exactly echoed on opposing shards, hinting at copying and omniscient observation. Slender turquoise-white spatial currents flow between the separated planes; some lines disappear at one edge and continue from a different distant edge. This is quiet, overwhelming mastery over space rather than an explosion or weapon discharge.
+Background: profound indigo and peacock-teal emptiness with restrained green-blue and muted lilac nebular wisps close to the picture edges. Deep scale, crisp dimensional layers, subtle distant lights, sophisticated volumetric illumination, dark reflective surfaces and sharp luminous rims.
+Palette: midnight indigo, black jade, ethereal turquoise, silver-white and restrained pale antique gold, with small violet accents. Rich epic cinematic painterly realism, monumental surreal fantasy architecture, carefully controlled detail, no modern hologram HUD.
+The dominant form MUST be an OPEN ANGULAR SPATIAL APERTURE, not a crystal gem, ice formation, sun, glowing sphere or cannon.
+
+SPACE-specific FRAME:
+Replace all destruction-element motifs with elegant folded-space ornament while keeping the same information layout and overall visual family.
+Use antique pale-gold structural trim, polished silver and deep midnight-teal enamel. Outer rail ornaments consist of interlocking impossible arches, hollow rectangular crystal sections, mirror-smooth facets and gracefully folded metal ribbons that visually pass through one another.
+Introduce a few small deliberate discontinuities: segments float a short distance apart, yet the gold lines align across the gap, suggesting joined distant spaces. Maintain a stable readable card silhouette and continuous underlying dark plaque structure.
+Top crown is a majestic stepped crest of nested OPEN rhomboid arches, one small dark dimensional aperture at its center; not a sun, snowflake, broken energy reactor or creature head.
+Side rails and corners show offset mirrored layers and narrow teal-white spatial seams. Refined precision and regal weight, not cheap neon or tangled wirework.
+Upper-right circular attribute medallion has deep teal-black enamel and an antique-gold rim, with the exact large gold character "空".
+Rank, title and serial plaques: dark midnight-teal insets, clear large formal gold Chinese typography, same positions and scale as the reference.
+No fire, ice, fractured annihilation rock, electric lightning, gun barrel or focusing beam.
+
+The ONLY inscriptions, exact:
+Top rank plaque: "王者卡"
+Upper-right badge: "空"
+Bottom nameplate: "空·窥觊苍生"
+Footer: "ID 10505"
+Spell 窥觊 correctly. Use 觊, not 视 or 伺. Keep all words sharp, correctly rendered, with quiet margins. No other labels, numbers, ability descriptions, watermark or logo.
+
+Strict constraints:
+Absolutely NO humans, humanoids, faces, heads, eyes, hands, arms, statues, gods, angels, animals, birds or creatures. No biological eyeball or giant eye icon. All forms are empty architectural space, portals and mirrored planes.
+One finished card only, no design board, no perspective mockup, no photographed surface. Full card and all projecting ornaments stay within image edges.
+Central art fully opaque and fills the illustration window beneath the frame. Genuine alpha transparency ONLY outside the outer card silhouette. Do not add a background rectangle or checkerboard outside the card.

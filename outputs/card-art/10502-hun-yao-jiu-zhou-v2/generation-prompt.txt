@@ -1,0 +1,19 @@
+Use case: precise-object-edit.
+Image 1 is the EDIT TARGET, the completed "光·魂耀九州" 王者卡 card, ID 10502.
+Change ONLY the central illustration inside the existing frame. Preserve the exact existing frame, layout, gold sunburst crest, pearl-white enamel, crystals, dark-blue rank/name/serial plaques, attribute badge, typography and all text.
+
+Requested illustration revision:
+1. Move the ONE main luminous sphere to the exact horizontal AND vertical center of the illustration aperture. On the 1024x1536 full canvas its center should be about (512,742). This is the center of the art window between the top rank plaque and bottom nameplate, NOT the upper third. The sphere is the clear central focal point, approximately 260-300 pixels in diameter, with delicate concentric halos surrounding it.
+2. Completely remove ALL mountains, land, valleys, trees, rivers, waterfalls, horizon, blue sky and recognizable clouds. No landscape or identifiable environment anywhere.
+3. Replace the entire illustration background with an abstract radiant CLEAN WHITE and pearl-ivory field representing all space being illuminated. A high-key, almost entirely white luminous infinity, with nuanced very soft white-on-white gradients, faint champagne-gold diffusion, delicate translucent light veils and sparse tiny luminous motes. No blue or dark background. Do not make recognizable cloud banks or a sky scene.
+4. The sphere emits light outward in every direction, gently filling the white field. Fine ordered gold-white rays and extremely subtle concentric halo rings express omnidirectional illumination, with generous quiet white negative space between the sphere and border. Keep a clearly readable spherical volume through a warm-white core, delicate flowing golden surface filaments and restrained golden rim. Noble, sacred, epic, abstract, luminous, refined. Controlled highlights and subtle definition, not blown-out featureless white. The image should feel enveloped in light.
+5. Remove the many large secondary soul-orbs and long landscape-following trails from the previous composition. One main centered sphere; any tiny light specks remain secondary and sparse.
+
+Exact text to preserve unchanged:
+top: "王者卡"
+upper-right: "光"
+bottom nameplate: "光·魂耀九州"
+footer: "ID 10502"
+No extra labels or text. No people, humanoids, angels, creatures, buildings, weapons, flames, planets or new motifs.
+
+Preserve the original front-on 1024x1536, 2:3 card dimensions and outer silhouette. All new art is confined within the existing central illustration aperture, under the unmodified border. Central white artwork is fully opaque. Preserve original alpha transparency outside the outer card silhouette; do not place a white rectangle behind the entire card.

@@ -93,6 +93,8 @@ The client never runs settlement logic. It submits typed actions via `game:submi
 3. Available hooks: `validateAction`, `modifyAttack`, `beforeDamage`, `afterTurnResolved`.
 4. Skills with active play use `play: SkillPlayDefinition` in their registry entry.
 
+For each implemented or changed big-card subskill, update the matching ID in the `已实现规则` column of the `子技能ID对照` sheet in `outputs/skill-id-map-20261104/技能ID对照表.xlsx` as part of the same task. Describe the behavior that is actually implemented, including timing, costs, targeting, and exceptions when applicable. Mark partial implementations as partial and preserve the original text column.
+
 ### Server (apps/server)
 
 - `index.ts` — Express HTTP routes (`/health`, `/api/accounts/*`, `/api/matches/*`, `/replay/*`) and Socket.IO event handlers.

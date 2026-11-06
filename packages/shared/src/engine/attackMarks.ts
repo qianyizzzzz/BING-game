@@ -1,8 +1,37 @@
 import { BuffState, GameState, PlayerId, PlayerState, PublicGameState, SkillAction, SkillId } from "../types";
-import { getFusionRecipe, getFusionSkillId, isFusionActive } from "../skills/fusion";
+import { getEnhancedChildFusionIds, getFusionRecipe, getFusionSkillId, isFusionActive } from "../skills/fusion";
 import { getSkillPlay } from "../skills/registry";
 
 export type AttackMarkKind = "lava" | "winter" | "ice_fire";
+export const STAR_RAGE_ID = "3041";
+export const STAR_RAGE_MARK_ID = "star_rage_mark";
+export const STAR_RAGE_SIX_STAR = "skill_108_76133";
+
+function starRageMarks(player: Pick<PlayerState, "skills" | "skillFusions" | "buffs">): BuffState[] {
+  return player.buffs.filter((buff) => buff.id === STAR_RAGE_MARK_ID && player.skillFusions?.some((fusion) =>
+    fusion.id === buff.sourceFusionId && fusion.skillId === STAR_RAGE_ID && isFusionActive(player, fusion)));
+}
+
+export function canSpendStarRageMarks(player: Pick<PlayerState, "skills" | "skillFusions" | "buffs">): boolean {
+  return starRageMarks(player).some((buff) => buff.stacks >= 3);
+}
+
+export function spendStarRageMarks(player: PlayerState, turnNumber: number): void {
+  const mark = starRageMarks(player).find((buff) => buff.stacks >= 3);
+  if (!mark) return;
+  player.buffs = player.buffs.filter((buff) => buff !== mark);
+  player.buffs.push({ ...mark, id: "star_rage_spent", name: "本回合已花星印记", stacks: 1, expiresAtTurn: turnNumber });
+}
+
+export function recordStarRageDefenses(player: PlayerState, count: number): void {
+  if (!count) return;
+  for (const fusion of player.skillFusions ?? []) {
+    if (fusion.skillId !== STAR_RAGE_ID || !isFusionActive(player, fusion)) continue;
+    const mark = player.buffs.find((buff) => buff.id === STAR_RAGE_MARK_ID && buff.sourceFusionId === fusion.id);
+    if (mark) mark.stacks = Math.min(3, mark.stacks + count);
+    else player.buffs.push({ id: STAR_RAGE_MARK_ID, name: "星印记", stacks: Math.min(3, count), sourceFusionId: fusion.id });
+  }
+}
 
 export function getAttackMarkKind(skillId: SkillId): AttackMarkKind | undefined {
   if (skillId === "skill_21_36332") return "lava";
@@ -17,9 +46,17 @@ export function getAttackMarkCount(player: Pick<PlayerState, "buffs" | "skills" 
   return getAvailableMarks(player, kind).reduce((sum, buff) => sum + buff.stacks, 0);
 }
 
-export function getAttackMarkCapacity(player: Pick<PlayerState, "buffs">, skillId: SkillId, actionIndex: number): number {
+export function getAttackMarkLimit(player: Pick<PlayerState, "buffs" | "skills" | "skillFusions">, skillId: SkillId): number {
+  return getAttackMarkKind(skillId) === "ice_fire" && getEnhancedIceFireIds(player).size > 0 ? 6 : 3;
+}
+
+function getEnhancedIceFireIds(player: Pick<PlayerState, "buffs" | "skills" | "skillFusions">): Set<string> {
+  return getEnhancedChildFusionIds(player, "三元协奏曲", getFusionSkillId("冰火狂暴曲"));
+}
+
+export function getAttackMarkCapacity(player: Pick<PlayerState, "buffs" | "skills" | "skillFusions">, skillId: SkillId, actionIndex: number): number {
   const kind = getAttackMarkKind(skillId);
-  return Math.max(0, 3 - player.buffs.filter((buff) => buff.id.startsWith(`pending_${kind}_mark:`) && buff.attackActionIndex === actionIndex)
+  return Math.max(0, getAttackMarkLimit(player, skillId) - player.buffs.filter((buff) => buff.id.startsWith(`pending_${kind}_mark:`) && buff.attackActionIndex === actionIndex)
     .reduce((sum, buff) => sum + buff.stacks, 0));
 }
 
@@ -44,6 +81,7 @@ export function queueAttackMarks(state: GameState, player: PlayerState, action: 
   const actionIndex = action.switchActionIndex ?? getAttackMarkChoices(state, player.id)[0]?.actionIndex;
   if (actionIndex === undefined) throw new Error("当前没有可使用印记强化的攻击");
   let remaining = action.stacks;
+  const enhanced = kind === "ice_fire" ? getEnhancedIceFireIds(player) : undefined;
   for (const mark of getAvailableMarks(player, kind)) {
     const spent = Math.min(remaining, mark.stacks);
     const id = `pending_${kind}_mark:${actionIndex}:${mark.sourceFusionId ?? "raw"}`;
@@ -51,7 +89,8 @@ export function queueAttackMarks(state: GameState, player: PlayerState, action: 
     if (pending) pending.stacks += spent;
     else player.buffs.push({ id, name: `${kind === "lava" ? "熔岩" : kind === "winter" ? "凛冬" : "冰火"}强化`,
       stacks: spent, attackActionIndex: actionIndex, expiresAtTurn: state.turnNumber,
-      ...(kind === "ice_fire" ? { fusionMarkKind: "ice_fire" as const } : {}),
+      ...(kind === "ice_fire" ? { fusionMarkKind: "ice_fire" as const,
+        markKeepsAttackElement: Boolean(mark.sourceFusionId && enhanced?.has(mark.sourceFusionId)) } : {}),
       ...(mark.fusionMarkKind === "solar_lava" ? { fusionMarkKind: "solar_lava" as const } : {}),
       ...(mark.sourceFusionId ? { sourceFusionId: mark.sourceFusionId } : {}) });
     mark.stacks -= spent;
@@ -80,6 +119,7 @@ export function recordSolarDefenses(player: PlayerState, count: number): void {
 /** Each cover owns its progress and marks, so decomposing one cannot erase another's progress. */
 export function recordIceFireDefenses(player: PlayerState, count: number): void {
   if (count <= 0) return;
+  const enhanced = getEnhancedIceFireIds(player);
   for (const fusion of player.skillFusions ?? []) {
     if (!isFusionActive(player, fusion) || getFusionRecipe(fusion.skillId)?.skill.name !== "冰火狂暴曲") continue;
     const id = `ice_fire_defense_count:${fusion.id}`;
@@ -92,9 +132,13 @@ export function recordIceFireDefenses(player: PlayerState, count: number): void 
     const gained = Math.floor(counter.stacks / 3);
     counter.stacks %= 3;
     if (gained === 0) continue;
-    const mark = player.buffs.find((buff) => buff.id === "ice_fire_mark" && buff.sourceFusionId === fusion.id);
-    if (mark) mark.stacks = Math.min(3, mark.stacks + gained);
-    else player.buffs.push({ id: "ice_fire_mark", name: "冰火印记", stacks: Math.min(3, gained),
-      sourceFusionId: fusion.id, fusionMarkKind: "ice_fire" });
+    addIceFireMarks(player, fusion.id, gained, enhanced.has(fusion.id) ? 6 : 3);
   }
+}
+
+export function addIceFireMarks(player: PlayerState, fusionId: string, count: number, cap: number): void {
+  const mark = player.buffs.find((buff) => buff.id === "ice_fire_mark" && buff.sourceFusionId === fusionId);
+  if (mark) mark.stacks = Math.min(cap, mark.stacks + count);
+  else player.buffs.push({ id: "ice_fire_mark", name: "冰火印记", stacks: Math.min(cap, count),
+    sourceFusionId: fusionId, fusionMarkKind: "ice_fire" });
 }

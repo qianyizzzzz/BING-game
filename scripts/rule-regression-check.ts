@@ -121,7 +121,7 @@ run("burning earth before a round advances to the next round interval", () => {
   assert.equal(next.activeTimingPhase, "round_pre_interval_action");
 });
 
-run("turn-change burning earth does not skip submitted attacks and counts as same-turn fatal fire damage", () => {
+run("turn-change burning earth does not skip attacks but an earlier committed batch cannot qualify for later fire revival", () => {
   let { state, ids } = makeGame(["A", "B", "C"], {
     skillMode: "test_select",
     skillCount: 1
@@ -149,8 +149,8 @@ run("turn-change burning earth does not skip submitted attacks and counts as sam
 
   state = drainActionWindows(state);
 
-  assert.equal(player(state, ids.A).status, "alive");
-  assert.equal(player(state, ids.A).hp, 6);
+  assert.equal(player(state, ids.A).status, "dead");
+  assert.equal(player(state, ids.A).hp, -1);
   assert.equal(
     state.eventLog.some(
       (event) =>
@@ -3073,7 +3073,7 @@ run("lightning spell chooses any two targets when at least three players tie for
   assert.equal(player(state, ids.D).hp, 6);
 });
 
-run("juanzi causes retire instead of damage and does not trigger healing watchers", () => {
+run("juanzi deals retirement-point damage without ordinary HP or healing settlement", () => {
   let { state, ids } = makeGame(["A", "B", "C"], {
     skillMode: "test_select",
     skillCount: 2
@@ -3096,9 +3096,9 @@ run("juanzi causes retire instead of damage and does not trigger healing watcher
   assert.equal(player(state, ids.C).hp, 3);
   assert.equal(
     state.eventLog.some(
-      (event) => event.type === "damage" && event.targetId === ids.B
+      (event) => event.type === "damage" && event.targetId === ids.B && event.pointDefeatLevel === 2
     ),
-    false
+    true
   );
 });
 

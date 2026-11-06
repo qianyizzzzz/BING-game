@@ -219,7 +219,7 @@ function BattleLane({
 
       <div className="battle-lane-caption">
         <strong>{step.description}</strong>
-        {typeof step.amount === "number" ? <span>{formatDamage(step.amount)} 点</span> : null}
+        {typeof step.amount === "number" ? <span>{step.amountText ?? formatDamage(step.amount)} 点</span> : null}
       </div>
     </div>
   );

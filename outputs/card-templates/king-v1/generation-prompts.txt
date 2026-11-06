@@ -1,0 +1,27 @@
+GENERATION (built-in image_gen)
+
+Use case: stylized-concept.
+Asset type: reusable front-face template for a Chinese epic fantasy collectible card game called 饼. Generate ONE finished 王者卡 rank frame, not a collection or a presentation board.
+Primary request: A monumental, majestic, epic high-fantasy card template with a truly TRANSPARENT empty central illustration opening, reusable for many cards. The frame itself is the subject. Full card straight-on, flat orthographic front view, portrait 2:3 aspect ratio, exceptionally sharp production-quality decorative frame art. Entire silhouette visible with narrow transparent padding. No perspective mockup.
+Art direction: authoritative royal architecture, carved ancient gold and dark obsidian metal, sculptural crown crest, monumental stepped bevels, engraved geometric heraldic ornament, exquisitely detailed but disciplined, strong readable silhouette. Subtle aged gold highlights, very dark neutral inset panels, cinematic metallic relief. Epic grandeur, regal dignity. The 王 rank is the foundation of a four-rank family that will later include 至尊, 言灵 and 无上: impressive but with room for higher ranks to become grander.
+Layout standard:
+- Symmetric architectural outer border taking about 6% of width on either side. Corners have small restrained heraldic relief. Decorations stay within the frame and do not cross into the art opening.
+- Top center crown-shaped rank plaque integrated into the upper border, with exact large legible Chinese text "王者卡". Rank plaque occupies y=3%-12%.
+- Upper-right replaceable circular attribute medallion, attached to frame, about 11% of card width, displaying exact clearly readable character "火" in a small red enamel inset, gold rim. This red inset is ONLY in the interchangeable attribute medallion. No fire motifs anywhere else in frame.
+- One enormous EMPTY transparent illustration aperture from about x=9% to91%, y=15% to81%. Rounded subtle arch at top, mostly rectangular. This opening must be genuinely alpha-transparent, with NO illustration, no scenery, no character, no landscape, no cloudy filler, no paper texture, no text or placeholder label, no rendered checkerboard.
+- Bottom integrated dark inset nameplate from y=82% to91%, clean generous width and strong typography, with exact large centered Chinese card name "火·焚天君燚". Render 燚 correctly, made of four 火. Name text in light antique gold, high contrast, formal Chinese serif with engraving feel but fully readable. This is sample editable content.
+- Below nameplate a fine divider and smaller centered serial text "ID 10501" at y=94%. The serial number is crisp readable Latin capitals and digits.
+All text must be verbatim, only these four inscriptions: "王者卡", "火", "火·焚天君燚", "ID 10501". No other words, no explanatory labels, no abilities or body text, no stats, no watermarks, no brands, no promotional copy.
+Materials/textures: high-end hand-crafted cinematic fantasy game asset, finely carved metallic relief, dark neutral obsidian, restrained worn gold, clean legibility. No animals, no whimsical cartoon, no paper collage, no art-gallery acrylic style, no modern sci-fi HUD, no neon, no plastic, no oversized diamonds, no excessive filigree that overwhelms the art.
+Transparency: actual transparent alpha both inside illustration window and outside card silhouette. Preserve visible frame material, nameplate, rank plaque, attribute medallion and ID footer. The result should work as an image overlay above any future card illustration.
+
+MASTER EDIT (built-in image_gen)
+
+Use case: precise-object-edit.
+Image 1 is the edit target: the already approved-layout epic 王者卡 fantasy card-frame template. Create its reusable master overlay.
+Change ONLY the following variable-field contents:
+1. Remove the entire sample title "火·焚天君燚" from the bottom nameplate; reconstruct the same clean uninterrupted dark obsidian nameplate surface. No replacement text.
+2. Remove "ID 10501" from the footer; reconstruct the same clean dark inset surface and preserve the two thin gold horizontal ornaments on either side. No replacement text.
+3. Remove the single character "火" from the upper-right medallion and change ONLY its red enamel circular interior to the same dark neutral obsidian as the nameplate, so the medallion is an empty replaceable attribute socket. Preserve the gold medallion rim.
+Keep every other pixel's design as faithful as possible: identical 1024x1536 canvas, same framing, same outer border and silhouette, same ancient gold color, same architecture and engraving, same upper rank plaque and exact Chinese inscription "王者卡", same transparent central illustration aperture and transparent outside background. No resizing, no reframing, no new ornaments, no characters, no scenery, no placeholder labels, no additional text. This is a production-ready BLANK MASTER of the SAME frame, not a new visual variation.
+Critical: actual alpha transparency inside the central opening and outside the card silhouette. Preserve all existing transparency. Only 王者卡 remains as text in the finished master.

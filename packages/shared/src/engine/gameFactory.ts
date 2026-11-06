@@ -13,19 +13,28 @@ import {
   SkillTimingPhase
 } from "../types";
 import { getIntroSmallSkillIds, getSkill, skillHasTypeTag } from "../skills/registry";
-import { COMMON_FUSION_SKILL_ID, countSuppressedFusionMaterials, getOwnedSkillIds, getFusionRecipe, isFusionActive,
+import { COMMON_FUSION_SKILL_ID, countSuppressedFusionMaterials, getOwnedSkillIds, getFusionRecipe, getFusionSkillId, isFusionActive,
   HUIYUE_BUFF_ID, isHuiyueActive } from "../skills/fusion";
 import { getAttackActionCost, getTurnSkillActionCost } from "./actionCosts";
 import { previewPlayerAttackStats } from "./attackStatModifiers";
 import { ATTACK_ORDER } from "./attacks";
 import { getActionAttackTargetIds } from "./validation";
 import { SkillExposureTiming } from "../skills/types";
+import { BIG_SKILL_PHASE_SECONDS, isBigSkillMode, MAX_BIG_CARDS_PER_PLAYER } from "../modes";
+import { getRandomBigCardIds, sanitizeBigCardIds } from "../bigCards/catalog";
+import { initializeBigCardRules, initializeOpeningPeek } from "./bigCards";
+import { getSpaceCakeMultiplier, isReversalResponseRestricted, shareSpace, withPlayerSpace } from "./spaces";
+import { getOwnedBigAbilityIds } from "../bigCards/abilities";
+import { ignoresNegativeStatuses, isAllSkillsSealedBuff, isSkillSuppressedByBuff, pruneRegisteredStates } from "./effectCategories";
+export { SKILL_DISABLED_BUFF_PREFIX } from "./effectCategories";
+import { captureInitialPlayerStates } from "./initialPlayerState";
+import { FOUR_EMPTINESS_ID } from "../bigCards/abilities";
+import { getBlindSkillChoices } from "./blindSkillRemoval";
 
 export const ACTION_PROMPT_SECONDS = 5;
 export const ACTION_WINDOW_SECONDS = 20;
 export const SKILL_PREPARATION_SECONDS = 45;
 export const COLLAPSE_BUFF_PREFIX = "collapse_until_round:";
-export const SKILL_DISABLED_BUFF_PREFIX = "skill_disabled_until_round:";
 export const PUPPET_BUFF_PREFIX = "puppet_of:";
 export const SKILL_ACTIVATED_BUFF_PREFIX = "skill_activated:";
 export const CAUSAL_COGNITION_SKILL_ID = "skill_121_59557";
@@ -192,8 +201,12 @@ export function startGame(state: GameState): GameState {
   }
 
   const next = cloneGameState(state);
+  assignBigCards(next);
+  initializeBigCardRules(next);
+  initializeOpeningPeek(next);
   assignIntroSkills(next);
   applyStartOfGameSkills(next);
+  captureInitialPlayerStates(next);
   if (usesSkillActionWindows(next)) {
     beginActionPrompt(next, "round_pre_interval_action", {
       promptSeconds: SKILL_PREPARATION_SECONDS
@@ -221,6 +234,12 @@ export function startGame(state: GameState): GameState {
       ...createBaseEvent(next, "system"),
       type: "system",
       message: `测试自选技能模式：每名玩家最多携带 ${next.config.skillCount} 张技能`
+    });
+  }
+  if (isBigSkillMode(next.config.skillMode)) {
+    next.eventLog.push({
+      ...createBaseEvent(next, "system"), type: "system",
+      message: `${next.config.skillMode === "big_random" ? "随机大技能" : "测试指定大技能"}模式：每人${next.config.skillMode === "big_random" ? "获得" : "最多携带"}${next.config.skillCount}张大卡；各行动阶段限时300秒。焚天君燚、聚能湮灭炮、窥觊苍生、异星共振、龙卷残云和御秽裁决已接入，魂耀九州和极寒之拥部分效果待实现。`
     });
   }
   return next;
@@ -256,6 +275,7 @@ function applyStartOfGameSkills(state: GameState): void {
     }
 
     const shunshouCount = getActiveSkillCount(player, "skill_100_45717");
+    if (queueZhuRiOpeningChoices(state, player)) continue;
     if (shunshouCount > 0) {
       const choices = Array.from({ length: shunshouCount }).flatMap(() =>
         adjacentPlayers(state, player.id)
@@ -294,6 +314,23 @@ function applyStartOfGameSkills(state: GameState): void {
   }
 }
 
+export function queueZhuRiOpeningChoices(state: GameState, player: PlayerState): boolean {
+  const bow = getFusionSkillId("逐日之弓");
+  if (getActiveSkillCount(player, bow) === 0) return false;
+  revealSkillForExposureTiming(state, player.id, bow, "开局", "逐日之弓开局宣告");
+  for (const other of alivePlayers(state)) {
+    if (other.id === player.id || state.pendingSkillChoices?.some((choice) =>
+      choice.playerId === player.id && choice.sourcePlayerId === other.id)) continue;
+    const known = state.skillKnowledge[player.id]?.[other.id] ?? [];
+    const selected = known.find((id) => other.skills.includes(id)) ?? pickRandomSkill(other.skills);
+    if (!selected || player.buffs.some((buff) => buff.id === `shunshou_taken:${other.id}:${selected}`)) continue;
+    revealSkillToViewer(state, player.id, other.id, selected);
+    (state.pendingSkillChoices ??= []).push({ id: createId("skill_choice"), kind: "steal_skill", playerId: player.id,
+      sourcePlayerId: other.id, skillId: selected });
+  }
+  return true;
+}
+
 function pickRandomSkill(skillIds: SkillId[]): SkillId | undefined {
   if (skillIds.length === 0) {
     return undefined;
@@ -317,7 +354,7 @@ export function cloneGameState(state: GameState): GameState {
   return JSON.parse(JSON.stringify(state)) as GameState;
 }
 
-export function findPlayer(state: GameState, playerId: PlayerId): PlayerState | undefined {
+export function findPlayer(state: Pick<GameState, "players">, playerId: PlayerId): PlayerState | undefined {
   return state.players.find((player) => player.id === playerId);
 }
 
@@ -328,10 +365,11 @@ export function beginActionPrompt(
 ): void {
   const now = Date.now();
   state.phase = "action_window";
+  pruneRegisteredStates(state);
   state.activeTimingPhase = timingPhase;
   state.actionWindowMode = "prompt";
   state.actionWindowDeadlineAt =
-    now + (options.promptSeconds ?? ACTION_PROMPT_SECONDS) * 1000;
+    now + getActionPromptSeconds(state, options.promptSeconds) * 1000;
   state.actionWindowPlayerIds = [];
   state.actionWindowPassPlayerIds = [];
   if (!options.preservePendingActions) {
@@ -342,6 +380,7 @@ export function beginActionPrompt(
 }
 
 export function beginBasicTurnAction(state: GameState): void {
+  pruneRegisteredStates(state);
   state.phase = "collecting_actions";
   state.activeTimingPhase = "turn_action";
   state.actionWindowPlayerIds = [];
@@ -374,14 +413,15 @@ export function applyHuiyueAutoActions(state: GameState): void {
 
 export function applyFrozenAutoActions(state: GameState): void {
   for (const player of state.players) {
-    if (player.status !== "alive") {
+    if (player.status !== "alive" || ignoresNegativeStatuses(player)) {
       continue;
     }
 
     const frozen = player.buffs.find(
       (buff) =>
         buff.id === "frozen" &&
-        (buff.expiresAtTurn === undefined || buff.expiresAtTurn >= state.turnNumber)
+        (buff.expiresAtTurn === undefined || buff.expiresAtTurn >= state.turnNumber) &&
+        (buff.expiresAtRound === undefined || buff.expiresAtRound > state.roundNumber)
     );
     if (!frozen) {
       continue;
@@ -553,11 +593,9 @@ export function isPlayerInCollapse(
 }
 
 export function isPlayerSkillDisabled(
-  player: { buffs: Array<{ id: string }> } | undefined
+  player: { buffs: Array<{ id: string; stateType?: string }> } | undefined
 ): boolean {
-  return Boolean(
-    player?.buffs.some((buff) => buff.id.startsWith(SKILL_DISABLED_BUFF_PREFIX))
-  );
+  return Boolean(player?.buffs.some((buff) => ignoresNegativeStatuses(player) ? isAllSkillsSealedBuff(buff.id) : isSkillSuppressedByBuff(buff.id)));
 }
 
 export function playerHasActiveSkill(
@@ -568,7 +606,8 @@ export function playerHasActiveSkill(
 }
 
 export function getActiveSkillCount(
-  player: { skills: SkillId[]; buffs: Array<{ id: string }>; skillFusions?: PlayerState["skillFusions"] } | undefined,
+  player: { skills: SkillId[]; buffs: Array<{ id: string }>; skillFusions?: PlayerState["skillFusions"]; bigCards?: PlayerState["bigCards"];
+    skillInventory?: PlayerState["skillInventory"] } | undefined,
   skillId: SkillId
 ): number {
   if (
@@ -582,6 +621,8 @@ export function getActiveSkillCount(
 
   if (getFusionRecipe(skillId)) return (player.skillFusions ?? []).filter((fusion) =>
     fusion.skillId === skillId && isFusionActive(player, fusion)).length;
+  const bigCount = getOwnedBigAbilityIds(player, true).filter((id) => id === skillId).length;
+  if (bigCount) return bigCount;
   return Math.max(0, player.skills.filter((id) => id === skillId).length - countSuppressedFusionMaterials(player, skillId));
 }
 
@@ -595,19 +636,21 @@ export function getPlayerInitialHp(
 export function isSkillBlockedByJingu(
   state: {
     players: Array<{
+      spaceId?: string;
       status: PlayerState["status"];
       skills: SkillId[];
       buffs: Array<{ id: string }>;
     }>;
   },
-  skillId: SkillId
+  skillId: SkillId,
+  spaceId?: string
 ): boolean {
   const skill = getSkill(skillId);
   if (!skillHasTypeTag(skill, "控制技")) {
     return false;
   }
 
-  const alive = state.players.filter((player) => player.status === "alive");
+  const alive = state.players.filter((player) => player.status === "alive" && player.spaceId === spaceId);
   const brokenByPoe = alive.some((player) => playerHasActiveSkill(player, "skill_9_93219"));
   if (brokenByPoe) {
     return false;
@@ -617,6 +660,11 @@ export function isSkillBlockedByJingu(
 }
 
 export function revealJinguForBlockedControlSkills(state: GameState): void {
+  const anchors = new Map(state.players.map((player) => [player.spaceId, player.id]));
+  if (anchors.size > 1) {
+    for (const id of anchors.values()) withPlayerSpace(state, id, () => revealJinguForBlockedControlSkills(state));
+    return;
+  }
   const alive = state.players.filter((player) => player.status === "alive");
   const brokenByPoe = alive.some((player) => playerHasActiveSkill(player, "skill_9_93219"));
   if (brokenByPoe) {
@@ -653,6 +701,7 @@ export function recordSkillUsed(
   state.eventLog.push({
     ...createBaseEvent(state, "skill_used"),
     type: "skill_used",
+    timingPhase: state.activeTimingPhase,
     ...(getFusionRecipe(skillId) && !findPlayer(state, playerId)?.revealedSkillIds.includes(skillId) ? { privatePlayerId: playerId } : {}),
     playerId,
     skillId,
@@ -670,6 +719,7 @@ function triggerSkillRevealWatchers(state: GameState, revealedPlayerId: PlayerId
   for (const watcher of alivePlayers(state)) {
     if (
       watcher.id === revealedPlayerId ||
+      !shareSpace(watcher, revealedPlayer) ||
       getActiveSkillCount(watcher, "skill_109_65084") <= 0 ||
       watcher.buffs.some((buff) => buff.id === `chuanyin_triggered:${revealedPlayerId}`)
     ) {
@@ -726,7 +776,7 @@ export function canPlayerSeeSkill(
   return Boolean(state.skillKnowledge?.[viewerId]?.[playerId]?.includes(skillId));
 }
 
-export function alivePlayers(state: GameState): PlayerState[] {
+export function alivePlayers(state: Pick<GameState, "players">): PlayerState[] {
   return state.players.filter((player) => player.status === "alive");
 }
 
@@ -744,7 +794,7 @@ export function isPuppetPlayer(
 }
 
 export function victoryEligiblePlayers(state: GameState): PlayerState[] {
-  return alivePlayers(state).filter((player) => !isPuppetPlayer(player));
+  return alivePlayers(state).filter((player) => !player.spaceId && !isPuppetPlayer(player));
 }
 
 export function toPublicGameState(
@@ -757,6 +807,8 @@ export function toPublicGameState(
     : undefined;
   const {
     pendingActions: _pendingActions,
+    peekBigCardsByViewer: _peekBigCardsByViewer,
+    cannonDefenses: _cannonDefenses,
     pendingSkillChoices: _pendingSkillChoices,
     skillKnowledge: _skillKnowledge,
     preemptiveRestartSnapshot: _preemptiveRestartSnapshot,
@@ -766,11 +818,39 @@ export function toPublicGameState(
     turnAttackStats: _turnAttackStats,
     retaliationRevivalPending: _retaliationRevivalPending,
     reversalState: _reversalState,
+    spaceReversalStates: _spaceReversalStates,
     retaliationResponses: _retaliationResponses,
     roundEndDamagePending: _roundEndDamagePending,
+    damageAttribution: _damageAttribution,
+    turnEndStatusPending: _turnEndStatusPending,
+    initialHunyaoPlayers: _initialHunyaoPlayers,
+    initialPlayerSnapshots: _initialPlayerSnapshots,
+    verdictTurn: _verdictTurn,
+    verdictBlockedMoves: _verdictBlockedMoves,
+    verdictOrdinaryMoves: _verdictOrdinaryMoves,
+    borrowedBigCards: _borrowedBigCards,
+    pendingDragonFireBonuses: _pendingDragonFireBonuses,
     ...publicFields
   } = state;
+  const point = state.verdictTurn?.games.find((game) => !game.winnerId);
+  const removal = state.verdictTurn?.removalPlayerId;
+  const pointView = removal ? { verdictRemovalPlayerId: removal } : point ? { pointGame: {
+    id: point.id, sourceId: point.sourceId, targetId: point.targetId, round: point.round, submittedPlayerIds: Object.keys(point.moves)
+  } } : {};
+  const choices = viewerPlayerId && (removal === viewerPlayerId || getActiveSkillCount(findPlayer(state, viewerPlayerId), FOUR_EMPTINESS_ID))
+    ? getBlindSkillChoices(state, viewerPlayerId, removal !== viewerPlayerId) : undefined;
   const players = publicFields.players.map((player) => {
+    const { bigCards: _bigCards, bigCardSlotCount: _bigCardSlotCount, skillInventory: _inventory, actionCakes, storedDamages, ...legacyPlayer } = player;
+    const visiblePlayer = isBigSkillMode(state.config.skillMode) ? {
+      ...legacyPlayer,
+      bigCards: !viewerPlayerId || viewerPlayerId === player.id ||
+        (state.phase === "lobby" && state.config.skillMode === "big_test_select") ? player.bigCards ?? [] :
+        (player.bigCards ?? []).filter((card) => card.publiclyRevealed || state.peekBigCardsByViewer?.[viewerPlayerId]?.includes(card.instanceId))
+          .map(({ instanceId, cardId, publiclyRevealed }) => ({ instanceId, cardId, ...(publiclyRevealed ? { publiclyRevealed } : {}) })),
+      ...(!viewerPlayerId || viewerPlayerId === player.id ? { skillInventory: player.skillInventory, actionCakes, storedDamages } : {}),
+      bigCardSlotCount: player.bigCards?.length ?? 0
+    } : { ...legacyPlayer, ...((!viewerPlayerId || viewerPlayerId === player.id) && player.skillInventory ?
+      { skillInventory: player.skillInventory } : {}) };
     const skills =
       viewerPlayerId === undefined
         ? player.skills
@@ -785,7 +865,7 @@ export function toPublicGameState(
       player.id !== viewerPlayerId
     ) {
       return {
-        ...player,
+        ...visiblePlayer,
         skillFusions: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.skillFusions : undefined,
         fusionRequestIds: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.fusionRequestIds : undefined,
         witherSelections: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.witherSelections : undefined,
@@ -798,7 +878,7 @@ export function toPublicGameState(
     }
 
     return {
-      ...player,
+      ...visiblePlayer,
       skillFusions: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.skillFusions : undefined,
       fusionRequestIds: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.fusionRequestIds : undefined,
       witherSelections: viewerPlayerId === undefined || viewerPlayerId === player.id ? player.witherSelections : undefined,
@@ -811,6 +891,10 @@ export function toPublicGameState(
   const eventLog = publicFields.eventLog.filter((event) => !viewerPlayerId ||
     !event.privatePlayerId || event.privatePlayerId === viewerPlayerId).map((event) => {
     if (event.type === "turn_revealed") return { ...event, actions: publicActionPlans(event.actions, viewerPlayerId) as typeof event.actions };
+    if (viewerPlayerId && event.type === "damage" && event.reboundSkillSourceIds) {
+      const { reboundSkillSourceIds: _reboundSkillSourceIds, ...visibleDamage } = event;
+      return visibleDamage;
+    }
     if (
       state.config.hideCakeCounts &&
       viewerPlayerId &&
@@ -830,18 +914,28 @@ export function toPublicGameState(
   if (viewerPlayerId) {
     return {
       ...publicFields,
+      ...(state.reversalResponseOnly ? { reversalResponseOnly: isReversalResponseRestricted(state, viewerPlayerId) } : {}),
+      ...(state.cannonDefenses?.length ? { cannonDefenseSteps: state.cannonDefenses.map(({ attack, dueTurn, next }) =>
+        ({ targetId: attack.targetId, dueTurn, next })) } : {}),
       players,
       eventLog,
       pendingActionPlayerIds,
       pendingSkillChoices: (state.pendingSkillChoices ?? []).filter(
         (choice) => choice.playerId === viewerPlayerId
       ),
+      ...pointView,
+      ...(choices ? { blindSkillChoices: choices } : {}),
       ...(revealedActions ? { revealedActions } : {}),
       ...(revealedActions ? { revealedActionTargets: Object.fromEntries(Object.entries(state.pendingActions).map(([id, plan]) =>
         [id, plan?.actions.map((action) => getActionAttackTargetIds(state, id, action)) ?? []])) } : {}),
       ...(revealedActions ? { revealedAttackStats: Object.fromEntries(Object.keys(state.pendingActions).map((id) => [id,
         Object.fromEntries(Object.entries(state.turnAttackStats?.[id] ?? previewPlayerAttackStats(state, id).stats)
-          .map(([index, stats]) => [index, { cost: stats.cost, power: stats.power, level: stats.level }]))])) } : {}),
+          .map(([index, stats]) => [index, { cost: stats.cost, power: stats.power, level: stats.level,
+            ...(stats.damageParts ? { damageParts: stats.damageParts } : {}),
+            ...(stats.powerValue ? { powerValue: stats.powerValue } : {}),
+            ...(stats.levelValue ? { levelValue: stats.levelValue } : {}),
+            ...(stats.costValue ? { costValue: stats.costValue } : {}),
+            ...(stats.damagePartValues ? { damagePartValues: stats.damagePartValues } : {}) }]))])) } : {}),
       ...(revealedActions ? { revealedActionCosts: Object.fromEntries(Object.entries(state.pendingActions).map(([id, plan]) => {
         const owner = findPlayer(state, id)!;
         return [id, state.turnActionCosts?.[id] ?? plan?.actions.map((action) => action.type === "attack" ? getAttackActionCost(state, owner, action) :
@@ -853,6 +947,7 @@ export function toPublicGameState(
 
   return {
     ...publicFields,
+    ...pointView,
     players,
     eventLog,
     pendingActionPlayerIds,
@@ -899,16 +994,26 @@ function publicActionPlans(plans: PendingActionMap, viewerId?: PlayerId): Pendin
 function publicPlayerBuffs(player: PlayerState, viewerId: PlayerId | undefined, visibleSkills: SkillId[]): PlayerState["buffs"] {
   if (!viewerId || viewerId === player.id) return player.buffs;
   return player.buffs.filter((buff) => !buff.id.startsWith("shunshou_taken:") &&
+    (!buff.id.startsWith("skill_transformed:") || visibleSkills.includes(buff.id.slice("skill_transformed:".length))) &&
     (!buff.id.includes("fusion_") || visibleSkills.some((id) => buff.id.includes(id))))
     .map(({ sourceFusionId: _source, fusionMarkKind: _kind, ...buff }) => buff);
 }
 
-export function getCurrentTurnLimitSeconds(state: GameState): number {
+export function getActionWindowSeconds(state: Pick<GameState, "config">): number {
+  return isBigSkillMode(state.config.skillMode) ? BIG_SKILL_PHASE_SECONDS : ACTION_WINDOW_SECONDS;
+}
+
+export function getActionPromptSeconds(state: Pick<GameState, "config">, fallback = ACTION_PROMPT_SECONDS): number {
+  return isBigSkillMode(state.config.skillMode) ? BIG_SKILL_PHASE_SECONDS : fallback;
+}
+
+export function getCurrentTurnLimitSeconds(state: Pick<GameState, "config">): number {
+  if (isBigSkillMode(state.config.skillMode)) return BIG_SKILL_PHASE_SECONDS;
   return Math.max(5, state.config.turnTimeLimitSeconds);
 }
 
-export function getCakeGainAmount(state: GameState): number {
-  return 1;
+export function getCakeGainAmount(state: Pick<GameState, "smallSpaces">, player?: PlayerState): number {
+  return player ? getSpaceCakeMultiplier(state, player) : 1;
 }
 
 export function getTurnDeadline(state: GameState): number | undefined {
@@ -933,6 +1038,36 @@ function assignIntroSkills(state: GameState): void {
 
     const skillCount = Math.max(0, Math.min(3, Math.floor(state.config.skillCount)));
     player.skills = drawSkillIds(skillIds, skillCount);
+  }
+}
+
+function assignBigCards(state: GameState): void {
+  if (!isBigSkillMode(state.config.skillMode)) {
+    for (const player of state.players) {
+      delete player.bigCards;
+      delete player.bigCardSlotCount;
+      delete player.skillInventory;
+    }
+    return;
+  }
+  const count = Math.max(1, Math.min(MAX_BIG_CARDS_PER_PLAYER, Math.floor(state.config.skillCount)));
+  state.config.skillCount = count;
+  for (const player of state.players) {
+    player.skills = [];
+    player.actionCakes = 0;
+    delete player.skillFusions;
+    player.revealedSkillIds = [];
+    if (player.kind === "spectator") {
+      player.bigCards = [];
+    } else if (state.config.skillMode === "big_random") {
+      player.bigCards = drawSkillIds(getRandomBigCardIds(), count).map((cardId) => ({
+        instanceId: createId("big_card"), cardId
+      }));
+    } else {
+      const selected = player.bigCards ?? [];
+      const valid = sanitizeBigCardIds(selected.map((card) => card.cardId), count);
+      player.bigCards = selected.filter((card) => valid.includes(card.cardId)).slice(0, count);
+    }
   }
 }
 

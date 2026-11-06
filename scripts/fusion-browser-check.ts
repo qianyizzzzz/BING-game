@@ -4,7 +4,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { chromium, Page } from "playwright";
 import { io, Socket } from "socket.io-client";
-import { FUSION_RECIPES, getAllSkills, isFusionImplemented, PublicGameState } from "@bing/shared";
+import { FUSION_RECIPES, getAllSkills, getFusionRecipe, isFusionImplemented, PublicGameState } from "@bing/shared";
 
 const port = Number(process.env.FUSION_TEST_PORT ?? 3108);
 const url = `http://127.0.0.1:${port}`;
@@ -24,6 +24,15 @@ let diagnosticState: () => unknown = () => ({});
 const sockets: Socket[] = [];
 const errors: string[] = [];
 const skillId = (name: string) => getAllSkills().find((skill) => skill.name === name)!.id;
+function fusionSetup(id: string): { skills: string[]; prerequisites: string[] } {
+  const recipe = getFusionRecipe(id);
+  if (!recipe) return { skills: [id], prerequisites: [] };
+  const children = recipe.materialOptions[0]!.map(fusionSetup);
+  return {
+    skills: children.flatMap((child) => child.skills),
+    prerequisites: [...children.flatMap((child) => child.prerequisites), id]
+  };
+}
 async function emit(socket: Socket, event: string, payload: unknown): Promise<any> {
   const response = await socket.timeout(10_000).emitWithAck(event, payload);
   assert.equal(response.ok, true, `${event}: ${response.error}`);
@@ -166,6 +175,8 @@ try {
   if (requestedRecipes) for (const name of requestedRecipes) assert.ok(allEffectBatch.includes(name), `Recipe unavailable: ${name}`);
   const effectBatch = requestedRecipes ? allEffectBatch.filter((name) => requestedRecipes.includes(name)) : allEffectBatch;
   for (const name of effectBatch) {
+    const recipe = FUSION_RECIPES.find((item) => item.skill.name === name)!;
+    const { skills, prerequisites } = fusionSetup(recipe.skill.id);
     const c = await connect();
     const d = await connect();
     const room = await emit(c, "room:create", { playerName: "新融合测试" });
@@ -180,11 +191,10 @@ try {
       await emit(await connect(), "room:join", { roomId: room.roomId, playerName });
     }
     await emit(c, "room:update_settings", { roomId: room.roomId,
-      config: { skillMode: "test_select", skillCount: ["杀级换", "根源之目"].includes(name) ? 3 : 2, turnTimeLimitSeconds: 180, firstTurnNoAttack: false } });
-    const recipe = FUSION_RECIPES.find((item) => item.skill.name === name)!;
+      config: { skillMode: "test_select", skillCount: skills.length + Number(["杀级换", "根源之目"].includes(name)), turnTimeLimitSeconds: 180, firstTurnNoAttack: false } });
     await emit(c, "room:update_player_skills", { roomId: room.roomId,
-      targetPlayerId: room.playerId, skillIds: name === "杀级换" ? [...recipe.materialOptions[0]!, skillId("毁灭之力")] :
-        name === "根源之目" ? [...recipe.materialOptions[0]!, skillId("钟")] : recipe.materialOptions[0] });
+      targetPlayerId: room.playerId, skillIds: name === "杀级换" ? [...skills, skillId("毁灭之力")] :
+        name === "根源之目" ? [...skills, skillId("钟")] : skills });
     if (name === "弹力球" || name === "根源之目") {
       await emit(d, "room:update_player_skills", { roomId: room.roomId, targetPlayerId: opponent.playerId,
         skillIds: name === "弹力球" ? [skillId("火眼金睛"), skillId("钟")] :
@@ -222,7 +232,19 @@ try {
     await emit(c, "game:start", { roomId: room.roomId });
     await batchPage.getByTestId("fusion-controls").locator("summary").click();
     const panel = batchPage.getByRole("region", { name: "融合与分解" });
+    const recipeSelect = panel.getByRole("combobox", { name: "可配出的融合技能" });
+    for (const prerequisite of prerequisites.slice(0, -1)) {
+      await recipeSelect.selectOption(prerequisite);
+      await panel.getByRole("button", { name: "免费融合", exact: true }).click();
+      await panel.getByRole("button", { name: `分解${getFusionRecipe(prerequisite)!.skill.name}`, exact: true }).waitFor();
+    }
     await panel.getByRole("option", { name, exact: true }).waitFor({ state: "attached" });
+    await recipeSelect.selectOption(recipe.skill.id);
+    if (name === "大雪球") {
+      await batchPage.setViewportSize({ width: 390, height: 844 });
+      assert.equal(await panel.getByRole("combobox", { name: "素材 1" }).count(), 1);
+      assert.equal(await panel.getByRole("combobox", { name: "素材 2" }).count(), 1);
+    }
     if (name === "枯萎") {
       const input = panel.getByTestId("wither-number-0");
       await input.fill("0");
@@ -251,8 +273,8 @@ try {
       await panel.screenshot({ path: path.join(output, "fusion-wither-fused-mobile.png") });
       await batchPage.setViewportSize({ width: 1280, height: 900 });
     }
-    assert.equal(latest.players.find((player) => player.id === room.playerId)?.skillFusions?.[0]?.skillId, recipe.skill.id);
-    await panel.getByText(`已收录 72 条配方，已开放 ${allEffectBatch.length} 条。`, { exact: true }).waitFor();
+    assert.ok(latest.players.find((player) => player.id === room.playerId)?.skillFusions?.some((fusion) => fusion.skillId === recipe.skill.id));
+    await panel.getByText(`已收录 ${FUSION_RECIPES.length} 条配方，已开放 ${allEffectBatch.length} 条。`, { exact: true }).waitFor();
     async function advanceRoom(snapshot: PublicGameState, stopAtEnd = false): Promise<PublicGameState> {
       for (let guard = 0; snapshot.phase === "action_window" && !(stopAtEnd && snapshot.activeTimingPhase === "turn_end_action") && guard < 30; guard++) {
         await emit(c, "game:pass_action_window", { roomId: room.roomId });

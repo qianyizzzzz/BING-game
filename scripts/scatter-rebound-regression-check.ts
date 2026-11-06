@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import {
   GameState, PlayerAction, SkillAction, createGame, createPlayer, addPlayerToGame, startGame,
   advanceActionWindow, submitPlayerAction, submitActionWindowSkill, getAllSkills, getFusionSkillId,
-  COMMON_FUSION_SKILL_ID, createId, INFINITE_DAMAGE, applyHealthAmounts
+  COMMON_FUSION_SKILL_ID, createId, INFINITE_DAMAGE, applyHealthAmounts, formatPlayerHp
 } from "@bing/shared";
 
 const skill = (name: string) => {
@@ -157,16 +157,17 @@ check("electric thunder keeps one copy and earns infinite ghost charges", () => 
   assert.equal(state.players[3]!.hp, 39);
   assert.equal(state.players[3]!.buffs.find((buff) => buff.id === "guidao_charge")?.infinite, true);
 });
-check("already infinite HP remains infinite after another infinite-damage turn", () => {
+check("repeated infinite scatter cancels matching powers, leaving the finite remainder", () => {
   let state = infiniteTurn(fixture([["绝对值"], ["散弹"], ["散弹"], ["绝对值"]]));
+  assert.equal(formatPlayerHp(state.players[0]!), "2∞−40");
+  assert.equal(formatPlayerHp(JSON.parse(JSON.stringify(state)).players[3]), "2∞−40");
   state = collecting(state);
   for (const player of state.players) player.cakes = 40;
   state = infiniteTurn(state);
-  assert.equal(state.players[0]!.hpIsInfinite, true); assert.equal(state.players[0]!.status, "alive");
-  assert.equal(state.players[3]!.hpIsInfinite, true); assert.equal(state.players[3]!.status, "alive");
-  assert.equal(state.players[3]!.hp, INFINITE_DAMAGE);
+  assert.equal(state.players[0]!.hpIsInfinite, undefined); assert.equal(state.players[0]!.status, "alive");
+  assert.equal(state.players[3]!.hpIsInfinite, undefined); assert.equal(state.players[3]!.status, "alive");
+  assert.equal(state.players[3]!.hp, 40);
   JSON.stringify(state, (_key, value) => { if (typeof value === "number") assert.ok(Number.isFinite(value)); return value; });
-  assert.equal(JSON.parse(JSON.stringify(state)).players[3].hpIsInfinite, true);
 });
 check("infinite bloodthirst rounds each original-source copy before multiplying", () => {
   let state = fixture([["绝对值", "嗜血"], ["散弹", "嗜血"], ["散弹"], []]);

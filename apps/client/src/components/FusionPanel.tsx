@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ActionSubmission, COMMON_FUSION_SKILL_ID, FUSION_CAKE_COST, FUSION_RECIPES,
-  createId, getAvailableFusionRecipes, getFusionRecipe, getSkill, getSkillUseLimit,
+  createId, getAvailableFusionRecipes, getFusionMaterials, getFusionMaterialSelection, getFusionRecipe, getFusionTier,
+  getRootFusions, getSkill, getSkillUseLimit,
   isFusionImplemented, isFusionPreparation, countSuppressedFusionMaterials, PublicGameState,
   getNextWitherSelectionIndex, getWitherNumber, isValidWitherNumber } from "@bing/shared";
 
@@ -16,11 +17,15 @@ export function FusionPanel({ state, submitting, onSubmit, onDecompose, onChoose
   const viewer = state.players.find((player) => player.id === state.viewerPlayerId);
   const recipes = useMemo(() => viewer ? getAvailableFusionRecipes(viewer) : [], [viewer]);
   const [selectedId, setSelectedId] = useState("");
+  const [materialPicks, setMaterialPicks] = useState<Record<number, string>>({});
+  const [materialOption, setMaterialOption] = useState(0);
   const [witherDrafts, setWitherDrafts] = useState<Record<number, string>>({});
   useEffect(() => setWitherDrafts({}), [viewer?.id]);
   const selected = recipes.find((recipe) => recipe.skill.id === selectedId) ??
     recipes.find((recipe) => isFusionImplemented(recipe.skill.id)) ?? recipes[0];
   useEffect(() => setSelectedId(selected?.skill.id ?? ""), [selected?.skill.id]);
+  useEffect(() => setMaterialPicks({}), [selected?.skill.id, viewer?.id]);
+  useEffect(() => setMaterialOption(0), [selected?.skill.id, viewer?.id]);
   if (!viewer || viewer.status !== "alive" || state.phase === "lobby" || state.phase === "finished" ||
     (viewer.skills.length < 2 && !viewer.skillFusions?.length)) return null;
   const preparation = isFusionPreparation(state);
@@ -41,6 +46,23 @@ export function FusionPanel({ state, submitting, onSubmit, onDecompose, onChoose
       !state.pendingActionPlayerIds.includes(viewer.id) && viewer.cakes >= FUSION_CAKE_COST);
   const canDecompose = !submitting && state.phase === "action_window" &&
     state.activeTimingPhase === "turn_end_action" && !passed;
+  const availableOptions = selected?.materialOptions.flatMap((option, index) => {
+    const materials = getFusionMaterialSelection(viewer, selected.skill.id, option);
+    return materials ? [{ index, materials }] : [];
+  }) ?? [];
+  const resolvedOption = availableOptions.find((option) => option.index === materialOption) ?? availableOptions[0];
+  const defaultMaterials = resolvedOption?.materials ?? [];
+  const selectedTier = selected ? getFusionTier(selected.skill.id) : 0;
+  const materialPattern = selectedTier === 4 ? defaultMaterials.map(({ skillId }) => getFusionTier(skillId))
+    .sort((a, b) => b - a).join(" + ") : "";
+  const selectable = getFusionMaterials(viewer);
+  const remaining = [...selectable];
+  const materialFields = defaultMaterials.map((material, index) => {
+    const choices = remaining.filter((entry) => entry.skillId === material.skillId);
+    const choice = choices.find((entry) => entry.instanceId === materialPicks[index]) ?? choices[0]!;
+    remaining.splice(remaining.indexOf(choice), 1);
+    return { choices, choice };
+  });
 
   return (
     <section className="surface-card space-y-3 p-4" aria-label="融合与分解">
@@ -83,22 +105,43 @@ export function FusionPanel({ state, submitting, onSubmit, onDecompose, onChoose
               </option>)}
             </select>
           </label>
-          <p className="text-xs text-gray-500">素材：{selected.skill.fusion} · 融合后占2槽</p>
+          <p className="text-xs text-gray-500">素材：{selected.skill.fusion}{materialPattern ? `（${materialPattern}）` : ""} · 融合后占{selectedTier}槽</p>
+          {availableOptions.length > 1 ? <label className="block text-xs">素材组合
+            <select className="soft-input mt-1 w-full" value={resolvedOption?.index}
+              onChange={(event) => { setMaterialOption(Number(event.target.value)); setMaterialPicks({}); }}>
+              {availableOptions.map(({ index, materials }) => <option key={index} value={index}>
+                {materials.map((entry) => getSkill(entry.skillId)?.name ?? entry.skillId).join(" ＋ ")}
+              </option>)}
+            </select>
+          </label> : null}
+          {selectedTier > 2 ? materialFields.map(({ choices, choice }, index) => (
+            <label key={index} className="block text-xs">
+              素材 {index + 1}
+              <select className="soft-input mt-1 w-full" value={choice.instanceId}
+                onChange={(event) => setMaterialPicks((picks) => ({ ...picks, [index]: event.target.value }))}>
+                {choices.map((entry) => <option key={entry.instanceId} value={entry.instanceId}>
+                  {getSkill(entry.skillId)?.name} · 第{selectable.filter((item) => item.skillId === entry.skillId).indexOf(entry) + 1}份
+                </option>)}
+              </select>
+            </label>
+          )) : null}
           <p className="text-sm">{getSkill(selected.skill.id)?.description ?? selected.skill.description}</p>
           {selectedWither ? <p className="text-xs text-gray-600">本次融合沿用第{witherIndex + 1}份开局选择：{getWitherNumber(viewer, witherIndex)}。</p> : null}
           {unsavedWither ? <p className="text-xs text-amber-700">请先保存有效的开局选数，再融合。</p> : null}
           <button className="btn-primary w-full justify-center disabled:opacity-50" type="button" disabled={!canFuse}
             onClick={() => onSubmit({ type: "skill", skillId: COMMON_FUSION_SKILL_ID, stacks: 1, targetSkillId: selected.skill.id,
-              fusionRequestId: createId("fusion_request") })}>
+              fusionRequestId: createId("fusion_request"),
+              materialSkillIds: defaultMaterials.map(({ skillId }) => skillId),
+              ...(selectedTier > 2 ? { fusionMaterialInstanceIds: materialFields.map(({ choice }) => choice.instanceId) } : {}) })}>
             {preparation ? "免费融合" : "融合并提交出招（2饼）"}
           </button>
           {!isFusionImplemented(selected.skill.id) ? <p className="text-xs text-gray-500">这条配方已收录，开放效果后才可融合。</p> : null}
         </>
-      ) : <p className="text-sm text-gray-500">当前没有可用的未融合素材组合。</p>}
-      {(viewer.skillFusions ?? []).map((fusion) => (
+      ) : <p className="text-sm text-gray-500">当前没有可用的素材组合。</p>}
+      {getRootFusions(viewer).map((fusion) => (
         <div key={fusion.id} className="rounded-xl border border-gray-200 p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <strong>{getFusionRecipe(fusion.skillId)?.skill.name ?? "融合技能"} · 占2槽</strong>
+            <strong>{getFusionRecipe(fusion.skillId)?.skill.name ?? "融合技能"} · 占{getFusionTier(fusion.skillId)}槽</strong>
             <button className="btn-secondary disabled:opacity-50" type="button" disabled={!canDecompose}
               onClick={() => onDecompose(fusion.id)}>分解{getSkill(fusion.skillId)?.name}</button>
           </div>

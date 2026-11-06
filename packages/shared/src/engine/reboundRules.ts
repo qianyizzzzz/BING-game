@@ -17,6 +17,7 @@ export function applyReboundSkillModifiers(player: ReboundOwner | undefined, att
 
 /** Ball cancels piercing, Eye cancels absolute rebound, and Origin cancels Ball. Resolve these independently. */
 export function getReboundInteraction(player: ReboundOwner | undefined, attack: AttackStats): ReboundInteraction {
+  if (attack.defenseTag === "rebound") return "blocked";
   const requiresAbsolute = attack.isSkill || attack.requiresAbsoluteRebound || attack.id === "he_bao" || attack.id === "chao_he_bao";
   const absolute = !attack.ignoreAbsoluteRebound && getActiveSkillCount(player, "skill_57_59843") > 0 && requiresAbsolute;
   const elastic = !attack.ignoreElasticRebound && getActiveFusionCount(player, "弹力球") > 0;

@@ -1,8 +1,13 @@
 import { PlayerId, PlayerStatus } from "../types";
+import { compareCombatValues } from "./combatValues";
+import type { CombatValue } from "./combatValues";
+import { getPlayerHpValue } from "./infiniteValues";
 
 export interface LightningTargetPlayer {
   id: PlayerId;
   hp: number;
+  hpIsInfinite?: boolean;
+  hpValue?: CombatValue;
   status: PlayerStatus;
 }
 
@@ -19,7 +24,7 @@ export function getLightningSpellTargetPlan<TPlayer extends LightningTargetPlaye
 ): LightningSpellTargetPlan<TPlayer> {
   const candidates = players
     .filter((player) => player.status === "alive" && player.id !== sourceId)
-    .sort((a, b) => b.hp - a.hp);
+    .sort((a, b) => compareCombatValues(getPlayerHpValue(b), getPlayerHpValue(a)));
   const targetCount = Math.min(2, candidates.length);
   if (targetCount === 0) {
     return {
@@ -30,8 +35,8 @@ export function getLightningSpellTargetPlan<TPlayer extends LightningTargetPlaye
     };
   }
 
-  const highestHp = candidates[0]?.hp;
-  const highest = candidates.filter((player) => player.hp === highestHp);
+  const highestHp = getPlayerHpValue(candidates[0]!);
+  const highest = candidates.filter((player) => compareCombatValues(getPlayerHpValue(player), highestHp) === 0);
   if (highest.length >= 3) {
     return {
       lockedTargets: [],
@@ -50,8 +55,8 @@ export function getLightningSpellTargetPlan<TPlayer extends LightningTargetPlaye
     };
   }
 
-  const secondHp = candidates.find((player) => player.hp !== highestHp)?.hp;
-  const second = candidates.filter((player) => player.hp === secondHp);
+  const secondHp = getPlayerHpValue(candidates[1]!);
+  const second = candidates.filter((player) => compareCombatValues(getPlayerHpValue(player), secondHp) === 0);
   if (second.length <= 1) {
     return {
       lockedTargets: [highest[0]!, ...second].slice(0, targetCount),

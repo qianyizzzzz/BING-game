@@ -1,9 +1,10 @@
 import { GameState, PlayerId, SkillAction, SkillId, ValidationResult } from "../types";
-import { ACTION_WINDOW_SECONDS, cloneGameState, createBaseEvent, createId, findPlayer, revealSkillToViewer } from "./gameFactory";
-import { clearFusionMarks, COMMON_FUSION_SKILL_ID, FUSION_CAKE_COST, getFusionMaterialPair,
-  getFusionRecipe, isFusionImplemented, isFusionPreparation } from "../skills/fusion";
+import { getActionWindowSeconds, cloneGameState, createBaseEvent, createId, findPlayer, queueZhuRiOpeningChoices } from "./gameFactory";
+import { clearFusionMarks, COMMON_FUSION_SKILL_ID, FUSION_CAKE_COST, getFusionMaterialSelection,
+  getFusionRecipe, getFusionTier, getRootFusions, isFusionImplemented, isFusionPreparation, reconcileSkillFusions } from "../skills/fusion";
 import { getNextWitherSelectionIndex, isValidWitherNumber } from "../skills/fusion";
 import { initializeFusionAcquisition } from "./skillAcquisition";
+import { ensureFusionSkillInventory, removeSkillInstanceAt } from "./skillInventory";
 import { revealSkillForExposureTiming } from "./gameFactory";
 import { getSkill } from "../skills/registry";
 
@@ -25,7 +26,7 @@ export function chooseWitherNumber(state: GameState, playerId: PlayerId, selecti
     message: `第${selectionIndex + 1}份枯萎开局选数：${value}（开局准备结束后锁定）` });
   next.actionWindowMode = "active";
   if (!next.actionWindowPlayerIds.includes(playerId)) next.actionWindowPlayerIds.push(playerId);
-  next.actionWindowDeadlineAt = Math.max(next.actionWindowDeadlineAt ?? 0, Date.now() + ACTION_WINDOW_SECONDS * 1000);
+  next.actionWindowDeadlineAt = Math.max(next.actionWindowDeadlineAt ?? 0, Date.now() + getActionWindowSeconds(next) * 1000);
   next.updatedAt = Date.now();
   return next;
 }
@@ -46,16 +47,17 @@ export function validateFusionAction(state: GameState, playerId: PlayerId, actio
   if (!action.targetSkillId || !getFusionRecipe(action.targetSkillId)) return fail("请选择有效的融合配方");
   if (!isFusionImplemented(action.targetSkillId)) return fail("这个融合技能的效果尚未开放");
   if (getFusionRecipe(action.targetSkillId)?.skill.name === "猥琐小叔叔" && !isFusionPreparation(state)) return fail("猥琐小叔叔只能在开局准备阶段融合并选择技能");
-  if (!getFusionMaterialPair(player, action.targetSkillId, action.materialSkillIds)) return fail("融合素材不足、已被覆盖或与配方不符");
+  if (!getFusionMaterialSelection(player, action.targetSkillId, action.materialSkillIds, action.fusionMaterialInstanceIds))
+    return fail("融合素材不足、已被覆盖或与配方不符");
   return { ok: true };
 }
 
 /** Mutates an already-cloned settlement state, after the ordinary action cost is paid. */
 export function applySkillFusion(state: GameState, playerId: PlayerId, skillId: SkillId,
-  selected?: [SkillId, SkillId], requestId?: string): void {
+  selected?: SkillId[], requestId?: string, instanceIds?: string[]): void {
   const player = findPlayer(state, playerId);
   const recipe = getFusionRecipe(skillId);
-  const materials = player && getFusionMaterialPair(player, skillId, selected);
+  const materials = player && getFusionMaterialSelection(player, skillId, selected, instanceIds);
   if (!player || !recipe || !materials || !isFusionImplemented(skillId)) throw new Error("当前无法完成该融合");
   player.skillFusions ??= [];
   if (recipe.skill.name === "冰火狂暴曲") {
@@ -67,27 +69,22 @@ export function applySkillFusion(state: GameState, playerId: PlayerId, skillId: 
       (!["lava_mark", "stone_defense_count"].includes(buff.id) && !/^pending_lava_mark(?::|$)/.test(buff.id)));
   }
   const selection = recipe.skill.name === "枯萎" ? { witherSelectionIndex: getNextWitherSelectionIndex(player) } : {};
-  player.skillFusions.push({ id: createId("fusion_instance"), skillId, materialSkillIds: [...materials], ...selection });
+  if (getFusionTier(skillId) > 2 || instanceIds) ensureFusionSkillInventory(player);
+  const materialFusionIds = materials.filter((entry) => entry.kind === "fusion").map((entry) => entry.instanceId);
+  const materialInstanceIds = player.skillInventory ? materials.filter((entry) => entry.kind === "skill").map(({ instanceId }) =>
+    instanceId.startsWith("legacy:") ? player.skillInventory![Number(instanceId.slice("legacy:".length))]!.instanceId : instanceId) : undefined;
+  player.skillFusions.push({ id: createId("fusion_instance"), skillId, materialSkillIds: materials.map((entry) => entry.skillId), ...selection,
+    ...(materialInstanceIds ? { materialInstanceIds } : {}), ...(materialFusionIds.length ? { materialFusionIds } : {}) });
   initializeFusionAcquisition(player, player.skillFusions.at(-1)!);
   if (getSkill(skillId)?.exposureTiming === "开局") revealSkillForExposureTiming(state, playerId, skillId, "开局", "融合开局宣告");
-  if (recipe.skill.name === "逐日之弓" && isFusionPreparation(state)) {
-    state.pendingSkillChoices ??= [];
-    for (const other of state.players.filter((item) => item.id !== player.id && item.status === "alive")) {
-      if (state.pendingSkillChoices.some((choice) => choice.playerId === player.id && choice.sourcePlayerId === other.id)) continue;
-      const known = state.skillKnowledge[player.id]?.[other.id] ?? [];
-      const selected = known.find((id) => other.skills.includes(id)) ?? other.skills[Math.floor(Math.random() * other.skills.length)];
-      if (!selected || player.buffs.some((buff) => buff.id === `shunshou_taken:${other.id}:${selected}`)) continue;
-      revealSkillToViewer(state, player.id, other.id, selected);
-      state.pendingSkillChoices.push({ id: createId("skill_choice"), kind: "steal_skill", playerId: player.id, sourcePlayerId: other.id, skillId: selected });
-    }
-  }
+  if (recipe.skill.name === "逐日之弓" && isFusionPreparation(state)) queueZhuRiOpeningChoices(state, player);
   if (requestId) {
     player.fusionRequestIds ??= [];
     player.fusionRequestIds.push(requestId);
   }
   // Materials, cumulative uses, cooldowns and seals stay in place under the cover.
   state.eventLog.push({ ...createBaseEvent(state, "system"), type: "system", privatePlayerId: playerId,
-    message: `${player.name} 融合获得 ${recipe.skill.name}（占2槽）` });
+    message: `${player.name} 融合获得 ${recipe.skill.name}（占${getFusionTier(skillId)}槽）` });
 }
 
 export function fuseSkillsInPreparation(state: GameState, playerId: PlayerId, action: SkillAction): GameState {
@@ -95,10 +92,10 @@ export function fuseSkillsInPreparation(state: GameState, playerId: PlayerId, ac
   const validation = validateFusionAction(state, playerId, action);
   if (!validation.ok) throw new Error(validation.error);
   const next = cloneGameState(state);
-  applySkillFusion(next, playerId, action.targetSkillId!, action.materialSkillIds, action.fusionRequestId);
+  applySkillFusion(next, playerId, action.targetSkillId!, action.materialSkillIds, action.fusionRequestId, action.fusionMaterialInstanceIds);
   next.actionWindowMode = "active";
   if (!next.actionWindowPlayerIds.includes(playerId)) next.actionWindowPlayerIds.push(playerId);
-  next.actionWindowDeadlineAt = Math.max(next.actionWindowDeadlineAt ?? 0, Date.now() + ACTION_WINDOW_SECONDS * 1000);
+  next.actionWindowDeadlineAt = Math.max(next.actionWindowDeadlineAt ?? 0, Date.now() + getActionWindowSeconds(next) * 1000);
   next.updatedAt = Date.now();
   return next;
 }
@@ -111,6 +108,7 @@ export function decomposeSkill(state: GameState, playerId: PlayerId, fusionId: s
   if (!player || player.status !== "alive") throw new Error("只有存活玩家可以分解技能");
   if (state.actionWindowPassPlayerIds.includes(playerId)) throw new Error("你已经结束本次回合末行动");
   if (!player.skillFusions?.some((fusion) => fusion.id === fusionId)) throw new Error("只能分解自己持有的融合技能");
+  if (!getRootFusions(player).some((fusion) => fusion.id === fusionId)) throw new Error("请先分解覆盖此技能的上级融合");
   const next = cloneGameState(state);
   const owner = findPlayer(next, playerId)!;
   const fusion = owner.skillFusions!.find((item) => item.id === fusionId)!;
@@ -122,14 +120,27 @@ export function decomposeSkill(state: GameState, playerId: PlayerId, fusionId: s
     }
   }
   owner.skillFusions = owner.skillFusions!.filter((item) => item.id !== fusionId);
+  if (fusion.slotMachineExtraInstanceIds) {
+    owner.skillFusions = owner.skillFusions.filter((item) => !fusion.materialFusionIds?.includes(item.id));
+    for (const id of fusion.slotMachineExtraInstanceIds) removeSkillInstanceAt(owner, owner.skillInventory?.findIndex((item) => item.instanceId === id) ?? -1);
+    reconcileSkillFusions(owner);
+  }
+  if (getFusionRecipe(fusion.skillId)?.skill.name === "三元协奏曲") {
+    for (const buff of owner.buffs) {
+      if (buff.id === "ice_fire_mark" && buff.sourceFusionId && fusion.materialFusionIds?.includes(buff.sourceFusionId))
+        buff.stacks = Math.min(buff.stacks, 3);
+    }
+  }
   if (getFusionRecipe(fusion.skillId)?.skill.name === "沙皇") {
     for (let used = 0; used < Number(Boolean(fusion.acquisition?.smallUsed)) + Number(Boolean(fusion.acquisition?.fusionUsed)); used++) {
-      const index = owner.skills.indexOf("skill_4_65637"); if (index >= 0) owner.skills.splice(index, 1);
+      const index = owner.skills.indexOf("skill_4_65637"); if (index >= 0) removeSkillInstanceAt(owner, index);
     }
   }
   if (fusion.acquisition?.bonusSkillId) {
-    const index = owner.skills.indexOf(fusion.acquisition.bonusSkillId);
-    if (index >= 0) owner.skills.splice(index, 1);
+    const bonusInstanceId = fusion.acquisition.bonusSkillInstanceId;
+    const index = bonusInstanceId ? owner.skillInventory?.findIndex((entry) => entry.instanceId === bonusInstanceId) ?? -1 :
+      owner.skills.indexOf(fusion.acquisition.bonusSkillId);
+    if (index >= 0) removeSkillInstanceAt(owner, index);
     if (!owner.skills.includes(fusion.acquisition.bonusSkillId)) {
       owner.revealedSkillIds = owner.revealedSkillIds.filter((id) => id !== fusion.acquisition!.bonusSkillId);
       for (const knowledge of Object.values(next.skillKnowledge)) if (knowledge?.[playerId]) {
@@ -137,13 +148,14 @@ export function decomposeSkill(state: GameState, playerId: PlayerId, fusionId: s
       }
     }
   }
-  owner.buffs = owner.buffs.filter((buff) => buff.id !== "demon_domain_target" || buff.sourceFusionId !== fusionId);
+  owner.buffs = owner.buffs.filter((buff) => buff.sourceFusionId !== fusionId ||
+    (buff.id !== "demon_domain_target" && !buff.id.startsWith("fusion_use_bonus:")));
   clearFusionMarks(owner, fusionId);
   next.eventLog.push({ ...createBaseEvent(next, "system"), type: "system", privatePlayerId: playerId,
-    message: `${owner.name} 分解了 ${getFusionRecipe(fusion.skillId)?.skill.name ?? "融合技能"}，恢复两份素材` });
+    message: `${owner.name} 分解了 ${getFusionRecipe(fusion.skillId)?.skill.name ?? "融合技能"}，恢复${fusion.materialSkillIds.length}份素材` });
   next.actionWindowMode = "active";
   if (!next.actionWindowPlayerIds.includes(playerId)) next.actionWindowPlayerIds.push(playerId);
-  next.actionWindowDeadlineAt = Date.now() + ACTION_WINDOW_SECONDS * 1000;
+  next.actionWindowDeadlineAt = Date.now() + getActionWindowSeconds(next) * 1000;
   next.updatedAt = Date.now();
   return next;
 }

@@ -1,0 +1,46 @@
+{
+  "version": "king-v1",
+  "status": "visual prototype",
+  "style": "宏大史诗奇幻；黑曜石底与古金建筑式浮雕边框",
+  "canvas": {
+    "width": 1024,
+    "height": 1536,
+    "aspectRatio": "2:3",
+    "format": "RGBA PNG"
+  },
+  "rank": {
+    "label": "王者卡",
+    "position": "顶部中央",
+    "family": [
+      "王者卡",
+      "至尊卡",
+      "言灵卡",
+      "无上卡"
+    ]
+  },
+  "attribute": {
+    "position": "右上圆形徽章",
+    "master": "中性空槽",
+    "sample": "火",
+    "multiAttribute": "单独设计，当前不处理"
+  },
+  "title": {
+    "position": "下方横向铭牌",
+    "sample": "火·焚天君燚",
+    "textLayer": "模板底板留空，后续单独叠字"
+  },
+  "id": {
+    "position": "底部中央",
+    "sample": "10501",
+    "textLayer": "模板底板留空，后续单独叠字"
+  },
+  "illustration": {
+    "position": "中央大开窗",
+    "alpha": "透明，后续插画放于模板下层"
+  },
+  "files": {
+    "preview": "king-template-preview-v1.png",
+    "master": "king-template-master-v1.png"
+  },
+  "method": "built-in image_gen"
+}

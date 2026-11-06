@@ -2,18 +2,20 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 import { ArrowRight, BadgeCheck, Bot, Camera, Copy, Crown, Download, LogOut, Play, Search, Settings, Sparkles, Timer, Trophy, UserPen, UsersRound, X } from "lucide-react";
 import {
   ActionSubmission,
-  ACTION_PROMPT_SECONDS,
-  ACTION_WINDOW_SECONDS,
   GameConfig,
   MIN_PLAYERS,
   PublicGameState,
   RoomIdentity,
   SkillAction,
+  type PointGameAction,
   SkillId,
   SocketAck,
   getAllSkills
 } from "@bing/shared";
+import { getActionPromptSeconds, getActionWindowSeconds, getCurrentTurnLimitSeconds, isBigSkillMode, MAX_BIG_CARDS_PER_PLAYER } from "@bing/shared";
+import { BigCardPanel } from "./components/BigCardPanel";
 import { ActionPanel } from "./components/ActionPanel";
+import { PointGamePanel } from "./components/PointGamePanel";
 import { EventLog } from "./components/EventLog";
 import { GameAdvice } from "./components/GameAdvice";
 import { CharacterSelect } from "./components/CharacterSelect";
@@ -493,6 +495,15 @@ export function App() {
     );
   }
 
+  function submitPointGame(action: PointGameAction) {
+    if (!identity) return;
+    setBusy(true);
+    socket.emit("game:submit_point_game", { roomId: identity.roomId, action }, (response) => {
+      setBusy(false);
+      handleStateResponse(response);
+    });
+  }
+
   function guessSkill(targetPlayerId: string, targetSkillId: SkillId) {
     if (!identity) {
       return;
@@ -940,8 +951,15 @@ export function App() {
           <div className="space-y-5">
             {state.phase !== "lobby" ? (
               <PokerTableGame
+                readingBigCards={isBigSkillMode(state.config.skillMode) && sidePanelTab === "skills"}
+                onReadBigCards={isBigSkillMode(state.config.skillMode) ? () => {
+                  setSidePanelTab("skills");
+                  window.requestAnimationFrame(() => document.getElementById("big-card-reference")?.scrollIntoView({ block: "start" }));
+                } : undefined}
                 actionPanel={
-                  state.phase !== "finished" && viewer?.kind !== "spectator" ? (
+                  state.pointGame || state.verdictRemovalPlayerId ? (
+                    <PointGamePanel key={state.pointGame?.id ?? state.verdictRemovalPlayerId} state={state} playerId={identity.playerId} busy={busy} submit={submitPointGame} />
+                  ) : state.phase !== "finished" && viewer?.kind !== "spectator" ? (
                     <ActionPanel
                       fusionControls={viewer && viewer.skills.length >= 2 ? (
                         <FusionPanel state={state} submitting={busy} onSubmit={submitAction} onDecompose={decomposeFusion} onChooseWitherNumber={chooseWitherNumber} />
@@ -1005,11 +1023,11 @@ export function App() {
                       totalSeconds={
                         state.phase === "action_window"
                           ? state.activeTimingPhase === "revival_action"
-                            ? ACTION_WINDOW_SECONDS
+                            ? getActionWindowSeconds(state)
                             : state.actionWindowMode === "prompt"
-                            ? ACTION_PROMPT_SECONDS
-                            : ACTION_WINDOW_SECONDS
-                          : Math.max(1, state.config.turnTimeLimitSeconds)
+                            ? getActionPromptSeconds(state)
+                            : getActionWindowSeconds(state)
+                          : getCurrentTurnLimitSeconds(state)
                       }
                     />
                   ) : null}
@@ -1105,6 +1123,10 @@ export function App() {
                 state={state}
                 viewerPlayerId={identity.playerId}
               />
+            ) : null}
+
+            {state.phase === "lobby" && isBigSkillMode(state.config.skillMode) ? (
+              <BigCardPanel state={state} busy={busy} isOwner={isOwner} onChange={updatePlayerSkills} />
             ) : null}
 
             {state.phase === "lobby" ? (
@@ -1384,7 +1406,7 @@ function SidePanel({
               role="tab"
               type="button"
             >
-              {tab.label}
+              {tab.id === "skills" && isBigSkillMode(state.config.skillMode) ? "大卡" : tab.label}
             </button>
           ))}
         </div>
@@ -1393,7 +1415,7 @@ function SidePanel({
       <div className="side-panel-content" role="tabpanel">
         {activeTab === "hint" ? <QuickHintPanel state={state} /> : null}
         {activeTab === "log" ? <EventLog state={state} /> : null}
-        {activeTab === "skills" ? <SkillPanel state={state} /> : null}
+        {activeTab === "skills" ? isBigSkillMode(state.config.skillMode) ? <BigCardPanel state={state} /> : <SkillPanel state={state} /> : null}
         {activeTab === "rules" ? (
           <div className="space-y-5">
             <TutorialPanel />
@@ -1656,17 +1678,18 @@ function SettingsPanel({
         首回合禁攻
       </label>
       <label className="settings-field block font-medium text-gray-700">
-        回合限时
+        {isBigSkillMode(config.skillMode) ? "行动阶段限时（固定）" : "回合限时"}
         <input
           className="soft-input mt-1 w-full"
           data-testid="settings-turn-time-limit"
-          max={180}
+          max={isBigSkillMode(config.skillMode) ? 300 : 180}
+          disabled={isBigSkillMode(config.skillMode)}
           min={5}
           onChange={(event) =>
             onChange({ turnTimeLimitSeconds: Number(event.target.value) })
           }
           type="number"
-          value={config.turnTimeLimitSeconds}
+          value={isBigSkillMode(config.skillMode) ? 300 : config.turnTimeLimitSeconds}
         />
       </label>
       <label className="settings-field block font-medium text-gray-700">
@@ -1686,10 +1709,12 @@ function SettingsPanel({
           <option value="none">基础规则</option>
           <option value="small_intro">随机小技能</option>
           <option value="test_select">测试自选技能</option>
+          <option value="big_random">随机大技能</option>
+          <option value="big_test_select">测试指定大技能</option>
         </select>
       </label>
       <label className="settings-field block font-medium text-gray-700">
-        小技能数量
+        {isBigSkillMode(config.skillMode) ? "大技能数量" : "小技能数量"}
         <select
           className="soft-input mt-1 w-full"
           data-testid="settings-skill-count"
@@ -1703,10 +1728,14 @@ function SettingsPanel({
           }}
           value={config.skillCount}
         >
-          <option value={0}>0 张：基础规则</option>
-          <option value={1}>1 张：技能入门</option>
-          <option value={2}>2 张：进阶练习</option>
-          <option value={3}>3 张：技能乱斗</option>
+          {isBigSkillMode(config.skillMode) ? Array.from({ length: MAX_BIG_CARDS_PER_PLAYER }, (_, i) => (
+            <option key={i + 1} value={i + 1}>{i + 1} 张大卡</option>
+          )) : <>
+            <option value={0}>0 张：基础规则</option>
+            <option value={1}>1 张：技能入门</option>
+            <option value={2}>2 张：进阶练习</option>
+            <option value={3}>3 张：技能乱斗</option>
+          </>}
         </select>
       </label>
     </div>
