@@ -14,7 +14,7 @@ export function EventLog({ state }: EventLogProps) {
         event.type !== "action_submitted" &&
         event.type !== "cake_changed"
     )
-    .slice(-10)
+    .slice(-60)
     .reverse();
 
   return (
@@ -28,7 +28,7 @@ export function EventLog({ state }: EventLogProps) {
           {events.length}
         </span>
       </div>
-      <div className="max-h-[130px] space-y-2 overflow-auto pr-1">
+      <div className="max-h-[min(50dvh,480px)] min-h-56 space-y-2 overflow-auto pr-1" data-testid="room-event-log">
         {events.length === 0 ? (
           <p className="text-sm text-gray-500">还没有牌桌记录</p>
         ) : (

@@ -595,7 +595,7 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
       usesPerGame: 1,
       effect: "no_direct_effect"
     },
-    timingPhases: ["round_pre_interval_action"]
+    timingPhases: ["opening_action"]
   },
   skill_112_59292: {
     category: "limited",
@@ -1363,6 +1363,9 @@ function createSkillDefinition(
   override: Partial<SkillDefinition> | undefined
 ): SkillDefinition {
   const inferredPlay = inferPlay(raw);
+  const timingPhases = override?.timingPhases ?? inferSkillTimingPhases(raw);
+  const usableAtOpening = raw.timing?.includes("随时可用") &&
+    timingPhases.includes("round_pre_interval_action") && !timingPhases.includes("opening_action");
   const definition: SkillDefinition = {
     ...raw,
     description: override?.description ?? raw.description,
@@ -1370,7 +1373,7 @@ function createSkillDefinition(
     implemented:
       override?.implemented ??
       (Boolean(inferredPlay) || engineHandledPassiveSkillIds.has(raw.id)),
-    timingPhases: override?.timingPhases ?? inferSkillTimingPhases(raw),
+    timingPhases: usableAtOpening ? ["opening_action", ...timingPhases] : timingPhases,
     hooks: override?.hooks ?? {}
   };
   const play = override?.play ?? inferredPlay;

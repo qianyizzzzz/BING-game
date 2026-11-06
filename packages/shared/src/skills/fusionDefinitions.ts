@@ -7,7 +7,7 @@ export const FUSION_EXPOSURE_TIMINGS: Record<string, SkillExposureTiming> = {
   "山崩地裂": "使用时", "辉月": "使用时", "黑白板": "胜利时", "逐日之弓": "开局",
   "冰火双漩": "使用时", "纯净苍穹": "使用时", "核战": "开局"
 };
-const acquisitionPhases: SkillDefinition["timingPhases"] = ["round_pre_interval_action", "round_before_action",
+const acquisitionPhases: SkillDefinition["timingPhases"] = ["opening_action", "round_pre_interval_action", "round_before_action",
   "turn_before_action", "turn_change_action", "turn_end_action", "turn_after_interval_action", "round_after_interval_action"];
 const anytimePhases: SkillDefinition["timingPhases"] = [...acquisitionPhases, "turn_damage_modify"];
 
@@ -34,7 +34,7 @@ export const FUSION_DEFINITIONS: Record<string, Partial<SkillDefinition>> = {
   "天魔舞": { category: "limited", timingPhases: acquisitionPhases,
     description: "保留乱舞，镜像法术分别可复制一个已暴露小技能和一个已暴露二融合，二融合不能选择天魔舞。猜测暴露有效；复制得到完整初始效果，不继承目标的次数、冷却、印记或封印。分解保留已复制技能，任意镜像使用后原镜像次数耗尽，再融合不刷新。",
     play: { kind: "effect", cost: 0, maxStacks: 1, targetMode: "single", usesPerGame: 1, effect: "no_direct_effect" } },
-  "猥琐小叔叔": { category: "raw", timingPhases: ["round_pre_interval_action"],
+  "猥琐小叔叔": { category: "raw", timingPhases: ["opening_action"],
     description: "开局准备阶段，在原融合素材以外的两个撸、日、丁、抠中选择一个，额外获得其初始效果。素材和额外技能均不能单独参与其他融合；分解时移除额外技能。融合本体不主动暴露，子技能各自按原规则暴露。",
     play: { kind: "effect", cost: 0, maxStacks: 1, targetMode: "none", usesPerGame: 1, effect: "sand_transform" } },
   "电闪雷鸣": { description: "保留闪电护体与鬼道。闪电护体每免疫1个攻击，获得1次鬼道；包括免疫转回自身的反噬攻击。非攻击出招和非攻击反噬不参与此免疫判定。" },

@@ -42,3 +42,4 @@ export * from "./engine/fusion";
 export * from "./engine/skillAcquisition";
 export * from "./socket";
 export * from "./state/machine";
+export * from "./roomPreset";

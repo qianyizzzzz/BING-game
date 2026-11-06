@@ -151,6 +151,10 @@ export interface ClientToServerEvents {
     payload: UpdateSettingsPayload,
     ack: (response: SocketAck<{ state: PublicGameState }>) => void
   ) => void;
+  "room:load_preset": (
+    payload: { roomId: GameId; preset: unknown },
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
+  ) => void;
   "room:update_player_skills": (
     payload: UpdatePlayerSkillsPayload,
     ack: (response: SocketAck<{ state: PublicGameState }>) => void

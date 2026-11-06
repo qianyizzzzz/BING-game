@@ -7,6 +7,8 @@ export type StateCategory = "positive" | "negative" | "element";
 export type EffectCategory = "damage_reduction" | "damage_evasion" | "damage_immunity" | "remove_fire_skills" | "remove_skills" | "skill_loss" | "skill_absorption" | "skill_copy" | "skill_gain";
 export const ALL_SKILLS_SEALED_BUFF_ID = "all_skills_sealed";
 export const SKILL_DISABLED_BUFF_PREFIX = "skill_disabled_until_round:";
+/** A shield buff's stacks are the number of shields currently held. */
+export const SHIELD_STATE_TYPE = "shield";
 export interface StateDefinition { id: string; name: string; categories: StateCategory[]; }
 const states = new Map<string, StateDefinition>();
 const effects = new Map<string, Set<EffectCategory>>();

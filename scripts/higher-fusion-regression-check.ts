@@ -85,6 +85,7 @@ test("毁灭之魂升级全力一击和变招，且沿用毁灭之力的轮次�
 
 test("无限之力开放无限乘法，并解除凝血之力的加饼上限", () => {
   let state = fuse(fuse(fixture(["破地之力", "毁灭之力", "凝血之力"]), "宗师之力"), "无限之力");
+  state = advanceActionWindow(state);
   state.roundNumber = 2;
   owner(state).buffs.push({ id: "damage_taken_round:1", name: "上一轮受伤", stacks: 9 });
   state = submitActionWindowSkill(state, owner(state).id, action("凝血之力"));
@@ -433,9 +434,6 @@ for (const [recipeId, testId, skills, ingredientFusion, pattern] of [
       assert.equal(getFusionMaterialSelection(owner(state), recipeId), undefined);
       if (ingredientFusion) {
         assert.throws(() => decomposeSkill(state, owner(state).id, instanceIds[0]!), /覆盖/);
-      } else {
-        assert.throws(() => decomposeSkill(state, owner(state).id, top!.id), /回合末/);
-        state = turn(state, [cake, cake, cake]);
       }
       state = decomposeSkill(state, owner(state).id, top!.id);
       assert.deepEqual(getFusionMaterialSelection(owner(state), recipeId)?.map(({ instanceId }) => instanceId), instanceIds);

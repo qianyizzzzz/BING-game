@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
-import { BigCardDefinition, PublicGameState, SkillId, getBigCard, getBigCards, getSkill, isBigSkillMode } from "@bing/shared";
+import {
+  BigCardAbilityDefinition, BigCardDefinition, PublicGameState, SkillId, HUNYAO_LIGHT_ID, JIHAN_FREEZE_ID,
+  getBigCard, getBigCards, getSkill, isBigSkillMode
+} from "@bing/shared";
 
 interface BigCardPanelProps {
   state: PublicGameState;
@@ -22,24 +25,8 @@ export function BigCardPanel({ state, busy = false, isOwner = false, onChange }:
         <span className="status-pill">每人 {state.config.skillCount} 张 · 行动限时 300 秒</span>
       </div>
       <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" data-testid="big-card-pending-notice">
-        已接入的大卡会标注各自待实现的效果。大卡授予的小技能与融合会在开局后获得。
+        卡面会标注实现状态。大卡授予的小技能与融合会在开局后获得。
       </p>
-      {state.phase !== "lobby" && viewer?.buffs.some((buff) => buff.stateType) ? (
-        <div className="space-y-1 rounded-lg border border-teal-100 p-2 text-sm" data-testid="big-card-statuses">
-          <strong>本局状态</strong>
-          {viewer.buffs.filter((buff) => buff.stateType).map((buff) => <p key={buff.id}>
-            {buff.name} · {buff.infinite ? "无限" : buff.expiresAtTurn !== undefined ? `剩余${Math.max(0, buff.expiresAtTurn - state.turnNumber)}回合` :
-              buff.expiresAtRound !== undefined ? `剩余${Math.max(0, buff.expiresAtRound - state.roundNumber)}轮` :
-                buff.stateType === "kuiji_cake_growth" ? "永久良好" : buff.stateType === "element_resource" ? `${buff.stacks} 个` : "持续至触发后解除"}
-          </p>)}
-        </div>
-      ) : null}
-      {state.phase !== "lobby" && viewer?.bigCards?.some((card) => card.cardId === "10502") ? (
-        <p className="rounded-lg border border-teal-100 p-2 text-sm">
-          本轮出饼积累 {viewer.actionCakes ?? 0}/10
-          {viewer.hunyaoAwakened ? " · 三追概率已提升至100%" : ""}
-        </p>
-      ) : null}
       {canSelect ? (
         <div className="grid min-w-0 gap-3 lg:grid-cols-2">
           {controlled.map((player) => <BigCardPicker key={player.id} player={player} busy={busy}
@@ -51,6 +38,7 @@ export function BigCardPanel({ state, busy = false, isOwner = false, onChange }:
         <div className="space-y-2">{viewer.bigCards.map((instance) => {
           const card = getBigCard(instance.cardId);
           return card ? <BigCardDetails key={instance.instanceId} card={card} lostAbilityIds={instance.lostAbilityIds}
+            counters={state.statusOverview?.cardCounters[instance.instanceId]}
             onlyAbilityId={instance.onlyAbilityId} borrowedUntilRound={instance.borrowedUntilRound} disabled={instance.junengDisabled} /> : null;
         })}</div>
       ) : <p className="text-sm text-gray-500">{viewer?.kind === "spectator" ? "观战中，其他玩家的未暴露大卡保持隐藏。" : "尚未指定大卡，可继续基础出招测试。"}</p>}
@@ -68,6 +56,13 @@ export function BigCardPanel({ state, busy = false, isOwner = false, onChange }:
   );
 }
 
+function displayedAbilityDescription(ability: BigCardAbilityDefinition): string {
+  if (ability.id === HUNYAO_LIGHT_ID || ability.id === JIHAN_FREEZE_ID) {
+    return getSkill(ability.id)?.description ?? ability.description;
+  }
+  return ability.description;
+}
+
 function BigCardPicker({ player, busy, maxCount, onChange }: {
   player: PublicGameState["players"][number]; busy: boolean; maxCount: number; onChange: (ids: string[]) => void;
 }) {
@@ -75,7 +70,7 @@ function BigCardPicker({ player, busy, maxCount, onChange }: {
   const selected = (player.bigCards ?? []).map((instance) => instance.cardId);
   const available = useMemo(() => {
     const text = query.trim().toLocaleLowerCase();
-    return getBigCards().filter((card) => !text || `${card.id} ${card.name} ${card.sourceGroup} ${card.abilities.map((ability) => ability.description).join(" ")}`
+    return getBigCards().filter((card) => !text || `${card.id} ${card.name} ${card.sourceGroup} ${card.abilities.map(displayedAbilityDescription).join(" ")}`
       .toLocaleLowerCase().includes(text));
   }, [query]);
   const full = selected.length >= maxCount;
@@ -86,7 +81,7 @@ function BigCardPicker({ player, busy, maxCount, onChange }: {
       </div>
       <label className="block text-sm">搜索大卡
         <input className="soft-input mt-1 w-full" data-testid={`big-card-search-${player.id}`}
-          disabled={busy || full} placeholder="名称、五位 ID 或效果原文" value={query} onChange={(event) => setQuery(event.target.value)} />
+          disabled={busy || full} placeholder="名称、五位 ID 或效果说明" value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>
       <label className="block text-sm">添加大卡
         <select className="soft-input mt-1 w-full" data-testid={`big-card-add-${player.id}`} value="" disabled={busy || full}
@@ -108,9 +103,10 @@ function BigCardPicker({ player, busy, maxCount, onChange }: {
   );
 }
 
-function BigCardDetails({ card, lostAbilityIds, onlyAbilityId, borrowedUntilRound, disabled }: {
+function BigCardDetails({ card, lostAbilityIds, onlyAbilityId, borrowedUntilRound, disabled, counters }: {
   card: BigCardDefinition; lostAbilityIds?: string[] | undefined; onlyAbilityId?: string | undefined; borrowedUntilRound?: number | undefined;
   disabled?: boolean | undefined;
+  counters?: Record<string, string[]> | undefined;
 }) {
   const abilities = onlyAbilityId ? card.abilities.filter(({ id }) => id === onlyAbilityId) : card.abilities;
   return (
@@ -120,12 +116,18 @@ function BigCardDetails({ card, lostAbilityIds, onlyAbilityId, borrowedUntilRoun
       </summary>
       <p className="mt-2 text-xs text-gray-500">{card.sourceGroup} · {abilities.length} 条子技能{borrowedUntilRound ? ` · 第${borrowedUntilRound}轮归还` : ""} · 点击卡名可收起</p>
       {card.id === "10501" ? <p className="mt-2 text-xs text-teal-800">实际使用规则：控制技失效不含“除你”，焚世烈焰在全部三轮有效期内生效。开局发放天火之狱和炽焰。</p> : null}
-      {card.id === "10502" ? <p className="mt-2 text-xs text-teal-800">开局发放阳光普照和破晓。「日」为群攻，逐重从攻4开始增长。灼日之矢待接入。</p> : null}
-      {card.id === "10503" ? <p className="mt-2 text-xs text-teal-800">冰伤反击只打其他玩家。开局发放极寒风暴、大雪球和极寒，冰封反制的先制待接入。</p> : null}
+      {card.id === "10503" ? <p className="mt-2 text-xs text-teal-800">冰伤反击只打其他玩家。开局发放极寒风暴、大雪球和极寒。</p> : null}
       <ol className="mt-3 space-y-3">{abilities.map((ability) => <li key={ability.id} className="min-w-0 border-t border-gray-100 pt-2">
         <span className="text-xs font-semibold text-teal-800">{ability.id}</span>
         {lostAbilityIds?.includes(ability.id) ? <span className="ml-2 text-xs text-amber-800">已永久失去</span> : null}
-        <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-800">{ability.description}</p>
+        <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-800">{displayedAbilityDescription(ability)}</p>
+        {counters?.[ability.id]?.map((counter, index) => (
+          <p key={index} className="mt-1 break-words text-xs font-semibold text-teal-800">{counter}</p>
+        ))}
+        <details className="mt-2 text-sm">
+          <summary className="cursor-pointer font-medium text-teal-800">展示已实现效果</summary>
+          <p className="mt-1 whitespace-pre-wrap break-words leading-relaxed">{ability.implementedRules ?? "技能 ID 对照表暂无此项的已实现规则。"}</p>
+        </details>
       </li>)}</ol>
     </details>
   );

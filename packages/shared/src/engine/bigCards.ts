@@ -34,7 +34,7 @@ export function initializeBigCardRules(state: GameState): void {
       }
       if (bigCardHasAbility(card, HUNYAO_LIGHT_ID)) {
         for (const grant of HUNYAO_SKILL_GRANTS) {
-          if (grant.skillId) grantInitializedSkill(state, player.id, grant.skillId,
+          grantInitializedSkill(state, player.id, grant.skillId,
             `魂耀九州获得${grant.name}`, false, undefined, card.instanceId);
         }
       }

@@ -87,7 +87,7 @@ for (const first of ["small", "fusion"]) check(`heaven dance copies both choices
   s = decompose(s, "天魔舞"); assert.equal(getActiveSkillCount(p(s), skill("八卦阵")), 1);
   assert.equal(getActiveSkillCount(p(s), skill("幻境双罩")), 1); assert.equal(used(s, "镜像法术"), 1);
   // Return to opening only to probe usage inheritance through a second cover.
-  s.activeTimingPhase = "round_pre_interval_action"; s.roundNumber = 1; s.turnNumber = 1; s = fuse(s, "天魔舞");
+  s.activeTimingPhase = "opening_action"; s.roundNumber = 1; s.turnNumber = 1; s = fuse(s, "天魔舞");
   assert.throws(() => use(s, "天魔舞", "幻境双罩"), /上限/); assert.throws(() => use(s, "镜像法术", "八卦阵"), /上限/);
 });
 for (const choice of ["small", "fusion"]) check(`decomposing dance after only ${choice} retains its copy and spends original mirror`, () => {

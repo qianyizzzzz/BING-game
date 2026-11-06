@@ -101,8 +101,8 @@ export function fuseSkillsInPreparation(state: GameState, playerId: PlayerId, ac
 }
 
 export function decomposeSkill(state: GameState, playerId: PlayerId, fusionId: string): GameState {
-  if (state.phase !== "action_window" || state.activeTimingPhase !== "turn_end_action") {
-    throw new Error("分解只能在回合末行动阶段使用");
+  if (state.phase !== "action_window" || (!isFusionPreparation(state) && state.activeTimingPhase !== "turn_end_action")) {
+    throw new Error("分解只能在开局阶段或回合末行动阶段使用");
   }
   const player = findPlayer(state, playerId);
   if (!player || player.status !== "alive") throw new Error("只有存活玩家可以分解技能");

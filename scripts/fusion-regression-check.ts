@@ -92,7 +92,7 @@ check("opening fusion is free, repeatable, shares the steal-choice window, and c
   assert.deepEqual(state.pendingActions, {});
   assert.equal(state.turnNumber, original.turnNumber);
   assert.deepEqual(owner(original).skillFusions, undefined);
-  assert.equal(state.activeTimingPhase, "round_pre_interval_action");
+  assert.equal(state.activeTimingPhase, "opening_action");
   assert.ok(state.actionWindowDeadlineAt! >= original.actionWindowDeadlineAt!);
 });
 
@@ -146,11 +146,18 @@ check("fusion rejects insufficient cakes, a mixed action plan, and forged materi
   assert.throws(() => submitPlayerAction(state, owner(state).id, forged), /素材/);
 });
 
-check("decomposition is allowed only at turn end, is free, and cannot target another player", () => {
+check("decomposition is free at opening and turn end, and cannot target another player", () => {
   let state = game(["神罩", "鬼罩"]);
   state = submitPlayerAction(state, owner(state).id, fusionAction("幻境双罩")).state;
   const id = owner(state).skillFusions![0]!.id;
-  assert.throws(() => decomposeSkill(state, owner(state).id, id), /回合末/);
+  const opening = decomposeSkill(state, owner(state).id, id);
+  assert.equal(owner(opening).cakes, 0);
+  assert.equal(owner(opening).skillFusions?.length, 0);
+  assert.equal(opening.activeTimingPhase, "opening_action");
+  const interval = advanceActionWindow(state);
+  assert.equal(interval.activeTimingPhase, "round_pre_interval_action");
+  assert.equal(interval.roundNumber, 1);
+  assert.throws(() => decomposeSkill(interval, owner(interval).id, id), /开局阶段或回合末/);
   const end = endWindow(state);
   assert.throws(() => decomposeSkill(end, end.players[1]!.id, id), /自己持有/);
   const next = decomposeSkill(end, owner(end).id, id);
@@ -560,6 +567,7 @@ check("blood demon gains six defense for the same one-HP payment and keeps the t
 
 check("blood demon removes only coagulation's cake cap and retains interval and lifetime limits", () => {
   let state = effectGame("血魔之怒");
+  state = advanceActionWindow(state);
   state.roundNumber = 2;
   owner(state).buffs.push({ id: "damage_taken_round:1", name: "上一轮受伤", stacks: 9 });
   state = submitActionWindowSkill(state, owner(state).id, cast("凝血之力"));

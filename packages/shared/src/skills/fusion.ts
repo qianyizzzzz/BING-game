@@ -102,7 +102,7 @@ export function isFusionImplemented(skillId: SkillId): boolean {
 }
 
 export function isFusionPreparation(state: Pick<GameState, "phase" | "activeTimingPhase" | "roundNumber" | "turnNumber">): boolean {
-  return state.phase === "action_window" && state.activeTimingPhase === "round_pre_interval_action" &&
+  return state.phase === "action_window" && state.activeTimingPhase === "opening_action" &&
     state.roundNumber === 1 && state.turnNumber === 1;
 }
 
@@ -175,7 +175,7 @@ export function isHuiyueActive(player: Pick<PlayerState, "buffs"> | undefined, t
 }
 
 /** Both spells retain a three-round baseline ledger, including through decomposition. */
-function getFlashFamilySlots(player: FusionOwner, roundNumber: number) {
+export function getFlashFamilySlots(player: FusionOwner, roundNumber: number) {
   const count = Math.max(0, player.skills.filter((id) => id === "skill_103_56259").length -
     countSuppressedFusionMaterials(player, "skill_103_56259"));
   const oneRound = getFusionEnhancementCount(player, "skill_103_56259", ["虚无"]);

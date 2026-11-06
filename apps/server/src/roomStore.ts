@@ -28,7 +28,7 @@ import {
   submitPointGameAction, hasPendingPointGame, POINT_GAME_MOVES, getBlindSkillChoices, type PointGameAction,
   toPublicGameState
 } from "@bing/shared";
-import { createId, getBigCard, isBigSkillMode, MAX_BIG_CARDS_PER_PLAYER, sanitizeBigCardIds } from "@bing/shared";
+import { createId, getBigCard, isBigSkillMode, MAX_BIG_CARDS_PER_PLAYER, parseRoomPreset, sanitizeBigCardIds } from "@bing/shared";
 import { chooseAiAction, chooseAiActionWindowSkill } from "./ai";
 import { MatchRecorder } from "./matchRecorder";
 
@@ -371,6 +371,48 @@ export class RoomStore {
     return next;
   }
 
+  loadPreset(roomId: GameId, ownerId: PlayerId, input: unknown): GameState {
+    const state = this.requireRoom(roomId);
+    if (state.ownerId !== ownerId || state.phase !== "lobby") {
+      throw new Error("只有房主可以在开局前读取房间预设");
+    }
+    const preset = parseRoomPreset(input);
+    const humanCount = state.players.filter((player) => player.kind === "human").length;
+    if (humanCount + preset.aiSkills.length > preset.config.maxPlayers) {
+      throw new Error("预设中的 AI 数量超出当前真人玩家可用的座位");
+    }
+    for (const player of state.players) {
+      if (player.kind !== "human" || player.id === ownerId) continue;
+      const choices = state.config.skillMode === "big_test_select" ? player.bigCards?.length ?? 0 :
+        state.config.skillMode === "test_select" ? player.skills.length : 0;
+      if (choices > 0 && (state.config.skillMode !== preset.config.skillMode || choices > preset.config.skillCount)) {
+        throw new Error("预设的模式或技能槽数与其他真人的现有选择冲突，请先让玩家清空自己的技能");
+      }
+    }
+    let next = structuredClone(state);
+    next.config = preset.config;
+    const keepAi = new Set(next.players.filter((player) => player.kind === "ai")
+      .slice(0, preset.aiSkills.length).map((player) => player.id));
+    next.players = next.players.filter((player) => player.kind !== "ai" || keepAi.has(player.id));
+    for (let i = keepAi.size; i < preset.aiSkills.length; i++) {
+      next = addPlayerToGame(next, createPlayer(`AI ${i + 1}`, "ai"));
+    }
+    syncLobbySkillsWithMode(next);
+    if (["test_select", "big_test_select"].includes(next.config.skillMode)) {
+      const ai = next.players.filter((player) => player.kind === "ai");
+      const host = next.players.find((player) => player.id === ownerId)!;
+      const bigMode = next.config.skillMode === "big_test_select";
+      assignLobbySkills(host, preset.ownerSkills, bigMode, next.config.skillCount);
+      ai.forEach((player, i) => assignLobbySkills(player, preset.aiSkills[i]!, bigMode, next.config.skillCount));
+    }
+    next.updatedAt = Date.now();
+    next.eventLog.push({ ...createBaseEvent(next, "settings_updated"), type: "settings_updated",
+      byPlayerId: ownerId, config: next.config });
+    this.rooms.set(roomId, next);
+    this.recorder.recordState(next);
+    return next;
+  }
+
   updatePlayerSkills(
     roomId: GameId,
     actorPlayerId: PlayerId,
@@ -412,15 +454,7 @@ export class RoomStore {
     }
 
     const bigMode = next.config.skillMode === "big_test_select";
-    const nextSkillIds = bigMode ? sanitizeBigCardIds(skillIds, next.config.skillCount) : sanitizeSkillIds(skillIds, next.config.skillCount);
-    if (bigMode) {
-      nextTarget.skills = [];
-      nextTarget.bigCards = nextSkillIds.map((cardId) => ({ instanceId: createId("big_card"), cardId }));
-    } else {
-      nextTarget.skills = nextSkillIds;
-      delete nextTarget.bigCards;
-    }
-    nextTarget.revealedSkillIds = [];
+    const nextSkillIds = assignLobbySkills(nextTarget, skillIds, bigMode, next.config.skillCount);
     next.skillKnowledge = {};
     next.updatedAt = Date.now();
     next.eventLog.push({
@@ -662,6 +696,15 @@ function syncLobbySkillsWithMode(state: GameState): void {
     }
   }
   state.skillKnowledge = {};
+}
+
+function assignLobbySkills(player: PlayerState, ids: SkillId[], bigMode: boolean, skillCount: number): SkillId[] {
+  const selected = bigMode ? sanitizeBigCardIds(ids, skillCount) : sanitizeSkillIds(ids, skillCount);
+  player.skills = bigMode ? [] : selected;
+  player.revealedSkillIds = [];
+  if (bigMode) player.bigCards = selected.map((cardId) => ({ instanceId: createId("big_card"), cardId }));
+  else delete player.bigCards;
+  return selected;
 }
 
 function sanitizeSkillIds(skillIds: SkillId[], maxCount: number): SkillId[] {
