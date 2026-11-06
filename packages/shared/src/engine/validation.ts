@@ -1026,7 +1026,7 @@ function validateShunshouStealChoice(
     return valid();
   }
 
-  if (timingPhase !== "round_pre_interval_action" || state.roundNumber !== 1) {
+  if (timingPhase !== "opening_action") {
     return invalid("顺手牵羊只能在开局阶段选择技能");
   }
 

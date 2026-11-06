@@ -299,6 +299,15 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("room:load_preset", (payload, ack) => {
+    safely(ack, () => {
+      const ownerId = requirePlayerId(socket.data.playerId);
+      rooms.loadPreset(payload.roomId, ownerId, payload.preset);
+      void broadcastRoomState(payload.roomId);
+      return { state: rooms.publicState(payload.roomId, ownerId) };
+    });
+  });
+
   socket.on("room:update_player_skills", (payload, ack) => {
     safely(ack, () => {
       const playerId = requirePlayerId(socket.data.playerId);

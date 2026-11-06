@@ -4,7 +4,7 @@ import path from "node:path";
 import {
   ACTION_PROMPT_SECONDS, ACTION_WINDOW_SECONDS, SKILL_PREPARATION_SECONDS, ACTION_WINDOW_PHASES,
   GameState, SkillMode, addPlayerToGame, addSpectatorToGame, beginActionPrompt, beginBasicTurnAction,
-  createGame, createPlayer, enterActionWindow, getAllSkills, getBigCard, getBigCards,
+  createGame, createPlayer, createRoomPreset, enterActionWindow, getAllSkills, getBigCard, getBigCards,
   getCurrentTurnLimitSeconds, getRandomBigCardIds, passActionWindow, startGame, toPublicGameState, validateAction
 } from "@bing/shared";
 import { RoomStore } from "../apps/server/src/roomStore";
@@ -31,7 +31,8 @@ check("catalog retains all parent-child IDs and exact inherited description", ()
   assert.equal(getBigCard("20813")!.name, "缄默•魂之虹彩");
   assert.equal(getBigCard("20920")!.name, "千秋红尘录");
   assert.equal(getRandomBigCardIds().length, 202);
-  assert.deepEqual(getBigCards().filter((card) => card.implemented).map(({ id }) => id), ["10501", "10504", "10505", "10506", "10507", "10508"]);
+  assert.deepEqual(getBigCards().filter((card) => card.implemented).map(({ id }) => id),
+    ["10501", "10502", "10503", "10504", "10505", "10506", "10507", "10508"]);
   assert.ok(!getAllSkills({ includeFusions: true }).some((skill) => /^\d{5,7}$/.test(skill.id)));
 });
 
@@ -53,7 +54,7 @@ check("random mode deals only native big cards, no small skills or spectator car
   }
   assert.deepEqual(state.players[2]!.bigCards, []);
   assert.equal(new Set(state.players.flatMap((player) => player.bigCards!.map((card) => card.instanceId))).size, 12);
-  assert.ok(state.eventLog.some((event) => event.type === "system" && event.message.includes("御秽裁决已接入")));
+  assert.ok(state.eventLog.some((event) => event.type === "system" && event.message.includes("大卡10501至10508已实现")));
 });
 
 for (const mode of ["big_random", "big_test_select"] as const) {
@@ -90,7 +91,8 @@ check("specified cards persist; opponents and spectators receive counts without 
   assert.equal(observer.players[0]!.bigCardSlotCount, 2);
   assert.equal(state.players[0]!.skills.length, 6, "Fentian grants both real inherited fusions after dealing");
   assert.equal(getBigCard("10501")!.implementationStatus, "implemented");
-  assert.equal(getBigCard("10503")!.implementationStatus, "partial");
+  assert.equal(getBigCard("10502")!.implementationStatus, "implemented");
+  assert.equal(getBigCard("10503")!.implementationStatus, "implemented");
   for (let i = 0; state.phase === "action_window" && i < 12; i++) {
     for (const player of state.players.slice(0, 2)) if (state.phase === "action_window") state = passActionWindow(state, player.id);
   }
@@ -155,6 +157,55 @@ check("server validates mode-specific selections, permissions, count changes, sw
   assert.ok(!store.publicState(room.id, guest.id).players[0]!.bigCards!.length);
   assert.throws(() => store.updateSettings(room.id, host.id, { skillMode: "none" }), /开始后/);
   fs.writeFileSync(path.join(directory, "result.json"), JSON.stringify({ passed: true }));
+});
+
+check("room preset restores the host and AI seats without replacing the guest's choices", () => {
+  const directory = path.resolve(`data-test/room-preset-${Date.now()}`);
+  const store = new RoomStore(new MatchRecorder(directory));
+  const { state: room, player: host } = store.createRoom("Host");
+  const guest = store.joinRoom(room.id, "Guest").player;
+  const ai = store.addAi(room.id).players.find((player) => player.kind === "ai")!;
+  store.updateSettings(room.id, host.id, { skillMode: "big_test_select", skillCount: 2, turnTimeLimitSeconds: 73 });
+  store.updatePlayerSkills(room.id, host.id, host.id, ["10502"]);
+  store.updatePlayerSkills(room.id, guest.id, guest.id, ["10507"]);
+  store.updatePlayerSkills(room.id, host.id, ai.id, ["10503"]);
+  const preset = createRoomPreset(store.publicState(room.id, host.id));
+  const file = JSON.stringify(preset);
+  assert.ok(!file.includes(guest.id) && !file.includes("10507") && !file.includes(room.id));
+  assert.deepEqual(preset.aiSkills, [["10503"]]);
+  store.addAi(room.id);
+  store.updatePlayerSkills(room.id, host.id, host.id, ["10508"]);
+  assert.throws(() => store.loadPreset(room.id, guest.id, preset), /只有房主/);
+  assert.throws(() => store.loadPreset(room.id, host.id, { ...preset, aiSkills: [[], [], [], [], []] }), /座位/);
+  assert.throws(() => store.loadPreset(room.id, host.id, {
+    ...preset, config: { ...preset.config, skillMode: "small_intro" }, ownerSkills: [], aiSkills: [[]]
+  }), /现有选择冲突/);
+  const state = store.loadPreset(room.id, host.id, JSON.parse(file));
+  assert.equal(state.config.turnTimeLimitSeconds, 73);
+  assert.deepEqual(state.players.filter((player) => player.kind === "ai").map((player) => player.id), [ai.id]);
+  assert.deepEqual(state.players.map((player) => player.bigCards?.map((card) => card.cardId)), [["10502"], ["10507"], ["10503"]]);
+  store.start(room.id, host.id);
+  assert.throws(() => store.loadPreset(room.id, host.id, preset), /开局前/);
+});
+
+check("implemented descriptions and private status counters are available to the card holder", () => {
+  assert.match(getBigCard("10508")!.abilities[0]!.implementedRules!, /石头、剪刀或布/);
+  const state = startGame(fixture("big_test_select"));
+  const owner = state.players[0]!;
+  owner.bigCards = [{ cardId: "10508", instanceId: "verdict", verdictProgress: { wins: 2, losses: 1, streak: 2 } }];
+  owner.buffs.push(
+    { id: "element:星", name: "星", stacks: 2, stateType: "element_resource" },
+    { id: "defense_value", name: "防御值", stacks: 3 },
+    { id: "ice_rain:attacker", name: "冰雨", stacks: 4 },
+    { id: "trauma_converge:4", name: "创伤聚合", stacks: 2 }
+  );
+  const own = toPublicGameState(state, owner.id).statusOverview!;
+  assert.deepEqual(own.elements, [{ label: "星", value: "2" }]);
+  assert.deepEqual(own.defense[0], { label: "防御值", value: "3" });
+  assert.deepEqual(own.marks, [{ label: "冰雨", value: "4" }]);
+  assert.match(own.longTerm[0]!.value, /剩 3 轮/);
+  assert.match(own.cardCounters.verdict!["1050803"]![0]!, /2 胜 \/ 1 负 · 2 连胜/);
+  assert.ok(!toPublicGameState(state, state.players[1]!.id).statusOverview?.cardCounters.verdict);
 });
 
 console.log(`Big-card mode checks passed: ${passed}`);

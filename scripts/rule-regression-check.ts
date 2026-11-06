@@ -82,11 +82,12 @@ run("defense value does not absorb burning earth spell damage", () => {
 });
 
 run("burning earth in round interval does not advance the round", () => {
-  const { state, ids } = makeGame(["A", "B"], {
+  let { state, ids } = makeGame(["A", "B"], {
     skillMode: "test_select",
     skillCount: 1
   });
   seat(state, ids.A, { skills: ["skill_13_68869"] });
+  state = advanceActionWindow(state);
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
@@ -106,6 +107,7 @@ run("burning earth before a round advances to the next round interval", () => {
     skillCount: 1
   });
   seat(state, ids.A, { skills: ["skill_13_68869"] });
+  state = advanceActionWindow(state);
   state = advanceActionWindow(state);
   assert.equal(state.activeTimingPhase, "round_before_action");
 
@@ -2506,6 +2508,7 @@ run("shenyin qinglian requires zero hp, costs three cakes, heals, and grants nex
     skillCount: 1
   });
   seat(state, ids.A, { hp: 0, cakes: 3, skills: ["skill_24_71363"] });
+  state = advanceActionWindow(state);
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",

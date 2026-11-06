@@ -1,4 +1,5 @@
-﻿import {
+import { getTraumaDueRound } from "./statusOverview";
+import {
   AttackElement,
   AttackStatModifierChoice,
   AttackStats,
@@ -1975,7 +1976,7 @@ function shouldDelayWindowDamageUntilTurnResolution(state: GameState): boolean {
 }
 
 function shouldEndRoundAfterWindowHealthChange(timingPhase: SkillTimingPhase): boolean {
-  return timingPhase !== "round_pre_interval_action" && timingPhase !== "round_after_interval_action";
+  return timingPhase !== "opening_action" && timingPhase !== "round_pre_interval_action" && timingPhase !== "round_after_interval_action";
 }
 
 function finishHealthChangedActionWindow(
@@ -2172,8 +2173,13 @@ function advanceCurrentActionWindow(state: GameState): void {
   }
 
   const current = state.activeTimingPhase;
-  if (current === "round_pre_interval_action") {
+  if (current === "opening_action") {
     applyDefaultShunshouStealChoices(state);
+    beginSkippedAwareActionPrompt(state, "round_pre_interval_action");
+    return;
+  }
+
+  if (current === "round_pre_interval_action") {
     beginSkippedAwareActionPrompt(state, "round_before_action");
     return;
   }
@@ -7529,15 +7535,6 @@ function applyRoundStartSkills(state: GameState): void {
       changeCakes(state, player.id, player.cakes + traumaBuff.stacks, `创伤聚合轮初+${traumaBuff.stacks}饼`);
     }
   }
-}
-
-function getTraumaDueRound(player: PlayerState, buff: PlayerState["buffs"][number]): number | undefined {
-  const match = /^trauma_converge:(\d+)(?::fusion:.+)?$/.exec(buff.id);
-  if (!match) return undefined;
-  const fusion = player.skillFusions?.find((item) => item.id === buff.sourceFusionId && isFusionActive(player, item));
-  const soulRepair = fusion && getFusionRecipe(fusion.skillId)?.skill.name === "灵魂修复";
-  // Keep the original three-round due date so decomposition restores the remaining wait.
-  return Number(match[1]) - (soulRepair ? 2 : 0);
 }
 
 function applyTraumaRecoveryAtRoundEnd(state: GameState, player: PlayerState): void {

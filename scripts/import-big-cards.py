@@ -43,7 +43,10 @@ def main():
         if child_id in child_ids or not description.strip():
             raise ValueError(f'Duplicate or empty child: {child_id}')
         child_ids.add(child_id)
-        card['abilities'].append({'id': child_id, 'order': int(order), 'description': description, 'sourceCell': source_cell})
+        ability = {'id': child_id, 'order': int(order), 'description': description, 'sourceCell': source_cell}
+        if len(row) > 6 and row[6].strip():
+            ability['implementedRules'] = row[6]
+        card['abilities'].append(ability)
     for card in cards.values():
         card['abilities'].sort(key=lambda item: item['order'])
         if len(card['abilities']) != card.pop('_childCount') or [a['order'] for a in card['abilities']] != list(range(1, len(card['abilities']) + 1)):

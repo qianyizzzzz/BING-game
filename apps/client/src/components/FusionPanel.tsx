@@ -45,7 +45,7 @@ export function FusionPanel({ state, submitting, onSubmit, onDecompose, onChoose
     (preparation ? !passed : state.phase === "collecting_actions" &&
       !state.pendingActionPlayerIds.includes(viewer.id) && viewer.cakes >= FUSION_CAKE_COST);
   const canDecompose = !submitting && state.phase === "action_window" &&
-    state.activeTimingPhase === "turn_end_action" && !passed;
+    (preparation || state.activeTimingPhase === "turn_end_action") && !passed;
   const availableOptions = selected?.materialOptions.flatMap((option, index) => {
     const materials = getFusionMaterialSelection(viewer, selected.skill.id, option);
     return materials ? [{ index, materials }] : [];
@@ -161,7 +161,7 @@ export function FusionPanel({ state, submitting, onSubmit, onDecompose, onChoose
               {getSkill(materialId)?.name}{replaced ? "：效果由融合技能替代" : limit === undefined ? "" : `：总剩余${Math.max(0, limit - used)}次`}
             </p>;
           })}
-          {!canDecompose ? <p className="mt-1 text-xs text-gray-500">回合末行动窗口可分解。</p> : null}
+          {!canDecompose ? <p className="mt-1 text-xs text-gray-500">开局或回合末行动窗口可分解。</p> : null}
         </div>
       ))}
       <p className="text-xs text-gray-500">已收录 {FUSION_RECIPES.length} 条配方，已开放 {FUSION_RECIPES.filter(({ skill }) => isFusionImplemented(skill.id)).length} 条。</p>

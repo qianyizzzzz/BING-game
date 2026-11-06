@@ -10,6 +10,7 @@ import {
   type PointGameAction,
   SkillId,
   SocketAck,
+  createRoomPreset,
   getAllSkills
 } from "@bing/shared";
 import { getActionPromptSeconds, getActionWindowSeconds, getCurrentTurnLimitSeconds, isBigSkillMode, MAX_BIG_CARDS_PER_PLAYER } from "@bing/shared";
@@ -17,6 +18,7 @@ import { BigCardPanel } from "./components/BigCardPanel";
 import { ActionPanel } from "./components/ActionPanel";
 import { PointGamePanel } from "./components/PointGamePanel";
 import { EventLog } from "./components/EventLog";
+import { StatusPanel } from "./components/StatusPanel";
 import { GameAdvice } from "./components/GameAdvice";
 import { CharacterSelect } from "./components/CharacterSelect";
 import { ReferencePanel } from "./components/ReferencePanel";
@@ -43,12 +45,13 @@ interface LocalAccount {
   characterId: string;
 }
 
-type SidePanelTab = "hint" | "log" | "skills" | "rules";
+type SidePanelTab = "hint" | "log" | "skills" | "status" | "rules";
 
 const SIDE_PANEL_TABS: Array<{ id: SidePanelTab; label: string }> = [
   { id: "hint", label: "提示" },
   { id: "log", label: "记录" },
   { id: "skills", label: "技能" },
+  { id: "status", label: "状态" },
   { id: "rules", label: "规则" }
 ];
 
@@ -642,6 +645,23 @@ export function App() {
     );
   }
 
+  async function loadRoomPreset(file: File) {
+    if (!identity || busy) return;
+    setBusy(true);
+    try {
+      if (file.size > 32768) throw new Error("房间预设文件不能超过 32 KB");
+      const preset: unknown = JSON.parse((await file.text()).replace(/^\uFEFF/, ""));
+      socket.emit("room:load_preset", { roomId: identity.roomId, preset }, (response) => {
+        setBusy(false);
+        handleStateResponse(response);
+        if (response.ok) setMessage("已读取房间预设");
+      });
+    } catch {
+      setBusy(false);
+      setMessage("无法读取房间预设，请选择游戏导出的 TXT 文件（不超过 32 KB）");
+    }
+  }
+
   function updatePlayerSkills(targetPlayerId: string, skillIds: SkillId[]) {
     if (!identity) {
       return;
@@ -951,11 +971,15 @@ export function App() {
           <div className="space-y-5">
             {state.phase !== "lobby" ? (
               <PokerTableGame
-                readingBigCards={isBigSkillMode(state.config.skillMode) && sidePanelTab === "skills"}
+                readingSidePanel={sidePanelTab === "status" || (isBigSkillMode(state.config.skillMode) && sidePanelTab === "skills")}
                 onReadBigCards={isBigSkillMode(state.config.skillMode) ? () => {
                   setSidePanelTab("skills");
                   window.requestAnimationFrame(() => document.getElementById("big-card-reference")?.scrollIntoView({ block: "start" }));
                 } : undefined}
+                onReadStatus={() => {
+                  setSidePanelTab("status");
+                  window.requestAnimationFrame(() => document.getElementById("status-panel")?.scrollIntoView({ block: "start" }));
+                }}
                 actionPanel={
                   state.pointGame || state.verdictRemovalPlayerId ? (
                     <PointGamePanel key={state.pointGame?.id ?? state.verdictRemovalPlayerId} state={state} playerId={identity.playerId} busy={busy} submit={submitPointGame} />
@@ -1109,8 +1133,10 @@ export function App() {
               ) : null}
               {settingsOpen && isOwner && state.phase === "lobby" ? (
                 <SettingsPanel
-                  config={state.config}
+                  state={state}
+                  busy={busy}
                   onChange={updateSettings}
+                  onLoad={loadRoomPreset}
                 />
               ) : null}
             </div>
@@ -1416,6 +1442,7 @@ function SidePanel({
         {activeTab === "hint" ? <QuickHintPanel state={state} /> : null}
         {activeTab === "log" ? <EventLog state={state} /> : null}
         {activeTab === "skills" ? isBigSkillMode(state.config.skillMode) ? <BigCardPanel state={state} /> : <SkillPanel state={state} /> : null}
+        {activeTab === "status" ? <StatusPanel state={state} /> : null}
         {activeTab === "rules" ? (
           <div className="space-y-5">
             <TutorialPanel />
@@ -1649,17 +1676,32 @@ function searchSkillText(skill: ReturnType<typeof getAllSkills>[number]): string
 }
 
 function SettingsPanel({
-  config,
-  onChange
+  state, busy, onChange, onLoad
 }: {
-  config: GameConfig;
+  state: PublicGameState;
+  busy: boolean;
   onChange: (config: Partial<GameConfig>) => void;
+  onLoad: (file: File) => void;
 }) {
+  const config = state.config;
   return (
     <div
       className="mt-4 grid gap-3 border-t border-teal-100/70 pt-4 text-sm md:grid-cols-2"
       data-testid="settings-panel"
     >
+      <div className="settings-field flex flex-wrap items-center gap-2 md:col-span-2">
+        <a className="btn-secondary px-3 py-2" download="饼-房间预设.txt"
+          href={`data:text/plain;charset=utf-8,${encodeURIComponent(JSON.stringify(createRoomPreset(state), null, 2))}`}>下载房间预设</a>
+        <label className="btn-secondary cursor-pointer px-3 py-2 focus-within:outline">
+          读取房间预设
+          <input className="sr-only" type="file" accept=".txt,text/plain" disabled={busy} onChange={(event) => {
+            const file = event.currentTarget.files?.[0];
+            event.currentTarget.value = "";
+            if (file) onLoad(file);
+          }} />
+        </label>
+        <p className="basis-full text-xs">读取后恢复房主和 AI 的分配，其他真人玩家自行选技。</p>
+      </div>
       <label className="settings-field flex items-center gap-2 font-medium text-gray-700">
         <input
           checked={config.hideCakeCounts}

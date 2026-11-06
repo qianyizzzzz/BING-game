@@ -4139,6 +4139,8 @@ function areAdjacentPlayerIds(
 
 function phaseLabel(phase: PublicGameState["activeTimingPhase"]): string {
   switch (phase) {
+    case "opening_action":
+      return "开局阶段";
     case "round_pre_interval_action":
       return "轮前轮间";
     case "round_before_action":

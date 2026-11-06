@@ -36,6 +36,7 @@ export type GamePhase =
 
 export type SkillTimingPhase =
   | "game_start_check"
+  | "opening_action"
   | "round_pre_interval_action"
   | "round_before_action"
   | "round_start_check"
@@ -500,6 +501,7 @@ export interface PublicGameState
     | "initialPlayerSnapshots"
   > {
   pointGame?: { id: string; sourceId: PlayerId; targetId: PlayerId; round: number; submittedPlayerIds: PlayerId[] };
+  statusOverview?: import("./engine/statusOverview").StatusOverview;
   verdictRemovalPlayerId?: PlayerId;
   blindSkillChoices?: import("./engine/blindSkillRemoval").BlindSkillChoice[];
   cannonDefenseSteps?: Array<{ targetId: PlayerId; dueTurn: number; next: CannonDefense["next"] }>;

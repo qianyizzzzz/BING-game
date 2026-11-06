@@ -3,6 +3,7 @@ import { RawSkillDefinition, SkillDefinition } from "./types";
 
 export const SKILL_TIMING_PHASE_LABELS: Record<SkillTimingPhase, string> = {
   game_start_check: "开局判定",
+  opening_action: "开局阶段",
   round_pre_interval_action: "轮前轮间行动",
   round_before_action: "轮前行动",
   round_start_check: "轮初判定",
@@ -24,6 +25,7 @@ export const SKILL_TIMING_PHASE_LABELS: Record<SkillTimingPhase, string> = {
 };
 
 export const ACTION_WINDOW_PHASES = new Set<SkillTimingPhase>([
+  "opening_action",
   "round_pre_interval_action",
   "round_before_action",
   "turn_before_action",
@@ -122,6 +124,7 @@ export function inferSkillTimingPhases(raw: RawSkillDefinition): SkillTimingPhas
   }
 
   if (timing.includes("随时可用")) {
+    phases.add("opening_action");
     phases.add("round_pre_interval_action");
     phases.add("round_before_action");
     phases.add("turn_before_action");

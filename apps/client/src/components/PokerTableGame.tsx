@@ -14,7 +14,7 @@ import {
   projectCombatValue,
   subtractCombatValues
 } from "@bing/shared";
-import { getActionPromptSeconds, getActionWindowSeconds, getCurrentTurnLimitSeconds } from "@bing/shared";
+import { SKILL_TIMING_PHASE_LABELS, getActionPromptSeconds, getActionWindowSeconds, getCurrentTurnLimitSeconds } from "@bing/shared";
 import { battleDirectorSeatRole, useBattleDirector } from "../lib/battleDirector";
 import type { BattlePresentationCue } from "../lib/battlePresentation";
 import { formatDamage, playerName } from "../lib/format";
@@ -26,8 +26,9 @@ import { TableScene3D } from "./TableScene3D";
 
 interface PokerTableGameProps {
   actionPanel?: ReactNode;
-  readingBigCards?: boolean;
+  readingSidePanel?: boolean;
   onReadBigCards?: (() => void) | undefined;
+  onReadStatus?: () => void;
   highlightedPlayerIds?: Set<PlayerId>;
   isOwner: boolean;
   onKickPlayer?: (playerId: PlayerId) => void;
@@ -37,8 +38,9 @@ interface PokerTableGameProps {
 
 export function PokerTableGame({
   actionPanel,
-  readingBigCards = false,
+  readingSidePanel = false,
   onReadBigCards,
+  onReadStatus,
   highlightedPlayerIds = new Set(),
   isOwner,
   onKickPlayer,
@@ -47,8 +49,8 @@ export function PokerTableGame({
 }: PokerTableGameProps) {
   const [actionDockCollapsed, setActionDockCollapsed] = useState(false);
   useEffect(() => {
-    if (readingBigCards) setActionDockCollapsed(true);
-  }, [readingBigCards]);
+    if (readingSidePanel) setActionDockCollapsed(true);
+  }, [readingSidePanel]);
   const orderedPlayers = useMemo(
     () =>
       orderPlayersForViewer(
@@ -200,6 +202,10 @@ export function PokerTableGame({
         <button className="action-dock-toggle" data-testid="read-big-cards" style={{ right: 90 }}
           onClick={() => { setActionDockCollapsed(true); onReadBigCards(); }} type="button">查看大卡</button>
       ) : null}
+      {onReadStatus && !actionDockCollapsed ? (
+        <button className="action-dock-toggle" data-testid="read-status" style={{ right: onReadBigCards ? 175 : 90 }}
+          onClick={() => { setActionDockCollapsed(true); onReadStatus(); }} type="button">查看状态</button>
+      ) : null}
       <button
         aria-expanded={!actionDockCollapsed}
         className="action-dock-toggle"
@@ -236,6 +242,29 @@ export function PokerTableGame({
               {activePlayers.length}/{seatedPlayers.length}
             </span>
           </div>
+        </div>
+
+        <div className="surface-card mb-2 grid grid-cols-2 gap-x-3 gap-y-1 p-3 text-sm sm:grid-cols-[2fr_1fr_auto]" data-testid="table-turn-summary" aria-live="polite">
+          <div>
+            <span className="block text-xs text-gray-600">{phaseLabel(state)}</span>
+            <strong>{state.phase === "lobby" ? "等待房主开始" :
+              state.activeTimingPhase === "opening_action" ? "开局准备" : `第 ${state.roundNumber} 轮 · 第 ${state.roundTurnNumber} 回合`}</strong>
+          </div>
+          <div>
+            <span className="block text-xs text-gray-600">桌面进度</span>
+            <strong>{progressLabel}</strong>
+            {waitingLabel ? <small className="block break-words text-gray-600">{waitingLabel}</small> : null}
+          </div>
+          <div>
+            <span className="block text-xs text-gray-600">倒计时</span>
+            <strong>{deadlineSeconds === null ? "--" : `${deadlineSeconds}s`}</strong>
+          </div>
+          <p className="col-span-full text-xs text-gray-700">{tablePrompt}</p>
+          {deadlineSeconds !== null ? (
+            <div className="col-span-full h-1 overflow-hidden rounded bg-teal-100">
+              <div className="h-full bg-teal-600" style={{ width: `${deadlineProgress}%` }} />
+            </div>
+          ) : null}
         </div>
 
         <div
@@ -293,39 +322,6 @@ export function PokerTableGame({
               亮牌信号 {signalLabel}
             </span>
           </div>
-        </div>
-
-        <div className="battle-status-hud" aria-live="polite">
-          <div className="battle-status-main">
-            <span>{phaseLabel(state)}</span>
-            <strong>
-              {state.phase === "lobby" ? "等待房主开始" : `第 ${state.roundNumber} 轮 · 第 ${state.roundTurnNumber} 回合`}
-            </strong>
-          </div>
-          <div className="battle-status-grid">
-            <div>
-              <span>桌面进度</span>
-              <strong>{progressLabel}</strong>
-              {waitingLabel ? <small className="battle-status-detail">{waitingLabel}</small> : null}
-            </div>
-            <div>
-              <span>倒计时</span>
-              <strong>{deadlineSeconds === null ? "--" : `${deadlineSeconds}s`}</strong>
-            </div>
-          </div>
-          <div
-            className={[
-              "battle-status-prompt",
-              viewerNeedsAction ? "battle-status-prompt-active" : ""
-            ].join(" ")}
-          >
-            {tablePrompt}
-          </div>
-          {deadlineSeconds !== null ? (
-            <div className="battle-status-timer">
-              <span style={{ width: `${deadlineProgress}%` }} />
-            </div>
-          ) : null}
         </div>
 
         <div
@@ -562,7 +558,7 @@ function phaseLabel(state: PublicGameState): string {
   }
 
   if (state.phase === "action_window") {
-    return state.activeTimingPhase === "revival_action" ? "复活判定" : "处理牌面";
+    return state.activeTimingPhase ? SKILL_TIMING_PHASE_LABELS[state.activeTimingPhase] : "处理牌面";
   }
 
   return "同时行动";

@@ -6,6 +6,7 @@ export interface BigCardAbilityDefinition {
   id: BigCardAbilityId;
   order: number;
   description: string;
+  implementedRules?: string;
   sourceCell: string;
 }
 
