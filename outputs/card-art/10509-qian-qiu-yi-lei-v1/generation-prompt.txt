@@ -1,0 +1,35 @@
+Use case: stylized-concept.
+Image 1 is ONLY a STYLE AND LAYOUT REFERENCE from the established Chinese epic fantasy collectible card series. Create a NEW complete WATER-element 王者卡, "水·千秋一泪", ID 10509.
+Preserve the established full front-on 1024x1536 portrait 2:3 canvas, regal sculptural frame craftsmanship, similar border width and large illustration window, top-center rank plaque, upper-right circular attribute badge, bottom title nameplate and ID footer.
+Entirely new WATER artwork and ornament, no scales of judgment, sword, chains, purple smoke or black ceremonial theme from the reference.
+
+EXACT USER COMPOSITION:
+ONE LARGE WATER DROPLET is the clear central subject, surrounded by majestic surging ocean WAVES.
+The droplet is DIAGONALLY TILTED: its broad rounded bulb points toward the LOWER LEFT, and its SINGLE tapered sharp tip points toward the UPPER RIGHT CORNER. The long axis runs from lower-left to upper-right at about 45 degrees. This diagonal orientation is essential: NOT upright, not pointing down, not pointing upper-left.
+Approximate droplet shape on the full 1024x1536 canvas: rounded bulb centered around (435,800), tapered tip reaching toward (735,430), total main droplet length about 480-540px and maximum width 280-330px. It should occupy much of the central art without touching plaques.
+Classic continuous smooth teardrop silhouette, broad round body gradually tapering into one elegant long tip. Beautifully volumetric, clear translucent azure water, a few delicate interior currents and tiny bubbles, brilliant silver-white wet highlights, rich blue depth, physically convincing liquid refraction and caustics. It is liquid WATER, NOT a cut gemstone, ice crystal, metallic object, leaf, flame, planet, blue orb or flat logo.
+The teardrop retains a coherent smooth surface, slightly luminous from reflected light, with detailed internal water depth. Keep the pointed upper-right end fully visible and unmistakable.
+
+Surrounding waves:
+Three or four enormous layered blue waves sweep around and BEHIND the droplet, with a nearer wave crossing the foreground only below the bulb and never obscuring the key droplet silhouette. They form a powerful circulating embrace around the central drop: broad dark sapphire troughs, translucent turquoise-blue rolling crests, sculptural curling white foam, suspended fine spray and flowing white ribbons of water.
+Strong near/middle/far perspective and elegant swirling motion. Wave crests frame the diagonal droplet, leaving visual separation and a few darker calm areas behind it. The big calm drop contrasts with the immense turbulent water around it. Rich cinematic grandeur and refined fluid physics, not simply decorative thin rings or flat spiral lines.
+Background is deep layered blue aquatic space, water mist and receding surf, with no horizon, land, sky, buildings, celestial planets or characters. Cool azure, sapphire, sea-blue and silver-white dominate, restrained turquoise accents and small warm antique-gold reflections tie to the border.
+High-end epic fantasy cinematic painterly realism, detailed liquid material, immense elemental power, clear readable composition and controlled highlights. Not an infographic or vector water icon.
+
+WATER-specific FRAME:
+Replace the reference's mystery ornaments completely.
+Polished antique-gold structural trims, cool silver and deep sapphire enamel, decorated with sculpted rolling wave curls, fluid flowing ribs and delicate foam-like silver filigree. Both side rails curve like continuous rising currents; all four corners have elegant thick wave-crest relief.
+Top crown is a majestic sculpted WAVE CREST with a small liquid-drop relief inset, coherent with the same 王者 series. No spiky ice crown or crystalline facets. The frame should feel fluid, smooth and powerful rather than sharp or frozen.
+Attribute badge at upper-right: rich azure watery enamel, sculpted gold wave-pattern rim, exact large gold Chinese character "水".
+Rank/title/serial plaque interiors remain dark navy-blue for strong contrast with the series' large clear gold Chinese typography.
+Keep information plaque positions, sizes and overall card silhouette; nothing may obscure text.
+
+The ONLY exact inscriptions:
+Top-center rank: "王者卡"
+Upper-right attribute: "水"
+Bottom title: "水·千秋一泪"
+Footer: "ID 10509"
+Render all characters correctly. Same type scale and quiet margins as existing series. No extra text, labels, skills, numbers, logos or watermark.
+No humans, humanoids, faces, eyes, hands, statues, gods, angels, birds, dragons, animals or creatures. Pure water phenomenon.
+One finished card only, no tilted mockup, no tabletop or design board.
+Central artwork fully opaque and fills the whole illustration aperture under the frame. Genuine alpha transparency ONLY outside the outer card silhouette and projecting ornamental wave tips. No background rectangle or checkerboard outside the card.

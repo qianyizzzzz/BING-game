@@ -1,0 +1,20 @@
+Use case: precise-object-edit.
+Image 1 is the edit target: an existing 1024x1536 Chinese epic-fantasy 王者卡 frame template.
+Primary request: redesign the BORDER so the FIRE attribute is immediately unmistakable from the frame silhouette, sculptural material and flames. This is a fire-element variant of the same standard card template. Make the frame itself seem forged from molten gold, dark volcanic obsidian and ascending fire. Fire must be the structural ornamental language of the frame, not merely a tiny badge or some sparks pasted on a neutral frame.
+Change the frame decoration:
+- Evolve the top crown into an imposing flame-shaped royal crest: sweeping carved flame tongues, ember-lit recesses, a few real orange-gold flames rising around the crest. Keep the rank nameplate and its text clear.
+- Replace the rigid geometric side-column ornament with elegant long sculpted flame tendrils and branching molten-metal channels. Gold outside edges, dark volcanic metal, orange-red heated interiors. Both side rails show convincing upward-licking flame forms, especially the upper and lower corners. Some narrow real fire tongues and embers may extend outward from the frame silhouette while staying inside canvas.
+- Give all four corners cohesive fire-sculpture motifs, glowing molten seams and blackened metal. Integrate a few controlled living flames around the outer perimeter. Epic, majestic, sophisticated, cinematic high-fantasy game asset.
+- Keep enough dark-metal relief and gold surfaces to make this a readable physical frame. Flame detail concentrated in the frame perimeter, NOT flooding the empty illustration window.
+Invariants:
+Preserve the original card's portrait 2:3 proportions and same 1024x1536 canvas; straight front-on, no perspective.
+Preserve the same layout positions and sizes: rank plaque top center, fire medallion upper right, large central illustration opening, bottom title nameplate, serial footer.
+Preserve the exact four inscriptions, correct Chinese characters, highly readable:
+top: "王者卡"
+upper-right badge: "火"
+bottom title: "火·焚天君燚"
+footer: "ID 10501"
+All typography stays on dark inset plates; leave a clear quiet margin around every inscription. Do not let flames obscure text. 燚 is four 火.
+Preserve a huge central EMPTY illustration aperture, actual alpha-transparent with no scene or illustration. Preserve outside-background alpha transparency too. No characters, no dragon, no phoenix, no animal, no landscape, no filler texture, no painted checkerboard, no extra text or numbers. This is only the frame template, not a completed illustrated card.
+Maintain cinematic epic grandeur, antique gold craftsmanship, volumetric sculptural metal relief, fiery orange-red accent palette and high production finish. Avoid plastic, cartoon, modern sci-fi HUD, flat vector ornament, excessive bloom, illegible tiny detail.
+Keep every corner and flame tip inside image boundaries with a narrow transparent outer margin. All decorative changes are confined to the frame and its immediate outer silhouette.

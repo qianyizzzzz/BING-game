@@ -1,0 +1,22 @@
+Use case: precise-object-edit.
+Image 1 is the EDIT TARGET: "电·永耀雷霆", ID 10510.
+The user finds the central lightning symbol TOO CARTOONISH. Replace ONLY the CENTRAL ILLUSTRATION'S MAIN LIGHTNING with a MASSIVE, THICK, somewhat realistic GOLDEN LIGHTNING DISCHARGE. Preserve the established frame, text and gold storm palette.
+
+Remove the giant solid zigzag emblem entirely: no polygonal icon silhouette, no extruded metal plaque, no gold beveled faces, no rigid two-bend bolt symbol, no cartoon lightning sticker.
+In its place, paint one imposing natural lightning strike, descending diagonally from the upper-middle/right toward the lower-middle/left through the existing dark-gold thunderclouds.
+This must look like actual electric plasma with organically irregular sharp kinks, branching channels and frayed electric edges. A powerful THICK main trunk, about 50-90px wide including the intense plasma sheath on the 1024px-wide image, with a denser white-gold luminous core and vivid golden-yellow outer electric corona. It should fill most of the height of the art window and dominate at thumbnail size.
+The trunk bends in many uneven natural steps and partially splits into two or three substantial diverging branches, with finer hairline streamers at the tips. Different branch thicknesses and varying light intensity create believable natural structure. The overall trunk is heavy and powerful, NOT merely a very thin line and NOT a single clean geometric zigzag.
+Photographically convincing lightning behavior interpreted in sophisticated epic fantasy painterly realism: detailed layered plasma, branching leader paths, glowing ionized haze, slight exposure bloom around the brightest core, warm light scattering through suspended storm mist and illuminating the nearby clouds. Keep enough irregular edge detail inside the bloom; avoid a featureless wide white brushstroke.
+The surrounding dark amber / bronze-black thunderclouds should have rich realistic volume, subtly lit from within by the golden discharge. A few smaller distant golden lightning branches may appear far behind it but stay subordinate. No landscape, ground, city, human, creature, balls or other central object.
+Preserve a clearly GOLD color scheme: golden-yellow electrical arcs, pale warm-white core and charcoal-bronze shadows, no blue or purple electricity.
+The main art should feel immense, dangerous, majestic and more natural, with slightly realistic electric detail rather than graphic icon design.
+
+STRICT PRESERVATION:
+Keep the entire existing ornate gold thunder frame, small decorative bolt motifs ON THE FRAME, crown, attribute badge, plaque geometry, margins, text positions and metallic border finish unchanged. The small frame emblems are ornament; only replace the huge central illustration's cartoon bolt.
+Keep exact readable text:
+"王者卡"
+"电"
+"电·永耀雷霆"
+"ID 10510"
+No added letters, numbers, logo or watermark.
+Same full front-on 1024x1536 portrait 2:3 canvas, no cropping or tilt. Central art fully opaque and contained inside the illustration aperture under the frame. Preserve original genuine alpha transparency outside the outer card silhouette.

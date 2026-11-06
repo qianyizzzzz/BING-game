@@ -1,0 +1,32 @@
+Use case: stylized-concept.
+Image 1 is a STYLE AND CARD-LAYOUT REFERENCE from an established Chinese epic fantasy collectible card series. Create a NEW completed STAR-element card, "星·异星共振", ID 10506, 王者卡.
+USER COLOR REQUIREMENT: PURPLE AND GOLD are the unmistakable dominant colors of both artwork and frame. Royal violet, amethyst, deep plum, warm metallic gold and luminous pale gold; white only for tiny highlight cores. Do not retain the reference's blue-white palette or wings.
+Keep the series' full front-on 1024x1536 portrait 2:3 canvas, monumental sculptural craftsmanship, similar border width, upper-center rank plaque, upper-right circular attribute badge, large illustrated center, bottom title nameplate and ID footer.
+
+Central artwork: ALIEN STARS IN RESONANCE.
+A magnificent three-dimensional gathering of THREE alien celestial stars suspended at different distances in deep royal-purple space. One larger near star slightly left of center, a more distant smaller star above-right, and another smaller star below-right form an elegant asymmetric constellation. Each star is a strange luminous spherical celestial body with violet marbled depth, brilliant golden stellar veins and fine auric filaments visible through its outer layers. Different sizes and perspective depth, not three identical balls.
+The stars emit synchronized golden resonance waves that visibly connect them: several wide translucent nested wavefronts expand, overlap and interlock in space. Where the waves meet, luminous golden interference bands and fine resonant threads become brighter, forming a beautiful shared lattice of energy around the stars. The dominant visual idea must read as mutual resonance, absorption and shared force rather than one sun simply radiating outward.
+A few sweeping three-dimensional GOLD ORBITAL ARCS curve in front of and behind the stars, establishing strong near/middle/far layers. Larger flowing arcs contrast with a delicate web of short synchronized energy filaments. Around the outer edge of the whole star system, a faint translucent golden-violet curved shield membrane catches and redirects incoming tiny streaks of starlight, subtly conveying absorbed power and protection.
+Background: layered amethyst, royal-purple and deep-plum nebulae, dense but refined fine star dust, a few isolated gold-white stars, broad dark-purple quiet regions for contrast. Beautiful spatial depth, majestic alien scale, dynamic curved motion. No horizon, terrain, architecture, city, spacecraft, UFO, people or creatures.
+Sophisticated epic fantasy cinematic painterly realism, finely detailed stellar matter and atmospheric light, rich gold metal-like luminosity against sumptuous purple. Restrained highlight bloom, preserve detail and dark depth. Not a flat astrological chart, not an atom diagram, not a scientific infographic, not a recolor of a single central light sphere. No cannon blast, solar fire tongues, ice crystals or golden wings.
+
+STAR-specific FRAME:
+Entirely replace the reference's feathers, wing crest and folded-space rails with regal celestial ornament.
+Rich antique-gold structural borders and sweeping polished gold orbital fillets over deep royal-purple enamel and blackened-violet metal. Small amethyst insets, fine engraved constellation lines and restrained seven/eight-point star reliefs integrated into the side rails and four corners.
+Top crest: one monumental sculpted GOLD EIGHT-POINT STAR held within a partly open orbital-ring crown, refined and majestic. No wing shapes.
+Corners: broad elegant gold celestial curves with small purple gemstones; keep approximately the same border width and artwork area as the established series. A few gold points may project outward, all inside image boundaries.
+Top rank plaque and bottom title plaque have dark royal-purple inset surfaces and large crisp formal GOLD Chinese characters. Serial footer matches.
+Upper-right round attribute badge: deep violet enamel, a sculpted gold star/orbit rim, exact large gold character "星".
+The frame must look unmistakably PURPLE AND GOLD and STAR-themed, not light, space, destruction or ice.
+
+The ONLY exact text:
+Top rank plaque: "王者卡"
+Upper-right badge: "星"
+Bottom title: "星·异星共振"
+Bottom serial: "ID 10506"
+Use 振, not 震. Preserve the series' existing information positions, plaque sizes, typography scale and quiet margins. Fully legible, correctly rendered. No additional labels, abilities, numbers, logos or watermark.
+
+Strict constraints:
+No humans, humanoids, faces, eyes, hands, angels, statues, animals, wings, birds, aliens or creature bodies. Pure cosmic celestial phenomenon.
+One finished front-face card only, no design sheet, no tabletop mockup or perspective tilt.
+Central art is fully opaque and fills the art aperture beneath the border. Actual alpha transparency ONLY outside the outer card silhouette and projecting star ornaments. No background rectangle or checkerboard outside the card.

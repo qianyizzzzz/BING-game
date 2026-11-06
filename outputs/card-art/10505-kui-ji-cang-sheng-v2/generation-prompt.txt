@@ -1,0 +1,28 @@
+Use case: precise-object-edit.
+Image 1 is the EDIT TARGET, the current Chinese epic fantasy card "空·窥觊苍生", ID 10505.
+Revise this card to the user's direction: BLUE AND WHITE dominant colors, prominent GOLDEN WINGS, a strong sensation of FLIGHT, and absolutely NO SKY CITY.
+
+Illustration changes:
+- Completely remove the floating city, all towers, buildings, skylines, architectural reflections and every miniature city visible in the smaller mirrors. No city or building anywhere.
+- Replace the predominantly dark teal/black scene with luminous azure blue, sapphire, pearl-white, silver-blue and airy white light. Blue and white must clearly dominate the entire artwork; gold is the striking wing/trim accent. Keep rich layered blue shadows for depth, but no black void or green/teal cast as the main field.
+- Keep the SPACE / folded-dimensions identity through an elegant SMALLER open diamond-shaped spatial aperture near the center, with translucent blue-white mirrored folds receding into luminous empty space. Reduce the heavy oversized solid rectangular bars so the composition feels open, weightless and fast.
+- Add a magnificent PAIR OF GOLDEN FEATHERED WINGS spreading from opposite sides of the central spatial aperture. These wings are the main expressive motif. Beautiful layered gilded feathers, finely sculpted shafts, luminous gold edges and warm highlights, with pale champagne undersides. The wings belong to the magical spatial phenomenon itself: no person, bird, animal body or humanoid between them.
+- Strong flying motion: wings sweep upward and outward with a subtle three-quarter perspective, one wing nearer and the other receding. Long flight feathers angle backward in the airflow, feather tips lift, a few loose gold feather fragments trail behind. Broad wing curves and ascending diagonal motion carry the gaze toward the upper right. This should feel like actual soaring through boundless space, not a static flat wing emblem.
+- Streamlined translucent blue-white spatial ribbons, pearly vapor trails and long subtle light streaks flow from lower left toward upper right, bending through the spatial opening. Layer a few fine mirrored shards with only blue-white abstract light reflections. Plenty of atmospheric depth and luminous negative space.
+- Background is abstract, boundless blue-white space and soft luminous veils, with fine mist and a few distant points of light. No ground, landscape, city, real architecture, planets or horizon. No flame, ice or cannon.
+Majestic epic fantasy cinematic painterly realism, elegant powerful flight, detailed golden feather materials and sophisticated blue-white radiance. The two gold wings should be clearly recognizable at thumbnail size.
+
+Frame changes:
+Keep the established 1024x1536 portrait canvas, full front-on layout, same outer card footprint, same rank plaque / upper-right badge / bottom title plaque / ID footer positions.
+Recolor dark teal insets to rich royal sapphire; polished frame surfaces to pearl-white enamel and cool silver-blue, retaining beautiful thin antique-gold structural trims.
+Preserve some folded-space arch ornament but integrate sweeping gold feather motifs into the upper corners and side rails, supporting the flying theme without obscuring the art. Top crest may become a graceful gilded wing-shaped crown around the small open diamond spatial motif.
+Keep the rank and title plates dark enough for crisp gold text. Attribute badge blue-white and gold, same position and size.
+
+The exact text must remain unchanged and fully legible:
+"王者卡"
+"空"
+"空·窥觊苍生"
+"ID 10505"
+Use 觊 correctly. No extra text, numbers, symbols, watermark or logo.
+No humans, humanoids, faces, eyes, heads, hands, arms, statues, angels, creatures or animal bodies. Golden detached wings ARE explicitly requested; no torso or figure attached to them.
+Preserve full card silhouette inside canvas, no crop or perspective tilt. Artwork fills the central illustration aperture opaquely underneath the frame. Preserve genuine alpha transparency ONLY outside the outer card silhouette and feather ornaments; no opaque background rectangle or checkerboard outside the card.

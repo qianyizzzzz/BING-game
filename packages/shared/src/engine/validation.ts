@@ -1,7 +1,18 @@
+import { getFatalDamageSourceIds } from "./damageAttribution";
+import { isBigSkillMode } from "../modes";
+import { BIG_CARD_SKILLS, DRAGON_BLOOD_FIELD_ID, isHunyaoPursuit, STAR_RESIST_ID } from "../bigCards/abilities";
+import { canUseStarResistance, getDragonBloodMode, getDragonBloodTotal, isStarResistible, shapeDragonBloodAttack } from "./starDragon";
+import { bigAbilitySource } from "./bigCards";
+import { FOUR_EMPTINESS_ID, SLOT_MACHINE_ID, VERDICT_ACTION_ID } from "../bigCards/abilities";
+import { getBlindSkillChoices } from "./blindSkillRemoval";
+import { getReadySlotMachines } from "./skillAcquisition";
+import { compareCombatValues, fromLegacyCombatStat, INFINITY_VALUE } from "./combatValues";
+import { isDamageWithinLimit, pendingDamageValue } from "./damageKinds";
+import { isAllSkillsSealedBuff } from "./effectCategories";
+import { applyHunyaoRiStats, getHunyaoExpandedTargets, getHunyaoPursuitTargets } from "./hunyao";
 ﻿import {
   ActionSubmission,
   AttackAction,
-  AttackStatModifierChoice,
   DamageEvent,
   GameState,
   AttackStats,
@@ -18,7 +29,7 @@
 import { BASE_ATTACKS, canActionDefend, getStackedAttackStats } from "./attacks";
 import { validateActionSwitch } from "./actionSwitch";
 import { getAttackFieldBlocker } from "./attackFields";
-import { getAttackActionCost, getTurnSkillActionCost } from "./actionCosts";
+import { getAttackActionCost, getSkillElementCost, getTurnSkillActionCost } from "./actionCosts";
 import { resolveLightningSpellTargetIds } from "./skillTargets";
 import {
   alivePlayers,
@@ -47,12 +58,25 @@ import { COMMON_FUSION_SKILL_ID, countSuppressedFusionMaterials, getOwnedSkillId
   hasEnhancedPutianRange, getFreeSkillChargeId, getAbsoluteGuardCost, getFusionEnhancementCount } from "../skills/fusion";
 import { getHuiyueCooldownCount, isHuiyueActive } from "../skills/fusion";
 import { validateFusionAction } from "./fusion";
+import { getDestructionModifiers, getLevelSwapModifiers, hasEnhancedLevelSwap, previewPlayerAttackStats, payableAttackCost } from "./attackStatModifiers";
+import { canSpendStarRageMarks, getAttackMarkKind, getAttackMarkCount, getAttackMarkChoices, getAttackMarkCapacity,
+  getAttackMarkLimit, STAR_RAGE_ID, STAR_RAGE_SIX_STAR } from "./attackMarks";
+import { isAttackDamageItem } from "./damageKinds";
+import { JUSHEN_ID, RELEASE_DAMAGE_ID, STORE_DAMAGE_ID } from "../bigCards/abilities";
+import { getElementAmount } from "./elementResources";
+import { applyJunengTargetLock, getSelectableJunengTarget, isStorableJunengDamage } from "./juneng";
+import { KUISHI_ID, SELF_ISOLATION_ID } from "../bigCards/abilities";
+import { findPeekCopyTarget } from "./bigCards";
+import { canAffectAcrossSpace, isReversalResponseRestricted, withPlayerSpace } from "./spaces";
+import { getAcquisitionSkillChoices, MIRROR_SKILL_ID } from "./skillAcquisition";
+import { getFusionRecipe, getFusionTier, getManualDemonDomainCount, isFusionActive, isFusionPreparation, isHigherFusionAreaAttack } from "../skills/fusion";
 
 const PENDING_DEATH_BUFF_ID = "pending_death";
 const NO_REVIVE_BUFF_ID = "no_revive";
 const DOUBLE_EDGE_SWORD_SKILL_ID = "skill_31_80497";
 const DOUBLE_EDGE_IGNORE_DEFENSE_BUFF_PREFIX = "double_edge_ignore_defense:";
 const HELL_OVERLORD_SKILL_ID = "skill_112_59292";
+const SAGE_PROTECTION_SKILL_ID = getFusionSkillId("贤者的庇护");
 const LIEGONG_SKILL_ID = "skill_60_57192";
 const LIEGONG_CROSS_BUFF_PREFIX = "liegong_cross:";
 const ABSOLUTE_GUARD_SKILL_ID = "skill_74_34920";
@@ -67,19 +91,12 @@ const SCATTER_REBOUND_SKILL_ID = "skill_58_88471";
 const LIAN_BAO_SKILL_ID = "skill_87_44771";
 const FLASH_DODGE_SKILL_ID = "skill_103_56259";
 const SIX_STAR_SKILL_ID = "skill_108_76133";
-const DESTROY_POWER_MODIFIER_CHOICES = new Set<AttackStatModifierChoice>([
-  "power_plus_1_level_minus_1",
-  "power_minus_1_level_plus_1",
-  "power_plus_2_level_minus_2",
-  "power_minus_2_level_plus_2",
-  "power_times_3_level_to_zero",
-  "power_to_zero_level_times_4"
-]);
 const ACTIVE_REVIVAL_SKILL_IDS = new Set([
   "skill_64_60978",
   "skill_66_82448",
   "skill_68_57581",
-  HELL_OVERLORD_SKILL_ID
+  HELL_OVERLORD_SKILL_ID,
+  SAGE_PROTECTION_SKILL_ID
 ]);
 const MULTI_TARGET_ATTACK_SKILL_IDS = new Set<SkillId>([
   "skill_36_14343",
@@ -113,8 +130,11 @@ export function validateAction(
     return invalid("你本回合已经提交出招");
   }
 
-  const plan = normalizeActionPlan(submission);
-  return validateActionPlan(state, playerId, plan);
+  const actions = normalizeActionPlan(submission).actions.map((action) => applyJunengTargetLock(state, action, player.spaceId, player));
+  if (actions.some((action) => !action)) return invalid("聚神指定的玩家当前无法被选中");
+  const plan = { actions: actions.filter((action) => action !== undefined) };
+  if (plan.actions.some((action) => !actionTargetsSameSpace(state, playerId, action))) return invalid("只能选择同一空间内的目标");
+  return withPlayerSpace(state, playerId, () => validateActionPlan(state, playerId, plan));
 }
 
 export function normalizeActionPlan(submission: ActionSubmission): PlayerActionPlan {
@@ -196,6 +216,7 @@ function validateActionPlan(
   }
 
   let totalCost = 0;
+  const elementCosts = new Map<string, number>();
   let totalLianBaoFreeStacks = 0;
   const freeCharges = new Map<string, number>();
   for (const action of plan.actions) {
@@ -219,6 +240,8 @@ function validateActionPlan(
 
     if (action.type === "skill") {
       totalCost += getEffectiveSkillActionCost(player, action);
+      const pricing = getSkillElementCost(player, action);
+      if (pricing) elementCosts.set(pricing.element, (elementCosts.get(pricing.element) ?? 0) + pricing.perStack * action.stacks);
     }
   }
 
@@ -231,6 +254,8 @@ function validateActionPlan(
   if (totalCost > player.cakes) {
     return invalid(`饼不足，需要 ${totalCost} 个饼`);
   }
+  for (const [element, cost] of elementCosts) if (getElementAmount(player, element) < cost)
+    return invalid(`${element}元素不足，需要 ${cost} 个`);
   for (const [id, spent] of freeCharges) if (spent > (player.buffs.find((buff) => buff.id === id)?.stacks ?? 0)) {
     return invalid("同一回合的免费次数总数不足");
   }
@@ -247,6 +272,8 @@ function validateSingleAction(
   if (!player) {
     return invalid("玩家不存在");
   }
+  if (!actionTargetsSameSpace(state, playerId, action)) return invalid("只能选择同一空间内的目标");
+  if (action.type === "skill" && action.skillId === VERDICT_ACTION_ID && action.targetId === playerId) return invalid("御秽裁决必须指定其他玩家");
 
   if (
     action.type === "defense" &&
@@ -315,8 +342,14 @@ export function validateActionWindowSkill(
   if (getSkillPlay(action.skillId)?.kind === "attack") {
     return invalid("技能攻击只能在出招阶段使用");
   }
+  if (isReversalResponseRestricted(state, playerId) && state.activeTimingPhase === "turn_change_action" && action.skillId !== "skill_93_50224") {
+    return invalid("普通变招已结束，当前只能使用逆转响应或跳过");
+  }
 
-  return validateSkillAction(state, playerId, action, state.activeTimingPhase);
+  const lockedAction = applyJunengTargetLock(state, action, player.spaceId, player);
+  if (!lockedAction) return invalid("聚神指定的玩家当前无法被选中");
+  if (!actionTargetsSameSpace(state, playerId, lockedAction)) return invalid("只能选择同一空间内的目标");
+  return withPlayerSpace(state, playerId, () => validateSkillAction(state, playerId, lockedAction, state.activeTimingPhase));
 }
 
 function validateAttackAction(
@@ -371,14 +404,33 @@ function validateSkillAction(
   action: SkillAction,
   timingPhase: SkillTimingPhase
 ): ValidationResult {
-  if (action.skillId === COMMON_FUSION_SKILL_ID) return validateFusionAction(state, playerId, action);
   const player = findPlayer(state, playerId);
   if (!player) {
     return invalid("玩家不存在");
   }
+  if (!actionTargetsSameSpace(state, playerId, action)) return invalid("只能选择同一空间内的目标");
+  if (player.buffs.some((buff) => isAllSkillsSealedBuff(buff.id))) return invalid("技能已被封锁，不能使用");
+  if (action.skillId === COMMON_FUSION_SKILL_ID) return validateFusionAction(state, playerId, action);
 
   if (!getOwnedSkillIds(player).includes(action.skillId)) {
     return invalid("你没有这个技能");
+  }
+  const fusedCopies = player.skillFusions?.filter((fusion) => fusion.skillId === action.skillId) ?? [];
+  if (fusedCopies.length && !fusedCopies.some((fusion) => isFusionActive(player, fusion)))
+    return invalid("该融合效果已被覆盖替代或封印");
+  if (BIG_CARD_SKILLS[action.skillId] && (!isBigSkillMode(state.config.skillMode) || !bigAbilitySource(player, action, true))) {
+    return invalid("当前模式或所选大卡实例不能使用此技能");
+  }
+  if (action.skillId === FOUR_EMPTINESS_ID) {
+    const selected = action.removeSkillInstanceIds ?? [];
+    const allowed = new Set(getBlindSkillChoices(state, playerId, true).map((choice) => choice.instanceId));
+    if (!Array.isArray(selected) || selected.length > 16 || new Set(selected).size !== selected.length ||
+      selected.some((id) => !allowed.has(id))) return invalid("请选择至多16个不同且仍可消除的小技能");
+  }
+  if (action.skillId === SLOT_MACHINE_ID) {
+    const ready = getReadySlotMachines(player);
+    if (action.rerollFusionInstanceId ? !ready.some((item) => item.id === action.rerollFusionInstanceId) : ready.length !== 1)
+      return invalid("请选择一组已完成三次抽取且结果不完全相同的老虎机");
   }
   const materialCount = player.skills.filter((id) => id === action.skillId).length;
   if (materialCount > 0 && countSuppressedFusionMaterials(player, action.skillId) >= materialCount) {
@@ -392,9 +444,12 @@ function validateSkillAction(
   }
   if (skill.name === "魔域") {
     if (timingPhase !== "turn_end_action" || state.roundNumber % 3 !== 0) return invalid("魔域只能在第3x轮回合末选择目标");
+    const manual = getManualDemonDomainCount(player);
+    if (!manual) return invalid("轮回吞噬会自动吸取全体，无需选择魔域目标");
     const ids = action.targetIds ?? [];
-    if (ids.length !== 3 || ids.some((id) => id === playerId || !isAliveTarget(state, id))) return invalid("魔域需要选择三次其他存活玩家，允许重复");
-    if (player.buffs.filter((buff) => buff.id === "demon_domain_target").length >= 3 * getActiveFusionCount(player, "魔域")) return invalid("本轮魔域目标已经指定");
+    if (getSelectableJunengTarget(state, player.spaceId) ? ids.length !== 1 :
+      ids.length !== 3 || ids.some((id) => id === playerId || !isAliveTarget(state, id))) return invalid("魔域需要选择三次其他存活玩家，允许重复");
+    if (player.buffs.filter((buff) => buff.id === "demon_domain_target").length >= 3 * manual) return invalid("本轮魔域目标已经指定");
   }
 
   if (isPlayerInCollapse(player)) {
@@ -413,11 +468,11 @@ function validateSkillAction(
   }
 
   if (revivalSkill && pendingDeathPlayer && hasNoRevive(player)) {
-    return invalid("因为致死者持有裂魂，所以你无法复活");
+    return invalid(`受到${player.buffs.find((buff) => buff.id === "no_revive")?.name ?? "致死效果"}限制，无法复活`);
   }
 
   if (
-    (action.skillId === "skill_64_60978" || action.skillId === "skill_68_57581") &&
+    (action.skillId === "skill_64_60978" || action.skillId === "skill_68_57581" || action.skillId === SAGE_PROTECTION_SKILL_ID) &&
     (!pendingDeathWindow || !pendingDeathPlayer)
   ) {
     return invalid(`${skill.name} 只能在复活阶段使用`);
@@ -431,7 +486,7 @@ function validateSkillAction(
     return invalid("这个技能已被封锁，不能使用");
   }
 
-  if (isSkillBlockedByJingu(state, action.skillId)) {
+  if (isSkillBlockedByJingu(state, action.skillId, player.spaceId)) {
     return invalid(`${skill.name} 已被禁锢封锁，不能使用`);
   }
 
@@ -443,24 +498,55 @@ function validateSkillAction(
   if (!skill.timingPhases.includes(timingPhase)) {
     return invalid(`${skill.name} 不能在当前阶段使用`);
   }
+  if (action.skillId === KUISHI_ID && (state.roundNumber !== 1 || state.turnNumber !== 1 ||
+    !findPeekCopyTarget(state, playerId, action.targetBigCardInstanceId))) return invalid("窥视只能在开局选择一张已知的其他玩家大卡");
+  if (action.skillId === SELF_ISOLATION_ID && player.spaceId) return invalid("已在小空间内，不能自我封闭");
 
   if (
     timingPhase === "turn_damage_modify" &&
     action.skillId !== "skill_94_627" &&
     action.skillId !== SIX_STAR_SKILL_ID &&
     action.skillId !== ICE_RAIN_SKILL_ID &&
-    action.skillId !== CROSS_GUARD_SKILL_ID
+    action.skillId !== CROSS_GUARD_SKILL_ID &&
+    action.skillId !== STORE_DAMAGE_ID && action.skillId !== STAR_RESIST_ID && action.skillId !== RELEASE_DAMAGE_ID && action.skillId !== JUSHEN_ID && action.skillId !== SELF_ISOLATION_ID &&
+    action.skillId !== FOUR_EMPTINESS_ID && action.skillId !== SLOT_MACHINE_ID &&
+    !isHunyaoPursuit(action.skillId)
   ) {
     return invalid("变伤阶段只能使用斗转星移或印记技能");
   }
 
-  if (!Number.isInteger(action.stacks) || action.stacks <= 0 || action.stacks > 20) {
-    return invalid("技能重数必须是 1 到 20 的整数");
+  const stackLimit = play.elementCost ? play.maxStacks : 20;
+  if (action.skillId === STAR_RESIST_ID && (!canUseStarResistance(player) || !state.pendingDamageItems?.some((item) =>
+    item.id === action.targetDamageId && item.targetId === playerId && isStarResistible(item)))) {
+    return invalid("异星共振需要持有防御值，并选择一份无限伤害或一次退游");
+  }
+  if (!Number.isSafeInteger(action.stacks) || action.stacks <= 0 || action.stacks > stackLimit) {
+    return invalid(`技能重数必须是 1 到 ${stackLimit} 的整数`);
   }
 
-  if (action.stacks > play.maxStacks) {
-    return invalid(`技能重数不能超过 ${play.maxStacks}`);
+  const maxStacks = getAttackMarkKind(action.skillId) ? getAttackMarkLimit(player, action.skillId) : play.maxStacks;
+  if (action.stacks > maxStacks) {
+    return invalid(`技能重数不能超过 ${maxStacks}`);
   }
+  if (action.skillId === STAR_RAGE_ID) {
+    if (!canSpendStarRageMarks(player)) return invalid("星怒需要3层星印记");
+    if (action.targetSkillId !== STAR_RAGE_ID && action.targetSkillId !== STAR_RAGE_SIX_STAR) return invalid("请选择发动星怒或六芒星");
+  }
+  const elementCost = getSkillElementCost(player, action);
+  if (elementCost) {
+    const { element, perStack } = elementCost;
+    const payer = action.skillId === JUSHEN_ID
+      ? state.preemptiveRestartSnapshot?.players.find((candidate) => candidate.id === playerId) ?? player : player;
+    const cost = perStack * action.stacks;
+    if (getElementAmount(player, element) < cost || getElementAmount(payer, element) < cost)
+      return invalid(`${element}元素不足，需要 ${cost} 个`);
+  }
+  if (action.skillId === STORE_DAMAGE_ID && !state.pendingDamageItems?.some((item) =>
+    item.id === action.targetDamageId && item.targetId === playerId && isStorableJunengDamage(item))) {
+    return invalid("请选择自己即将受到的一份不超过退游的伤害");
+  }
+  if (action.skillId === RELEASE_DAMAGE_ID && !player.storedDamages?.some((item) => item.id === action.storedDamageId))
+    return invalid("请选择一份已储存的伤害");
 
   const lianBaoFreeValidation = validateLianBaoFreeStacks(player, action);
   if (!lianBaoFreeValidation.ok) {
@@ -470,6 +556,17 @@ function validateSkillAction(
   const resourceValidation = validateSkillResourceCost(player, action);
   if (!resourceValidation.ok) {
     return resourceValidation;
+  }
+
+  if (getAttackMarkKind(action.skillId)) {
+    const choices = getAttackMarkChoices(state, playerId);
+    if (!choices.length) return invalid("当前没有可使用印记强化的攻击");
+    if (action.switchActionIndex === undefined && choices.length > 1) return invalid("请选择使用印记强化的攻击");
+    if (action.switchActionIndex !== undefined && (!Number.isInteger(action.switchActionIndex) ||
+      !choices.some((choice) => choice.actionIndex === action.switchActionIndex))) return invalid("只能选择自己本回合发出的攻击");
+    const index = action.switchActionIndex ?? choices[0]!.actionIndex;
+    if (action.stacks > getAttackMarkCapacity(player, action.skillId, index))
+      return invalid(`同一次攻击最多使用${getAttackMarkLimit(player, action.skillId)}层同类印记`);
   }
 
   const actionSwitchValidation = validateActionSwitch(state, playerId, action);
@@ -521,7 +618,7 @@ function validateSkillAction(
     return absoluteGuardValidation;
   }
 
-  const sandTargetValidation = validateSandTransformTarget(action, skill);
+  const sandTargetValidation = validateSandTransformTarget(state, player, action, skill);
   if (!sandTargetValidation.ok) {
     return sandTargetValidation;
   }
@@ -586,6 +683,7 @@ function validateSkillAction(
 
   if (
     play.kind === "attack" &&
+    (action.skillId !== DRAGON_BLOOD_FIELD_ID || getDragonBloodMode(getDragonBloodTotal(state, playerId)) !== "heal") &&
     state.config.firstTurnNoAttack &&
     state.roundTurnNumber === 1
   ) {
@@ -609,18 +707,22 @@ function validateSkillAction(
     if (!hellTargetValidation.ok) {
       return hellTargetValidation;
     }
+  } else if (isHunyaoPursuit(action.skillId)) {
+    if (!getHunyaoPursuitTargets(state, action.skillId).some((target) => target.id === action.targetId)) {
+      return invalid(`${skill.name}需要选择一名符合条件、已结束常规复活判定的玩家`);
+    }
   } else if (action.skillId === "skill_68_57581") {
     const lishangTargetValidation = validateLishangTargets(state, playerId, action);
     if (!lishangTargetValidation.ok) {
       return lishangTargetValidation;
     }
   } else if (action.skillId === "skill_111_51056") {
-    const balanceTargetValidation = validateBalanceTargets(state, playerId, action);
+    const balanceTargetValidation = getSelectableJunengTarget(state, player.spaceId) ? valid() : validateBalanceTargets(state, playerId, action);
     if (!balanceTargetValidation.ok) {
       return balanceTargetValidation;
     }
   } else if (action.skillId === "skill_35_16792") {
-    const lightningTargetValidation = validateLightningSpellTargets(state, playerId, action);
+    const lightningTargetValidation = getSelectableJunengTarget(state, player.spaceId) ? valid() : validateLightningSpellTargets(state, playerId, action);
     if (!lightningTargetValidation.ok) {
       return lightningTargetValidation;
     }
@@ -638,6 +740,18 @@ function validateSkillAction(
     const vortexTargetValidation = validateVortexTargets(state, action);
     if (!vortexTargetValidation.ok) {
       return vortexTargetValidation;
+    }
+  } else if (action.skillId === DRAGON_BLOOD_FIELD_ID) {
+    const mode = getDragonBloodMode(getDragonBloodTotal(state, playerId));
+    if (mode === "single") {
+      const targetId = getSelectableJunengTarget(state, player.spaceId) ?? action.targetIds?.[0] ?? action.targetId;
+      if (!targetId || !isAliveTarget(state, targetId) || (action.targetIds?.length ?? 0) > 1)
+        return invalid("总血量超过100，鲜血金龙领域必须指定一名存活玩家");
+    }
+  } else if (play.optionalTargetCount !== undefined) {
+    const targets = action.targetIds ?? [];
+    if (targets.length > play.optionalTargetCount || new Set(targets).size !== targets.length || targets.some((id) => !isAliveTarget(state, id))) {
+      return invalid(`请选择至多${play.optionalTargetCount}名不同的存活玩家`);
     }
   } else if (play.targetMode === "single" && !forcedAreaSkillAttack) {
     if (!action.targetId) {
@@ -668,7 +782,7 @@ function validateExposedSkillTarget(
   action: SkillAction,
   skill: NonNullable<ReturnType<typeof getSkill>>
 ): ValidationResult {
-  if (skill.id === "skill_4_65637" || skill.id === "skill_68_57581") {
+  if (skill.play?.effect === "sand_transform" || skill.id === "skill_68_57581") {
     return valid();
   }
 
@@ -689,12 +803,17 @@ function validateExposedSkillTarget(
     return invalid("技能目标不存在或已死亡");
   }
 
-  if (!target.skills.includes(action.targetSkillId)) {
+  if (!getOwnedSkillIds(target).includes(action.targetSkillId)) {
     return invalid("目标玩家没有这个技能");
   }
 
   if (!canPlayerSeeSkill(state, playerId, action.targetId, action.targetSkillId)) {
     return invalid("你当前视野里看不到这个技能");
+  }
+
+  if (skill.id === MIRROR_SKILL_ID && getFusionRecipe(action.targetSkillId)) return invalid("普通镜像只能复制小技能，二融合请使用天魔舞入口");
+  if (skill.id === getFusionSkillId("天魔舞") && (getFusionTier(action.targetSkillId) !== 2 || action.targetSkillId === skill.id)) {
+    return invalid("天魔舞只能复制其他已暴露二融合，不能自我复制");
   }
 
   if (skill.id === "skill_5_34881") {
@@ -708,10 +827,12 @@ function validateExposedSkillTarget(
 }
 
 function validateSandTransformTarget(
+  state: GameState,
+  player: PlayerState,
   action: SkillAction,
   skill: NonNullable<ReturnType<typeof getSkill>>
 ): ValidationResult {
-  if (skill.id !== "skill_4_65637") {
+  if (skill.play?.effect !== "sand_transform") {
     return valid();
   }
 
@@ -719,8 +840,9 @@ function validateSandTransformTarget(
     return invalid("沙子必须选择一个小技能作为变化目标");
   }
 
-  if (!getSmallSkillIds().includes(action.targetSkillId)) {
-    return invalid("沙子只能变化为小技能池中的技能");
+  if (skill.id === getFusionSkillId("猥琐小叔叔") && !isFusionPreparation(state)) return invalid("猥琐小叔叔只能在开局准备选择技能");
+  if (!getAcquisitionSkillChoices(player, skill.id).includes(action.targetSkillId)) {
+    return invalid("只能选择此入口允许的技能，不能自我复制或重复选择素材");
   }
 
   if (!getSkill(action.targetSkillId)) {
@@ -822,7 +944,7 @@ function validateDamageRedirectTarget(
     (item) =>
       item.id === action.targetDamageId &&
       item.targetId === playerId &&
-      item.amount > 0 && item.amount <= getDamageRedirectLimit(findPlayer(state, playerId)!) &&
+      isDamageWithinLimit(item, fromLegacyCombatStat(getDamageRedirectLimit(findPlayer(state, playerId)!))) &&
       !(item.redirectedByPlayerIds ?? []).includes(playerId)
   );
   if (!damage) {
@@ -855,11 +977,13 @@ function validateDamageMarkUse(
   if (!damage || damage.amount <= 0) {
     return invalid("这条伤害不存在或不能被印记影响");
   }
+  if (!isAttackDamageItem(damage)) return invalid("十字与冰雨印记只能作用于攻击伤害");
 
   if (action.skillId === ICE_RAIN_SKILL_ID) {
     if (
       damage.targetId !== playerId ||
       !damage.sourceId ||
+      damage.sourceId === playerId ||
       hasDamageModifier(damage, "ice_rain") ||
       !findPlayer(state, damage.sourceId)?.buffs.some(
         (buff) => buff.id === `ice_rain:${playerId}` && buff.stacks > 0
@@ -871,6 +995,7 @@ function validateDamageMarkUse(
   }
 
   if (damage.targetId === playerId) {
+    if (damage.internalDamage) return invalid("反噬伤害不能使用护佑减伤");
     if (
       hasDamageModifier(damage, "huyou") ||
       !player.buffs.some((buff) => buff.id === "huyou_mark" && buff.stacks > 0)
@@ -980,8 +1105,8 @@ function getHighestPendingDamageItem(
   playerId: PlayerId
 ): NonNullable<GameState["pendingDamageItems"]>[number] | undefined {
   return (state.pendingDamageItems ?? [])
-    .filter((item) => item.targetId === playerId && item.amount > 0)
-    .sort((a, b) => b.amount - a.amount)[0];
+    .filter((item) => item.targetId === playerId && isDamageWithinLimit(item, INFINITY_VALUE) && !item.bypassDamageImmunity)
+    .sort((a, b) => compareCombatValues(pendingDamageValue(b), pendingDamageValue(a)))[0];
 }
 
 function validateAttackStatModifier(
@@ -1006,9 +1131,13 @@ function validateAttackStatModifier(
   }
 
   if (action.skillId === "skill_91_89631") {
-    if (action.attackStatModifier && action.attackStatModifier !== "swap_power_level") {
-      return invalid("级换只能交换攻击和等级");
-    }
+    const modifier = action.attackStatModifier ?? "swap_power_level";
+    if (!getLevelSwapModifiers(player, pendingAction).includes(modifier)) return invalid(hasEnhancedLevelSwap(player)
+      ? "无耗饼攻击没有耗饼数值，不能交换所选数值" : "普通级换只能交换攻击和等级");
+    const preview = previewPlayerAttackStats(state, playerId, { id: "candidate", actionIndex,
+      modifier, enhanced: hasEnhancedLevelSwap(player) });
+    const failure = preview.failures.find((item) => item.id === "candidate");
+    if (failure) return invalid(failure.error);
     return valid();
   }
 
@@ -1021,7 +1150,7 @@ function validateAttackStatModifier(
 
   if (
     !action.attackStatModifier ||
-    !DESTROY_POWER_MODIFIER_CHOICES.has(action.attackStatModifier)
+    !getDestructionModifiers(player).includes(action.attackStatModifier)
   ) {
     return invalid("毁灭之力必须选择一种攻击/等级变化");
   }
@@ -1272,7 +1401,7 @@ function getAbsoluteGuardCandidate(
     sourceId,
     actionIndex,
     mode,
-    cost: getAbsoluteGuardCost(guard, state.turnActionCosts?.[sourceId]?.[actionIndex] ?? rawCost)
+    cost: getAbsoluteGuardCost(guard, payableAttackCost(stats.cost))
   };
 }
 
@@ -1282,7 +1411,9 @@ function isActionEffectivelyArea(
   action: PlayerAction
 ): boolean {
   const stats = getBaseAttackStatsForAction(action);
-  return Boolean(stats && (stats.isArea || isActionForcedArea(state, sourceId, action, stats)));
+  const source = findPlayer(state, sourceId);
+  return Boolean(stats && (isHigherFusionAreaAttack(source, stats.id) || applyHunyaoRiStats(source, stats).isArea ||
+    isActionForcedArea(state, sourceId, action, stats)));
 }
 
 function getBaseAttackStatsForAction(action: PlayerAction): AttackStats | undefined {
@@ -1372,6 +1503,9 @@ function getDoubleEdgeAttackStats(
   playerId: PlayerId,
   action: PlayerAction
 ): AttackStats | undefined {
+  const index = state.pendingActions[playerId]?.actions.indexOf(action) ?? -1;
+  const preview = previewPlayerAttackStats(state, playerId).stats[index];
+  if (preview) return preview;
   const base =
     action.type === "attack"
       ? getStackedAttackStats(BASE_ATTACKS[action.attackId], action.stacks)
@@ -1382,25 +1516,33 @@ function getDoubleEdgeAttackStats(
     return undefined;
   }
 
-  return applyAttackModifiers(cloneGameState(state), playerId, base);
+  return applyAttackModifiers(cloneGameState(state), playerId, base, index);
 }
 
 export function getActionAttackTargetIds(state: GameState, sourceId: PlayerId, action: PlayerAction): PlayerId[] {
-  const base = getBaseAttackStatsForAction(action);
+  const raw = getBaseAttackStatsForAction(action);
+  const base = raw && shapeDragonBloodAttack(state, sourceId, action, raw);
   if (!base) return [];
   // Preview modifiers may consume pending marks; copy player buffers without cloning the growing event history.
   const preview = { ...state, players: state.players.map((player) => ({ ...player, buffs: player.buffs.map((buff) => ({ ...buff })) })) };
-  const stats = applyAttackModifiers(preview, sourceId, base);
+  const actionIndex = state.pendingActions[sourceId]?.actions.indexOf(action) ?? -1;
+  const stats = applyAttackModifiers(preview, sourceId, base, actionIndex);
   const source = findPlayer(state, sourceId);
   const index = state.pendingActions[sourceId]?.actions.indexOf(action) ?? -1;
   const override = source?.buffs.find((buff) => buff.id.startsWith(`absolute_guard:${index}:`));
   if (override) {
     const [mode, guardId] = override.id.slice(`absolute_guard:${index}:`.length).split(":");
     if (mode === "area_to_sky") return [];
-    if (mode === "area_to_self" && guardId) return [guardId];
-    if (mode === "single_to_area") return state.players.filter((player) => player.status === "alive" && player.id !== sourceId).map((player) => player.id);
+    if (mode === "area_to_self" && guardId) {
+      return canAffectAcrossSpace(state, sourceId, guardId) ?
+        getHunyaoExpandedTargets(state, sourceId, { ...stats, isArea: false }, [guardId]) ?? [guardId] : [];
+    }
+    if (mode === "single_to_area") return state.players.filter((player) => player.status === "alive" && player.id !== sourceId &&
+      canAffectAcrossSpace(state, sourceId, player.id)).map((player) => player.id);
   }
-  return getDoubleEdgeAttackTargetIds(state, sourceId, action, stats);
+  const targets = getDoubleEdgeAttackTargetIds(state, sourceId, action, stats).filter((id) => canAffectAcrossSpace(state, sourceId, id));
+  const isArea = stats.isArea || isActionForcedArea(state, sourceId, action, stats);
+  return getHunyaoExpandedTargets(state, sourceId, { ...stats, isArea }, targets) ?? targets;
 }
 
 function getDoubleEdgeAttackTargetIds(
@@ -1632,9 +1774,11 @@ function isAttackLikeAction(
 }
 
 function validateSkillResourceCost(
-  player: { buffs: Array<{ id: string; stacks: number }> },
+  player: PlayerState,
   action: SkillAction
 ): ValidationResult {
+  const marks = getAttackMarkCount(player, action.skillId);
+  if (marks !== undefined) return marks >= action.stacks ? valid() : invalid("印记不足");
   const resource = skillResourceRequirement(action.skillId);
   if (!resource) {
     return valid();
@@ -1711,6 +1855,13 @@ function normalizeTargetIds(action: SkillAction): PlayerId[] {
   return Array.from(
     new Set([...(action.targetIds ?? []), action.targetId].filter(Boolean) as PlayerId[])
   );
+}
+
+function actionTargetsSameSpace(state: GameState, playerId: PlayerId, action: PlayerAction): boolean {
+  const targets = action.type === "skill" ? normalizeTargetIds(action) :
+    "targetId" in action && action.targetId ? [action.targetId] : [];
+  return targets.every((target) => !findPlayer(state, target) || canAffectAcrossSpace(state, playerId, target)) &&
+    (action.type !== "skill" || !action.switchToAction || actionTargetsSameSpace(state, playerId, action.switchToAction));
 }
 
 function validateRocketTargets(
@@ -1926,21 +2077,7 @@ function isPuppetTargetingMaster(
 }
 
 function getFatalSourceIds(state: GameState, playerId: PlayerId): PlayerId[] {
-  return Array.from(
-    new Set(
-      state.eventLog
-        .filter(
-          (event): event is DamageEvent =>
-            event.type === "damage" &&
-            event.targetId === playerId &&
-            event.amount > 0 &&
-            event.roundNumber === state.roundNumber &&
-            event.turnNumber === state.roundTurnNumber &&
-            Boolean(event.sourceId)
-        )
-        .map((event) => event.sourceId as PlayerId)
-    )
-  );
+  return getFatalDamageSourceIds(state, playerId);
 }
 
 function areConsecutiveAliveTargets(state: GameState, a: PlayerId, b: PlayerId): boolean {

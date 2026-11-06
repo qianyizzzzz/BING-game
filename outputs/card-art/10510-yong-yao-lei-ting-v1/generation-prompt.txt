@@ -1,0 +1,30 @@
+Use case: stylized-concept.
+Image 1 is ONLY a STYLE AND CARD-LAYOUT REFERENCE from an established Chinese epic fantasy collectible card series. Create a NEW completed ELECTRICITY-element 王者卡: "电·永耀雷霆", ID 10510.
+USER DIRECTION: a HUGE LIGHTNING-BOLT SYMBOL as the central subject, in a GOLD color scheme. Keep the composition bold and simple, with one iconic dominant motif.
+Preserve the established 1024x1536 portrait 2:3 canvas, full front-on presentation, similar border width and art aperture, top-center rank plaque, upper-right circular attribute badge, lower nameplate and ID footer. Entirely replace all water artwork and wave/teardrop decoration from the reference.
+
+CENTRAL ARTWORK:
+ONE enormous classic angular LIGHTNING-BOLT SYMBOL ⚡ dominates the center of the illustration. A clean unmistakable solid zigzag silhouette with two sharp angular bends and a long pointed lower end, stretched vertically with a slight diagonal from upper-right toward lower-left. The symbol is centered in the art aperture, about 650-730px high and 300-370px at its widest on the full 1024x1536 card.
+It is a monumental sculptural sigil made of brilliant GOLDEN ENERGY and forged golden light: broad luminous warm-gold faces, sharply beveled antique-gold sides, a few delicate internal white-gold electrical veins and powerful dimensional highlights. Clearly a LIGHTNING SYMBOL, not a sword, spear, shard, letter Z, crystal or a thin random branching lightning strike. The silhouette must be obvious at thumbnail size.
+Only a few fine gold-white electrical arcs branch from the central bolt into the surrounding space. Smaller sparks and delicate filaments accent its charged edges. They must remain subordinate and never obscure the one big lightning symbol.
+Background is abstract layered dark amber, bronze-black and charcoal-gold storm haze with broad quiet shadowed areas behind the symbol, plus subtle luminous gold mist toward the outer edges. Restrained distant thundercloud texture gives depth, no horizon or landscape. Pure golden elemental energy, monumental, regal, decisive and powerful.
+Use a strongly GOLD-dominant scheme: yellow gold, antique gold, champagne highlights, amber reflection, warm brown-black shadows. No blue electricity, purple haze, orange fire tongues, ocean, water drop or icy motifs.
+High-end epic fantasy cinematic painterly realism, expertly crafted metallic-energy material and controlled volumetric radiance. Crisp silhouette, minimal visual clutter, rich but disciplined lighting, no all-over overexposure. Do not add balls, planets, machinery, extra weapons or other large central motifs.
+
+ELECTRICITY-specific FRAME:
+Replace all wave motifs with angular sculptural lightning ornament.
+Antique-gold and bright polished gold structural rails with lightning zigzags, sharp branching thunder-relief ridges, recessed amber enamel and restrained bronze-black insets. Flowing electrical engravings follow the sides and corners without becoming modern circuitry.
+Top crest is a regal angular crown built around a small gold lightning-bolt relief, with elegant sharp gold flares. Corner ornaments are sculpted forked thunder shapes, not stars, feathers, icicles, waves or dragons.
+Keep overall card proportions and plaque positions from the series. Rank/title/serial inset surfaces are dark bronze-black for excellent contrast with clear large gold Chinese typography.
+Upper-right circular attribute badge: deep amber-gold inset, gold sculpted thunder rim, exact large gold Chinese character "电". Make the character clear against a darker interior.
+The entire frame also reads GOLD, rich and epic. Controlled highlights, enough dark recesses to show relief.
+
+The ONLY exact inscriptions:
+Top-center rank plaque: "王者卡"
+Upper-right attribute: "电"
+Bottom title nameplate: "电·永耀雷霆"
+Footer: "ID 10510"
+Use 永耀, with 耀, not 曜. Same typography scale, quiet margins and information positions as the established series. No extra labels, ability text, words, numbers, logo or watermark.
+No humans, humanoids, faces, eyes, hands, gods, statues, creatures, animals or dragons.
+One finished card only, no tilted mockup, tabletop photograph or design board. All ornaments stay within canvas boundaries with narrow transparent padding.
+Art fills the whole central window opaquely underneath the border. Genuine alpha transparency ONLY outside the outer card silhouette and projecting ornamental tips. No opaque background rectangle or checkerboard outside the card.

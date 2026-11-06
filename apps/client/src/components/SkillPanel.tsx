@@ -2,12 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Gem, Sparkles } from "lucide-react";
 import {
   PublicGameState,
+  PlayerState,
   SKILL_TIMING_PHASE_LABELS,
   getAllSkills,
   getSkillCardIds,
   getSkill
 } from "@bing/shared";
 import { getSkillVisualProfile, skillCardStyle, skillCostPipCount } from "../lib/skillVisuals";
+import { formatSkillCakeCost } from "../lib/format";
 
 interface SkillPanelProps {
   state: PublicGameState;
@@ -46,7 +48,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
           skill?.timingPhases
             .slice(0, 3)
             .map((phase) => SKILL_TIMING_PHASE_LABELS[phase]) ?? [];
-        const playSummary = skill ? formatPlaySummary(skill) : "";
+        const playSummary = skill ? formatPlaySummary(skill, viewer) : "";
 
         return {
           phaseLabels,
@@ -56,7 +58,7 @@ export function SkillPanel({ state }: SkillPanelProps) {
           visual
         };
       }),
-    [gallerySkillIds]
+    [gallerySkillIds, viewer]
   );
   const selectedEntry =
     skillEntries.find((entry) => entry.skillId === selectedSkillId) ?? skillEntries[0];
@@ -266,13 +268,17 @@ export function SkillPanel({ state }: SkillPanelProps) {
   );
 }
 
-function formatPlaySummary(skill: Skill): string {
+function formatPlaySummary(skill: Skill, player?: PlayerState): string {
   const play = skill.play;
   if (!play) {
     return "";
   }
 
-  const parts = [`消耗 ${play.cost}`];
+  const parts = [formatSkillCakeCost(skill.id, undefined, player)];
+  if (skill.id === "skill_37_68416") {
+    const charge = player?.buffs.find((buff) => buff.id === "guidao_charge");
+    parts.push(`鬼道剩余 ${charge?.infinite ? "∞" : charge?.stacks ?? 0} 次`);
+  }
   if (play.power !== undefined) {
     parts.push(`威力 ${play.power}`);
   }

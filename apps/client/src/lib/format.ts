@@ -5,12 +5,48 @@ import {
   INFINITE_DAMAGE,
   PlayerActionPlan,
   PublicGameState,
+  formatCombatValue,
   getActionLabel,
   getActionPlanLabel
 } from "@bing/shared";
+import type { AttackStats, CombatValue } from "@bing/shared";
+import { getSkillCakeCostKind, getSkillPlay, getVortexCostOverride, PlayerState, RETIRE_EFFECT_POWER,
+  VANISH_EFFECT_POWER, EXECUTE_EFFECT_POWER, EXPLODE_EFFECT_POWER } from "@bing/shared";
 
-export function formatDamage(amount: number): string {
+export function formatAttackStatNumber(value: number, exact?: CombatValue): string {
+  if (exact) return formatCombatValue(exact);
+  const sign = value < 0 ? "-" : "";
+  const amount = Math.abs(value);
+  if (amount >= EXPLODE_EFFECT_POWER) return `${sign}爆炸`;
+  if (amount >= EXECUTE_EFFECT_POWER) return `${sign}必杀`;
+  if (amount >= VANISH_EFFECT_POWER) return `${sign}消失`;
+  if (amount >= RETIRE_EFFECT_POWER) return `${sign}退游`;
+  return amount >= INFINITE_DAMAGE ? `${sign}∞` : String(value);
+}
+
+export function formatSkillCakeCost(skillId: string | undefined, actualCost?: number, player?: PlayerState, stacks = 1): string {
+  if (!skillId) return "—";
+  const pricing = getSkillPlay(skillId)?.elementCost;
+  if (pricing) return `${pricing.perStack * stacks}${pricing.element}`;
+  const kind = getSkillCakeCostKind(skillId, player);
+  if (kind === "none") return "无耗饼";
+  if (actualCost === undefined && kind === "dynamic") return "按效果计算耗饼";
+  const vortexCost = player ? getVortexCostOverride(player, skillId) : undefined;
+  return `${actualCost ?? (vortexCost === undefined ? getSkillPlay(skillId)?.cost ?? 0 : vortexCost * stacks)}饼`;
+}
+
+export function formatDamage(amount: number, exact?: CombatValue): string {
+  if (exact) return formatCombatValue(exact);
   return amount >= INFINITE_DAMAGE ? "∞" : String(amount);
+}
+
+export function formatAttackDamageParts(stats: AttackStats): string {
+  return stats.damageParts?.map((power, index) => formatAttackStatNumber(power, stats.damagePartValues?.[index])).join("+") ??
+    formatAttackStatNumber(stats.power, stats.powerValue);
+}
+
+export function formatStatusDuration(buff: PlayerState["buffs"][number]): string {
+  return buff.infinite ? "无限" : `${buff.stacks} ${buff.expiresAtRound === undefined ? "回合" : "轮"}`;
 }
 
 export function playerName(state: PublicGameState, playerId: string | undefined): string {
@@ -83,9 +119,16 @@ export function formatEvent(event: GameEvent, state: PublicGameState): string {
     case "clash":
       return event.result;
     case "damage":
-      return `${playerName(state, event.targetId)} 受到 ${formatDamage(event.amount)} 点伤害${event.attackName ? `（${event.attackName}）` : ""}`;
+      if (event.infiniteCopies) return `${playerName(state, event.targetId)} 受到来自 ${playerName(state, event.sourceId)} 的无限份${event.attackName ?? "攻击"}，每份 ${formatDamage(event.perCopyAmount ?? 0, event.perCopyAmountValue)} 点${event.internalDamage ? "反噬伤害" : "伤害"}`;
+      return `${playerName(state, event.targetId)} 受到 ${event.pointDefeatLevel ? DEFEAT_LEVEL_LABELS[event.pointDefeatLevel] : formatDamage(event.amount, event.amountValue)} 点${event.internalDamage ? "反噬伤害" : "伤害"}${event.attackName ? `（${event.attackName}）` : ""}${event.sourceId && !event.internalDamage ? `，来源：${playerName(state, event.sourceId)}` : ""}`;
     case "heal":
-      return `${playerName(state, event.targetId)} 回复 ${event.amount} 血（${event.reason}）`;
+      if (event.recoveryKind === "conversion") return `${playerName(state, event.targetId)} 血量转换增加 ${event.amount}（${event.reason}）`;
+      if (event.recoveryKind === "full_restore") return `${playerName(state, event.targetId)} 恢复满血（${event.reason}）`;
+      if (event.recoveryKind === "revival") return `${playerName(state, event.targetId)} 通过${event.reason}复活`;
+      if (event.recoveryKind === "reentry") return `${playerName(state, event.targetId)} 通过${event.reason}进入游戏`;
+      if (event.recoveryKind === "reappearance") return `${playerName(state, event.targetId)} 通过${event.reason}重新出现`;
+      if (event.originalTargetId) return `${playerName(state, event.targetId)} 回复 ${event.amountValue ? formatCombatValue(event.amountValue) : event.infinite ? "∞" : event.amount} 血（${event.reason}，原定给予 ${playerName(state, event.originalTargetId)}）`;
+      return `${playerName(state, event.targetId)} 回复 ${event.amountValue ? formatCombatValue(event.amountValue) : event.infinite ? "∞" : event.amount} 血（${event.reason}）`;
     case "round_ended":
       return `本轮结束：${event.reason}`;
     case "player_died":

@@ -11013,9 +11013,8 @@ select {
 
 @media (min-width: 1080px) {
   .table-action-dock {
-    width: min(390px, calc(100vw - 920px)) !important;
-    min-width: 360px !important;
-    max-height: min(420px, calc(100vh - 210px)) !important;
+    width: min(520px, 38vw) !important;
+    min-width: 440px !important;
   }
 
   .table-action-dock .action-board {
@@ -11030,7 +11029,146 @@ select {
   }
 }
 
-/* Fusion controls share the turn-action dock, including on narrow screens. */
+/* Keep the action editor usable independently of optional fusion content. */
+.table-action-dock {
+  top: auto !important;
+  bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  width: min(480px, calc(100vw - 32px));
+  height: min(760px, calc(100dvh - 144px)) !important;
+  max-height: min(760px, calc(100dvh - 144px)) !important;
+}
+
+.table-action-dock .action-board,
+.table-action-dock .action-board:has(.fusion-controls[open]) {
+  height: 100%;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.table-action-dock .action-board > .flex:first-child,
+.table-action-dock .action-command-strip,
+.table-action-dock .action-command-footer {
+  flex-shrink: 0;
+}
+
+.table-action-dock .action-board > .flex:first-child {
+  padding-right: 64px !important;
+}
+
+.action-dock-toggle {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 4;
+  min-height: 36px;
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #154f52;
+  font-size: 13px;
+}
+
+.action-dock-toggle:hover,
+.action-dock-toggle:focus-visible {
+  background: rgba(0, 145, 151, 0.1);
+  outline: 2px solid rgba(0, 145, 151, 0.3);
+}
+
+.table-action-dock.table-action-dock-collapsed {
+  left: auto;
+  width: 144px !important;
+  min-width: 0 !important;
+  height: 48px !important;
+  max-height: 48px !important;
+}
+
+.table-action-dock-collapsed .action-dock-toggle {
+  inset: 0;
+  width: 100%;
+}
+
+.table-action-dock-collapsed .action-board {
+  display: none;
+}
+
+.table-action-dock .action-form {
+  min-width: 0;
+}
+
+.table-action-dock .action-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-right: 0;
+  overflow: visible;
+  padding-bottom: 0;
+}
+
+.table-action-dock .action-mode-grid .mode-button {
+  min-width: 0;
+  min-height: 40px !important;
+}
+
+.table-action-dock .soft-input {
+  min-height: 40px;
+  font-size: 13px;
+}
+
+.table-action-dock .action-command-footer {
+  position: static;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.35fr);
+}
+
+.table-action-dock .action-window-scroll-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.table-action-dock .action-row {
+  container-type: inline-size;
+}
+
+/* Respond to the dock width, rather than the width of the entire monitor. */
+@container (max-width: 540px) {
+  .attack-row-fields {
+    grid-template-columns: minmax(0, 1fr) 64px 36px !important;
+    gap: 10px;
+  }
+
+  .attack-row-fields > label:first-child {
+    grid-area: 1 / 1 / 2 / 3;
+    min-width: 0;
+  }
+
+  .attack-row-stacks {
+    grid-area: 2 / 2;
+    min-width: 0;
+  }
+
+  .attack-row-free-stacks {
+    grid-area: 3 / 1 / 4 / 3;
+  }
+
+  .attack-row-targets,
+  .attack-row-area {
+    grid-area: 2 / 1;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .attack-row-remove {
+    grid-area: 1 / 3;
+    min-height: 36px;
+  }
+}
+
+@container (max-width: 360px) {
+  .attack-row-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .fusion-controls > summary {
   min-height: 44px;
   padding: 10px 12px;
@@ -11040,12 +11178,29 @@ select {
 }
 
 .table-action-dock .fusion-controls[open] > section {
-  max-height: min(46dvh, 26rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  max-height: none;
+  overflow: visible;
 }
 
-.table-action-dock .action-board:has(.fusion-controls[open]) {
-  max-height: calc(100dvh - 120px) !important;
-  overflow-y: auto !important;
+@media (max-width: 1079px) {
+  .table-action-dock {
+    left: auto;
+    right: 16px;
+    width: min(480px, calc(100vw - 32px));
+  }
+}
+
+@media (max-width: 860px) {
+  .table-action-dock {
+    left: 8px;
+    right: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    width: auto;
+    height: min(600px, 70dvh) !important;
+    max-height: min(600px, 70dvh) !important;
+  }
+
+  .table-action-dock .action-board {
+    padding: 12px !important;
+  }
 }

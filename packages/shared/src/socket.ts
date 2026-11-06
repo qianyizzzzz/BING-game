@@ -179,6 +179,10 @@ export interface ClientToServerEvents {
     payload: SubmitWindowSkillPayload,
     ack: (response: SocketAck<{ state: PublicGameState }>) => void
   ) => void;
+  "game:submit_point_game": (
+    payload: { roomId: GameId; action: import("./engine/pointGame").PointGameAction },
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
+  ) => void;
   "game:guess_skill": (
     payload: GuessSkillPayload,
     ack: (response: SocketAck<{ state: PublicGameState }>) => void

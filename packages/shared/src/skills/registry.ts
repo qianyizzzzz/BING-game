@@ -10,9 +10,18 @@ import {
   SkillId
 } from "../types";
 import { RAW_SKILL_CATALOG } from "./generatedSkillCatalog";
-import { FUSION_DEFINITIONS } from "./fusionDefinitions";
+import { BIG_CARD_SKILLS, HEALING_ART_ID, RI_SKILL_ID, bigCardHasAbility } from "../bigCards/abilities";
+import { scaleJunengAttack } from "../engine/junengNumbers";
+import { V4_SPELL_DESCRIPTIONS } from "./v4SpellDescriptions";
+import { FUSION_DEFINITIONS, FUSION_EXPOSURE_TIMINGS } from "./fusionDefinitions";
+import { applyReboundSkillModifiers } from "../engine/reboundRules";
+import { addCombatValues, attackLevelValue, attackPowerValue, combatValue, compareCombatValues, fromLegacyCombatStat, INFINITY_VALUE,
+  offsetAttackStats, projectCombatValue, scaleCombatValue, withAttackLevel, withAttackPower } from "../engine/combatValues";
+import { applyHunyaoRiStats, countRiStacks } from "../engine/hunyao";
+import { isSkillSuppressedByBuff } from "../engine/effectCategories";
 import { COMMON_FUSION_SKILL_ID, FUSION_CAKE_COST, FUSION_RECIPES, getFusionUseBonus,
-  isFusionActive, isFusionImplemented, countSuppressedFusionMaterials, getFusionEnhancementCount, getFusionSkillId } from "./fusion";
+  isFusionActive, isFusionImplemented, countSuppressedFusionMaterials, getActiveFusionCount, getFusionEnhancementCount,
+  getEnhancedChildFusionIds, getFusionSkillId, getFusionRecipe, getVortexCostOverride, isHigherFusionAreaAttack } from "./fusion";
 import type { PlayerState } from "../types";
 import { inferSkillTimingPhases } from "./phases";
 import {
@@ -34,9 +43,7 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
 
         return addElementToAttack(
           {
-            ...attack,
-            power: attack.power >= 999 ? attack.power : attack.power + attack.stacks,
-            level: attack.level + attack.stacks
+            ...offsetAttackStats(attack, attack.stacks, attack.stacks)
           },
           "fire"
         );
@@ -54,9 +61,7 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
 
         return addElementToAttack(
           {
-            ...attack,
-            power: attack.power >= 999 ? attack.power : attack.power + attack.stacks,
-            level: attack.level + attack.stacks
+            ...offsetAttackStats(attack, attack.stacks, attack.stacks)
           },
           "fire"
         );
@@ -163,6 +168,7 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
     timingPhases: ["turn_change_action"]
   },
   skill_31_80497: {
+    description: "控制技，当你的攻击被非反弹防住时，你可以承受1点反噬伤害，使该攻击无视其防御出招。",
     category: "control",
     implemented: true,
     play: {
@@ -249,7 +255,9 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
   },
   skill_59_79990: {
     category: "locked",
-    implemented: true
+    implemented: true,
+    // Confirmed v4 wording; keep the generated v3 baseline untouched until the full migration.
+    description: "锁定技，你的所有非反弹防的出招破弹，你无视绝弹"
   },
   skill_67_31717: {
     category: "locked",
@@ -358,6 +366,7 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
     }
   },
   skill_27_23816: {
+    description: "技能攻击，0饼，攻无限，-1级，任意防；被防住则你受到3点反噬伤害。",
     category: "attack",
     implemented: true,
     play: {
@@ -388,6 +397,7 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
     }
   },
   skill_48_26455: {
+    description: "限定技，一局限2次，你受到1点反噬伤害，+4防御值。",
     category: "limited",
     implemented: true,
     play: {
@@ -466,6 +476,7 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
   skill_66_82448: {
     category: "limited",
     implemented: true,
+    description: "限定技，一局限1次，对当前血量取绝对值后再+6。平地使用时，绝对值属于血量转换，+6属于普通回血；用于复活时，包括+6均属于复活，不受回血倍率、抢夺或禁疗影响。",
     play: {
       kind: "effect",
       cost: 0,
@@ -525,6 +536,7 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
     timingPhases: ["turn_change_action"]
   },
   skill_108_76133: {
+    description: "限定技，一局限1次，免疫此回合不超过无限的伤害，包括反噬伤害；若此回合最高受到x点单次伤害，你+x+6血。",
     category: "limited",
     implemented: true,
     play: {
@@ -625,6 +637,7 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
     }
   },
   skill_84_6114: {
+    description: "技能攻击，2饼，攻1，3级，石头防；若目标的反弹未被破除且指向你，你额外受到3点反噬伤害；若与丁对撞，则使目标退游。",
     category: "attack",
     implemented: true,
     play: {
@@ -716,11 +729,17 @@ const implementedSkills: Record<string, Partial<SkillDefinition>> = {
     play: {
       kind: "effect",
       cost: 0,
+      cakeCostKind: "dynamic",
       maxStacks: 1,
       targetMode: "none",
       effect: "no_direct_effect"
     },
     timingPhases: ["turn_change_action"]
+  },
+  skill_89_99375: {
+    category: "control", implemented: true, timingPhases: ["turn_change_action"],
+    play: { kind: "effect", cost: 2, cakeCostKind: "dynamic", maxStacks: 1,
+      targetMode: "none", effect: "no_direct_effect" }
   },
   skill_94_627: {
     category: "limited",
@@ -886,13 +905,13 @@ export const SKILL_REGISTRY: Record<SkillId, SkillDefinition> =
   Object.fromEntries(
     [...RAW_SKILL_CATALOG.map((raw) => [
       raw.id,
-      createSkillDefinition(raw, implementedSkills[raw.id])
+      { ...createSkillDefinition(raw, implementedSkills[raw.id]), ...(V4_SPELL_DESCRIPTIONS[raw.name] ? { description: V4_SPELL_DESCRIPTIONS[raw.name]! } : {}) }
     ]), ...FUSION_RECIPES.map(({ skill }) => [skill.id, {
       ...skill, category: "passive", implemented: isFusionImplemented(skill.id),
       timingPhases: inferSkillTimingPhases(skill), hooks: {},
-      ...FUSION_DEFINITIONS[skill.name]
+      ...FUSION_DEFINITIONS[skill.name], exposureTiming: FUSION_EXPOSURE_TIMINGS[skill.name] ?? (skill.id.startsWith("fusion_") ? "不暴露" : skill.exposureTiming)
     }]), [COMMON_FUSION_SKILL_ID, {
-      id: COMMON_FUSION_SKILL_ID, name: "融合", fusion: "公共行动", description: "消耗2饼，将两个技能融合；开局准备阶段免费。",
+      id: COMMON_FUSION_SKILL_ID, name: "融合", fusion: "公共行动", description: "消耗2饼，将配方所需的技能合成；开局准备阶段免费。",
       sourceRow: 0, tags: [], typeTags: [], category: "raw", implemented: true,
       timingPhases: ["turn_action"], hooks: {},
       play: { kind: "effect", cost: FUSION_CAKE_COST, maxStacks: 1, targetMode: "none", effect: "no_direct_effect" }
@@ -900,16 +919,35 @@ export const SKILL_REGISTRY: Record<SkillId, SkillDefinition> =
   );
 
 export function getSkill(skillId: SkillId): SkillDefinition | undefined {
-  return SKILL_REGISTRY[skillId];
+  return SKILL_REGISTRY[skillId] ?? BIG_CARD_SKILLS[skillId];
 }
 
 export function getSkillPlay(skillId: SkillId): SkillPlayDefinition | undefined {
   return getSkill(skillId)?.play;
 }
 
-export function getSkillUseLimit(player: Pick<PlayerState, "skills" | "buffs" | "skillFusions">, skillId: SkillId): number | undefined {
+/** A zero-priced cake skill still has a cake cost; an unpriced skill does not. */
+export function getSkillCakeCostKind(skillId: SkillId, player?: Pick<PlayerState, "skills" | "buffs" | "skillFusions">): "none" | "fixed" | "dynamic" {
+  if (player && skillId === "skill_90_32911" && getFusionEnhancementCount(player, skillId, ["杀级换", "火•杀•换"]) > 0) return "none";
+  const play = getSkillPlay(skillId);
+  return play?.cakeCostKind ?? (play && play.cost > 0 ? "fixed" : "none");
+}
+
+export function skillHasCakeCost(skillId: SkillId, player?: Pick<PlayerState, "skills" | "buffs" | "skillFusions">): boolean {
+  return getSkillCakeCostKind(skillId, player) !== "none";
+}
+
+export function getSkillUseLimit(player: Pick<PlayerState, "skills" | "buffs" | "skillFusions" | "bigCards" | "skillInventory" | "verdictShadowInstanceId">, skillId: SkillId): number | undefined {
   const limit = getSkillPlay(skillId)?.usesPerGame;
   if (!limit) return undefined;
+  if (BIG_CARD_SKILLS[skillId]) return (player.bigCards ?? []).reduce((total, card) => total + (bigCardHasAbility(card, skillId) ?
+    Math.max(0, limit + (card.abilityUseBonuses?.[skillId] ?? 0) - (card.abilityUses?.[skillId] ?? 0)) : 0), 0);
+  const used = player.buffs.find((buff) => buff.id === `skill_used:${skillId}`)?.stacks ?? 0;
+  const acquisitionName = getSkill(skillId)?.name;
+  if (["沙皇", "天魔舞", "猥琐小叔叔"].includes(acquisitionName ?? "")) {
+    return used + (player.skillFusions ?? []).filter((fusion) => fusion.skillId === skillId && isFusionActive(player, fusion) &&
+      (acquisitionName === "猥琐小叔叔" ? !fusion.acquisition?.bonusSkillId : !fusion.acquisition?.fusionUsed)).length;
+  }
   const count = FUSION_RECIPES.some((recipe) => recipe.skill.id === skillId)
     ? (player.skillFusions ?? []).filter((fusion) => fusion.skillId === skillId && isFusionActive(player, fusion)).length
     : Math.max(0, player.skills.filter((id) => id === skillId).length - countSuppressedFusionMaterials(player, skillId));
@@ -919,7 +957,17 @@ export function getSkillUseLimit(player: Pick<PlayerState, "skills" | "buffs" | 
       limit * count + (getSkillUseLimit(player, id) ?? 0) - used(id)));
     return used(skillId) + Math.max(0, Math.min(limit * count - used(skillId), materialRemaining));
   }
-  return limit * count + getFusionUseBonus(player, skillId);
+  const mirrorCredit = skillId === "skill_101_4254" ? (player.skillFusions ?? []).filter((fusion) =>
+    getFusionRecipe(fusion.skillId)?.skill.name === "天魔舞" && isFusionActive(player, fusion) &&
+    fusion.acquisition?.mirrorMaterialUsed && !fusion.acquisition.smallUsed).length : 0;
+  const guidanceCards = skillId === HEALING_ART_ID ? player.bigCards?.filter((card) =>
+    player.skillInventory?.some((entry) => entry.skillId === skillId && entry.sourceBigCardInstanceId === card.instanceId)) ?? [] : [];
+  if (guidanceCards.some((card) => card.guidanceHealingUnlimited)) return Number.MAX_SAFE_INTEGER;
+  const verdictBonus = skillId === "skill_25_51277" && player.skillInventory?.some((entry) =>
+    entry.instanceId === player.verdictShadowInstanceId && entry.skillId === skillId) ?
+    player.buffs.find((buff) => buff.id === "verdict_shadow_uses")?.stacks ?? 0 : 0;
+  return limit * count + getFusionUseBonus(player, skillId) + mirrorCredit + verdictBonus +
+    guidanceCards.reduce((sum, card) => sum + (card.guidanceHealingUses ?? 0), 0);
 }
 
 export function skillHasTypeTag(
@@ -942,9 +990,15 @@ export function getSkillActionCost(skillId: SkillId, stacks: number): number {
   return play.cost * stacks;
 }
 
+export function getSkillResourceGainPerStack(player: PlayerState | undefined, skillId: SkillId): number {
+  if (player && skillId === getFusionSkillId("圣灵觉醒") && getEnhancedChildFusionIds(player, "圣宝", skillId).size) return 5;
+  return getSkillPlay(skillId)?.resourceGainPerStack ?? 0;
+}
+
 export function getSkillAttackStats(
   skillId: SkillId,
-  stacks: number
+  stacks: number,
+  owner?: PlayerState
 ): AttackStats | undefined {
   const skill = getSkill(skillId);
   const play = skill?.play;
@@ -952,12 +1006,16 @@ export function getSkillAttackStats(
     return undefined;
   }
 
-  return {
+  const powerValue = scaleCombatValue(play.powerValue ?? fromLegacyCombatStat(play.power ?? 0), stacks);
+  const levelValue = scaleCombatValue(play.levelValue ?? fromLegacyCombatStat(play.level ?? 0), stacks);
+  return applyHigherFusionAttackShape(owner, {
     id: skill.id,
     name: play.attackName ?? skill.name,
     cost: play.cost * stacks,
-    power: play.power === INFINITE_DAMAGE ? INFINITE_DAMAGE : (play.power ?? 0) * stacks,
-    level: (play.level ?? 0) * stacks,
+    power: projectCombatValue(powerValue),
+    level: projectCombatValue(levelValue),
+    powerValue,
+    levelValue,
     defenseTag: play.defenseTag ?? "any",
     traits: Array.from(new Set([...(play.traits ?? []), "skill"])),
     element: play.element ?? "physical",
@@ -965,8 +1023,39 @@ export function getSkillAttackStats(
     isArea: play.targetMode === "all",
     stacks,
     isSkill: true,
+    ...(play.damageParts ? { damageParts: play.damageParts.map((part) => part * stacks) } : {}),
     ...(play.freezeTurns ? { freezeTurns: play.freezeTurns } : {})
-  };
+  });
+}
+
+function applyHigherFusionAttackShape(owner: PlayerState | undefined, stats: AttackStats): AttackStats {
+  if (!owner) return stats;
+  const vortexCost = getVortexCostOverride(owner, stats.id);
+  if (vortexCost !== undefined) return { ...stats, cost: vortexCost * stats.stacks };
+  if (stats.id === "skill_27_23816" && getFusionEnhancementCount(owner, stats.id, ["毁灭之盾"]) > 0) {
+    const enhanced = getEnhancedChildFusionIds(owner, "毁灭之魂", getFusionSkillId("毁灭之盾")).size > 0;
+    return withAttackLevel(stats, enhanced ? scaleCombatValue(INFINITY_VALUE, stats.stacks) : []);
+  }
+  if (stats.id === "skill_84_6114") {
+    const price = getActiveFusionCount(owner, "猥琐大叔叔") > 0 ? { ...stats, cost: stats.stacks } : stats;
+    return getFusionEnhancementCount(owner, stats.id, ["抠皇"]) > 0
+      ? withAttackLevel({ ...price, traits: Array.from(new Set([...stats.traits, "pierce_rebound"])) }, scaleCombatValue(INFINITY_VALUE, stats.stacks))
+      : price;
+  }
+  if (stats.id === getFusionSkillId("山崩地裂") && getEnhancedChildFusionIds(owner, "山河破碎", stats.id).size) {
+    const value = scaleCombatValue(INFINITY_VALUE, stats.stacks);
+    return withAttackLevel(withAttackPower(stats, value), value);
+  }
+  if (stats.id === "skill_95_91337" && getFusionEnhancementCount(owner, stats.id, ["甲骨文"]) > 0)
+    return { ...stats, defenseTag: "stone" };
+  if (!isHigherFusionAreaAttack(owner, stats.id)) return stats;
+  const area: AttackStats = { ...stats, isArea: true, traits: Array.from(new Set([...stats.traits, "area"])) };
+  if (stats.id === "skill_78_18866") {
+    const value = combatValue(6 * stats.stacks);
+    return withAttackLevel(withAttackPower({ ...area, defenseTag: "youtiao" }, value), value);
+  }
+  return { ...area, cost: stats.id === "skill_86_14131" ? stats.stacks : stats.cost,
+    traits: Array.from(new Set([...area.traits, "pierce_rebound"])) };
 }
 
 export function getAllSkills(options: { includeFusions?: boolean } = {}): SkillDefinition[] {
@@ -997,10 +1086,26 @@ export function getIntroSmallSkillIds(limit = 120): SkillId[] {
     .map((skill) => skill.id);
 }
 
-export function applyAttackModifiers(
+export function applyAttackModifiers(state: GameState, ownerId: PlayerId, attack: AttackStats, actionIndex?: number): AttackStats {
+  const owner = state.players.find((player) => player.id === ownerId);
+  const action = actionIndex === undefined ? undefined : state.pendingActions[ownerId]?.actions[actionIndex];
+  if (owner) attack = scaleJunengAttack(owner, attack, action?.type === "skill" ? action.bigCardInstanceId : undefined);
+  const priorRi = attack.id === RI_SKILL_ID && actionIndex !== undefined
+    ? countRiStacks(state.pendingActions[ownerId]?.actions.slice(0, actionIndex) ?? []) : 0;
+  attack = applyHigherFusionAttackShape(owner, applyHunyaoRiStats(owner, attack, priorRi));
+  if (!attack.damageParts) return applySingleAttackModifiers(state, ownerId, attack, actionIndex);
+  const snapshot = JSON.stringify(state);
+  const { damageParts, damagePartValues, ...single } = attack;
+  const results = damageParts.map((power, index) => applySingleAttackModifiers(index === 0 ? state : JSON.parse(snapshot) as GameState,
+    ownerId, withAttackPower(single, damagePartValues?.[index] ?? combatValue(power)), actionIndex));
+  return { ...results[0]!, damageParts: results.map((part) => part.power), damagePartValues: results.map(attackPowerValue) };
+}
+
+function applySingleAttackModifiers(
   state: GameState,
   ownerId: PlayerId,
-  attack: AttackStats
+  attack: AttackStats,
+  actionIndex?: number
 ): AttackStats {
   const owner = state.players.find((player) => player.id === ownerId);
   if (!owner) {
@@ -1033,10 +1138,11 @@ export function applyAttackModifiers(
   }, attack);
 
   let modified = applyPermanentAttackGrowth(owner, hooked);
+  const fireSwap = !modified.isSkill && getActiveFusionCount(owner, "火•杀•换");
+  if (fireSwap) modified = addElementToAttack(offsetAttackStats(modified, fireSwap, fireSwap), "fire");
+  const severance = getActiveFusionCount(owner, "断绝");
+  if (severance > 0) modified = { ...modified, pierceInvulnerability: true, attackDamageMultiplier: 2 ** severance };
 
-  if (modified.id === "skill_27_23816" && getFusionEnhancementCount(owner, "skill_27_23816", ["毁灭之盾"]) > 0) {
-    modified = { ...modified, level: 0 };
-  }
   if (modified.id === "skill_97_60773" && getFusionEnhancementCount(owner, "skill_97_60773", ["极寒风暴"]) > 0) {
     modified = { ...modified, damageHits: 2 };
   }
@@ -1047,14 +1153,15 @@ export function applyAttackModifiers(
   );
 
   const crystalBonus = getFusionEnhancementCount(owner, "skill_33_55159", ["神界炼魂", "神域之种"]);
-  if (crystalBonus > 0) modified = { ...modified, level: modified.level + crystalBonus };
+  if (crystalBonus > 0) modified = offsetAttackStats(modified, 0, crystalBonus);
 
   const fireBladeBonus = getFusionEnhancementCount(owner, "huo_yan_dao", ["水火双生"]);
   if (modified.id === "sha" && fireBladeBonus > 0) {
-    modified = addElementToAttack({ ...modified,
-      power: modified.power >= 999 ? modified.power : modified.power + fireBladeBonus * modified.stacks,
-      level: modified.level + fireBladeBonus * modified.stacks }, "ice");
+    const bonus = fireBladeBonus * modified.stacks;
+    modified = addElementToAttack(offsetAttackStats(modified, bonus, bonus), "ice");
   }
+  const blazingBladeBonus = getFusionEnhancementCount(owner, "huo_yan_dao", ["炽焰"]) * modified.stacks;
+  if (modified.id === "sha" && blazingBladeBonus > 0) modified = offsetAttackStats(modified, blazingBladeBonus, blazingBladeBonus);
   if (modified.id === "skill_110_2190" && getFusionEnhancementCount(owner, "skill_110_2190", ["雷霆之心"]) > 0) {
     modified = { ...modified, includeSelf: true };
   }
@@ -1079,43 +1186,62 @@ export function applyAttackModifiers(
     modified = addElementToAttack(
       {
         ...modified,
-        traits: Array.from(new Set([...modified.traits, "pierce_rebound"]))
+        requiresAbsoluteRebound: true
       },
       "ice"
     );
   }
 
-  const pendingLavaMark = owner.buffs.find(
-    (buff) => buff.id === "pending_lava_mark" && buff.stacks > 0
-  );
-  if (ownerHasActiveSkill(owner, "skill_21_36332") && pendingLavaMark) {
-    const stacks = pendingLavaMark.stacks;
-    pendingLavaMark.stacks = 0;
+  const consumeMarks = (kind: string, active: (buff: PlayerState["buffs"][number]) => boolean,
+    multiplier = (_buff: PlayerState["buffs"][number]) => 1) => {
+    let stacks = 0;
+    for (const buff of owner.buffs) {
+      if ((buff.id === `pending_${kind}_mark` || buff.id.startsWith(`pending_${kind}_mark:`)) && buff.stacks > 0 &&
+        (buff.attackActionIndex === undefined || buff.attackActionIndex === actionIndex) && active(buff)) {
+        stacks += buff.stacks * multiplier(buff);
+        buff.stacks = 0;
+      }
+    }
+    return stacks;
+  };
+  const blazingLava = getFusionEnhancementCount(owner, "skill_21_36332", ["炽焰"]) > 0;
+  const lavaStacks = consumeMarks("lava", (buff) => ownerHasActiveSkill(owner, "skill_21_36332") &&
+    (!buff.sourceFusionId || Boolean(owner.skillFusions?.some((fusion) => fusion.id === buff.sourceFusionId && isFusionActive(owner, fusion)))),
+    (buff) => buff.fusionMarkKind === "solar_lava" ? 2 : blazingLava ? 3 : 1);
+  if (lavaStacks > 0) {
     modified = addElementToAttack(
       {
-        ...modified,
-        power: modified.power >= 999 ? modified.power : modified.power + stacks,
-        level: modified.level + stacks
+        ...offsetAttackStats(modified, lavaStacks, lavaStacks)
       },
       "fire"
     );
   }
 
-  const pendingWinterMark = owner.buffs.find(
-    (buff) => buff.id === "pending_winter_mark" && buff.stacks > 0
-  );
-  if (ownerHasActiveSkill(owner, "skill_22_54978") && pendingWinterMark) {
-    const stacks = pendingWinterMark.stacks;
-    pendingWinterMark.stacks = 0;
+  const winterStacks = consumeMarks("winter", () => ownerHasActiveSkill(owner, "skill_22_54978"));
+  if (winterStacks > 0) {
+    const enhancedWinter = getFusionEnhancementCount(owner, "skill_22_54978", ["极寒"]) > 0;
     modified = addElementToAttack(
       {
-        ...modified,
-        power: modified.power >= 999 ? modified.power : Math.max(0, modified.power - stacks),
-        level: modified.level + stacks,
-        freezeTurns: Math.min(3, Math.max(1, stacks))
+        ...offsetAttackStats(modified, enhancedWinter ? winterStacks : -winterStacks, winterStacks),
+        freezeTurns: Math.min(3, Math.max(1, winterStacks))
       },
       "ice"
     );
+    if (compareCombatValues(attackPowerValue(modified), []) < 0) modified = withAttackPower(modified, []);
+  }
+
+  let addsIceFire = false;
+  const iceFireStacks = consumeMarks("ice_fire", (buff) => {
+    const active = owner.skillFusions?.some((fusion) => fusion.id === buff.sourceFusionId &&
+      fusion.skillId === getFusionSkillId("冰火狂暴曲") && isFusionActive(owner, fusion));
+    if (active && !buff.markKeepsAttackElement) addsIceFire = true;
+    return Boolean(active);
+  });
+  if (iceFireStacks > 0) {
+    modified = { ...offsetAttackStats(modified, iceFireStacks, iceFireStacks),
+      freezeTurns: Math.max(modified.freezeTurns ?? 0, iceFireStacks)
+    };
+    if (addsIceFire) modified = addElementToAttack(addElementToAttack(modified, "fire"), "ice");
   }
 
   owner.buffs = owner.buffs.filter((buff) => buff.stacks > 0);
@@ -1127,12 +1253,7 @@ export function applyAttackModifiers(
     };
   }
 
-  if (ownerHasActiveSkill(owner, "skill_59_79990")) {
-    modified = {
-      ...modified,
-      traits: Array.from(new Set([...modified.traits, "pierce_rebound"]))
-    };
-  }
+  modified = applyReboundSkillModifiers(owner, modified);
 
   if (modified.id === "wan_jian" && (owner.skillFusions ?? []).some((fusion) =>
     isFusionActive(owner, fusion) && FUSION_RECIPES.some((recipe) =>
@@ -1144,25 +1265,27 @@ export function applyAttackModifiers(
 }
 
 function applyPermanentAttackGrowth(
-  owner: { buffs: Array<{ id: string; stacks: number }> },
+  owner: Pick<PlayerState, "skills" | "buffs" | "skillFusions">,
   attack: AttackStats
 ): AttackStats {
   if (attack.id !== "skill_81_59663") {
     return attack;
   }
 
-  const growth = Math.min(
-    3,
-    Math.max(0, owner.buffs.find((buff) => buff.id === "lu_growth")?.stacks ?? 0)
-  );
+  const mark = owner.buffs.find((buff) => buff.id === "lu_growth");
+  const uncapped = getActiveFusionCount(owner, "猥琐大叔叔") > 0;
+  if (uncapped && mark?.infinite) {
+    const growth = scaleCombatValue(INFINITY_VALUE, attack.stacks);
+    return withAttackLevel(withAttackPower(attack, addCombatValues(attackPowerValue(attack), growth)),
+      addCombatValues(attackLevelValue(attack), growth));
+  }
+  const growth = Math.min(uncapped ? Infinity : 3, Math.max(0, mark?.stacks ?? 0));
   if (growth <= 0) {
     return attack;
   }
 
   return {
-    ...attack,
-    power: attack.power >= 999 ? attack.power : attack.power + growth * attack.stacks,
-    level: attack.level + growth * attack.stacks
+    ...offsetAttackStats(attack, growth * attack.stacks, growth * attack.stacks)
   };
 }
 
@@ -1175,18 +1298,10 @@ function modifiedByBasicLockedSkills(
   const wineCount = ownerCount("skill_34_1533");
 
   if (crystalCount > 0) {
-    modified = {
-      ...modified,
-      level: modified.level + crystalCount
-    };
+    modified = offsetAttackStats(modified, 0, crystalCount);
   }
 
-  if (wineCount > 0 && modified.power < 999) {
-    modified = {
-      ...modified,
-      power: modified.power + wineCount
-    };
-  }
+  if (wineCount > 0) modified = offsetAttackStats(modified, wineCount, 0);
 
   return modified;
 }
@@ -1200,7 +1315,7 @@ function ownerActiveSkillCount(
     owner.buffs.some(
       (buff) =>
         buff.id.startsWith("collapse_until_round:") ||
-        buff.id.startsWith("skill_disabled_until_round:")
+        isSkillSuppressedByBuff(buff.id)
     )
   ) {
     return 0;

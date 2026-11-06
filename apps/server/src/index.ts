@@ -15,6 +15,7 @@ import {
   getActionPlanLabel,
   getSkill
 } from "@bing/shared";
+import { getCurrentTurnLimitSeconds, isBigSkillMode } from "@bing/shared";
 import { RoomStore } from "./roomStore";
 import type { PlayerState } from "@bing/shared";
 
@@ -379,6 +380,15 @@ io.on("connection", (socket) => {
       return {
         state: rooms.publicState(payload.roomId, playerId)
       };
+    });
+  });
+
+  socket.on("game:submit_point_game", (payload, ack) => {
+    safely(ack, () => {
+      const playerId = requirePlayerId(socket.data.playerId);
+      rooms.submitPointGame(payload.roomId, playerId, payload.action);
+      void broadcastRoomState(payload.roomId);
+      return { state: rooms.publicState(payload.roomId, playerId) };
     });
   });
 
@@ -875,7 +885,7 @@ function renderReplayTextEvent(
     case "player_kicked":
       return [`${time} ${event.name} 被房主 ${playerLabel(players, event.byPlayerId)} 踢出房间。`];
     case "settings_updated":
-      return [`${time} 房间设置更新：限时 ${event.config.turnTimeLimitSeconds}s，小技能 ${event.config.skillCount} 张。`];
+      return [`${time} 房间设置更新：限时 ${getCurrentTurnLimitSeconds({ config: event.config })}s，${isBigSkillMode(event.config.skillMode) ? "大技能" : "小技能"} ${event.config.skillCount} 张。`];
     case "player_died":
       return [`${time} ${playerLabel(players, event.playerId)} ${defeatStatusLabel(event.defeatLevel)}。`];
     case "game_finished":

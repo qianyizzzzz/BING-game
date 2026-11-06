@@ -1,0 +1,34 @@
+Use case: stylized-concept.
+Image 1 is ONLY a STYLE AND LAYOUT REFERENCE from the established Chinese epic fantasy collectible card series. Create an entirely NEW completed MYSTERY-element 王者卡, "秘·御秽裁决", ID 10508.
+USER COLOR REQUIREMENT: predominantly PURPLE AND BLACK. Rich amethyst/violet light, jet-black obsidian, blackened metal, deep plum shadow. Gold used ONLY for readable typography and very thin restrained antique-gold trims, NOT a gold-dominant border or a purple-and-gold star card.
+Preserve the established full front-on 1024x1536 portrait 2:3 card, same information layout, similar border width and large illustration aperture, top-center rank plaque, upper-right attribute medallion, lower nameplate and ID footer. No dragons, red storm, horns, scales or cloud-scroll decoration from the reference.
+
+Central illustration: a mysterious ritual of absolute judgment.
+A colossal ancient OBSIDIAN BALANCE floats unheld in profound black-violet space. A towering black execution/judgment BLADE forms the central vertical axis of this single cohesive enchanted relic. The blade points downward, straight and imposing, with elegant angular edges revealed by violet light. Near its upper section a broad, graceful curved black-metal balance beam supports TWO suspended black obsidian weighing pans on fine dark chains. This is an unmanned monumental magical artifact, not a person or statue.
+The relic's silhouette is clear: central downward blade, spreading balance beam, two distinct pans at equal heights, black metallic structures and sharp purple rims. Show it in a slight three-quarter perspective for depth, while maintaining the card's frontal view. Refined ancient craftsmanship and sparse engraved geometric seal-pattern relief, not modern machinery.
+From one pan rises a dense bright amethyst stream of spectral energy; from the other, near-black smoky dust with delicate violet edges. The two streams arc inward and meet in a tight purple-white luminous knot around the blade's midpoint, suggesting an irreversible verdict. The blade's length and edge remain visible through the light.
+Around the whole relic, a few layered translucent deep-violet shield/seal arcs arrest a gathering of dark shadow tendrils at the perimeter. Each shadow dissolves into tiny purple-black motes where it meets the boundary, conveying immunity to impurity and hostile effects. Keep this subtle and secondary, never turning the art into a diagram, circular glowing ball or overcrowded magic glyph sheet.
+Background: endless black and deep plum, layered purple smoky veils near edges, faint amethyst dust and a few dark fractured seal fragments. No landscape, buildings, courtroom, people or identifiable room. The mysterious artifact floats in an abstract timeless ritual space.
+Majestic, menacing, calm and absolute, rich dimensional atmospheric layers, high-end epic fantasy cinematic painterly realism. Black obsidian must have legible fine material texture and deep glossy facets; violet rim light, reflected purple edges and a few sharp pale-amethyst highlights keep every important shape visible. Strong contrast but no muddy featureless darkness. Purple and black dominate; no large gold surfaces, no bright red, blue or orange palette.
+No blood, flesh, severed bodies, figures, faces or hands.
+
+MYSTERY-specific FRAME:
+Entirely redesign the reference's elemental ornaments while retaining the same card layout and positions.
+Blackened ceremonial metal, faceted black obsidian and deep-purple enamel form the broad primary rails. Very thin muted antique-gold edges tie the card to the existing series; keep black and violet visibly dominant.
+Side rails have elegant interwoven seal-bands, fine dark chains and engraved angular binding patterns. Corners feature dark amethyst facets and precise black sculpted filigree. Sparse purple light glows from recessed seams, refined and controlled, not a neon sci-fi HUD.
+Top crown is a sculpted black ceremonial seal crest with a dark amethyst jewel and layered sharply beveled black-violet arcs. No creature head, mask, skull, dragon horn, stars, wings or sunburst.
+All rank/title/serial plaques have uninterrupted deep-black-purple inset surfaces; the existing large gold Chinese typography stays crisp and readable.
+Upper-right circular attribute badge: black-violet enamel, slim antique-gold and black-metal rim, exact large gold Chinese character "秘".
+No dragon scales, fire, ice, planets, orbiting balls, cannon or wing motif.
+
+The ONLY exact inscriptions:
+Top rank: "王者卡"
+Upper-right badge: "秘"
+Bottom nameplate: "秘·御秽裁决"
+Footer: "ID 10508"
+Render 御 and 秽 correctly using simplified Chinese. Preserve the series' typography scale, positions, plaque sizes and quiet margins. No other text, runic lettering, numeric labels, abilities, logos or watermark. Engraving is purely nonverbal geometric ornament.
+
+Strict constraints:
+No humans, humanoids, gods, angels, statues, faces, eyes, hands, arms, creatures, animals or dragons. The balance and sword are suspended magically with no holder or operator.
+One complete card only, no design sheet, mockup tilt or photographed tabletop.
+Central artwork is fully opaque and fills the entire illustration window under the frame. Genuine alpha transparency ONLY outside the outer card silhouette and projecting ornament tips. No opaque background rectangle or checkerboard outside the card.

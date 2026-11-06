@@ -1,0 +1,31 @@
+Use case: stylized-concept.
+Image 1 is a STYLE AND LAYOUT REFERENCE: the completed fire-element 王者卡 from the same collectible card series. Create a NEW completed LIGHT-element card, not a fire recolor.
+Asset: epic fantasy Chinese collectible card front, "光·魂耀九州", ID 10502, 王者卡. Preserve the series' portrait 2:3 1024x1536 canvas, front-on presentation, sculptural metallic craftsmanship, large central art window, top-center rank plaque, upper-right circular attribute badge, bottom nameplate and serial footer. Create both an original LIGHT-specific ornate frame and fully illustrated center.
+
+Central illustration:
+A majestic phenomenon of pure primordial LIGHT illuminating an immense mythic world. A radiant white-gold celestial sun suspended high over nine vast mountain regions and winding silver rivers; a resplendent concentric halo around its luminous sphere. Dramatic long sunbeams radiate outward and descend through monumental blue-silver cloud formations, reaching far horizons and dispelling the last indigo night. The sun should read as a spherical source of clear light with ordered radial rays, NOT burning fire.
+Thousands of small pearlescent blue-white and gold soul-lights rise from dark valleys in graceful converging currents and return to the daylight. These are abstract luminous motes/orbs with delicate trails, never humanoid ghosts or silhouettes. A few larger motes in foreground establish depth, many small ones in the immense distance. The landscape awakens and becomes radiant where the light touches it, conveying restoration, resurrection, souls returning and light shared across all the lands. One cohesive spectacular scene, not a collage.
+Strong composition: sun focal point in upper-middle of central window, majestic fan of rays through diagonal cloud openings; the great landscape recedes into many layers in lower half. Rich, luminous but controlled white-gold highlights; deep sapphire and indigo shadows; ivory clouds, warm gold rivers of light, tiny opalescent spectral color in the beams. Detailed peaks and rivers remain legible. Grand, solemn, protective and triumphant, cosmic in scale. High-end cinematic painterly realism, crisp forms, sophisticated atmosphere. Preserve texture in bright areas, no all-white overexposure.
+
+Light-specific FRAME:
+Same rank and same information hierarchy as reference, but redesign the elemental ornament completely.
+- Replace the flame-shaped top crown with a majestic sculpted SUNBURST crown of orderly long and short gold rays around an ivory luminous round core, integrated above the rank plaque.
+- Frame rails of champagne gold, pale gold and pearl-white enamel, with fine concentric halo engravings, faceted clear luminous crystal details and repeated straight tapered ray shapes. Geometric luminous arches and polished celestial relief.
+- Upper and lower corners use sculptural light rays and radiant crystal fan motifs. Keep approximately the reference's border width and readable central illustration area.
+- Upper-right circular badge is pearl-white luminous enamel, gold sunburst rim and the gold Chinese character "光".
+- Nameplate and rank plaque have dark deep-navy inset surfaces and high-contrast warm-gold characters; serial footer matches.
+- Light originates from crystal seams and polished ray tips with restrained bloom. Overall noble metal, radiant ivory and subtle sapphire. No red enamel, no orange flames, no molten lava, no ember shapes anywhere.
+The element must be immediately recognizable through the FRAME'S SHAPE AND MATERIAL as well as the illustration.
+
+Exact text, only these four inscriptions:
+Top-center rank: "王者卡"
+Upper-right attribute: "光"
+Bottom-center card name: "光·魂耀九州"
+Bottom footer: "ID 10502"
+Keep all four fully readable, correctly spelled, sharp, with generous quiet margins. Preserve same approximate plaque sizes and type scale as reference. No other text, no ability description, no invented numbers, no logo or watermark.
+
+Constraints:
+No humans, humanoids, gods, angels, statues, faces, hands, skeletons, wings, birds, animals, creatures or weapons. No human-shaped soul-lights. No existing franchise imagery. No cross or religious emblem. This is an elemental celestial phenomenon and landscape.
+No fire, volcano, lava, burning ground or apocalyptic destruction. Clearly distinguish light from the fire card reference.
+Show full card and all ornaments inside image boundaries, narrow transparent padding, no perspective tilt or photographed tabletop.
+Central artwork fully opaque and fills the entire art aperture under the border. Actual alpha transparency only outside the outer card silhouette and thin projecting ray ornaments. Do not paint any background rectangle or checkerboard outside the card.

@@ -35,9 +35,12 @@ export interface RawSkillDefinition {
 
 export interface FusionRecipe {
   skill: RawSkillDefinition;
-  materialOptions: Array<[SkillId, SkillId]>;
+  tier?: 2 | 3 | 4;
+  materialOptions: SkillId[][];
   originalEffect: string;
   retainedMaterialIds: SkillId[];
+  /** Raw effects kept from a covered fusion whose own effect is replaced. */
+  retainedInheritedMaterialIds?: SkillId[];
   targeting: string;
   /** Using the resulting skill also spends these materials' limited uses. */
   materialUseCosts: SkillId[];
@@ -92,6 +95,7 @@ export type SkillEffectId =
   | "gain_defense_value"
   | "lava_mark"
   | "winter_mark"
+  | "ice_fire_mark"
   | "blizzard_double_hit"
   | "abs_plus"
   | "odd_hp_damage"
@@ -103,6 +107,9 @@ export type SkillEffectId =
   | "sand_transform";
 
 export interface SkillPlayDefinition {
+  elementCost?: { element: string; perStack: number };
+  /** Inherent cake pricing, independent of the amount actually paid. */
+  cakeCostKind?: "none" | "fixed" | "dynamic";
   kind: SkillPlayKind;
   attackName?: string;
   cost: number;
@@ -122,6 +129,10 @@ export interface SkillPlayDefinition {
   targetDamage?: number | undefined;
   allEnemyDamage?: number | undefined;
   selectedTargetCount?: number | undefined;
+  optionalTargetCount?: number;
+  damageParts?: number[];
+  powerValue?: import("../engine/combatValues").CombatValue;
+  levelValue?: import("../engine/combatValues").CombatValue;
   hpThreshold?: number | undefined;
   effect?: SkillEffectId | undefined;
 }

@@ -11,6 +11,7 @@ import {
   PlayerActionPlan
 } from "../types";
 import { getSkill } from "../skills/registry";
+import { combatValue, fromLegacyCombatStat, INFINITY_VALUE, projectCombatValue, scaleCombatValue } from "./combatValues";
 
 export const BASE_ATTACKS: Record<AttackId, BaseAttackDefinition> = {
   sha: {
@@ -135,6 +136,7 @@ export const DEFENSE_LABELS: Record<DefenseKind, string> = {
 };
 
 export const DEFENSE_TAG_LABELS: Record<DefenseTag, string> = {
+  rebound: "反弹防",
   small: "小防防",
   youtiao: "油条防",
   stone: "石头防",
@@ -151,17 +153,19 @@ export function getStackedAttackStats(
   definition: BaseAttackDefinition,
   stacks: number
 ): AttackStats {
-  const power =
-    definition.power === "infinity"
-      ? INFINITE_DAMAGE
-      : definition.power * stacks;
+  const powerValue = scaleCombatValue(definition.powerValue ??
+    (definition.power === "infinity" ? INFINITY_VALUE : combatValue(definition.power)), stacks);
+  const levelValue = scaleCombatValue(definition.levelValue ?? fromLegacyCombatStat(definition.level), stacks);
 
   return {
     id: definition.id,
     name: definition.name,
     cost: definition.cost * stacks,
-    power,
-    level: definition.level * stacks,
+    power: projectCombatValue(powerValue),
+    level: projectCombatValue(levelValue),
+    ...(definition.powerValue || definition.power === "infinity" || projectCombatValue(powerValue) === INFINITE_DAMAGE ? { powerValue } : {}),
+    ...(definition.levelValue || fromLegacyCombatStat(definition.level)[0]?.exponent || Math.abs(projectCombatValue(levelValue)) >= INFINITE_DAMAGE
+      ? { levelValue } : {}),
     defenseTag: definition.defenseTag,
     traits: [...definition.traits],
     element: definition.element,
@@ -270,7 +274,7 @@ export function canActionDefend(
   }
 
   if (action.defense === "rebound") {
-    return false;
+    return defenseTag === "rebound";
   }
 
   if (defenseTag === "any") {

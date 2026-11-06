@@ -1,0 +1,26 @@
+Use case: compositing.
+Image 1 is the EDIT TARGET: the established fire-element 王者卡 card frame for 火·焚天君燚, ID 10501.
+Primary request: Fill ONLY the large empty central illustration aperture with the finished epic fantasy artwork for "火·焚天君燚". This is a completed collectible card front, with spectacular FIRE as the subject, absolutely NO humanoid figure.
+
+Illustration direction:
+Depict a colossal primordial celestial inferno consuming the heavens. A vast, naturally irregular pillar and vortex of living fire erupts from a black volcanic abyss, unfurling into sweeping flame arcs that tear open the smoky sky. The main fire formation dominates the center and upper-middle of the illustration, clearly identifiable at thumbnail size. It is an immense elemental phenomenon, NEVER an anthropomorphic being.
+A brilliant white-hot and golden core, layered orange flame tongues, blood-red outer embers, translucent curling flame tips and large sculptural folds of plasma. Make the fire look physically alive, with detailed turbulence, heat distortion and volumetric self-illumination. Surround it with deep charcoal smoke and dark crimson storm clouds for strong readable contrast, preserving both bright flame detail and shadow detail. Avoid washing out the illustration as one flat orange field.
+Across the lower third, jagged black obsidian ridges and enormous molten fissures spiral toward the inferno. Chunks of scorched rock float upward, visibly disintegrating into sparks. A few much smaller, distant secondary fire fronts establish colossal scale. Three sweeping flame surges converge into the main sky-consuming eruption, hinting at overwhelming repeated attacks and annihilation. Deep atmospheric perspective; low viewpoint; epic catastrophe on a mythic world scale.
+The artwork conveys burning the sky, erasing everything in its path, molten protection and a lingering sea of embers. Show these through one cohesive majestic scene, not separate panels.
+Highest-end cinematic epic fantasy card illustration, richly detailed, painterly realism with precise fire physics, dramatic sculptural composition and carefully controlled highlights. Main fire phenomenon remains distinct from the surrounding ornate gold card border.
+
+Strict subject constraints:
+NO humans. NO humanoids. NO face, head, eyes, torso, arms, hands, legs, human silhouette, fire giant, elemental person, deity, warrior, demon, statue or skeleton.
+NO dragon, phoenix, bird, animal or creature. NO throne, person-shaped crown or weapon-wielding form.
+Only nonfigurative fire, plasma, molten rock, smoke, embers, devastated terrain and cosmic atmospheric forces.
+NO extra text, skill descriptions, numbers, logos or symbols in the illustration.
+
+Preserve the frame:
+Keep the existing 1024x1536 canvas, portrait 2:3 aspect, exact full front-on layout, same sculpted fire-crown crest, golden flame side rails, black volcanic materials, orange fissures, fire medallion, lower nameplate and ID footer.
+Preserve the EXACT readable inscriptions and their current positions:
+"王者卡" at top center
+"火" inside upper-right medallion
+"火·焚天君燚" in bottom nameplate (燚 is four 火)
+"ID 10501" in the footer.
+Do not let the illustration or new flames cover the border or any inscription. All new artwork goes UNDER the existing frame, within the former transparent central illustration window, edge-to-edge without gaps.
+The central illustration should now be fully opaque. Preserve alpha transparency ONLY outside the outer card silhouette and its external flame tips. No opaque rectangular background behind the card, no checkerboard, no transparent hole remaining in the central artwork.

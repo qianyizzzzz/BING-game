@@ -1,0 +1,31 @@
+{
+  "version": "king-fire-v2",
+  "status": "visual prototype",
+  "rank": "王者卡",
+  "attribute": "火",
+  "standard": "等级决定框架与等级牌，属性决定边框造型、材质和局部色彩。多属性另行设计。",
+  "changes": [
+    "火焰形冠饰",
+    "沿两侧上升的金色焰纹",
+    "黑色火山岩质感与熔岩裂隙",
+    "四角和底部的燃烧边缘"
+  ],
+  "retained": [
+    "顶部等级",
+    "右上属性",
+    "下方卡名",
+    "底部ID",
+    "中央透明插画区"
+  ],
+  "canvas": {
+    "width": 1024,
+    "height": 1536,
+    "format": "RGBA PNG"
+  },
+  "sample": {
+    "name": "火·焚天君燚",
+    "id": "10501"
+  },
+  "file": "king-fire-preview-v2.png",
+  "method": "built-in image_gen edit"
+}

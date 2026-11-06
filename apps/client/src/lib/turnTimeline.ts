@@ -5,7 +5,7 @@ import {
   PlayerId,
   PublicGameState
 } from "@bing/shared";
-import { playerName } from "./format";
+import { formatDamage, playerName } from "./format";
 
 export interface Broadcast {
   reveal: Extract<GameEvent, { type: "turn_revealed" }>;
@@ -60,6 +60,7 @@ export interface BattleStep {
   label: string;
   description: string;
   amount?: number;
+  amountText?: string;
 }
 
 interface PlayerRef {
@@ -138,8 +139,10 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
       targetName: target.name,
       targetAvatarUrl: target.avatarUrl,
       label: attackName,
-      description: `${source.name} 命中 ${target.name}`,
-      amount: event.amount
+      description: event.internalDamage ? `${source.name} 承受反噬伤害` : event.reflected ? `${source.name} 的攻击转向并命中 ${target.name}` : `${source.name} 命中 ${target.name}`,
+      amount: event.amount,
+      ...(event.pointDefeatLevel ? { amountText: DEFEAT_LEVEL_LABELS[event.pointDefeatLevel] } :
+        event.amountValue ? { amountText: formatDamage(event.amount, event.amountValue) } : {})
     };
   }
 
@@ -197,6 +200,9 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
   if (event.type === "heal") {
     const source = playerRef(state, event.sourceId ?? event.targetId, "系统");
     const target = playerRef(state, event.targetId);
+    const label = event.recoveryKind === "conversion" ? "血量转换" : event.recoveryKind === "full_restore" ? "回满血" :
+      event.recoveryKind === "revival" ? "复活" : event.recoveryKind === "reentry" ? "进入游戏" :
+        event.recoveryKind === "reappearance" ? "重新出现" : "回血";
     return {
       id: event.id,
       kind: "heal",
@@ -206,9 +212,11 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
       sourceAvatarUrl: source.avatarUrl,
       targetName: target.name,
       targetAvatarUrl: target.avatarUrl,
-      label: "回血",
-      description: `${target.name} 回复生命`,
-      amount: event.amount
+      label,
+      description: event.originalTargetId ? `${target.name} 获得原定给予 ${playerRef(state, event.originalTargetId).name} 的回血` :
+        `${target.name} ${label === "回血" ? "回复生命" : label}`,
+      amount: event.amount,
+      ...(event.amountValue ? { amountText: formatDamage(event.amount, event.amountValue) } : {})
     };
   }
 

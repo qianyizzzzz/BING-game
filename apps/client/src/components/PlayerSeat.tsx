@@ -1,9 +1,10 @@
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Cookie, HeartPulse, Skull, Sparkles, Timer, X } from "lucide-react";
-import { DEFEAT_LEVEL_LABELS, INITIAL_HP, PlayerState, PublicGameState, getSkill } from "@bing/shared";
+import { DEFEAT_LEVEL_LABELS, INITIAL_HP, PlayerState, PublicGameState, formatPlayerHp, getSkill, getBigCard, isAllSkillsSealedBuff, isBigSkillMode } from "@bing/shared";
 import { CharacterAvatar } from "./CharacterAvatar";
 import { CHARACTER_ROSTER } from "../lib/characters";
 import { SeatFeedback } from "../lib/tableFeedback";
+import { formatStatusDuration } from "../lib/format";
 
 export interface SeatPosition {
   x: number;
@@ -45,8 +46,10 @@ export function PlayerSeat({
     player.buffs.some((buff) => buff.id === "pending_death");
   const cakeText = player.cakes < 0 ? "?" : String(player.cakes);
   const hpPercent = Math.max(0, Math.min(100, (player.hp / INITIAL_HP) * 100));
-  const skillCount = player.skillSlotCount ?? player.skills.length;
-  const skillSlots = buildSkillSlots(player, skillCount);
+  const bigMode = isBigSkillMode(state.config.skillMode);
+  const skillCount = bigMode ? player.bigCardSlotCount ?? player.bigCards?.length ?? 0 : player.skillSlotCount ?? player.skills.length;
+  const skillSlots = bigMode ? Array.from({ length: Math.min(3, skillCount) }, (_, index) => player.bigCards?.[index]?.cardId)
+    : buildSkillSlots(player, skillCount);
   const visibleBuffs = getVisibleSeatBuffs(player.buffs);
   const fallbackCharacter = CHARACTER_ROSTER[stableIndex(player.id, CHARACTER_ROSTER.length)]!;
   const avatarUrl = player.avatarUrl ?? fallbackCharacter.avatarUrl;
@@ -138,7 +141,7 @@ export function PlayerSeat({
         <div className="seat-resource">
           <HeartPulse className="h-3.5 w-3.5" aria-hidden="true" />
           <span>生命</span>
-          <ResourceValue value={player.hp} />
+          <ResourceValue value={player.hp} {...(player.hpIsInfinite ? { displayValue: formatPlayerHp(player) } : {})} />
         </div>
         <div className="seat-resource">
           <Cookie className="h-3.5 w-3.5" aria-hidden="true" />
@@ -152,7 +155,7 @@ export function PlayerSeat({
         </div>
       </div>
 
-      <div className="seat-hp-track" aria-label={`生命值 ${player.hp}`}>
+      <div className="seat-hp-track" aria-label={`生命值 ${formatPlayerHp(player)}`}>
         <span style={{ width: `${hpPercent}%` }} />
       </div>
 
@@ -171,8 +174,8 @@ export function PlayerSeat({
               );
             }
 
-            const skill = skillId ? getSkill(skillId) : undefined;
-            const revealed = isSeatSkillFaceUp(state, player, skillId, isViewer);
+            const skill = bigMode ? getBigCard(skillId) : getSkill(skillId);
+            const revealed = bigMode || isSeatSkillFaceUp(state, player, skillId, isViewer);
             const flashEventId = latestSkillUseEventId(state, player.id, skillId);
             return (
               <span
@@ -198,7 +201,7 @@ export function PlayerSeat({
       {visibleBuffs.length > 0 ? (
         <div className="seat-buff-strip">
           {visibleBuffs.slice(0, 4).map((buff) => (
-            <span key={`${buff.id}-${buff.name}`} title={seatBuffTitle(buff)}>
+            <span key={`${buff.id}-${buff.name}-${buff.expiresAtRound === undefined ? "turn" : "round"}`} title={seatBuffTitle(buff)}>
               {seatBuffLabel(buff)}
             </span>
           ))}
@@ -256,6 +259,7 @@ function getVisibleSeatBuffs(
   buffs: PlayerState["buffs"]
 ): PlayerState["buffs"] {
   const priority = (buff: PlayerState["buffs"][number]): number => {
+    if (buff.id === "temp_negative_status_immunity") return -1;
     if (buff.id === "huiyue_stasis") return -1;
     if (buff.id === "frozen") {
       return 0;
@@ -263,7 +267,7 @@ function getVisibleSeatBuffs(
     if (buff.id.startsWith("paralysis_next_action:")) {
       return 1;
     }
-    if (buff.id.startsWith("sealed_skill:")) {
+    if (isAllSkillsSealedBuff(buff.id) || buff.id.startsWith("sealed_skill:")) {
       return 2;
     }
     if (buff.id === "no_revive") {
@@ -293,13 +297,14 @@ function getVisibleSeatBuffs(
 }
 
 function seatBuffLabel(buff: PlayerState["buffs"][number]): string {
+  if (buff.id === "temp_negative_status_immunity") return "免疫不良";
   if (buff.id === "frozen") {
-    return buff.stacks > 1 ? `冰冻${buff.stacks}` : "冰冻";
+    return buff.infinite ? "冰冻∞" : buff.stacks > 1 ? `冰冻${buff.stacks}` : "冰冻";
   }
   if (buff.id.startsWith("paralysis_next_action:")) {
     return "麻痹";
   }
-  if (buff.id.startsWith("sealed_skill:")) {
+  if (isAllSkillsSealedBuff(buff.id) || buff.id.startsWith("sealed_skill:")) {
     return "封锁";
   }
   if (buff.id === "no_revive") {
@@ -324,11 +329,10 @@ function seatBuffLabel(buff: PlayerState["buffs"][number]): string {
 }
 
 function seatBuffTitle(buff: PlayerState["buffs"][number]): string {
+  if (isAllSkillsSealedBuff(buff.id) || buff.id === "frozen") return `${buff.name} ${formatStatusDuration(buff)}`;
+  if (buff.infinite) return `${buff.name} ×∞`;
   if (buff.id.startsWith("puppet_of:")) {
     return buff.name;
-  }
-  if (buff.id === "frozen") {
-    return buff.stacks > 1 ? `冰冻 ${buff.stacks} 回合` : "冰冻";
   }
   const label = seatBuffLabel(buff);
   return buff.stacks > 1 ? `${label} x${buff.stacks}` : label;

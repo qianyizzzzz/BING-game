@@ -1,0 +1,24 @@
+Use case: precise-object-edit.
+Image 1 is the EDIT TARGET: the current "光·魂耀九州" card, ID 10502, with a centered light sphere and an abstract white illuminated background.
+Revise ONLY the illustration inside the existing frame. The user finds it too plain and wants richer, more dimensional LIGHT, plus NEBULAE close to the frame.
+
+Keep the single luminous sphere centered exactly where it is, with the same approximate size, the same white-gold color, delicate energetic surface filaments and spherical volume. Keep the composition abstract and celestial, with NO land, mountains, horizon, blue sky or recognizable weather clouds.
+
+Add richer layered illumination:
+- Distinct nested zones: intricately textured white-gold sphere; brilliant but controlled inner corona; finer sparkling radial filaments; wider translucent shafts and luminous veils extending behind them.
+- Vary the rays' width, sharpness, length and intensity. A few majestic long volumetric gold-white beams should be much more pronounced than the fine filaments. Some beams pass in front of translucent light ribbons; others are partially veiled by luminous mist, creating clear near, middle and far layers.
+- Make the concentric halo rings more dimensional and subtly interrupted by light, not a perfectly uniform flat diagram. Add a few gracefully curved champagne-gold photonic currents around the main light sphere, with tiny soul-like luminous motes, all subordinate to the single sphere.
+- Preserve the main central illuminated field as clean pearl-white, warm ivory and brilliant gold. Refined highlight detail, luminous energy and epic celestial scale. Do not blow everything out to featureless white or turn the center into a dense cluttered texture.
+
+Peripheral nebulae:
+Within the illustration aperture only, add gorgeous softly swirling cosmic nebulae near the left and right INNER frame edges and the four inner corners. These peripheral nebulae occupy roughly the outer 15-25% of the art window and recede into the white central radiance.
+Layer wispy pearl-blue, delicate lavender, silver-white and champagne-gold cosmic dust, with small areas of deeper muted violet-blue behind the wisps to establish depth and contrast. Discrete tiny distant stars can peek through near the edges. Central rays visibly illuminate the edges of these nebulae.
+Organic cosmic wisps and particulate filaments, not regular earthly cloud banks, not mountains and not a landscape. The whole view remains mostly luminous and white-gold, with nebula colors as a framing accent, not an all-dark space scene. Leave the sphere clearly dominant and unobscured.
+High-end epic fantasy game card illustration, painterly cinematic precision, intricate luminous texture, graceful depth, rich contrasts, majestic but sophisticated.
+
+Strict invariants:
+Preserve every existing border element and its shape: gold sunburst crown, pearl-white rails, gold rays, crystals, dark-blue name/rank/serial plaques, upper-right light medallion, original layout, proportions and positions.
+Preserve the exact text unchanged and fully readable: "王者卡", "光", "光·魂耀九州", "ID 10502".
+Keep the full 1024x1536 portrait 2:3 canvas and front-on viewpoint. No extra text or symbols, no humans, humanoids, angels, creatures, wings, planets or buildings.
+New light and nebulae remain entirely INSIDE the illustration window, UNDER the unchanged frame. Do not obscure any text.
+Keep illustration fully opaque. Preserve original actual alpha transparency ONLY outside the card silhouette; do not add an opaque rectangle behind the card.

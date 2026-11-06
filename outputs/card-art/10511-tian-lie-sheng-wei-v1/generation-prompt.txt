@@ -1,0 +1,34 @@
+Use case: stylized-concept.
+Image 1 is ONLY a STYLE AND CARD-LAYOUT REFERENCE from the established Chinese epic fantasy collectible card series. Create a NEW finished WAR-element 王者卡: "战·天裂圣威", ID 10511.
+USER COLOR REQUIREMENT: RED AND BLACK are the dominant colors. Jet-black forged steel, obsidian-black shadows, deep blood-crimson and brilliant scarlet energy. Gold is limited to readable text and restrained narrow antique-gold frame trims, not a gold-dominant palette.
+Preserve the series' full front-on 1024x1536 portrait 2:3 canvas, similar border width and large art aperture, top-center rank plaque, upper-right circular attribute medallion, lower title plaque and ID footer. Completely replace the reference's golden lightning artwork and thunder ornament.
+
+Central illustration: martial force that tears the heavens.
+ONE colossal ancient WAR AXE, magically suspended with no wielder, is caught at the end of a devastating diagonal cleave. The axe is an imposing real physical artifact, NOT a cartoon icon, flat symbol or energy glyph. Heavy blackened forged metal, huge broad curved cutting blade with bevels and worn hammer-textured surfaces, sharp deep-red luminous edge, black armored socket and long dark haft. No modern machinery or sci-fi gun design.
+Three-quarter perspective: the axe head dominates the middle-upper/right of the illustration, roughly x=620,y=570; its heavy haft angles down toward the lower-left foreground, staying fully inside the art window. Show enough volume, broad dark metal faces, sculpted blade thickness, deep grooves and crimson reflections that it feels immensely heavy. A few narrow old-gold details may accent the socket, but black and crimson remain dominant.
+Behind and around the axe, ONE enormous sweeping SCARLET SLASH has torn open the black storm sky, a ragged curved cleft running across the central image and receding into depth. The opening glows deep crimson with a narrow brighter red-white inner edge. Layered compression shockwaves and wind-torn black-red clouds show the direction and power of the cleave, NOT generic fire or electrical lightning.
+Floating chunks of dark fractured rock and splintered black material peel away from the shock front and dissolve into faint red sparks. A few large near fragments and many small distant fragments establish monumental scale. The visual hierarchy is clear: massive war axe, sky-splitting crimson cleft, subordinate fragments and storm.
+The surrounding space is profound charcoal-black with thick black-red storm veils, a little blood-red haze and controlled red rim lighting. No ground, horizon, architecture or figures. Dark quiet areas and directional red light make the weapon readable. The mood is unstoppable ferocity, sacred martial authority and a world-shattering impact.
+High-end epic fantasy cinematic painterly realism, plausible sculpted forged-metal material, rich storm depth, dramatic controlled highlights. NOT a cartoon emblem, not a glossy toy, not a clean minimalist logo. No gore, bodies, flesh or literal blood; crimson is the color of energy and enamel.
+No sun, planet, orb, ice crystal, water, lightning bolt or competing second large weapon.
+
+WAR-specific FRAME:
+Rebuild the reference's elemental frame ornament into formidable war-armor relief.
+Broad blackened metal rails, layered black-and-crimson armor plates, deep scarlet enamel recesses, riveted/forged relief and sharp martial blade-like edges. Thin muted antique-gold trims tie it to the same 王者 series; black and red must visibly dominate.
+Top crown is a dignified angular black-iron war crest with a dark scarlet jewel and small crossed-blade relief behind it, not a horned creature, skull or humanoid helmet.
+Side rails and corners have overlapping forged armor, chiseled slash grooves and a few thin glowing crimson stress seams. Use broad authoritative sculptural forms, not tangled filigree, flames, thorns or electrical zigzags. Keep the same overall footprint and similar artwork area.
+Rank/title/serial plaques have very dark black-red inset surfaces and the series' sharp formal GOLD Chinese text with excellent contrast.
+Upper-right circular attribute badge: black-and-crimson inset, black-iron rim with narrow antique-gold edging, exact large gold Chinese character "战".
+No gold lightning crest, electric arcs, dragon motifs, purple jewels, sunbursts, ice or wave ornament.
+
+ONLY exact inscriptions:
+Top rank plaque: "王者卡"
+Upper-right attribute: "战"
+Bottom title nameplate: "战·天裂圣威"
+Footer: "ID 10511"
+Use simplified 战, correct 天裂圣威. Preserve the series' type scale, positions, plaque sizes and quiet margins. No other text, runes, numbers, ability descriptions, logo or watermark. Any engraving is nonverbal geometry only.
+
+Strict constraints:
+No humans, humanoids, wielders, arms, hands, gods, statues, faces, eyes, creatures, animals, dragons or riders. The axe is unmanned and suspended magically.
+One finished full card, no perspective mockup, photograph of a tabletop or design board. All frame tips remain inside canvas with narrow transparent padding.
+Central art fully opaque and filling the illustration aperture beneath the frame. Genuine alpha transparency ONLY outside the outer card silhouette and projecting frame tips. No opaque background rectangle or checkerboard behind the card.

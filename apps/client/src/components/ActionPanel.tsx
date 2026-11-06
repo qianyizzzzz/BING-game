@@ -1,11 +1,30 @@
 ﻿import { FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
 import { Cookie, FastForward, Plus, RotateCcw, Search, Send, Shield, Sparkles, Swords, Trash2 } from "lucide-react";
+import { formatSkillCakeCost, formatAttackStatNumber, formatAttackDamageParts, formatDamage } from "../lib/format";
 import {
   ActionSubmission,
   AttackId,
   AttackStatModifierChoice,
   ATTACK_ORDER,
   BASE_ATTACKS,
+  ANNIHILATION_CANNON_ID,
+  KUISHI_ID,
+  SPIRIT_GUIDANCE_ID,
+  SELF_ISOLATION_ID,
+  FOUR_EMPTINESS_ID, SLOT_MACHINE_ID, VERDICT_ACTION_ID, getReadySlotMachines,
+  getBigCard,
+  getCakeGainAmount,
+  JUNENG_CARD_ID,
+  JUNENG_ELEMENT,
+  JUSHEN_ID,
+  RELEASE_DAMAGE_ID,
+  STORE_DAMAGE_ID,
+  STAR_CARD_ID, STAR_ELEMENT, STAR_RESIST_ID, DRAGON_BLOOD_FIELD_ID, canUseStarResistance, isStarResistible,
+  getDragonBloodMode, getDragonBloodTotal, shapeDragonBloodAttack, type SkillPlayDefinition,
+  getElementAmount,
+  getJunengTargetLock,
+  getSelectableJunengTarget,
+  isStorableJunengDamage,
   canActionDefend,
   DamageEvent,
   DEFENSE_LABELS,
@@ -13,20 +32,39 @@ import {
   DefenseKind,
   PlayerAction,
   PublicGameState,
-  RETIRE_EFFECT_POWER,
   SkillId,
   SkillAction,
   getActionLabel,
+  getAttackMarkKind,
+  getAttackMarkCount,
+  getAttackMarkChoices,
+  getAttackMarkCapacity,
+  canSpendStarRageMarks,
+  STAR_RAGE_ID,
+  STAR_RAGE_SIX_STAR,
   getActionSwitchChoicesForAction,
+  getLevelSwapModifiers,
+  getDestructionModifiers,
+  actionHasCakeCost,
+  payableAttackCost,
+  hasEnhancedLevelSwap,
+  previewPlayerAttackStats,
+  attackStatModifierLabel as sharedAttackStatModifierLabel,
   getActiveSkillCount,
   getDestroyPowerCooldownCount,
   getFlashDodgeCooldownCount,
   getHuiyueCooldownCount,
   isHuiyueActive,
+  isAttackDamageItem,
   getDamageRedirectLimit,
+  offsetAttackStats,
+  fromLegacyCombatStat,
+  isDamageWithinLimit,
   getOwnedSkillIds,
   getAttackActionCost,
   getTurnSkillActionCost,
+  getSkillElementCost,
+  scaleJunengAttack,
   getFusionSkillId,
   getActiveFusionCount,
   getFusionEnhancementCount,
@@ -36,10 +74,19 @@ import {
   getLightningSpellTargetPlan,
   getSkill,
   getSkillAttackStats,
+  applyHunyaoRiStats,
+  RI_SKILL_ID,
+  getHunyaoPursuitTargets,
+  isHunyaoPursuit,
   getSkillPlay,
   getSkillUseLimit,
+  getSkillResourceGainPerStack,
   getUnfusedSkillIds,
   getAllSkills,
+  getAcquisitionSkillChoices,
+  getFusionRecipe,
+  getFusionTier,
+  getManualDemonDomainCount,
   getSmallSkills,
   getStackedAttackStats,
   isPlayerInCollapse,
@@ -48,6 +95,8 @@ import {
   resolveLightningSpellTargetIds,
   skillHasTypeTag
 } from "@bing/shared";
+import { BlindSkillPicker } from "./PointGamePanel";
+import { isBigSkillMode } from "@bing/shared";
 
 interface ActionPanelProps {
   fusionControls?: ReactNode;
@@ -87,6 +136,7 @@ interface AttackStatModifierOption {
   actionIndex: number;
   current: PlayerAction;
   modifier: AttackStatModifierChoice;
+  error?: string;
   label: string;
 }
 interface DoubleEdgeOption {
@@ -115,19 +165,12 @@ interface AbsoluteGuardOption {
   label: string;
 }
 const FIRST_ATTACK_ID = ATTACK_ORDER[0]!;
-const DESTROY_POWER_MODIFIER_CHOICES: AttackStatModifierChoice[] = [
-  "power_plus_1_level_minus_1",
-  "power_minus_1_level_plus_1",
-  "power_plus_2_level_minus_2",
-  "power_minus_2_level_plus_2",
-  "power_times_3_level_to_zero",
-  "power_to_zero_level_times_4"
-];
 const ACTIVE_REVIVAL_SKILL_IDS = new Set<SkillId>([
   "skill_64_60978",
   "skill_66_82448",
   "skill_68_57581",
-  "skill_112_59292"
+  "skill_112_59292",
+  getFusionSkillId("贤者的庇护")
 ]);
 const ELECTRIC_SHOCK_SKILL_ID = "skill_36_14343";
 const DOUBLE_EDGE_SWORD_SKILL_ID = "skill_31_80497";
@@ -161,18 +204,6 @@ const CONTIGUOUS_MULTI_TARGET_SKILL_IDS = new Set<SkillId>([
   "skill_119_78843", getFusionSkillId("冰火双漩")
 ]);
 
-function formatAttackPower(power: number): string {
-  if (power >= RETIRE_EFFECT_POWER) {
-    return "退游";
-  }
-
-  if (power >= 999) {
-    return "∞";
-  }
-
-  return String(power);
-}
-
 export function ActionPanel({
   fusionControls,
   lastActionSubmission,
@@ -196,9 +227,27 @@ export function ActionPanel({
     () => state.players.find((player) => player.id === state.viewerPlayerId),
     [state.players, state.viewerPlayerId]
   );
+  const junengLock = getJunengTargetLock(state, viewer?.spaceId);
+  const junengTargetId = getSelectableJunengTarget(state, viewer?.spaceId);
+  const junengBlocked = Boolean(junengLock && !junengTargetId);
+  const junengAmount = getElementAmount(viewer, JUNENG_ELEMENT);
+  const dragonBloodMode = viewer ? getDragonBloodMode(getDragonBloodTotal(state, viewer.id)) : undefined;
+  const hasStarCard = viewer?.bigCards?.some((card) => card.cardId === STAR_CARD_ID);
+  const cakeGain = getCakeGainAmount(state, viewer);
+  const cannonStep = state.cannonDefenseSteps?.find((step) => step.targetId === viewer?.id && step.dueTurn === state.turnNumber);
+  const junengStatus = junengLock || cannonStep || hasStarCard || viewer?.bigCards?.some((card) => card.cardId === JUNENG_CARD_ID) ? (
+    <div className="rounded-lg border border-teal-200 bg-teal-50 p-2 text-sm text-teal-900" data-testid="juneng-status">
+      {viewer?.bigCards?.some((card) => card.cardId === JUNENG_CARD_ID) ? <div>聚元素 {junengAmount}</div> : null}
+      {hasStarCard ? <div>星元素 {getElementAmount(viewer, STAR_ELEMENT)}</div> : null}
+      {junengLock ? <div>聚神 · {junengBlocked ? "当前无法选择目标" :
+        `仅可选择 ${state.players.find((player) => player.id === junengTargetId)?.name}`} · 持续至第 {junengLock.expiresAtRound - 1} 轮轮末</div> : null}
+      {cannonStep ? <div>聚能湮灭炮 · 本回合需出{cannonStep.next === "cake" ? "饼" : "反弹"}</div> : null}
+    </div>
+  ) : null;
   const enemies = useMemo(
     () => {
-      const alive = state.players.filter((player) => player.status === "alive");
+      const alive = state.players.filter((player) => player.status === "alive" && player.spaceId === viewer?.spaceId &&
+        (!junengLock || player.id === junengTargetId));
       if (!viewer) {
         return alive;
       }
@@ -208,7 +257,7 @@ export function ActionPanel({
         ...alive.filter((player) => player.id === viewer.id)
       ];
     },
-    [state.players, viewer]
+    [state.players, viewer, junengLock, junengTargetId]
   );
   const balanceTargetOptions = useMemo(
     () => enemies.filter((player) => player.id !== viewer?.id),
@@ -217,7 +266,7 @@ export function ActionPanel({
   const lightningTargetPlan = useMemo(
     () =>
       viewer
-        ? getLightningSpellTargetPlan(state.players, viewer.id)
+        ? getLightningSpellTargetPlan(state.players.filter((player) => player.spaceId === viewer.spaceId), viewer.id)
         : {
             lockedTargets: [],
             selectableTargets: [],
@@ -298,6 +347,9 @@ export function ActionPanel({
   const [skillTargetId, setSkillTargetId] = useState(enemies[0]?.id ?? "");
   const [skillExtraTargetIds, setSkillExtraTargetIds] = useState<string[]>([]);
   const [windowSkillId, setWindowSkillId] = useState<SkillId>("");
+  const [blindSelected, setBlindSelected] = useState<string[]>([]);
+  const [slotMachineId, setSlotMachineId] = useState("");
+  const [useFreeVerdict, setUseFreeVerdict] = useState(true);
   const [windowSkillStacks, setWindowSkillStacks] = useState(1);
   const [windowSkillTargetId, setWindowSkillTargetId] = useState(enemies[0]?.id ?? "");
   const [windowSkillExtraTargetId, setWindowSkillExtraTargetId] = useState(enemies[1]?.id ?? "");
@@ -309,9 +361,33 @@ export function ActionPanel({
   const [windowGuessSkillId, setWindowGuessSkillId] = useState<SkillId>("");
   const [windowGuessSkillQuery, setWindowGuessSkillQuery] = useState("");
   const [windowDamageId, setWindowDamageId] = useState("");
+  const [storedDamageId, setStoredDamageId] = useState("");
+  const [attackExtraEffectTargetId, setAttackExtraEffectTargetId] = useState("");
+  const [peekTargetInstanceId, setPeekTargetInstanceId] = useState("");
+  const peekTargets = state.players.filter((player) => player.id !== viewer?.id).flatMap((player) =>
+    (player.bigCards ?? []).filter((card) => !card.publiclyRevealed).map((card) => ({ ...card, ownerName: player.name })));
+  const peekTarget = peekTargets.find((card) => card.instanceId === peekTargetInstanceId) ?? peekTargets[0];
+  const storedDamageOptions = viewer?.storedDamages ?? [];
+  const selectedStoredDamage = storedDamageOptions.find((item) => item.id === storedDamageId) ?? storedDamageOptions[0];
+  const storableDamages = (state.pendingDamageItems ?? []).filter((item) => item.targetId === viewer?.id && isStorableJunengDamage(item));
+  const storableDamage = storableDamages.find((item) => item.id === windowDamageId) ?? storableDamages[0];
+  const resistibleDamages = (state.pendingDamageItems ?? []).filter((item) => item.targetId === viewer?.id && isStarResistible(item));
+  const resistibleDamage = resistibleDamages.find((item) => item.id === windowDamageId) ?? resistibleDamages[0];
+  function storedDamageSelect() {
+    return <label className="block text-sm">
+      释放哪一份伤害
+      <select className="soft-input mt-1 w-full" value={selectedStoredDamage?.id ?? ""}
+        onChange={(event) => setStoredDamageId(event.target.value)}>
+        {storedDamageOptions.map((item) => <option key={item.id} value={item.id}>
+          {item.attackName ?? "伤害"} · {item.pointDefeatLevel === 2 ? "退游" : formatAttackStatNumber(0, item.amountValue)}
+        </option>)}
+      </select>
+    </label>;
+  }
   const [magicThirdTargetId, setMagicThirdTargetId] = useState("");
   const [windowSwitchKey, setWindowSwitchKey] = useState("");
   const [windowAttackStatModifierKey, setWindowAttackStatModifierKey] = useState("");
+  const [windowMarkAttackIndex, setWindowMarkAttackIndex] = useState(0);
   const [windowDoubleEdgeKey, setWindowDoubleEdgeKey] = useState("");
   const [windowLiegongKey, setWindowLiegongKey] = useState("");
   const [windowAbsoluteGuardKey, setWindowAbsoluteGuardKey] = useState("");
@@ -348,7 +424,7 @@ export function ActionPanel({
     state.config.firstTurnNoAttack && state.roundTurnNumber === 1;
   const playableSkills = useMemo(
     () =>
-      (viewer ? getOwnedSkillIds(viewer) : [])
+      (viewer ? isBigSkillMode(state.config.skillMode) ? [...new Set(getOwnedSkillIds(viewer))] : getOwnedSkillIds(viewer) : [])
         .map((id) => {
           const skill = getSkill(id);
           const play = getSkillPlay(id);
@@ -391,34 +467,55 @@ export function ActionPanel({
   const actionSkills = playableSkills.filter(
     ({ skill, play }) =>
       skill.timingPhases.includes("turn_action") &&
-      play.kind === "attack" &&
+      play.kind === "attack" && (skill.id !== DRAGON_BLOOD_FIELD_ID || dragonBloodMode !== "heal") &&
       skill.id !== ELECTRIC_SHOCK_SKILL_ID
   );
   const nonAttackSkills = turnActionSkills.filter(
-    ({ skill, play }) => play.kind !== "attack" || skill.id === ELECTRIC_SHOCK_SKILL_ID
+    ({ skill, play }) => (play.kind !== "attack" || skill.id === ELECTRIC_SHOCK_SKILL_ID ||
+      skill.id === DRAGON_BLOOD_FIELD_ID && dragonBloodMode === "heal") &&
+      (skill.id !== RELEASE_DAMAGE_ID || storedDamageOptions.length > 0)
   );
   const windowSkills = playableSkills.filter(
     ({ skill, play }) =>
       state.phase === "action_window" &&
       skill.timingPhases.includes(state.activeTimingPhase) &&
+      (!state.reversalResponseOnly || skill.id === "skill_93_50224") &&
+      (skill.id !== KUISHI_ID || state.roundNumber === 1 && state.turnNumber === 1 && peekTargets.length > 0 &&
+        viewer?.bigCards?.some((card) => card.openingCopyAvailable)) &&
+      (skill.id !== SELF_ISOLATION_ID || !viewer?.spaceId && (viewer?.cakes ?? 0) >= 3) &&
+      (skill.id !== STORE_DAMAGE_ID || junengAmount > 0 && storableDamages.length > 0) &&
+      (skill.id !== STAR_RESIST_ID || viewer && canUseStarResistance(viewer) && resistibleDamages.length > 0) &&
+      (skill.id !== RELEASE_DAMAGE_ID || storedDamageOptions.length > 0) &&
+      (skill.id !== JUSHEN_ID || junengAmount >= (getSkillElementCost(viewer, { skillId: JUSHEN_ID })?.perStack ?? 7)) &&
+      (skill.id !== SLOT_MACHINE_ID || viewer && getReadySlotMachines(viewer).length > 0) &&
+      (!isHunyaoPursuit(skill.id) || getHunyaoPursuitTargets(state, skill.id).length > 0) &&
       (state.activeTimingPhase !== "turn_damage_modify" ||
         skill.id === "skill_94_627" ||
         skill.id === SIX_STAR_SKILL_ID ||
         skill.id === ICE_RAIN_SKILL_ID ||
-        skill.id === CROSS_GUARD_SKILL_ID) &&
+        skill.id === CROSS_GUARD_SKILL_ID || skill.id === STORE_DAMAGE_ID || skill.id === STAR_RESIST_ID || skill.id === RELEASE_DAMAGE_ID ||
+        skill.id === JUSHEN_ID || skill.id === SELF_ISOLATION_ID || skill.id === FOUR_EMPTINESS_ID || skill.id === SLOT_MACHINE_ID || isHunyaoPursuit(skill.id)) &&
       (skill.id !== XIEYU_SKILL_ID ||
         (state.roundNumber % 3 === 0 &&
           viewer !== undefined &&
           viewer.buffs.filter((buff) => buff.id === "xieyu_target").length <
             getActiveSkillCount(viewer, XIEYU_SKILL_ID))) &&
       (skill.id !== getFusionSkillId("魔域") || (state.roundNumber % 3 === 0 && viewer &&
-        viewer.buffs.filter((buff) => buff.id === "demon_domain_target").length < 3 * getActiveFusionCount(viewer, "魔域"))) &&
+        viewer.buffs.filter((buff) => buff.id === "demon_domain_target").length < 3 * getManualDemonDomainCount(viewer))) &&
       play.kind !== "attack"
   );
   const selectedSkill = nonAttackSkills.find((item) => item.skill.id === skillId) ?? nonAttackSkills[0];
   const selectedWindowSkill =
     windowSkills.find((item) => item.skill.id === windowSkillId) ?? windowSkills[0];
   const selectedWindowSkillPlay = selectedWindowSkill?.play;
+  const readySlotMachines = viewer ? getReadySlotMachines(viewer) : [];
+  const chosenSlotMachine = readySlotMachines.find((entry) => entry.id === slotMachineId) ?? readySlotMachines[0];
+  const selectedBlindIds = blindSelected.filter((id) => state.blindSkillChoices?.some((choice) => choice.instanceId === id));
+  const verdictFreeAvailable = viewer?.buffs.some((buff) => buff.id === "free_imperial_verdict" && buff.stacks > 0) ?? false;
+  const freeVerdict = selectedSkill?.skill.id === VERDICT_ACTION_ID && verdictFreeAvailable && useFreeVerdict;
+  const isWindowAttackMark = Boolean(selectedWindowSkill && getAttackMarkKind(selectedWindowSkill.skill.id));
+  const windowMarkAttackOptions = viewer ? getAttackMarkChoices(state, viewer.id) : [];
+  const selectedWindowMarkAttack = windowMarkAttackOptions.find((option) => option.actionIndex === windowMarkAttackIndex) ?? windowMarkAttackOptions[0];
   const isWindowActionSwitch =
     selectedWindowSkill ? isActionSwitchSkillId(selectedWindowSkill.skill.id) : false;
   const isWindowAttackStatModifier =
@@ -427,12 +524,15 @@ export function ActionPanel({
   const isWindowDoubleEdge = isDoubleEdgeSwordSkill(selectedWindowSkill?.skill);
   const isWindowLiegong = selectedWindowSkill?.skill.id === LIEGONG_SKILL_ID;
   const isWindowAbsoluteGuard = isAbsoluteGuardSkill(selectedWindowSkill?.skill);
-  const isWindowSandTransform = selectedWindowSkill?.skill.id === "skill_4_65637";
+  const isWindowSandTransform = selectedWindowSkillPlay?.effect === "sand_transform";
   const isWindowDamageRedirect = selectedWindowSkill?.skill.id === "skill_94_627";
   const isWindowBalance = selectedWindowSkill?.skill.id === "skill_111_51056";
   const isWindowLightning = selectedWindowSkill?.skill.id === "skill_35_16792";
   const isWindowLishang = selectedWindowSkill?.skill.id === "skill_68_57581";
   const isWindowHellOverlord = selectedWindowSkill?.skill.id === HELL_OVERLORD_SKILL_ID;
+  const pursuitSkillId = selectedWindowSkill && isHunyaoPursuit(selectedWindowSkill.skill.id) ? selectedWindowSkill.skill.id : undefined;
+  const pursuitTargetOptions = useMemo(() => pursuitSkillId ? getHunyaoPursuitTargets(state, pursuitSkillId) : [],
+    [state.players, pursuitSkillId]);
   const isWindowIceRain = selectedWindowSkill?.skill.id === ICE_RAIN_SKILL_ID;
   const isWindowCrossGuard = selectedWindowSkill?.skill.id === CROSS_GUARD_SKILL_ID;
   const isWindowDamageMark = isWindowIceRain || isWindowCrossGuard;
@@ -443,19 +543,21 @@ export function ActionPanel({
     []
   );
   const guessSkills = useMemo(() => getAllSkills({ includeFusions: true }), []);
+  const sandSkills = viewer && selectedWindowSkill ? getAcquisitionSkillChoices(viewer, selectedWindowSkill.skill.id)
+    .map(getSkill).filter((skill): skill is NonNullable<ReturnType<typeof getSkill>> => Boolean(skill)) : smallSkills;
   const filteredSandSkills = useMemo(() => {
     const normalized = windowSandSkillQuery.trim();
     const filtered = normalized
-      ? smallSkills.filter((skill) =>
+      ? sandSkills.filter((skill) =>
           searchSkillText(skill).includes(normalized)
         )
-      : smallSkills;
-    const selectedSkill = smallSkills.find((skill) => skill.id === windowSandSkillId);
+      : sandSkills;
+    const selectedSkill = sandSkills.find((skill) => skill.id === windowSandSkillId);
     if (selectedSkill && !filtered.some((skill) => skill.id === selectedSkill.id)) {
       return [selectedSkill, ...filtered];
     }
     return filtered;
-  }, [smallSkills, windowSandSkillId, windowSandSkillQuery]);
+  }, [sandSkills, windowSandSkillId, windowSandSkillQuery]);
   const windowSwitchOptions = useMemo(
     () =>
       selectedWindowSkill && viewer
@@ -522,6 +624,8 @@ export function ActionPanel({
       if (isWindowLishang) {
         return smallSkills.some((smallSkill) => smallSkill.id === skill.id);
       }
+      if (selectedWindowSkill?.skill.id === "skill_101_4254") return !getFusionRecipe(skill.id);
+      if (selectedWindowSkill?.skill.id === getFusionSkillId("天魔舞")) return getFusionTier(skill.id) === 2 && skill.id !== getFusionSkillId("天魔舞");
       return true;
     });
   const filteredExposedTargetSkills = useMemo(() => {
@@ -555,7 +659,7 @@ export function ActionPanel({
       return (state.pendingDamageItems ?? []).filter(
         (item) =>
           item.targetId === viewer.id &&
-          item.amount > 0 && item.amount <= getDamageRedirectLimit(viewer) &&
+          isDamageWithinLimit(item, fromLegacyCombatStat(getDamageRedirectLimit(viewer))) &&
           !(item.redirectedByPlayerIds ?? []).includes(viewer.id)
       );
     },
@@ -569,8 +673,10 @@ export function ActionPanel({
     return (state.pendingDamageItems ?? []).filter((item) => {
       if (
         item.targetId !== viewer.id ||
+        !isAttackDamageItem(item) ||
         item.amount <= 0 ||
         !item.sourceId ||
+        item.sourceId === viewer.id ||
         item.damageModifierIds?.includes("ice_rain")
       ) {
         return false;
@@ -594,12 +700,13 @@ export function ActionPanel({
       viewer.buffs.some((buff) => buff.id === "cross_mark" && buff.stacks > 0)
     );
     return (state.pendingDamageItems ?? []).filter((item) => {
-      if (item.amount <= 0) {
+      if (item.amount <= 0 || !isAttackDamageItem(item)) {
         return false;
       }
 
       if (
         item.targetId === viewer.id &&
+        !item.internalDamage &&
         hasHuyou &&
         !item.damageModifierIds?.includes("huyou")
       ) {
@@ -644,6 +751,7 @@ export function ActionPanel({
     viewer?.buffs.some((buff) => buff.id === `skill_guess_failed:${state.turnNumber}`)
   );
   const selectedSkillPlay = selectedSkill?.play;
+  const selectedSkillElementCost = selectedSkill ? getSkillElementCost(viewer, { skillId: selectedSkill.skill.id }) : undefined;
   const selectedSkillStats =
     selectedSkillPlay?.kind === "attack" &&
     selectedSkill &&
@@ -676,19 +784,25 @@ export function ActionPanel({
           1,
           Math.min(
             selectedSkillPlay.maxStacks,
-            selectedSkillPlay.cost > 0
+            selectedSkillElementCost?.perStack
+              ? Math.floor(getElementAmount(viewer, selectedSkillElementCost.element) / selectedSkillElementCost.perStack)
+              : selectedSkillPlay.cost > 0
               ? Math.floor(viewer.cakes / selectedSkillPlay.cost)
               : selectedSkillPlay.maxStacks
           )
         )
       : 1;
-  const skillCost = selectedSkillPlay ? selectedSkillPlay.cost * skillStacks : 0;
+  const skillCost = selectedSkill && viewer ? getTurnSkillActionCost(viewer, {
+    type: "skill", skillId: selectedSkill.skill.id, stacks: skillStacks, ...(freeVerdict ? { freeStacks: 1 } : {})
+  }) : selectedSkillPlay ? selectedSkillPlay.cost * skillStacks : 0;
   const windowSkillMaxStacks =
     selectedWindowSkillPlay && viewer
       ? Math.max(
           1,
           Math.min(
             selectedWindowSkillPlay.maxStacks,
+            isWindowAttackMark && selectedWindowMarkAttack
+              ? getAttackMarkCapacity(viewer, selectedWindowSkill.skill.id, selectedWindowMarkAttack.actionIndex) : selectedWindowSkillPlay.maxStacks,
             getSkillResourceStacks(viewer, selectedWindowSkill.skill.id) ??
               selectedWindowSkillPlay.maxStacks,
             selectedWindowSkillPlay.cost > 0
@@ -707,6 +821,16 @@ export function ActionPanel({
   const attackCost = attackRows.reduce((sum, row) => {
     return sum + rowCost(row);
   }, 0);
+  const elementCosts = new Map<string, number>();
+  const chargeElement = (cost: SkillPlayDefinition["elementCost"], stacks: number) => {
+    if (cost) elementCosts.set(cost.element, (elementCosts.get(cost.element) ?? 0) + cost.perStack * stacks);
+  };
+  if (mode === "attack") for (const row of attackRows) {
+    if (row.kind === "skill") chargeElement(getSkillElementCost(viewer, { skillId: row.skillId }), row.stacks);
+  }
+  if (mode === "skill") chargeElement(selectedSkillElementCost, skillStacks);
+  const elementShortage = [...elementCosts].find(([element, cost]) => cost > getElementAmount(viewer, element));
+  const elementCostLabel = [...elementCosts].map(([element, cost]) => `${cost} ${element}`).join(" ＋ ");
   const attackCostTooHigh =
     mode === "attack" && viewer ? attackCost > viewer.cakes : false;
   const skillCostTooHigh =
@@ -727,8 +851,12 @@ export function ActionPanel({
     (mode === "defense" && defense === "rebound" && !viewerHasScatterRebound && !targetId) ||
     (mode === "skill" && selectedSkillPlay?.targetMode === "single" && !skillTargetId);
   const actionInvalid = Boolean(
-    attackCostTooHigh ||
+    elementShortage || attackCostTooHigh ||
       skillCostTooHigh ||
+      (mode === "skill" && selectedSkill?.skill.id === RELEASE_DAMAGE_ID && !selectedStoredDamage) ||
+      (junengBlocked && ((mode === "attack" && attackRows.some((row) => !rowIsArea(row))) ||
+        (mode === "skill" && selectedSkillPlay?.targetMode === "single") ||
+        (mode === "defense" && defense === "rebound" && !viewerHasScatterRebound))) ||
       (mode === "skill" && (!selectedSkill || !selectedSkillPlay)) ||
       (mode === "skill" && Boolean(selectedSkillTargetError)) ||
       reboundUnavailable ||
@@ -737,7 +865,7 @@ export function ActionPanel({
       hasAreaMixed ||
       hasInvalidMultiTargetSkillTargets
   );
-  const actionInvalidReason = attackCostTooHigh
+  const actionInvalidReason = elementShortage ? `${elementShortage[0]}不足，需要 ${elementShortage[1]} ${elementShortage[0]}` : attackCostTooHigh
     ? `饼不足，需要 ${attackCost} 饼`
     : skillCostTooHigh
       ? `饼不足，需要 ${skillCost} 饼`
@@ -777,6 +905,7 @@ export function ActionPanel({
     : undefined;
   const selectedActionSummary = summarizeActionSelection({
     attackRows,
+    cakeGain,
     defense,
     mode,
     selectedSkillName: selectedSkill?.skill.name,
@@ -948,7 +1077,7 @@ export function ActionPanel({
         ? fatalSourceOptions
         : isWindowHellOverlord
           ? hellOverlordTargetOptions
-        : enemies;
+          : pursuitSkillId ? pursuitTargetOptions : enemies;
     if (
       windowTargetOptions[0] &&
       !windowTargetOptions.some((enemy) => enemy.id === windowSkillTargetId)
@@ -966,6 +1095,8 @@ export function ActionPanel({
     fatalSourceOptions,
     hellOverlordTargetOptions,
     isWindowHellOverlord,
+    pursuitSkillId,
+    pursuitTargetOptions,
     isWindowLishang,
     skillTargetId,
     targetId,
@@ -1094,8 +1225,8 @@ export function ActionPanel({
       setWindowTargetSkillId("");
     }
 
-    if (smallSkills[0] && !smallSkills.some((skill) => skill.id === windowSandSkillId)) {
-      setWindowSandSkillId(smallSkills[0].id);
+    if (sandSkills[0] && !sandSkills.some((skill) => skill.id === windowSandSkillId)) {
+      setWindowSandSkillId(sandSkills[0].id);
     }
 
     if (guessSkills[0] && !guessSkills.some((skill) => skill.id === windowGuessSkillId)) {
@@ -1236,6 +1367,7 @@ export function ActionPanel({
       lateSelfDestructLimit - lateSelfDestructUsed
     );
     const canLateSelfDestruct =
+      !state.reversalResponseOnly &&
       viewer?.status === "alive" &&
       !alreadyPassed &&
       state.activeTimingPhase === "turn_change_action" &&
@@ -1248,7 +1380,7 @@ export function ActionPanel({
       canUseWindow &&
       !pendingDeathWindow;
     const showDiscardSkillControl =
-      canUseWindow && !pendingDeathWindow && discardableSkills.length > 0;
+      canUseWindow && !state.reversalResponseOnly && !pendingDeathWindow && discardableSkills.length > 0;
     const canDiscardSkill = Boolean(
       showDiscardSkillControl &&
         discardSkillId &&
@@ -1262,7 +1394,7 @@ export function ActionPanel({
     );
     const balanceTargetIds = [windowSkillTargetId, windowSkillExtraTargetId].filter(Boolean);
     const balanceTargetsInvalid = Boolean(
-      isWindowBalance &&
+      isWindowBalance && !junengTargetId &&
         (balanceTargetIds.length !== 2 ||
           new Set(balanceTargetIds).size !== 2 ||
           balanceTargetIds.some(
@@ -1272,19 +1404,28 @@ export function ActionPanel({
     const lightningTargetIds = [windowSkillTargetId, windowSkillExtraTargetId].filter(Boolean);
     const lightningResolvedTargetIds =
       viewer && isWindowLightning
-        ? resolveLightningSpellTargetIds(state.players, viewer.id, lightningTargetIds)
+        ? resolveLightningSpellTargetIds(state.players.filter((player) => player.spaceId === viewer.spaceId), viewer.id, lightningTargetIds)
         : undefined;
     const lightningTargetsInvalid = Boolean(
-      isWindowLightning &&
+      isWindowLightning && !junengTargetId &&
         (!lightningResolvedTargetIds ||
           lightningResolvedTargetIds.length !== lightningTargetPlan.targetCount)
     );
+    const windowElementCost = selectedWindowSkill ? getSkillElementCost(viewer, { skillId: selectedWindowSkill.skill.id }) : undefined;
     const windowSkillInvalid = Boolean(
         !canUseWindow ||
         !selectedWindowSkill ||
         !selectedWindowSkillPlay ||
+        (junengBlocked && selectedWindowSkillPlay.targetMode === "single") ||
+        (windowElementCost && windowElementCost.perStack * windowSkillStacks > getElementAmount(viewer, windowElementCost.element)) ||
+        (selectedWindowSkill.skill.id === STORE_DAMAGE_ID && !storableDamage) ||
+        (selectedWindowSkill.skill.id === STAR_RESIST_ID && !resistibleDamage) ||
+        (selectedWindowSkill.skill.id === RELEASE_DAMAGE_ID && !selectedStoredDamage) ||
+        (selectedWindowSkill.skill.id === KUISHI_ID && !peekTarget) ||
+        (isWindowAttackMark && (!selectedWindowMarkAttack || (viewer && windowSkillStacks >
+          getAttackMarkCapacity(viewer, selectedWindowSkill.skill.id, selectedWindowMarkAttack.actionIndex)))) ||
         (isWindowActionSwitch && !selectedWindowSwitch) ||
-        (isWindowAttackStatModifier && !selectedWindowAttackStatModifier) ||
+        (isWindowAttackStatModifier && (!selectedWindowAttackStatModifier || Boolean(selectedWindowAttackStatModifier.error))) ||
         (isWindowDoubleEdge && !selectedWindowDoubleEdge && !hasWindowAttackAction) ||
         (isWindowLiegong && !selectedWindowLiegong) ||
         (isWindowAbsoluteGuard && !selectedWindowAbsoluteGuard) ||
@@ -1293,7 +1434,7 @@ export function ActionPanel({
         (!isWindowActionSwitch && needsSkillTarget && !windowTargetSkillId) ||
         (!isWindowActionSwitch && isWindowSandTransform && !windowSandSkillId) ||
         (!isWindowActionSwitch && isWindowDamageRedirect && !windowDamageId) ||
-        (!isWindowActionSwitch && isWindowDamageMark && !windowDamageId) ||
+        (!isWindowActionSwitch && isWindowDamageMark && !damageMarkOptions.some((item) => item.id === windowDamageId)) ||
         (!isWindowActionSwitch && isWindowShunshouSteal && !windowTargetSkillId) ||
         (!isWindowActionSwitch && balanceTargetsInvalid) ||
         (!isWindowActionSwitch && lightningTargetsInvalid) ||
@@ -1305,18 +1446,21 @@ export function ActionPanel({
           isWindowHellOverlord &&
           (!windowSkillTargetId ||
             !hellOverlordTargetOptions.some((player) => player.id === windowSkillTargetId))) ||
+        (pursuitSkillId && !pursuitTargetOptions.some((target) => target.id === windowSkillTargetId)) ||
         (viewer && windowSkillCost > viewer.cakes)
     );
 
     return (
       <section className="surface-card action-board p-5">
+        {junengStatus}
+        {viewer?.spaceId ? <p className="text-sm font-semibold">小空间 · {state.smallSpaces?.[viewer.spaceId]?.name}</p> : null}
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-black text-gray-950">
               {pendingDeathWindow ? "复活阶段" : "行动阶段"}
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              第 {state.roundNumber} 轮 · 本轮第 {state.roundTurnNumber} 回合 · {phaseLabel(state.activeTimingPhase)}
+              第 {state.roundNumber} 轮 · 本轮第 {state.roundTurnNumber} 回合 · {state.reversalResponseOnly ? "逆转响应（普通变招已结束）" : phaseLabel(state.activeTimingPhase)}
             </p>
           </div>
           {alreadyPassed ? (
@@ -1326,7 +1470,7 @@ export function ActionPanel({
           ) : null}
         </div>
 
-        {fusionSection}
+        <div className="action-window-scroll-body">
         {!showWindowSkillPanel ? (
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {state.activeTimingPhase === "turn_before_action" ? (
@@ -1509,7 +1653,7 @@ export function ActionPanel({
                     >
                       {windowSkills.map(({ skill, play }) => (
                         <option key={skill.id} value={skill.id}>
-                          {skill.name} · {play.cost}饼
+                          {skill.name} · {formatSkillCakeCost(skill.id, undefined, viewer)}
                         </option>
                       ))}
                     </select>
@@ -1529,7 +1673,17 @@ export function ActionPanel({
                       }
                     />
                   </label>
-                  {isWindowDoubleEdge ? (
+                  {selectedWindowSkill?.skill.id === STAR_RAGE_ID ? (
+                    <label className="block text-sm font-medium text-gray-700">
+                      消耗 3 层星印记
+                      <select className="soft-input mt-1 w-full"
+                        value={windowTargetSkillId === STAR_RAGE_SIX_STAR ? STAR_RAGE_SIX_STAR : STAR_RAGE_ID}
+                        onChange={(event) => setWindowTargetSkillId(event.target.value)}>
+                        <option value={STAR_RAGE_ID}>星怒 · 随机一人受到 6 点法伤</option>
+                        <option value={STAR_RAGE_SIX_STAR}>六芒星 · 免疫并回复</option>
+                      </select>
+                    </label>
+                  ) : isWindowDoubleEdge ? (
                     windowDoubleEdgeOptions.length > 0 ? (
                       <label className="block text-sm font-medium text-gray-700">
                         双刃剑目标
@@ -1625,7 +1779,7 @@ export function ActionPanel({
                                 ? fatalSourceOptions
                                 : isWindowHellOverlord
                                   ? hellOverlordTargetOptions
-                                : enemies
+                                  : pursuitSkillId ? pursuitTargetOptions : enemies
                         }
                         targetId={windowSkillTargetId}
                         onChange={setWindowSkillTargetId}
@@ -1654,6 +1808,35 @@ export function ActionPanel({
                     </div>
                   )}
                 </div>
+                {selectedWindowSkill?.skill.id === FOUR_EMPTINESS_ID ? <BlindSkillPicker state={state} selected={selectedBlindIds} onChange={setBlindSelected} limit={16} /> : null}
+                {selectedWindowSkill?.skill.id === SLOT_MACHINE_ID && readySlotMachines.length > 1 ? <label className="block text-sm">重抽的老虎机
+                  <select className="soft-input mt-1 w-full" value={chosenSlotMachine?.id ?? ""} onChange={(event) => setSlotMachineId(event.target.value)}>
+                    {readySlotMachines.map((entry, index) => <option key={entry.id} value={entry.id}>第 {index + 1} 组</option>)}
+                  </select>
+                </label> : null}
+                {selectedWindowSkill?.skill.id === STAR_RESIST_ID ? <label className="block text-sm">
+                  抵御目标
+                  <select className="soft-input mt-1 w-full" value={resistibleDamage?.id ?? ""} onChange={(event) => setWindowDamageId(event.target.value)}>
+                    {resistibleDamages.map((item) => <option key={item.id} value={item.id}>{formatPendingDamageLabel(state, item)}</option>)}
+                  </select>
+                </label> : null}
+                {selectedWindowSkill?.skill.id === STORE_DAMAGE_ID ? <label className="block text-sm">
+                  储存哪一份伤害
+                  <select className="soft-input mt-1 w-full" value={storableDamage?.id ?? ""}
+                    onChange={(event) => setWindowDamageId(event.target.value)}>
+                    {storableDamages.map((item) => <option key={item.id} value={item.id}>{formatPendingDamageLabel(state, item)}</option>)}
+                  </select>
+                </label> : null}
+                {selectedWindowSkill?.skill.id === RELEASE_DAMAGE_ID ? storedDamageSelect() : null}
+                {selectedWindowSkill?.skill.id === KUISHI_ID ? <label className="block text-sm">
+                  选择并公开声明要复制的大卡
+                  <select className="soft-input mt-1 w-full" value={peekTarget?.instanceId ?? ""}
+                    onChange={(event) => setPeekTargetInstanceId(event.target.value)}>
+                    {peekTargets.map((card) => <option key={card.instanceId} value={card.instanceId}>
+                      {card.ownerName} · {getBigCard(card.cardId)?.name ?? card.cardId}
+                    </option>)}
+                  </select>
+                </label> : null}
                 {isWindowDamageRedirect ? (
                   <label className="block text-sm font-medium text-gray-700">
                     待转移伤害
@@ -1713,21 +1896,44 @@ export function ActionPanel({
                     </div>
                   )
                 ) : null}
+                {isWindowAttackMark ? (
+                  <label className="block text-sm font-medium text-gray-700">
+                    使用印记强化的攻击
+                    <select className="soft-input mt-1 w-full" data-testid="mark-attack-select"
+                      value={selectedWindowMarkAttack?.actionIndex ?? ""}
+                      onChange={(event) => setWindowMarkAttackIndex(Number(event.target.value))}>
+                      {windowMarkAttackOptions.map(({ actionIndex, action }) => <option key={actionIndex} value={actionIndex}>
+                        第{actionIndex + 1}个攻击：{getActionLabel(action)} → {formatTargetNames(
+                          (state.revealedActionTargets?.[viewer!.id]?.[actionIndex] ?? (action.targetId ? [action.targetId] : []))
+                            .map((id) => getPlayerName(state, id)), "全体敌人 / 天")}
+                      </option>)}
+                    </select>
+                    {!selectedWindowMarkAttack ? <span className="mt-1 block text-amber-700">本回合没有可强化的攻击。</span> : null}
+                  </label>
+                ) : null}
                 {isWindowAttackStatModifier ? (
                   windowAttackStatModifierOptions.length > 0 ? (
                     <label className="block text-sm font-medium text-gray-700">
                       攻击属性变化
                       <select
+                        data-testid="attack-stat-modifier-select"
                         className="soft-input mt-1 w-full"
                         value={selectedWindowAttackStatModifier?.key ?? ""}
                         onChange={(event) => setWindowAttackStatModifierKey(event.target.value)}
                       >
                         {windowAttackStatModifierOptions.map((option) => (
-                          <option key={option.key} value={option.key}>
+                          <option key={option.key} value={option.key} disabled={Boolean(option.error)}>
                             {option.label}
                           </option>
                         ))}
                       </select>
+                      {selectedWindowAttackStatModifier && viewer ? (() => {
+                        const stats = previewPlayerAttackStats(state, viewer.id).stats[selectedWindowAttackStatModifier.actionIndex];
+                        const action = state.revealedActions?.[viewer.id]?.actions[selectedWindowAttackStatModifier.actionIndex];
+                        return stats && action ? <span className="mt-2 block text-xs" data-testid="attack-stat-current">
+                          当前：{actionHasCakeCost(action, viewer) ? `耗饼 ${formatAttackStatNumber(stats.cost, stats.costValue)}` : "无耗饼"} · 攻击 {formatAttackDamageParts(stats)} · 等级 {formatAttackStatNumber(stats.level, stats.levelValue)}
+                        </span> : null;
+                      })() : null}
                     </label>
                   ) : (
                     <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
@@ -1735,6 +1941,8 @@ export function ActionPanel({
                     </div>
                   )
                 ) : null}
+                {isWindowAttackStatModifier && hasEnhancedLevelSwap(viewer) ?
+                  <p className="text-xs text-gray-600">按使用顺序交换最终数值；费用差额在变招结束时统一结算。无耗饼攻击只能交换攻击与等级。</p> : null}
                 {needsSkillTarget ? (
                   <label className="block text-sm font-medium text-gray-700">
                     已暴露技能
@@ -1782,11 +1990,12 @@ export function ActionPanel({
                 ) : null}
                 {isWindowSandTransform ? (
                   <label className="block text-sm font-medium text-gray-700">
-                    沙子变化
+                    {selectedWindowSkill?.skill.id === getFusionSkillId("猥琐小叔叔") ? "选择额外技能" :
+                      selectedWindowSkill?.skill.id === getFusionSkillId("沙皇") ? "强化沙子：选择二融合" : "普通沙子：选择小技能"}
                     <input
                       className="soft-input mt-1 w-full"
                       onChange={(event) => setWindowSandSkillQuery(event.target.value)}
-                      placeholder={`搜索 ${smallSkills.length} 个小技能`}
+                      placeholder={`搜索 ${sandSkills.length} 个可选技能`}
                       value={windowSandSkillQuery}
                     />
                     <select
@@ -1809,7 +2018,7 @@ export function ActionPanel({
                   <p className="text-xs text-gray-500 sm:col-span-3">可重复选择同一玩家，每次吸取 1 血。</p>
                 </div> : null}
                 <div className="grid gap-2 text-sm text-gray-600 sm:grid-cols-3">
-                  <Stat label="消耗" value={`${windowSkillCost}饼`} />
+                  <Stat label="消耗" value={formatSkillCakeCost(selectedWindowSkill?.skill.id, windowSkillCost, viewer, windowSkillStacks)} />
                   <Stat label="阶段" value={phaseLabel(state.activeTimingPhase)} />
                   <Stat label="次数" value={selectedWindowSkillPlay?.usesPerGame ? "本局限定" : "可重复"} />
                 </div>
@@ -1829,7 +2038,7 @@ export function ActionPanel({
                       viewerNoRevive &&
                       ACTIVE_REVIVAL_SKILL_IDS.has(selectedWindowSkill.skill.id)
                     ) {
-                      window.alert("因为致死者持有裂魂，所以你无法复活。");
+                      window.alert(`受到${viewer?.buffs.find((buff) => buff.id === "no_revive")?.name ?? "致死效果"}限制，无法复活。`);
                       return;
                     }
 
@@ -1838,9 +2047,19 @@ export function ActionPanel({
                       skillId: selectedWindowSkill.skill.id,
                       stacks: windowSkillStacks
                     };
+                    if (action.skillId === STORE_DAMAGE_ID && storableDamage) action.targetDamageId = storableDamage.id;
+                    if (action.skillId === FOUR_EMPTINESS_ID) action.removeSkillInstanceIds = selectedBlindIds;
+                    if (action.skillId === SLOT_MACHINE_ID && chosenSlotMachine) action.rerollFusionInstanceId = chosenSlotMachine.id;
+                    if (action.skillId === STAR_RESIST_ID && resistibleDamage) action.targetDamageId = resistibleDamage.id;
+                    if (action.skillId === RELEASE_DAMAGE_ID && selectedStoredDamage) action.storedDamageId = selectedStoredDamage.id;
+                    if (action.skillId === KUISHI_ID && peekTarget) action.targetBigCardInstanceId = peekTarget.instanceId;
+                    if (action.skillId === STAR_RAGE_ID) action.targetSkillId = windowTargetSkillId === STAR_RAGE_SIX_STAR ? STAR_RAGE_SIX_STAR : STAR_RAGE_ID;
                     if (isWindowActionSwitch && selectedWindowSwitch) {
                       action.switchActionIndex = selectedWindowSwitch.actionIndex;
                       action.switchToAction = selectedWindowSwitch.action;
+                    }
+                    if (isWindowAttackMark && selectedWindowMarkAttack) {
+                      action.switchActionIndex = selectedWindowMarkAttack.actionIndex;
                     }
                     if (isWindowAttackStatModifier && selectedWindowAttackStatModifier) {
                       action.switchActionIndex = selectedWindowAttackStatModifier.actionIndex;
@@ -1926,6 +2145,8 @@ export function ActionPanel({
             </button>
           </div>
         )}
+        {fusionSection}
+        </div>
       </section>
     );
   }
@@ -1963,6 +2184,12 @@ export function ActionPanel({
         return;
       }
 
+      if (selectedSkillPlay.optionalTargetCount !== undefined && selectedSkill.skill.id !== DRAGON_BLOOD_FIELD_ID) {
+        onSubmit({ type: "skill", skillId: selectedSkill.skill.id, stacks: skillStacks,
+          targetIds: skillExtraTargetIds.filter(Boolean) });
+        return;
+      }
+
       if (selectedSkillPlay.targetMode === "single") {
         if (isMultiTargetAttackSkill(selectedSkill.skill.id)) {
           onSubmit({
@@ -1979,7 +2206,9 @@ export function ActionPanel({
           type: "skill",
           skillId: selectedSkill.skill.id,
           stacks: skillStacks,
-          targetId: skillTargetId
+          targetId: skillTargetId,
+          ...(freeVerdict ? { freeStacks: 1 } : {}),
+          ...(selectedSkill.skill.id === RELEASE_DAMAGE_ID && selectedStoredDamage ? { storedDamageId: selectedStoredDamage.id } : {})
         });
         return;
       }
@@ -2004,6 +2233,8 @@ export function ActionPanel({
             type: "skill" as const,
             skillId: row.skillId,
             stacks: row.stacks,
+            ...([ANNIHILATION_CANNON_ID, SPIRIT_GUIDANCE_ID].includes(row.skillId) &&
+              enemies.some((player) => player.id === attackExtraEffectTargetId) ? { targetIds: [attackExtraEffectTargetId] } : {}),
             ...freePatch
           };
         }
@@ -2073,6 +2304,8 @@ export function ActionPanel({
       data-testid="action-board"
       data-viewer-id={viewer?.id ?? ""}
     >
+      {junengStatus}
+      {viewer?.spaceId ? <p className="text-sm font-semibold">小空间 · {state.smallSpaces?.[viewer.spaceId]?.name} · 出饼×3</p> : null}
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-black text-gray-950">出招</h2>
@@ -2117,7 +2350,6 @@ export function ActionPanel({
         </div>
       </div>
 
-      {fusionSection}
       <form className="action-form mt-4" onSubmit={submit}>
         <div className="action-scroll-body space-y-4">
           <div className="action-mode-grid grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -2209,8 +2441,8 @@ export function ActionPanel({
                   <div
                     className={
                       row.kind === "skill" && Boolean(viewer && getFreeSkillChargeId(viewer, row.skillId))
-                        ? "grid gap-3 md:grid-cols-[1fr_96px_110px_1fr_auto]"
-                        : "grid gap-3 md:grid-cols-[1fr_96px_1fr_auto]"
+                        ? "attack-row-fields grid gap-3 md:grid-cols-[1fr_96px_110px_1fr_auto]"
+                        : "attack-row-fields grid gap-3 md:grid-cols-[1fr_96px_1fr_auto]"
                     }
                   >
                     <label className="block text-sm font-medium text-gray-700">
@@ -2235,14 +2467,14 @@ export function ActionPanel({
                           <optgroup label="技能招式">
                             {actionSkills.map(({ skill, play }) => (
                               <option key={skill.id} value={`skill:${skill.id}`}>
-                                {play.attackName ? `${play.attackName}（${skill.name}）` : skill.name} · {play.cost}饼
+                                {play.attackName ? `${play.attackName}（${skill.name}）` : skill.name} · {formatSkillCakeCost(skill.id)}
                               </option>
                             ))}
                           </optgroup>
                         ) : null}
                       </select>
                     </label>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="attack-row-stacks block text-sm font-medium text-gray-700">
                       重数
                       <input
                         className="soft-input mt-1 w-full"
@@ -2261,7 +2493,7 @@ export function ActionPanel({
                       />
                     </label>
                     {row.kind === "skill" && Boolean(viewer && getFreeSkillChargeId(viewer, row.skillId)) ? (
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="attack-row-free-stacks block text-sm font-medium text-gray-700">
                         免费重数
                         <select
                           className="soft-input mt-1 w-full"
@@ -2288,9 +2520,9 @@ export function ActionPanel({
                         className={
                           extraTargetSlotCount > 0
                             ? extraTargetSlotCount > 1
-                              ? "grid gap-2 sm:grid-cols-3"
-                              : "grid gap-2 sm:grid-cols-2"
-                            : ""
+                              ? "attack-row-targets grid gap-2 sm:grid-cols-3"
+                              : "attack-row-targets grid gap-2 sm:grid-cols-2"
+                            : "attack-row-targets"
                         }
                       >
                         <TargetSelect
@@ -2325,12 +2557,16 @@ export function ActionPanel({
                         )}
                       </div>
                     ) : (
-                      <div className="self-end rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                      <div className="attack-row-area self-end rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
                         群攻全体
+                        {row.kind === "skill" && [ANNIHILATION_CANNON_ID, SPIRIT_GUIDANCE_ID].includes(row.skillId) ? <TargetSelect allowEmpty
+                          enemies={enemies} targetId={attackExtraEffectTargetId} onChange={setAttackExtraEffectTargetId}
+                          label={row.skillId === SPIRIT_GUIDANCE_ID ? "出招无效目标（可不选）" : "立即退游目标（可不选）"} /> : null}
                       </div>
                     )}
                     <button
-                      className="self-end rounded-lg border border-gray-200 bg-white p-2 text-gray-500 shadow-sm hover:border-red-200 hover:text-red-700 disabled:opacity-40"
+                      aria-label={`移除第 ${index + 1} 个攻击`}
+                      className="attack-row-remove self-end rounded-lg border border-gray-200 bg-white p-2 text-gray-500 shadow-sm hover:border-red-200 hover:text-red-700 disabled:opacity-40"
                       disabled={attackRows.length === 1}
                       onClick={() => removeAttackRow(row.id)}
                       type="button"
@@ -2338,12 +2574,12 @@ export function ActionPanel({
                       <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </div>
-                  <div className="mt-3 grid gap-2 text-sm text-gray-600 sm:grid-cols-4">
+                  <div className="attack-row-stats mt-3 grid gap-2 text-sm text-gray-600 sm:grid-cols-4">
                     <Stat label="消耗" value={`${rowCost(row)}饼`} />
                     {stats ? (
                       <>
-                        <Stat label="攻击" value={formatAttackPower(stats.power)} />
-                        <Stat label="等级" value={String(stats.level)} />
+                        <Stat label="攻击" value={formatAttackDamageParts(stats)} />
+                        <Stat label="等级" value={formatAttackStatNumber(stats.level, stats.levelValue)} />
                         <Stat label="防御" value={DEFENSE_TAG_LABELS[stats.defenseTag]} />
                       </>
                     ) : (
@@ -2382,7 +2618,7 @@ export function ActionPanel({
                 添加目标
               </button>
               <div className="text-sm font-medium text-gray-600">
-                总消耗：{attackCost} 饼
+                总消耗：{[attackCost > 0 || !elementCostLabel ? `${attackCost} 饼` : "", elementCostLabel].filter(Boolean).join(" ＋ ")}
               </div>
             </div>
             {hasAreaMixed ? (
@@ -2393,6 +2629,9 @@ export function ActionPanel({
 
           {mode === "skill" ? (
           <div className="action-row space-y-3">
+            {selectedSkill?.skill.id === VERDICT_ACTION_ID && verdictFreeAvailable ? <label className="flex gap-2 text-sm">
+              <input type="checkbox" checked={useFreeVerdict} onChange={(event) => setUseFreeVerdict(event.target.checked)} /> 使用一次免费裁决
+            </label> : null}
             {nonAttackSkills.length > 0 ? (
               <>
                 <div className="grid gap-3 md:grid-cols-[1fr_96px_1fr]">
@@ -2410,7 +2649,7 @@ export function ActionPanel({
                     >
                       {nonAttackSkills.map(({ skill, play }) => (
                         <option key={skill.id} value={skill.id}>
-                          {skill.name} · {play.cost}饼
+                          {skill.name} · {formatSkillCakeCost(skill.id)}
                         </option>
                       ))}
                     </select>
@@ -2437,6 +2676,15 @@ export function ActionPanel({
                   ) : selectedSkill && isAbsoluteGuardSkill(selectedSkill.skill) ? (
                     <div className="self-end rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
                       绝对守护请在变招阶段选择本回合攻击你的攻击
+                    </div>
+                  ) : selectedSkillPlay?.optionalTargetCount !== undefined && selectedSkill?.skill.id !== DRAGON_BLOOD_FIELD_ID ? (
+                    <div className="grid gap-2">
+                      {Array.from({ length: selectedSkillPlay.optionalTargetCount }, (_, index) => (
+                        <TargetSelect key={index} allowEmpty label={`限制目标 ${index + 1}（可不选）`}
+                          enemies={enemies.filter((enemy) => !skillExtraTargetIds.some((id, position) => position !== index && id === enemy.id))}
+                          targetId={skillExtraTargetIds[index] ?? ""} testId={`skill-optional-target-${index}`}
+                          onChange={(id) => setSkillExtraTargetIds((current) => Array.from({ length: selectedSkillPlay.optionalTargetCount! }, (_, position) => position === index ? id : current[position] ?? ""))} />
+                      ))}
                     </div>
                   ) : selectedSkillPlay?.targetMode === "single" ? (
                     <div
@@ -2483,20 +2731,21 @@ export function ActionPanel({
                     </div>
                   )}
                 </div>
+                {selectedSkill?.skill.id === RELEASE_DAMAGE_ID ? storedDamageSelect() : null}
                 <div className="grid gap-2 text-sm text-gray-600 sm:grid-cols-4">
-                  <Stat label="消耗" value={`${skillCost}饼`} />
+                  <Stat label="消耗" value={formatSkillCakeCost(selectedSkill?.skill.id, skillCost, viewer, skillStacks)} />
                   {selectedSkillPlay?.kind === "resource" ? (
                     <>
                       <Stat
                         label="获得"
-                        value={`${(selectedSkillPlay.resourceGainPerStack ?? 0) * skillStacks}饼`}
+                        value={`${getSkillResourceGainPerStack(viewer, selectedSkill?.skill.id ?? "") * skillStacks}饼`}
                       />
                       <Stat label="类型" value="资源" />
                       <Stat label="目标" value="自身" />
                     </>
                   ) : selectedSkillStats ? (
                     <>
-                      <Stat label="攻击" value={formatAttackPower(selectedSkillStats.power)} />
+                      <Stat label="攻击" value={formatAttackDamageParts(selectedSkillStats)} />
                       <Stat label="等级" value={String(selectedSkillStats.level)} />
                       <Stat label="防御" value={DEFENSE_TAG_LABELS[selectedSkillStats.defenseTag]} />
                     </>
@@ -2519,7 +2768,7 @@ export function ActionPanel({
 
           {mode === "gain_cake" ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-3 text-sm text-amber-900 shadow-sm">
-            本回合获得 1 个饼。若对方使用超核爆，出饼也能作为“饼防”。
+            本回合获得 {cakeGain} 个饼。若对方使用超核爆，出饼也能作为“饼防”。
           </div>
           ) : null}
 
@@ -2540,6 +2789,7 @@ export function ActionPanel({
             {actionRecoveryHint ? <span data-testid="action-recovery-hint">{actionRecoveryHint}</span> : null}
           </div>
           </div>
+          {fusionSection}
         </div>
 
         <div
@@ -2700,17 +2950,19 @@ export function ActionPanel({
 
   function rowStats(row: AttackRow) {
     if (row.kind === "skill") {
-      const stats = getSkillAttackStats(row.skillId, row.stacks);
+      const rawStats = getSkillAttackStats(row.skillId, row.stacks, viewer);
+      const raw = rawStats && viewer ? scaleJunengAttack(viewer, rawStats) : rawStats;
+      const base = raw && viewer ? shapeDragonBloodAttack(state, viewer.id, { type: "skill", skillId: row.skillId, stacks: row.stacks }, raw) : raw;
+      const priorRi = row.skillId === RI_SKILL_ID ? attackRows.slice(0, Math.max(0, attackRows.indexOf(row)))
+        .reduce((count, earlier) => count + (earlier.kind === "skill" && earlier.skillId === RI_SKILL_ID ? earlier.stacks : 0), 0) : 0;
+      const stats = base && applyHunyaoRiStats(viewer, base, priorRi);
       if (stats && row.skillId === LU_ATTACK_SKILL_ID) {
         const growth = Math.min(
           3,
           Math.max(0, viewer?.buffs.find((buff) => buff.id === "lu_growth")?.stacks ?? 0)
         );
-        return {
-          ...stats,
-          power: stats.power >= RETIRE_EFFECT_POWER ? stats.power : stats.power + growth * row.stacks,
-          level: stats.level + growth * row.stacks
-        };
+        const bonus = growth * row.stacks;
+        return offsetAttackStats(stats, bonus, bonus);
       }
       return stats;
     }
@@ -2720,12 +2972,9 @@ export function ActionPanel({
 
   function rowCost(row: AttackRow): number {
     if (row.kind === "skill") {
+      if (viewer) return getTurnSkillActionCost(viewer, { type: "skill", skillId: row.skillId, stacks: row.stacks,
+        ...(row.freeStacks ? { freeStacks: Math.min(row.freeStacks, getFreeLianBaoStacks(row.skillId)) } : {}) });
       const play = getSkillPlay(row.skillId);
-      if (Boolean(viewer && getFreeSkillChargeId(viewer, row.skillId))) {
-        const freeStacks = Math.min(row.stacks, row.freeStacks ?? 0, getFreeLianBaoStacks(row.skillId));
-        return (play?.cost ?? 0) * Math.max(0, row.stacks - freeStacks);
-      }
-
       return (play?.cost ?? 0) * row.stacks;
     }
 
@@ -2738,7 +2987,7 @@ export function ActionPanel({
     }
 
     if (row.kind === "skill") {
-      return getSkillPlay(row.skillId)?.targetMode === "all";
+      return rowStats(row)?.isArea || getSkillPlay(row.skillId)?.targetMode === "all";
     }
 
     return getStackedAttackStats(BASE_ATTACKS[row.attackId], row.stacks).isArea;
@@ -2762,7 +3011,7 @@ export function ActionPanel({
       row.kind === "skill" ? getSkillResourceStacks(viewer, row.skillId) : undefined;
     const cost =
       row.kind === "skill"
-        ? play?.cost ?? 1
+        ? getTurnSkillActionCost(viewer, { type: "skill", skillId: row.skillId, stacks: 1 })
         : getEffectiveAttackCost(row.attackId, 1);
     if (row.kind === "skill" && Boolean(viewer && getFreeSkillChargeId(viewer, row.skillId)) && cost > 0) {
       return Math.max(
@@ -3018,6 +3267,7 @@ interface ModeButtonProps {
 
 function summarizeActionSelection({
   attackRows,
+  cakeGain,
   defense,
   mode,
   selectedSkillName,
@@ -3026,6 +3276,7 @@ function summarizeActionSelection({
   state
 }: {
   attackRows: AttackRow[];
+  cakeGain: number;
   defense: DefenseKind;
   mode: Mode;
   selectedSkillName: string | undefined;
@@ -3036,7 +3287,7 @@ function summarizeActionSelection({
   totalAttackCost: number;
 }): string {
   if (mode === "gain_cake") {
-    return "吃饼：本回合获得 1 饼";
+    return `吃饼：本回合获得 ${cakeGain} 饼`;
   }
 
   if (mode === "defense") {
@@ -3232,6 +3483,8 @@ function getSkillResourceStacks(
   player: PublicGameState["players"][number],
   skillId: SkillId
 ): number | undefined {
+  const marks = getAttackMarkCount(player, skillId);
+  if (marks !== undefined) return marks;
   if (skillId === "skill_37_68416") {
     return player.buffs.find((buff) => buff.id === "guidao_charge")?.stacks ?? 0;
   }
@@ -3254,6 +3507,7 @@ function viewerCanUseSkill(
 ): boolean {
   return Boolean(
     player && getActiveSkillCount(player, skillId) > 0 &&
+      (skillId !== STAR_RAGE_ID || canSpendStarRageMarks(player)) &&
       (skillId !== "skill_24_71363" || player.hp === 0) &&
       (skillId !== "skill_45_30424" ||
         getDestroyPowerCooldownCount(player, state.roundNumber) <
@@ -3265,7 +3519,7 @@ function viewerCanUseSkill(
         !player.buffs.some((buff) => buff.id === "huiyue_stasis" && (buff.expiresAtTurn ?? -1) > state.turnNumber))) &&
       !player.buffs.some((buff) => buff.id === `sealed_skill:${skillId}`) &&
       !isPlayerInCollapse(player) &&
-      !isSkillBlockedByJingu(state, skillId)
+      !isSkillBlockedByJingu(state, skillId, player.spaceId)
   );
 }
 
@@ -3287,13 +3541,13 @@ function buildActionSwitchOptions(
   }
 
   return plan.actions.flatMap((current, actionIndex) =>
-    getActionSwitchChoicesForAction(skillId, current).map((choice) => ({
+    getActionSwitchChoicesForAction(skillId, current, state.players.find((player) => player.id === playerId)).map((choice) => ({
       key: `${actionIndex}:${switchActionKey(choice.action)}`,
       actionIndex,
       current,
       action: choice.action,
       cost: choice.cost,
-      label: `${getActionLabel(current)} -> ${getActionLabel(choice.action)} / ${choice.cost}饼`
+      label: `${getActionLabel(current)} -> ${getActionLabel(choice.action)} / ${formatSkillCakeCost(skillId, choice.cost, state.players.find((player) => player.id === playerId))}`
     }))
   );
 }
@@ -3308,11 +3562,12 @@ function buildAttackStatModifierOptions(
     return [];
   }
 
+  const player = state.players.find((entry) => entry.id === playerId);
   const modifiers =
     skillId === "skill_91_89631"
-      ? (["swap_power_level"] as AttackStatModifierChoice[])
+      ? undefined
       : skillId === "skill_45_30424"
-        ? DESTROY_POWER_MODIFIER_CHOICES
+        ? getDestructionModifiers(player)
         : [];
 
   return plan.actions.flatMap((current, actionIndex) => {
@@ -3320,13 +3575,23 @@ function buildAttackStatModifierOptions(
       return [];
     }
 
-    return modifiers.map((modifier) => ({
+    return (modifiers ?? getLevelSwapModifiers(player, current)).map((modifier) => {
+      const preview = previewPlayerAttackStats(state, playerId, { id: "candidate", actionIndex, modifier,
+        enhanced: skillId === "skill_91_89631" && hasEnhancedLevelSwap(player) });
+      const failure = preview.failures.find((item) => item.id === "candidate");
+      const stats = preview.stats[actionIndex];
+      const difference = preview.costs.reduce((sum, cost) => sum + cost, 0) - preview.originalCosts.reduce((sum, cost) => sum + cost, 0);
+      const number = formatAttackStatNumber;
+      const summary = stats ? ` / ${actionHasCakeCost(current, player) ? `耗${number(stats.cost, stats.costValue)}` : "无耗饼"} 攻${formatAttackDamageParts(stats)} 等${number(stats.level, stats.levelValue)}` : "";
+      const settlement = difference > 0 ? ` / 结束补扣${difference}饼` : difference < 0 ? ` / 结束退还${-difference}饼` : "";
+      return {
       key: `${actionIndex}:${modifier}`,
       actionIndex,
       current,
       modifier,
-      label: `${getActionLabel(current)} -> ${attackStatModifierLabel(modifier)}`
-    }));
+      ...(failure ? { error: failure.error } : {}),
+      label: `${getActionLabel(current)} -> ${sharedAttackStatModifierLabel(modifier)}${failure ? ` / ${failure.error}` : summary + settlement}`
+    }; });
   });
 }
 
@@ -3528,7 +3793,8 @@ function buildAbsoluteGuardOptions(
         ? "area_to_self"
         : "single_to_area";
       const guard = state.players.find((player) => player.id === playerId)!;
-      const cost = getAbsoluteGuardCost(guard, getActionCostForPlayer(state, source, action));
+      const currentStats = previewPlayerAttackStats(state, source.id).stats[actionIndex];
+      const cost = getAbsoluteGuardCost(guard, currentStats ? payableAttackCost(currentStats.cost) : getActionCostForPlayer(state, source, action));
       const options: AbsoluteGuardOption[] = [
         {
           key: `${source.id}:${actionIndex}`,
@@ -3797,31 +4063,10 @@ function isAttackLikeAction(action: PlayerAction): boolean {
   );
 }
 
-function attackStatModifierLabel(modifier: AttackStatModifierChoice): string {
-  switch (modifier) {
-    case "swap_power_level":
-      return "攻击与等级交换";
-    case "power_plus_1_level_minus_1":
-      return "攻击+1，等级-1";
-    case "power_minus_1_level_plus_1":
-      return "攻击-1，等级+1";
-    case "power_plus_2_level_minus_2":
-      return "攻击+2，等级-2";
-    case "power_minus_2_level_plus_2":
-      return "攻击-2，等级+2";
-    case "power_times_3_level_to_zero":
-      return "攻击×3，等级变为0";
-    case "power_to_zero_level_times_4":
-      return "攻击变为0，等级×4";
-    default:
-      return "攻击属性变化";
-  }
-}
-
 function requiresExposedSkillTarget(
   skill: NonNullable<ReturnType<typeof getSkill>>
 ): boolean {
-  if (skill.id === "skill_4_65637" || skill.id === "skill_68_57581") {
+  if (skill.play?.effect === "sand_transform" || skill.id === "skill_68_57581") {
     return false;
   }
 
@@ -3850,7 +4095,10 @@ function formatPendingDamageLabel(
     : "系统";
   const elements = item.elements?.filter((element) => element !== "physical").join("/") ?? "";
   const suffix = elements ? ` · ${elements}` : "";
-  return `${item.amount}点 · ${item.attackName ?? "伤害"} · 来源 ${sourceName}${suffix}`;
+  if (item.directDefeat) return `直接退游 · ${item.attackName ?? "退游"} · 来源 ${sourceName}`;
+  const amount = formatDamage(item.amount, item.amountValue);
+  if (item.infiniteCopies) return `无限份 · 每份${amount}点 · ${item.attackName ?? "伤害"} · 来源 ${sourceName}${suffix}`;
+  return `${amount}点 · ${item.attackName ?? "伤害"} · 来源 ${sourceName}${suffix}`;
 }
 
 function formatDamageMarkLabel(

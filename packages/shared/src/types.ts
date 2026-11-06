@@ -1,3 +1,6 @@
+import type { BigCardInstance } from "./bigCards/types";
+import type { CombatValue } from "./engine/combatValues";
+
 export type GameId = string;
 export type PlayerId = string;
 export type SkillId = string;
@@ -8,6 +11,9 @@ export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 6;
 export const INFINITE_DAMAGE = 999;
 export const RETIRE_EFFECT_POWER = 100000;
+export const VANISH_EFFECT_POWER = RETIRE_EFFECT_POWER * 2;
+export const EXECUTE_EFFECT_POWER = RETIRE_EFFECT_POWER * 3;
+export const EXPLODE_EFFECT_POWER = RETIRE_EFFECT_POWER * 4;
 
 export type PlayerStatus = "alive" | "dead";
 export type PlayerKind = "human" | "ai" | "spectator";
@@ -59,6 +65,7 @@ export type DefenseTag =
   | "stone"
   | "any"
   | "cake"
+  | "rebound"
   | "unblockable";
 
 export type AttackElement =
@@ -100,6 +107,8 @@ export interface BaseAttackDefinition {
   cost: number;
   power: number | "infinity";
   level: number;
+  powerValue?: CombatValue;
+  levelValue?: CombatValue;
   defenseTag: DefenseTag;
   traits: AttackTrait[];
   element: AttackElement;
@@ -107,11 +116,19 @@ export interface BaseAttackDefinition {
 }
 
 export interface AttackStats {
+  pierceInvulnerability?: boolean;
+  attackDamageMultiplier?: number;
+  cannonDefensePending?: boolean;
+  noReviveOrExtraLives?: boolean;
   id: AttackId | SkillId;
   name: string;
   cost: number;
   power: number;
   level: number;
+  powerValue?: CombatValue;
+  levelValue?: CombatValue;
+  costValue?: CombatValue;
+  damagePartValues?: CombatValue[];
   defenseTag: DefenseTag;
   traits: AttackTrait[];
   element: AttackElement;
@@ -122,14 +139,29 @@ export interface AttackStats {
   freezeTurns?: number;
   /** Separate damage ticks of one attack, retained when its source is reversed. */
   damageHits?: number;
+  /** Unequal damage segments of a single attack, using the same defense and target-transfer path. */
+  damageParts?: number[];
+  sourceBigCardInstanceId?: string;
   /** Granted only to the attack modified by 宗师之力's 毁灭之力. */
   ignoreEarthBreak?: boolean;
   includeSelf?: boolean;
   frostBladeKeepsDamage?: boolean;
   ignoreSwordProtections?: boolean;
+  /** 火眼金睛 (v4): remove 绝弹's permission to reflect nuclear/skill actions. */
+  ignoreAbsoluteRebound?: boolean;
+  requiresAbsoluteRebound?: boolean;
+  /** 根源之目: remove 弹力球's extra resistance to piercing. */
+  ignoreElasticRebound?: boolean;
 }
 
 export interface PlayerState {
+  verdictShadowInstanceId?: string;
+  spareLives?: Array<{ hp: number; sourceBigCardInstanceId?: string }>;
+  spaceId?: string;
+  storedDamages?: StoredDamage[];
+  /** Serialized separately from the finite display value, avoiding JS Infinity/null. */
+  hpIsInfinite?: boolean;
+  hpValue?: CombatValue;
   id: PlayerId;
   accountId?: string;
   name: string;
@@ -137,10 +169,17 @@ export interface PlayerState {
   kind: PlayerKind;
   hp: number;
   cakes: number;
+  /** Current cakes that came from this round's gain_cake actions. */
+  actionCakes?: number;
+  hunyaoAwakened?: boolean;
   status: PlayerStatus;
   defeatLevel?: DefeatLevel;
   connected: boolean;
   skills: SkillId[];
+  /** Exclusive to big-skill modes; never inserted into the legacy small-skill list. */
+  bigCards?: BigCardInstance[];
+  bigCardSlotCount?: number;
+  skillInventory?: Array<{ instanceId: string; skillId: SkillId; sourceBigCardInstanceId?: string }>;
   /** The two underlying material slots remain in skills, covered by one fusion card. */
   skillFusions?: SkillFusionState[] | undefined;
   fusionRequestIds?: string[] | undefined;
@@ -154,6 +193,28 @@ export interface PlayerState {
 }
 
 export interface BuffState {
+  junengDivisor?: number;
+  cannotGainSpareLives?: boolean;
+  cannotSwitchSpareLives?: boolean;
+  lifeCountLimit?: number;
+  defenseValue?: CombatValue;
+  immuneEffectCategories?: import("./engine/effectCategories").EffectCategory[];
+  skillReflectLimit?: CombatValue;
+  skillAttackBlockLimit?: CombatValue;
+  preventsTargetSelection?: boolean;
+  damageTakenValue?: CombatValue;
+  ignoredSkillIds?: SkillId[];
+  ignoredSkillTypeTags?: string[];
+  ignoredBigCardIds?: string[];
+  ignoredDamageKinds?: Array<"attack" | "spell">;
+  ignoredDamageElements?: AttackElement[];
+  continuationBlocks?: Array<"revival" | "reentry" | "reappearance" | "initial_reset">;
+  stateType?: string;
+  sourceBigCardInstanceId?: string;
+  sourceAbilityId?: SkillId;
+  lastTickTurn?: number;
+  suppressedEffectCategories?: import("./engine/effectCategories").EffectCategory[];
+  infinite?: boolean;
   id: BuffId;
   name: string;
   stacks: number;
@@ -162,14 +223,37 @@ export interface BuffState {
   sourcePlayerId?: PlayerId;
   sourceFusionId?: string;
   fusionMarkKind?: "ice_fire" | "solar_lava" | "ice_rain";
+  markKeepsAttackElement?: boolean;
+  /** Revealed action slot receiving a spent offensive mark. */
+  attackActionIndex?: number;
   traumaCakePaid?: boolean;
+  /** Six-star recovery follows the largest individual damage through this turn. */
+  sixStarMaxDamage?: number;
+  sixStarRecoveryPaid?: number;
+  sixStarMaxDamageValue?: CombatValue;
+  sixStarRecoveryPaidValue?: CombatValue;
 }
 
 export interface SkillFusionState {
+  rerollCompletedSlotIds?: string[];
+  slotMachineExtraInstanceIds?: string[];
+  materialInstanceIds?: string[];
+  /** The ingredient fusions stay on the player's ledger under this cover. */
+  materialFusionIds?: string[];
+  sourceBigCardInstanceId?: string;
   id: string;
   skillId: SkillId;
-  materialSkillIds: [SkillId, SkillId];
+  materialSkillIds: SkillId[];
   witherSelectionIndex?: number;
+  /** Independent acquisition choices; retained when the cover is serialized or resumed. */
+  acquisition?: {
+    smallUsed: boolean;
+    fusionUsed: boolean;
+    mirrorMaterialUsed?: boolean;
+    smallUseRecorded?: boolean;
+    bonusSkillId?: SkillId;
+    bonusSkillInstanceId?: string;
+  };
 }
 
 export interface GainCakeAction {
@@ -190,6 +274,12 @@ export interface AttackAction {
 }
 
 export interface SkillAction {
+  removeSkillInstanceIds?: string[];
+  rerollFusionInstanceId?: string;
+  dragonBloodTotal?: CombatValue;
+  targetBigCardInstanceId?: string;
+  storedDamageId?: string;
+  bigCardInstanceId?: string;
   type: "skill";
   skillId: SkillId;
   stacks: number;
@@ -197,7 +287,8 @@ export interface SkillAction {
   targetId?: PlayerId;
   targetIds?: PlayerId[];
   targetSkillId?: SkillId;
-  materialSkillIds?: [SkillId, SkillId];
+  materialSkillIds?: SkillId[];
+  fusionMaterialInstanceIds?: string[];
   fusionRequestId?: string;
   targetDamageId?: string;
   attackStatModifier?: AttackStatModifierChoice;
@@ -214,12 +305,24 @@ export interface DiscardSkillAction {
 
 export type AttackStatModifierChoice =
   | "swap_power_level"
+  | "swap_cost_power"
+  | "swap_cost_level"
+  | "rotate_cost_power_level"
+  | "rotate_cost_level_power"
   | "power_plus_1_level_minus_1"
   | "power_minus_1_level_plus_1"
   | "power_plus_2_level_minus_2"
   | "power_minus_2_level_plus_2"
   | "power_times_3_level_to_zero"
-  | "power_to_zero_level_times_4";
+  | "power_to_zero_level_times_4"
+  | "power_plus_2_level_minus_1"
+  | "power_minus_1_level_plus_2"
+  | "power_plus_4_level_minus_2"
+  | "power_minus_2_level_plus_4"
+  | "power_times_6_level_to_zero"
+  | "power_to_zero_level_times_8"
+  | "power_times_infinity"
+  | "level_times_infinity";
 
 export type PlayerAction =
   | GainCakeAction
@@ -239,7 +342,7 @@ export type SkillKnowledgeMap = Partial<
   Record<PlayerId, Partial<Record<PlayerId, SkillId[]>>>
 >;
 
-export type SkillMode = "none" | "small_intro" | "test_select";
+export type SkillMode = "none" | "small_intro" | "test_select" | "big_random" | "big_test_select";
 export type SpeedMode = "normal";
 
 export interface GameConfig {
@@ -254,6 +357,32 @@ export interface GameConfig {
 }
 
 export interface GameState {
+  verdictBlockedMoves?: string[];
+  verdictOrdinaryMoves?: Array<{ sourceId: PlayerId; targetId: PlayerId; key: string }>;
+  verdictTurn?: import("./engine/pointGame").VerdictTurn;
+  borrowedBigCards?: Array<{
+    ownerId: PlayerId;
+    borrowerId: PlayerId;
+    copyId: string;
+    expiresAtRound: number;
+    skipReturn?: boolean;
+    card: BigCardInstance;
+    inventory: NonNullable<PlayerState["skillInventory"]>;
+    fusions: NonNullable<PlayerState["skillFusions"]>;
+    buffs: BuffState[];
+    spareLives: NonNullable<PlayerState["spareLives"]>;
+  }>;
+  pendingDragonFireBonuses?: Array<{ playerId: PlayerId; cardInstanceId: string; dueRound: number }>;
+  smallSpaces?: Record<string, { name: string; expiresAtRound: number; cakeMultiplier: number; targetLock?: GameState["junengTargetLock"] }>;
+  peekBigCardsByViewer?: Record<PlayerId, string[]>;
+  junengTargetLock?: { targetId: PlayerId; expiresAtRound: number };
+  cannonDefenses?: CannonDefense[];
+  initialPlayerSnapshots?: Partial<Record<PlayerId, PlayerState>>;
+  /** Legacy rooms captured only starting Hunyao holders. */
+  initialHunyaoPlayers?: Partial<Record<PlayerId, PlayerState>>;
+  /** Private event IDs from each player's latest committed damage batch. */
+  damageAttribution?: Record<PlayerId, string[]>;
+  turnEndStatusPending?: { turnNumber: number; healthChangedBefore: boolean };
   id: GameId;
   ownerId: PlayerId;
   phase: GamePhase;
@@ -267,6 +396,8 @@ export interface GameState {
   damageModifyAfterTurnResolution?: boolean;
   preemptiveRestartSnapshot?: PreemptiveRestartSnapshot;
   actionWindowMode?: ActionWindowMode;
+  /** Ordinary changes are closed; only reversal responses or passing remain. */
+  reversalResponseOnly?: boolean;
   actionWindowDeadlineAt?: number;
   actionWindowPlayerIds: PlayerId[];
   actionWindowPassPlayerIds: PlayerId[];
@@ -276,7 +407,16 @@ export interface GameState {
   pendingActions: PendingActionMap;
   turnActionCosts?: Partial<Record<PlayerId, number[]>>;
   turnActionReceipts?: Partial<Record<PlayerId, TurnActionReceipt>>;
+  turnAttackStats?: Partial<Record<PlayerId, Record<number, AttackStats>>>;
   pendingDamageItems?: PendingDamageItem[];
+  retaliationRevivalPending?: boolean;
+  /** Private, reversible action receipts and attacks captured when reversal is first used. */
+  reversalState?: { turnNumber: number; attacks: import("./engine/scatterRebound").ReboundAttack[];
+    suppressed: boolean; receipts: Partial<Record<PlayerId, TurnActionReceipt>>; fusions: Record<PlayerId, SkillFusionState[]> };
+  spaceReversalStates?: Record<string, NonNullable<GameState["reversalState"]>>;
+  /** Private; deliberately excluded from preemptive snapshots and public projections. */
+  retaliationResponses?: { turnNumber: number; counts: Record<PlayerId, Partial<Record<SkillId, number>>> };
+  roundEndDamagePending?: { skipSmallSpaceTick: boolean };
   pendingSkillChoices?: PendingSkillChoice[];
   skillKnowledge: SkillKnowledgeMap;
   eventLog: GameEvent[];
@@ -289,12 +429,38 @@ export interface GameState {
 export interface TurnActionReceipt {
   cakesSpent: number;
   cakesGained: number;
+  actionCakeDelta?: number;
   buffsBefore: BuffState[];
   buffsAfter: BuffState[];
   addedFusionIds: string[];
+  addedSkillInstances?: NonNullable<PlayerState["skillInventory"]>;
+}
+
+export interface CannonDefense {
+  dueTurn: number;
+  next: "cake" | "rebound";
+  attack: import("./engine/scatterRebound").ReboundAttack;
+}
+
+export interface StoredDamage {
+  id: string;
+  amountValue: CombatValue;
+  pointDefeatLevel?: DefeatLevel;
+  attackName?: string;
+  element?: AttackElement;
+  elements?: AttackElement[];
+  fromAttack?: boolean;
+  spellDamage?: boolean;
+  internalDamage?: boolean;
 }
 
 export interface PreemptiveRestartSnapshot {
+  borrowedBigCards?: GameState["borrowedBigCards"];
+  pendingDragonFireBonuses?: GameState["pendingDragonFireBonuses"];
+  smallSpaces?: GameState["smallSpaces"];
+  junengTargetLock?: GameState["junengTargetLock"];
+  cannonDefenses?: CannonDefense[];
+  damageAttribution?: Record<PlayerId, string[]>;
   roundNumber: number;
   roundTurnNumber: number;
   turnNumber: number;
@@ -308,18 +474,41 @@ export interface PreemptiveRestartSnapshot {
 export interface PublicGameState
   extends Omit<
     GameState,
+    | "verdictTurn"
+    | "verdictBlockedMoves"
+    | "verdictOrdinaryMoves"
+    | "borrowedBigCards"
+    | "pendingDragonFireBonuses"
     | "pendingActions"
+    | "peekBigCardsByViewer"
+    | "cannonDefenses"
     | "skillKnowledge"
     | "pendingSkillChoices"
     | "preemptiveRestartSnapshot"
     | "damageModifyAfterTurnResolution"
     | "turnActionCosts"
     | "turnActionReceipts"
+    | "turnAttackStats"
+    | "retaliationRevivalPending"
+    | "reversalState"
+    | "spaceReversalStates"
+    | "retaliationResponses"
+    | "roundEndDamagePending"
+    | "damageAttribution"
+    | "turnEndStatusPending"
+    | "initialHunyaoPlayers"
+    | "initialPlayerSnapshots"
   > {
+  pointGame?: { id: string; sourceId: PlayerId; targetId: PlayerId; round: number; submittedPlayerIds: PlayerId[] };
+  verdictRemovalPlayerId?: PlayerId;
+  blindSkillChoices?: import("./engine/blindSkillRemoval").BlindSkillChoice[];
+  cannonDefenseSteps?: Array<{ targetId: PlayerId; dueTurn: number; next: CannonDefense["next"] }>;
   pendingActionPlayerIds: PlayerId[];
   pendingSkillChoices?: PendingSkillChoice[];
   revealedActions?: PendingActionMap;
   revealedActionCosts?: Partial<Record<PlayerId, number[]>>;
+  revealedAttackStats?: Partial<Record<PlayerId, Record<number,
+    Pick<AttackStats, "cost" | "power" | "level" | "damageParts" | "powerValue" | "levelValue" | "costValue" | "damagePartValues">>>>;
   revealedActionTargets?: Partial<Record<PlayerId, PlayerId[][]>>;
   viewerPlayerId?: PlayerId;
 }
@@ -432,6 +621,7 @@ export interface SkillRevealedEvent extends BaseGameEvent {
 }
 
 export interface SkillUsedEvent extends BaseGameEvent {
+  timingPhase?: SkillTimingPhase;
   type: "skill_used";
   playerId: PlayerId;
   skillId: SkillId;
@@ -485,6 +675,18 @@ export interface ClashEvent extends BaseGameEvent {
 }
 
 export interface DamageEvent extends BaseGameEvent {
+  sourceAbilityId?: SkillId;
+  sourceBigCardInstanceId?: string;
+  noReviveOrExtraLives?: boolean;
+  amountValue?: CombatValue;
+  pointDefeatLevel?: DefeatLevel;
+  /** Extra sources for the rebounders' personal skill judgments. */
+  reboundSkillSourceIds?: PlayerId[];
+  internalDamage?: boolean;
+  reflected?: boolean;
+  infiniteCopies?: boolean;
+  perCopyAmount?: number;
+  perCopyAmountValue?: CombatValue;
   type: "damage";
   sourceId?: PlayerId;
   targetId: PlayerId;
@@ -496,6 +698,26 @@ export interface DamageEvent extends BaseGameEvent {
 }
 
 export interface PendingDamageItem {
+  verdictMoveKey?: string;
+  ordinaryAttack?: boolean;
+  directDefeat?: true;
+  sourceAbilityId?: SkillId;
+  sourceBigCardInstanceId?: string;
+  noReviveOrExtraLives?: boolean;
+  bypassDamageReflection?: boolean;
+  amountValue?: CombatValue;
+  pointDefeatLevel?: DefeatLevel;
+  /** Recover the actual settled spell damage for its source; prevented or redirected packets do not pay. */
+  drainHealing?: boolean;
+  internalDamage?: boolean;
+  /** Explicit spell damage, independent of elemental attributes. */
+  spellDamage?: boolean;
+  unprocessedSpell?: boolean;
+  retaliation?: boolean;
+  reflected?: boolean;
+  actionRebounderIds?: PlayerId[];
+  bypassDamageImmunity?: boolean;
+  infiniteCopies?: boolean;
   id: string;
   sourceId?: PlayerId;
   targetId: PlayerId;
@@ -508,6 +730,7 @@ export interface PendingDamageItem {
   isLastHit?: boolean;
   attackKey?: string;
   attackPower?: number;
+  attackPowerValue?: CombatValue;
   redirectedByPlayerIds?: PlayerId[];
   damageModifierIds?: string[];
 }
@@ -521,13 +744,17 @@ export interface PendingSkillChoice {
 }
 
 export interface HealEvent extends BaseGameEvent {
+  amountValue?: CombatValue;
+  /** The intended recipient when ordinary healing was claimed by another player. */
+  originalTargetId?: PlayerId;
+  infinite?: boolean;
   type: "heal";
   sourceId?: PlayerId;
   targetId: PlayerId;
   amount: number;
   reason: string;
-  /** Only ordinary healing is affected by healing suppression or redirection. */
-  recoveryKind?: "healing" | "full_restore" | "revival";
+  /** Only ordinary healing is affected by amplification, suppression or redirection. */
+  recoveryKind?: "healing" | "full_restore" | "revival" | "reentry" | "reappearance" | "conversion";
 }
 
 export interface RoundEndedEvent extends BaseGameEvent {
@@ -549,6 +776,7 @@ export interface GameFinishedEvent extends BaseGameEvent {
 }
 
 export interface SystemEvent extends BaseGameEvent {
+  removalKind?: "burn" | "remove";
   type: "system";
   message: string;
 }
