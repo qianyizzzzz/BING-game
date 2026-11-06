@@ -75,10 +75,9 @@ export const KUIJI_SKILL_GRANTS = [
   { name: "虚无", fusion: true }, { name: "天空之城", fusion: true }
 ] as const;
 
-export const HUNYAO_SKILL_GRANTS: ReadonlyArray<{ name: string; skillId?: string; unignorable?: true }> = [
+export const HUNYAO_SKILL_GRANTS: ReadonlyArray<{ name: string; skillId: string; unignorable?: true }> = [
   { name: "阳光普照", skillId: SUNSHINE_SKILL_ID },
-  { name: "破晓", skillId: DAWN_FUSION_ID, unignorable: true },
-  { name: "灼日之矢", unignorable: true }
+  { name: "破晓", skillId: DAWN_FUSION_ID, unignorable: true }
 ];
 
 export const FENTIAN_FUSION_GRANTS = ["天火之狱", "炽焰"] as const;
@@ -129,7 +128,7 @@ for (const entry of jihanAbilities) {
 
 const hunyaoAbilities: Array<Pick<SkillDefinition, "id" | "name" | "description" | "play">> = [
   { id: HUNYAO_AREA_ID, name: "魂耀九州·群攻", description: "无视群攻攻击；其他玩家原本指向你的攻击变为群攻；你的群攻攻击等级×3。" },
-  { id: HUNYAO_LIGHT_ID, name: "魂耀九州·光耀", description: "获得阳光普照与破晓，无视阳光普照与永远之夜。日改为4级群攻，破晓从单重攻4开始增长。灼日之矢待接入。" },
+  { id: HUNYAO_LIGHT_ID, name: "魂耀九州·光耀", description: "获得阳光普照与破晓，无视阳光普照与永远之夜。日改为每重4级的群攻，可享受群攻增幅。破晓按本局实际出日逐重计数，第1重攻4，之后每重加1攻。" },
   { id: CHASE_LIGHT_ID, name: "追光者", description: "1饼。常规复活结束后，可尝试复活一名死者。成功率70%，另有50%概率绕过三魂的限制。",
     play: { kind: "effect", cost: 1, maxStacks: 1, targetMode: "single" } },
   { id: CHASE_SHADOW_ID, name: "追影者", description: "2饼。50%概率使一名退游者进入游戏，另有40%概率绕过场上技能的限制。",

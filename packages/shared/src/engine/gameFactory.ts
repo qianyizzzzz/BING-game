@@ -239,7 +239,7 @@ export function startGame(state: GameState): GameState {
   if (isBigSkillMode(next.config.skillMode)) {
     next.eventLog.push({
       ...createBaseEvent(next, "system"), type: "system",
-      message: `${next.config.skillMode === "big_random" ? "随机大技能" : "测试指定大技能"}模式：每人${next.config.skillMode === "big_random" ? "获得" : "最多携带"}${next.config.skillCount}张大卡；各行动阶段限时300秒。焚天君燚、聚能湮灭炮、窥觊苍生、异星共振、龙卷残云和御秽裁决已接入，魂耀九州和极寒之拥部分效果待实现。`
+      message: `${next.config.skillMode === "big_random" ? "随机大技能" : "测试指定大技能"}模式：每人${next.config.skillMode === "big_random" ? "获得" : "最多携带"}${next.config.skillCount}张大卡；各行动阶段限时300秒。大卡10501至10508已实现。`
     });
   }
   return next;

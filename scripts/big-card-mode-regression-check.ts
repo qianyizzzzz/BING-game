@@ -31,7 +31,8 @@ check("catalog retains all parent-child IDs and exact inherited description", ()
   assert.equal(getBigCard("20813")!.name, "缄默•魂之虹彩");
   assert.equal(getBigCard("20920")!.name, "千秋红尘录");
   assert.equal(getRandomBigCardIds().length, 202);
-  assert.deepEqual(getBigCards().filter((card) => card.implemented).map(({ id }) => id), ["10501", "10504", "10505", "10506", "10507", "10508"]);
+  assert.deepEqual(getBigCards().filter((card) => card.implemented).map(({ id }) => id),
+    ["10501", "10502", "10503", "10504", "10505", "10506", "10507", "10508"]);
   assert.ok(!getAllSkills({ includeFusions: true }).some((skill) => /^\d{5,7}$/.test(skill.id)));
 });
 
@@ -53,7 +54,7 @@ check("random mode deals only native big cards, no small skills or spectator car
   }
   assert.deepEqual(state.players[2]!.bigCards, []);
   assert.equal(new Set(state.players.flatMap((player) => player.bigCards!.map((card) => card.instanceId))).size, 12);
-  assert.ok(state.eventLog.some((event) => event.type === "system" && event.message.includes("御秽裁决已接入")));
+  assert.ok(state.eventLog.some((event) => event.type === "system" && event.message.includes("大卡10501至10508已实现")));
 });
 
 for (const mode of ["big_random", "big_test_select"] as const) {
@@ -90,7 +91,8 @@ check("specified cards persist; opponents and spectators receive counts without 
   assert.equal(observer.players[0]!.bigCardSlotCount, 2);
   assert.equal(state.players[0]!.skills.length, 6, "Fentian grants both real inherited fusions after dealing");
   assert.equal(getBigCard("10501")!.implementationStatus, "implemented");
-  assert.equal(getBigCard("10503")!.implementationStatus, "partial");
+  assert.equal(getBigCard("10502")!.implementationStatus, "implemented");
+  assert.equal(getBigCard("10503")!.implementationStatus, "implemented");
   for (let i = 0; state.phase === "action_window" && i < 12; i++) {
     for (const player of state.players.slice(0, 2)) if (state.phase === "action_window") state = passActionWindow(state, player.id);
   }
