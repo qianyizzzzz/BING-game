@@ -1,0 +1,9 @@
+export const CRYSTAL_CARD_ID = "10548";
+export const CRYSTAL_INHERIT_ID = "1054801";
+export const CRYSTAL_EQUALIZE_ID = "1054802";
+export const CRYSTAL_BOUNDARY_ID = "1054803";
+export const CRYSTAL_GUARD_ID = "1054804";
+export const CRYSTAL_SHIELD_ID = "1054805";
+export const CRYSTAL_SHIELD_BUFF = "divine_crystal_shield";
+export const CRYSTAL_SHIELD_LOCK = "divine_crystal_shield_lock";
+export const CRYSTAL_MARK_ID = "huyou_mark";

@@ -1,3 +1,4 @@
+import { addSiphonStatus } from "./siphon";
 import { JUNENG_CARD_ID, JUNENG_RESPONSE_ID, bigCardHasAbility } from "../bigCards/abilities";
 import type { AttackStats, BuffState, GameState, PendingDamageItem, PlayerState, SkillAction } from "../types";
 import { attackLevelValue, attackPowerValue, scaleCombatValue, withAttackLevel, withAttackPower, type CombatValue } from "./combatValues";
@@ -32,7 +33,9 @@ function findBoost(player: JunengOwner, numberId: NumberId, instanceId?: string)
   const abilityId = numberId.slice(0, 7);
   const source = player.bigCards?.find((card) => !card.junengDisabled && bigCardHasAbility(card, abilityId) &&
     (!instanceId || instanceId === card.instanceId));
-  return source && player.buffs.find((buff) => buff.stateType === "juneng_boost" && buff.sourceBigCardInstanceId === source.instanceId);
+  if (!source) return undefined;
+  return player.buffs.find((buff) => buff.stateType === "juneng_boost" && buff.sourceBigCardInstanceId === source.instanceId) ??
+    player.buffs.find((buff) => buff.stateType === "juneng_boost" && buff.sharedByGreedChain);
 }
 
 export function getJunengNumber(player: JunengOwner, id: NumberId, value: number, instanceId?: string): number {
@@ -60,7 +63,7 @@ export function scaleJunengAttack(player: JunengOwner, attack: AttackStats, inst
 }
 
 export function scheduleJunengResponse(state: GameState, player: PlayerState, damage: PendingDamageItem): void {
-  if (!damage.attackKey || !isAttackDamageItem(damage) || damage.pointDefeatLevel ||
+  if (!damage.attackKey || !isAttackDamageItem(damage) ||
     (damage.element !== "electric" && !damage.elements?.includes("electric"))) return;
   for (const card of player.bigCards ?? []) {
     if (card.cardId !== JUNENG_CARD_ID || card.junengDisabled || !bigCardHasAbility(card, JUNENG_RESPONSE_ID) ||
@@ -88,7 +91,7 @@ export function settleJunengRoundChanges(state: GameState): void {
     if (state.roundNumber >= boostEnd) delete card.junengResponse;
     else if (state.roundNumber > cycle.disabledRound && !cycle.started) {
       cycle.started = true;
-      player.buffs.push({ id: `juneng_boost:${card.instanceId}`, name: `聚能湮灭炮·有利×${cycle.multiplier}／不利÷${cycle.divisor}`,
+      addSiphonStatus(state, player, { id: `juneng_boost:${card.instanceId}`, name: `聚能湮灭炮·有利×${cycle.multiplier}／不利÷${cycle.divisor}`,
         stateType: "juneng_boost", stacks: cycle.multiplier, junengDivisor: cycle.divisor, expiresAtRound: boostEnd,
         sourceBigCardInstanceId: card.instanceId, sourceAbilityId: JUNENG_RESPONSE_ID });
     }

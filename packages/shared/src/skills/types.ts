@@ -20,7 +20,12 @@ export type SkillCategory =
   | "king_card"
   | "passive";
 
+export function isExplicitlyNonStackable(description: string): boolean {
+  return /(?:无法|不可|不能)叠加(?:使用|(?=[，。；,;.!！\s》]|$))/.test(description);
+}
+
 export interface RawSkillDefinition {
+  moveResolution?: import("../types").MoveResolutionRules;
   id: SkillId;
   name: string;
   fusion: string;
@@ -55,7 +60,18 @@ export type SkillExposureTiming =
   | "胜利时";
 
 export type SkillAttribute = "fire" | "ice" | "electric" | "poison";
-export type SkillTypeTag = "锁定技" | "限定技" | "控制技";
+export type SkillTypeTag = "锁定技" | "限定技" | "控制技" | "复活技";
+
+/** Read labels at the start of a rule, optionally after its name. */
+export function readSkillTypeTags(description: string): SkillTypeTag[] {
+  const text = description.trim();
+  const name = /^(?!(?:锁定技|限定技|控制技|复活技))[^:：,，。;；\n]+[:：]\s*/.exec(text);
+  const tags = /^(?:(?:锁定技|限定技|控制技|复活技)(?:[\s:：，,。；;、/（）()]+|$))+/.exec(text.slice(name?.[0].length ?? 0))?.[0] ?? "";
+  const remaining = text.slice((name?.[0].length ?? 0) + tags.length);
+  const prefixedName = tags ? /^[^:：,，。;；\n]+[:：]\s*/.exec(remaining) : undefined;
+  const afterName = prefixedName ? /^(?:(?:锁定技|限定技|控制技|复活技)(?:[\s:：，,。；;、/（）()]+|$))+/.exec(remaining.slice(prefixedName[0].length))?.[0] ?? "" : "";
+  return [...new Set(`${tags} ${afterName}`.match(/锁定技|限定技|控制技|复活技/g) ?? [])] as SkillTypeTag[];
+}
 
 export interface SkillContext {
   state: GameState;
@@ -107,7 +123,11 @@ export type SkillEffectId =
   | "sand_transform";
 
 export interface SkillPlayDefinition {
+  nonAttackMove?: true;
+  bloodQiCost?: number;
+  itemCost?: { item: string; perStack: number };
   elementCost?: { element: string; perStack: number };
+  additionalElementCost?: SkillPlayDefinition["elementCost"];
   /** Inherent cake pricing, independent of the amount actually paid. */
   cakeCostKind?: "none" | "fixed" | "dynamic";
   kind: SkillPlayKind;
@@ -131,6 +151,7 @@ export interface SkillPlayDefinition {
   selectedTargetCount?: number | undefined;
   optionalTargetCount?: number;
   damageParts?: number[];
+  repeatedDamageParts?: boolean;
   powerValue?: import("../engine/combatValues").CombatValue;
   levelValue?: import("../engine/combatValues").CombatValue;
   hpThreshold?: number | undefined;

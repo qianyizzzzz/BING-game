@@ -1,27 +1,112 @@
-﻿import { FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
+import { BUBBLE_ENHANCE, BUBBLE_FINALE, BUBBLE_FORGET, BUBBLE_REBUILD, BUBBLE_REBUILD_STOCK, bubbleDreamEnhancement,
+  bubbleDreamMoveEnhanced, bubbleDreamStock } from "@bing/shared";
+import { isRedLotusAnytimeSkill, RED_LOTUS_FINALE, RED_LOTUS_KARMA, RED_LOTUS_NINE, redLotusFlameCount } from "@bing/shared";
+import { ERA_CHOOSE_TARGETS, ERA_RESTART, eraRestartSource } from "@bing/shared";
+import { FALLEN_SPLENDOR_CONVERT, FALLEN_SPLENDOR_DOUBLE, FALLEN_SPLENDOR_EXECUTION, FALLEN_SPLENDOR_RELEASE,
+  ORIGIN_SHOT_FUSION, ORIGIN_SHOT_STOCK,
+  fallenSplendorExecutionStock, fallenSplendorHealingRemaining, fallenSplendorTargets } from "@bing/shared";
+import { SPACE_BURST, SPACE_SHATTER, TIME_RIFT, spaceTimeMaxRounds } from "@bing/shared";
+import { canChooseRoundCardForm, HEXAGRAM_ABSOLUTE, HEXAGRAM_CHOOSE, HEXAGRAM_FORMS, HEXAGRAM_RESTORE, HEXAGRAM_SIX_STAR,
+  HEXAGRAM_SPIRIT, hexagramRemainingUses, lostHexagramForms } from "@bing/shared";
+import { lostSevenStarForms, SEVEN_STAR_CHOOSE, SEVEN_STAR_FORMS, SEVEN_STAR_YAOGUANG, SEVEN_STAR_YUHENG } from "@bing/shared";
+import { TIAN_SHA_STAR_BREAK } from "@bing/shared";
+import { NINE_COLD, coldLightSource, type ColdLightField } from "@bing/shared";
+import { FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
+import { PhaseSkillSelect } from "./PhaseSkillSelect";
 import { Cookie, FastForward, Plus, RotateCcw, Search, Send, Shield, Sparkles, Swords, Trash2 } from "lucide-react";
 import { formatSkillCakeCost, formatAttackStatNumber, formatAttackDamageParts, formatDamage } from "../lib/format";
+import { canMaintainBrokenBlade, getBrokenBlade, getBrokenBladeDoubleEdge, hasLingtaField, isBrokenBladeMaintenance,
+  selectBrokenBladeDoubleEdge, swordArrayPiBlocksSkill } from "@bing/shared";
+import { formatCombatValue, shapeDecayAttack } from "@bing/shared";
+import { isSeaGodReturnReady, SEA_GOD_RETURN_ID, SEA_GOD_WAVES_ID } from "@bing/shared";
+import { getKarmaConversionSources, getKarmaConversionTargets, KARMA_CONVERT_ID, KARMA_CYCLE_ID, KARMA_REBIRTH_ID,
+  KARMA_SONG_END_ID, type KarmaCardChange } from "@bing/shared";
+import { STAR_MOON_CHOOSE_CARD, STAR_MOON_FREE_HUIYUE, STAR_MOON_HUIYUE_STOCK } from "@bing/shared";
+import { YIYUAN_MIMIC_STATE, YIYUAN_REPEAT, YIYUAN_RESTORE } from "@bing/shared";
+import { CHEAT_NOGLUES_ID, CHEAT_SHARP_DAMAGE_ID, CHEAT_TRANSFER_ID,
+  getCheatSharpDamageUses, isCheatServerAnytimeSkill } from "@bing/shared";
+import { PURPLE_FORESIGHT_ID, PURPLE_INSIGHT_ID, PURPLE_SCALE_ID, PURPLE_SCALE_PREFIX, purpleForesightUses,
+  validPurpleValue, attackPowerValue, attackLevelValue } from "@bing/shared";
+import { canPayStarWheel, isStarWheelWindowMove, starWheelCanRedirect, starWheelChoices, starWheelStatusChoices,
+  STAR_WHEEL_POSITION, STAR_WHEEL_RELEASE, STAR_WHEEL_SHIFT } from "@bing/shared";
+import { hasTianyeReboundLock, hasTianyeWing, tianyeChoiceOptions, TIAN_YE_CHOICE_ID, TIAN_YE_FALL_ID,
+  TIAN_YE_SOARING_ID, TIAN_YE_WING_DETAILS, TIAN_YE_WINGS, type TianyeWingChoice } from "@bing/shared";
+import { CRYSTAL_GUARD_ID, CRYSTAL_SHIELD_ID, crystalGuardMarkCount, crystalShieldAvailable } from "@bing/shared";
+import { areCombatTargetsContiguous, getCombatSeatDistance, getCombatSeatGroups, getCombatFarthestPlayers,
+  getCombatSeats, getCombatSeatNumbers, isTotemCreation, targetableTotems, TOTEM_CHOOSE_ID,
+  canSkillSelectTotem, TOTEM_KINDS, TOTEM_RANGES, type TotemKind, type TotemRange } from "@bing/shared";
+import { shadowComboForAction, shadowSeatChoices, SHADOW_FOLLOW_ID, SHADOW_LEAVE_ID, SHADOW_STANCE_STATE,
+  SHADOW_STOP_SHRIEK_ID, SHADOW_WIND_DANCE_ID } from "@bing/shared";
+import { GAME_SWITCH_ACTION_ID, GAME_SWITCH_MODES, type GameSwitchMode } from "@bing/shared";
+import { CURTAIN_ENCORE_ID, CURTAIN_FINALE_ID, curtainDiscardQuote, curtainEncoreReady } from "@bing/shared";
+import { BEAST_HUNT_ID, HOUND_SUMMON_ID, houndBiteIsArea } from "@bing/shared";
+import { DEMON_GUARD_ID, DEMON_GUARD_ORDER_ID, DEMON_IMP_ORDER_ID,
+  controlledDemons, demonOrderAvailable, demonOrderTargets, demonSummonTargets, demonSummonUses, evilHoundTarget, isDemonSummonSkill,
+  isTargetedDemonSummon,
+  type DemonOrder, type DemonPlacement } from "@bing/shared";
+import { TIGER_SWITCH, TIGER_STAB, TIGER_EXTINCTION_MOVE, TIGER_FORM_NAMES, shapeTigerStab, tigerMieThirds } from "@bing/shared";
+import { FIVE_ELEMENTS_CHOOSE, FIVE_ELEMENTS_FORMS, FIVE_ELEMENTS_LEVEL, FIVE_ELEMENTS_LEVEL_PREFIX,
+  FIVE_ELEMENTS_OPERATIONS, canChooseFiveElementsForm, type FiveElementsOperation } from "@bing/shared";
+import { DIVINE_FLAME_ENABLED, DIVINE_FLAME_ID } from "@bing/shared";
+import { SWARM_INSECTS, SWARM_INSECT_LABELS, SWARM_RETURN_ID, VETERAN_SHATTER_ID, VETERAN_SHATTER_USES,
+  isSwarmAllocationValid, swarmInsectCount, type SwarmAllocation } from "@bing/shared";
+import { CHARITY_LINK_ID, CHARITY_QUICK_ID, getQuickHealingTargets, hasCharityDestiny, hasCharityHealingUses,
+  HEALING_ART_ID, quickHealingCard } from "@bing/shared";
 import {
   ActionSubmission,
+  ASURA_FERRY_ID, ASURA_IMMUNITY_ID, ASURA_RITUAL_UPGRADE_ID, ASURA_SWORD_ID, BLOOD_RITUAL_FUSION_ID, bloodQiNumber, getSkillBloodQiCosts, hasBloodQi,
+  SOUL_ELEMENT, SOUL_EXTINGUISH_ID, SOUL_RESTORE_EXTINGUISH_ID, SOUL_RESTORE_SINK_ID, SOUL_SINK_ID,
+  canAffectAcrossSpace, canBypassTargetSelection, preventsTargetSelection,
+  CHAOS_WAVE_ID, chaosWaveChoices, hasChaosDefenseLock,
+  isSleeping,
+  isSoulExiled,
+  getMoveBlockReason,
+  getParalysisFixedMove,
+  hasRevivalRestrictionFlag,
+  UTOPIA_MOVE_ID,
+  CLOUD_BYPASS_ID, CLOUD_BYPASS_STATE, CLOUD_SEA_ID, SHENGLING_ID, cloudSeaCount,
+  LING_ELEMENT, LINGTA_VICTORY_ID, SKY_ABSOLUTE_ID, SKY_STRIKE_ID, skyAbsoluteActive,
+  availableSacredBeasts,
+  SACRED_BEASTS,
+  SACRED_BEAST_ID,
+  TIME_REWIND_ID,
   AttackId,
   AttackStatModifierChoice,
   ATTACK_ORDER,
   BASE_ATTACKS,
+  MAX_ACTION_STACKS,
+  getAffordableSkillStacks,
   ANNIHILATION_CANNON_ID,
   KUISHI_ID,
+  KURONG_LEAF_ID, discountCakeCost, getReboundCakeCost, hasReboundCakeBalance,
   SPIRIT_GUIDANCE_ID,
   SELF_ISOLATION_ID,
   FOUR_EMPTINESS_ID, SLOT_MACHINE_ID, VERDICT_ACTION_ID, getReadySlotMachines,
-  getBigCard,
+  SAKURA_FALL_ID, SAKURA_FINALE_ID, SAKURA_RAIN_ID,
+  ETERNAL_BIND_ID, ETERNAL_REPLACE_ID, ETERNAL_THOUGHT_ID,
+  getBigCard, getBigCards,
   getCakeGainAmount,
   JUNENG_CARD_ID,
   JUNENG_ELEMENT,
   JUSHEN_ID,
-  RELEASE_DAMAGE_ID,
+  RELEASE_DAMAGE_ID, SWORD_ARRAY_EXECUTE_ID,
+  getStoredDamages,
   STORE_DAMAGE_ID,
+  QIANQIU_RESPONSE_ID, getQianqiuDefenseGains,
+  TIANLIE_CONTINUE_ID, TIANLIE_FEEDBACK_ID, TIANLIE_MIGHT_ID,
+  THORN_PIERCE_ID,
+  antiCakeCount, availableCakeBalance, canUseAntiCakes, getFlashFamilySlots, vacuumMode, vacuumOptions, youkaiCakeCount,
+  YOUKAI_ELEMENT, YOUKAI_RESOURCE_ID,
+  VACUUM_ENTER_ID, VACUUM_EXTRACT_ID, VACUUM_MAX_ID, VACUUM_FLASH_SKILL_ID,
+  XIELING_BODY_ID, XIELING_RESET_ID, XIELING_TRANSFORM_ID, XIELING_ULTIMATE_ID, GOD_KING_JUDGMENT_ID, bigAbilitySource,
+  TIANMANG_CLEANSE_ID, TIANMANG_CONVERSION_ID, TIANMANG_FIELD_CLEANSE_ID,
+  WIND_PURSUIT_ID, WIND_TRACK_ID, getWindPursuitTargets, hasWindTrace, isHurricane, validHurricaneTargets,
+  SAND_DESOLATION_ID,
+  getDueXieyuCount, getXielingConversionLimit,
   STAR_CARD_ID, STAR_ELEMENT, STAR_RESIST_ID, DRAGON_BLOOD_FIELD_ID, canUseStarResistance, isStarResistible,
   getDragonBloodMode, getDragonBloodTotal, shapeDragonBloodAttack, type SkillPlayDefinition,
   getElementAmount,
+  thunderBallCount,
   getJunengTargetLock,
   getSelectableJunengTarget,
   isStorableJunengDamage,
@@ -35,6 +120,8 @@ import {
   SkillId,
   SkillAction,
   getActionLabel,
+  getFreeMoveChoices,
+  isNextWujinReboundFree,
   getAttackMarkKind,
   getAttackMarkCount,
   getAttackMarkChoices,
@@ -52,7 +139,6 @@ import {
   attackStatModifierLabel as sharedAttackStatModifierLabel,
   getActiveSkillCount,
   getDestroyPowerCooldownCount,
-  getFlashDodgeCooldownCount,
   getHuiyueCooldownCount,
   isHuiyueActive,
   isAttackDamageItem,
@@ -64,6 +150,7 @@ import {
   getAttackActionCost,
   getTurnSkillActionCost,
   getSkillElementCost,
+  getSkillElementCosts,
   scaleJunengAttack,
   getFusionSkillId,
   getActiveFusionCount,
@@ -81,6 +168,9 @@ import {
   getSkillPlay,
   getSkillUseLimit,
   getSkillResourceGainPerStack,
+  getSaintElements,
+  getSaintMoveMultiplier,
+  isSaintMove,
   getUnfusedSkillIds,
   getAllSkills,
   getAcquisitionSkillChoices,
@@ -98,6 +188,21 @@ import {
 import { BlindSkillPicker } from "./PointGamePanel";
 import { isBigSkillMode } from "@bing/shared";
 
+const DEMON_ORDER_LABELS: Record<DemonOrder, string> = {
+  standby: "待命",
+  fireball: "火球",
+  whirlwind: "旋风斩",
+  power: "恶魔力量",
+  legion_area: "军团打击（群攻）",
+  legion_single: "军团打击（单攻）"
+};
+const IMP_ORDERS: readonly DemonOrder[] = ["standby", "fireball"];
+const GUARD_ORDERS: readonly DemonOrder[] = ["standby", "whirlwind", "power", "legion_area", "legion_single"];
+const DEMON_DEPLOYMENTS: ReadonlyArray<[DemonPlacement, string]> = [
+  ["left", "左侧傀儡区"], ["front", "面前傀儡区"], ["right", "右侧傀儡区"]
+];
+const VACUUM_WINDOW_OPTION = "vacuum_dodge";
+
 interface ActionPanelProps {
   fusionControls?: ReactNode;
   lastActionSubmission?: ActionSubmission | null;
@@ -113,7 +218,9 @@ interface ActionPanelProps {
 }
 
 type Mode = "gain_cake" | "defense" | "attack" | "skill";
-interface AttackRow {
+type PhaseSkillOption = { value: string; label: string; controls: ReactNode };
+interface AttackRow extends SpaceTimeMoveDraft {
+  bigCardInstanceId?: string;
   id: string;
   kind: "attack" | "skill";
   attackId: AttackId;
@@ -146,6 +253,7 @@ interface DoubleEdgeOption {
   targetId: string;
   label: string;
   mode?: SkillAction["doubleEdgeMode"];
+  cardId?: string;
 }
 interface LiegongOption {
   key: string;
@@ -166,42 +274,45 @@ interface AbsoluteGuardOption {
 }
 const FIRST_ATTACK_ID = ATTACK_ORDER[0]!;
 const ACTIVE_REVIVAL_SKILL_IDS = new Set<SkillId>([
-  "skill_64_60978",
-  "skill_66_82448",
-  "skill_68_57581",
-  "skill_112_59292",
+  "1063",
+  "1065",
+  "1067",
+  "1111",
+  KARMA_REBIRTH_ID,
   getFusionSkillId("贤者的庇护")
 ]);
-const ELECTRIC_SHOCK_SKILL_ID = "skill_36_14343";
-const DOUBLE_EDGE_SWORD_SKILL_ID = "skill_31_80497";
-const HELL_OVERLORD_SKILL_ID = "skill_112_59292";
-const LIEGONG_SKILL_ID = "skill_60_57192";
+const ELECTRIC_SHOCK_SKILL_ID = "1035";
+const DOUBLE_EDGE_SWORD_SKILL_ID = "1030";
+const HELL_OVERLORD_SKILL_ID = "1111";
+const LIEGONG_SKILL_ID = "1059";
 const LIEGONG_CROSS_BUFF_PREFIX = "liegong_cross:";
-const ABSOLUTE_GUARD_SKILL_ID = "skill_74_34920";
+const ABSOLUTE_GUARD_SKILL_ID = "1073";
 const ABSOLUTE_GUARD_BUFF_PREFIX = "absolute_guard:";
-const LUANWU_SKILL_ID = "skill_54_99719";
-const PUTIAN_TONGQING_SKILL_ID = "skill_98_7182";
-const ICE_RAIN_SKILL_ID = "skill_20_63089";
-const CROSS_GUARD_SKILL_ID = "skill_73_76567";
-const XIEYU_SKILL_ID = "skill_72_53933";
-const SHUNSHOU_STEAL_SKILL_ID = "skill_100_45717";
-const SCATTER_REBOUND_SKILL_ID = "skill_58_88471";
-const LU_ATTACK_SKILL_ID = "skill_81_59663";
-const LIAN_BAO_SKILL_ID = "skill_87_44771";
-const FLASH_DODGE_SKILL_ID = "skill_103_56259";
-const SIX_STAR_SKILL_ID = "skill_108_76133";
-const SELF_DESTRUCTER_DEATH_SKILL_ID = "skill_102_5546";
+const LUANWU_SKILL_ID = "1053";
+const PUTIAN_TONGQING_SKILL_ID = "1097";
+const ICE_RAIN_SKILL_ID = "1019";
+const CROSS_GUARD_SKILL_ID = "1072";
+const XIEYU_SKILL_ID = "1071";
+const SHUNSHOU_STEAL_SKILL_ID = "1099";
+const SCATTER_REBOUND_SKILL_ID = "1057";
+const LU_ATTACK_SKILL_ID = "1080";
+const LIAN_BAO_SKILL_ID = "1086";
+const FLASH_DODGE_SKILL_ID = "1102";
+const SIX_STAR_SKILL_ID = "1107";
+const SELF_DESTRUCTER_DEATH_SKILL_ID = "1101";
 const LATE_SELF_DESTRUCT_USED_BUFF_ID = "late_self_destruct_used";
 const MULTI_TARGET_ATTACK_SKILL_IDS = new Set<SkillId>([
+  FALLEN_SPLENDOR_EXECUTION,
   ELECTRIC_SHOCK_SKILL_ID,
-  "skill_79_36319",
-  "skill_118_53580",
-  "skill_119_78843", getFusionSkillId("冰火双漩")
+  UTOPIA_MOVE_ID,
+  "1078",
+  "1117",
+  "1118", getFusionSkillId("冰火双漩")
 ]);
 const CONTIGUOUS_MULTI_TARGET_SKILL_IDS = new Set<SkillId>([
-  "skill_79_36319",
-  "skill_118_53580",
-  "skill_119_78843", getFusionSkillId("冰火双漩")
+  "1078",
+  "1117",
+  "1118", getFusionSkillId("冰火双漩")
 ]);
 
 export function ActionPanel({
@@ -227,6 +338,7 @@ export function ActionPanel({
     () => state.players.find((player) => player.id === state.viewerPlayerId),
     [state.players, state.viewerPlayerId]
   );
+  const lockedHound = state.phase === "collecting_actions" ? evilHoundTarget(state, viewer) : undefined;
   const junengLock = getJunengTargetLock(state, viewer?.spaceId);
   const junengTargetId = getSelectableJunengTarget(state, viewer?.spaceId);
   const junengBlocked = Boolean(junengLock && !junengTargetId);
@@ -234,19 +346,26 @@ export function ActionPanel({
   const dragonBloodMode = viewer ? getDragonBloodMode(getDragonBloodTotal(state, viewer.id)) : undefined;
   const hasStarCard = viewer?.bigCards?.some((card) => card.cardId === STAR_CARD_ID);
   const cakeGain = getCakeGainAmount(state, viewer);
-  const cannonStep = state.cannonDefenseSteps?.find((step) => step.targetId === viewer?.id && step.dueTurn === state.turnNumber);
-  const junengStatus = junengLock || cannonStep || hasStarCard || viewer?.bigCards?.some((card) => card.cardId === JUNENG_CARD_ID) ? (
+  const gathersYoukai = getActiveSkillCount(viewer, YOUKAI_RESOURCE_ID) > 0;
+  const cannonSteps = state.cannonDefenseSteps?.filter((step) => step.targetId === viewer?.id && step.dueTurn === state.turnNumber) ?? [];
+  const junengStatus = junengLock || cannonSteps.length || hasStarCard || viewer?.bigCards?.some((card) => card.cardId === JUNENG_CARD_ID) ? (
     <div className="rounded-lg border border-teal-200 bg-teal-50 p-2 text-sm text-teal-900" data-testid="juneng-status">
       {viewer?.bigCards?.some((card) => card.cardId === JUNENG_CARD_ID) ? <div>聚元素 {junengAmount}</div> : null}
       {hasStarCard ? <div>星元素 {getElementAmount(viewer, STAR_ELEMENT)}</div> : null}
       {junengLock ? <div>聚神 · {junengBlocked ? "当前无法选择目标" :
         `仅可选择 ${state.players.find((player) => player.id === junengTargetId)?.name}`} · 持续至第 {junengLock.expiresAtRound - 1} 轮轮末</div> : null}
-      {cannonStep ? <div>聚能湮灭炮 · 本回合需出{cannonStep.next === "cake" ? "饼" : "反弹"}</div> : null}
+      {cannonSteps.map((step, index) => <div key={index}>
+        {step.attackName ?? "聚能湮灭炮"} · 本回合需出{step.next === "cake" ? "饼" : step.next === "stone" ? "石头" :
+          step.next === "youtiao" ? "油条" : "反弹"}
+        {step.requiresAntiPiercing ? "，并具备无视破弹" : ""}
+      </div>)}
     </div>
   ) : null;
   const enemies = useMemo(
     () => {
-      const alive = state.players.filter((player) => player.status === "alive" && player.spaceId === viewer?.spaceId &&
+      const alive = state.players.filter((player) => player.status === "alive" &&
+        (viewer ? canAffectAcrossSpace(state, viewer.id, player.id) : !player.spaceId) &&
+        (!lockedHound || player.id === lockedHound.id) &&
         (!junengLock || player.id === junengTargetId));
       if (!viewer) {
         return alive;
@@ -257,8 +376,15 @@ export function ActionPanel({
         ...alive.filter((player) => player.id === viewer.id)
       ];
     },
-    [state.players, viewer, junengLock, junengTargetId]
+    [state, viewer, lockedHound, junengLock, junengTargetId]
   );
+  const selectableEnemies = useMemo(() => enemies.filter((player) => !preventsTargetSelection(player) ||
+    canBypassTargetSelection(state, viewer?.id, player)), [enemies, state, viewer?.id]);
+  const attackEnemies = [...selectableEnemies, ...(junengLock || lockedHound ? [] : state.emptyCityAttackTargets ?? [])]
+    .filter((player) => !hasChaosDefenseLock(viewer, player.id));
+  const totemOptions = useMemo(() => junengLock || lockedHound ? [] : targetableTotems(state, viewer)
+    .map((totem) => ({ id: totem.id, name: TOTEM_KINDS[totem.kind].name + "（造物）" })), [state, viewer, junengLock, lockedHound]);
+  const reboundTargets = useMemo(() => [...selectableEnemies, ...totemOptions], [selectableEnemies, totemOptions]);
   const balanceTargetOptions = useMemo(
     () => enemies.filter((player) => player.id !== viewer?.id),
     [enemies, viewer?.id]
@@ -266,14 +392,14 @@ export function ActionPanel({
   const lightningTargetPlan = useMemo(
     () =>
       viewer
-        ? getLightningSpellTargetPlan(state.players.filter((player) => player.spaceId === viewer.spaceId), viewer.id)
+        ? getLightningSpellTargetPlan(state.players.filter((player) => canAffectAcrossSpace(state, viewer.id, player.id)), viewer.id)
         : {
             lockedTargets: [],
             selectableTargets: [],
             requiredSelectableCount: 0,
             targetCount: 0
           },
-    [state.players, viewer]
+    [state, viewer]
   );
   const lightningFirstTargetOptions = useMemo(() => {
     if (lightningTargetPlan.lockedTargets[0]) {
@@ -298,7 +424,9 @@ export function ActionPanel({
     state.activeTimingPhase === "revival_action" &&
     state.players.some((player) => isPendingDeathPlayer(player));
   const viewerPendingDeath = Boolean(viewer && isPendingDeathPlayer(viewer));
-  const viewerNoRevive = Boolean(viewer?.buffs.some((buff) => buff.id === "no_revive"));
+  const viewerNoRevive = Boolean(viewer && hasRevivalRestrictionFlag(viewer));
+  const kaigeSpareLives = viewerPendingDeath &&
+    (viewer?.kaigeLife || viewer?.spareLives?.some((life) => life.kaigeLife)) ? viewer?.spareLives?.length ?? 0 : 0;
   const fatalSourceOptions = useMemo(() => {
     if (!viewer) {
       return [];
@@ -339,18 +467,44 @@ export function ActionPanel({
   }, [pendingDeathWindow, state.players, viewer, viewerPendingDeath]);
 
   const [mode, setMode] = useState<Mode>("gain_cake");
+  const [tigerPower, setTigerPower] = useState("0");
+  const [freeMoveId, setFreeMoveId] = useState("");
   const [defense, setDefense] = useState<DefenseKind>("small");
-  const [targetId, setTargetId] = useState(enemies[0]?.id ?? "");
+  const [targetId, setTargetId] = useState(reboundTargets[0]?.id ?? "");
   const [skillId, setSkillId] = useState<SkillId>("");
+  const [sevenStarRestoreId, setSevenStarRestoreId] = useState("");
   const [discardSkillId, setDiscardSkillId] = useState<SkillId>("");
   const [skillStacks, setSkillStacks] = useState(1);
+  const [spaceTimeOptions, setSpaceTimeOptions] = useState<SpaceTimeMoveDraft>({});
+  const [swarmAllocation, setSwarmAllocation] = useState<SwarmAllocation>({});
+  const [saintElement, setSaintElement] = useState("");
+  const [xielingMarkCost, setXielingMarkCost] = useState(1);
   const [skillTargetId, setSkillTargetId] = useState(enemies[0]?.id ?? "");
+  const [shadowMoveMode, setShadowMoveMode] = useState<NonNullable<SkillAction["shadowMoveMode"]>>("insert");
+  const [shadowAnchorId, setShadowAnchorId] = useState("");
   const [skillExtraTargetIds, setSkillExtraTargetIds] = useState<string[]>([]);
   const [windowSkillId, setWindowSkillId] = useState<SkillId>("");
+  const [fiveElementsOperation, setFiveElementsOperation] = useState<FiveElementsOperation>("add");
+  const [coldLightField, setColdLightField] = useState<ColdLightField>("power");
+  const [vacuumChoiceId, setVacuumChoiceId] = useState("");
+  const [demonPlacement, setDemonPlacement] = useState<DemonPlacement>("front");
+  const [demonId, setDemonId] = useState("");
+  const [demonOrder, setDemonOrder] = useState<DemonOrder>("standby");
+  const [demonTargetId, setDemonTargetId] = useState("");
   const [blindSelected, setBlindSelected] = useState<string[]>([]);
+  const [sakuraSelected, setSakuraSelected] = useState<string[]>([]);
+  const [karmaChanges, setKarmaChanges] = useState<{ turn: number; byPlayer: Record<string, Partial<KarmaCardChange>> }>({ turn: -1, byPlayer: {} });
+  const [karmaConvertFrom, setKarmaConvertFrom] = useState<SkillId>("");
+  const [karmaConvertTo, setKarmaConvertTo] = useState<SkillId>("");
+  const [cheatCardId, setCheatCardId] = useState("");
+  const [starMoonCardId, setStarMoonCardId] = useState("");
+  const [cheatTransferFrom, setCheatTransferFrom] = useState("");
+  const [cheatTransferTo, setCheatTransferTo] = useState("");
   const [slotMachineId, setSlotMachineId] = useState("");
   const [useFreeVerdict, setUseFreeVerdict] = useState(true);
   const [windowSkillStacks, setWindowSkillStacks] = useState(1);
+  const [antiCakeChoices, setAntiCakeChoices] = useState<Record<string, number>>({});
+  const [youkaiCakeChoices, setYoukaiCakeChoices] = useState<Record<string, number>>({});
   const [windowSkillTargetId, setWindowSkillTargetId] = useState(enemies[0]?.id ?? "");
   const [windowSkillExtraTargetId, setWindowSkillExtraTargetId] = useState(enemies[1]?.id ?? "");
   const [windowTargetSkillId, setWindowTargetSkillId] = useState<SkillId>("");
@@ -361,13 +515,29 @@ export function ActionPanel({
   const [windowGuessSkillId, setWindowGuessSkillId] = useState<SkillId>("");
   const [windowGuessSkillQuery, setWindowGuessSkillQuery] = useState("");
   const [windowDamageId, setWindowDamageId] = useState("");
+  const [crystalMarkCount, setCrystalMarkCount] = useState(1);
+  const [tianlieResponseId, setTianlieResponseId] = useState("");
+  const [bubbleHitId, setBubbleHitId] = useState("");
+  const bubbleHit = state.bubbleDreamHitChoices?.find(({ id }) => id === bubbleHitId) ?? state.bubbleDreamHitChoices?.[0];
+  const [tianlieAttackIndex, setTianlieAttackIndex] = useState(0);
+  const [eternalMoveIndex, setEternalMoveIndex] = useState(0);
+  const [purplePower, setPurplePower] = useState("");
+  const [purpleLevel, setPurpleLevel] = useState("");
+  const [asuraFerryQi, setAsuraFerryQi] = useState(1);
+  const [defenseGainId, setDefenseGainId] = useState("");
   const [storedDamageId, setStoredDamageId] = useState("");
   const [attackExtraEffectTargetId, setAttackExtraEffectTargetId] = useState("");
   const [peekTargetInstanceId, setPeekTargetInstanceId] = useState("");
+  const [leafSelections, setLeafSelections] = useState<Record<string, string>>({});
+  const leafCards = state.leafCardChoices ?? [];
+  const leafAbilityChoices = leafCards.flatMap(({ cardInstanceId, abilityIds }) => {
+    const abilityId = leafSelections[cardInstanceId];
+    return abilityId && abilityIds.includes(abilityId) ? [{ cardInstanceId, abilityId }] : [];
+  });
   const peekTargets = state.players.filter((player) => player.id !== viewer?.id).flatMap((player) =>
     (player.bigCards ?? []).filter((card) => !card.publiclyRevealed).map((card) => ({ ...card, ownerName: player.name })));
   const peekTarget = peekTargets.find((card) => card.instanceId === peekTargetInstanceId) ?? peekTargets[0];
-  const storedDamageOptions = viewer?.storedDamages ?? [];
+  const storedDamageOptions = getStoredDamages(viewer);
   const selectedStoredDamage = storedDamageOptions.find((item) => item.id === storedDamageId) ?? storedDamageOptions[0];
   const storableDamages = (state.pendingDamageItems ?? []).filter((item) => item.targetId === viewer?.id && isStorableJunengDamage(item));
   const storableDamage = storableDamages.find((item) => item.id === windowDamageId) ?? storableDamages[0];
@@ -404,11 +574,16 @@ export function ActionPanel({
 
   const alreadySubmitted =
     Boolean(viewer?.id) && state.pendingActionPlayerIds.includes(viewer!.id);
-  const huiyueLocked = isHuiyueActive(viewer, state.turnNumber);
+  const sleeping = isSleeping(viewer, state.turnNumber);
+  const moveBlockReason = getMoveBlockReason(state, viewer);
+  const selfDestructBlockReason = moveBlockReason ?? (getParalysisFixedMove(state, viewer) ? "麻痹期间只能使用固定出招" : undefined);
+  const moveAutoPassLabel = moveBlockReason
+    ? isHuiyueActive(viewer, state.turnNumber) ? "辉月：自动空过" : "自动空过"
+    : "";
   const canAct =
     state.phase === "collecting_actions" &&
     viewer?.status === "alive" &&
-    !alreadySubmitted && !huiyueLocked;
+    !alreadySubmitted && !moveBlockReason;
   const viewerHasScatterRebound = viewerCanUseSkill(state, viewer, SCATTER_REBOUND_SKILL_ID);
   const discardableSkills = useMemo(
     () =>
@@ -419,12 +594,15 @@ export function ActionPanel({
       })),
     [viewer?.skills, viewer?.skillFusions]
   );
+  const huntLabel = (id: string, name: string) => id === "1109" && getActiveSkillCount(viewer, BEAST_HUNT_ID) ? "猎杀" : name;
 
   const firstTurnAttackLocked =
     state.config.firstTurnNoAttack && state.roundTurnNumber === 1;
   const playableSkills = useMemo(
     () =>
-      (viewer ? isBigSkillMode(state.config.skillMode) ? [...new Set(getOwnedSkillIds(viewer))] : getOwnedSkillIds(viewer) : [])
+      (viewer ? isBigSkillMode(state.config.skillMode)
+        ? [...new Set([...getOwnedSkillIds(viewer), ...(state.sakuraTurnEndResponse && state.sakuraCardChoices?.length ? [SAKURA_FALL_ID] : [])])]
+        : getOwnedSkillIds(viewer) : [])
         .map((id) => {
           const skill = getSkill(id);
           const play = getSkillPlay(id);
@@ -435,14 +613,19 @@ export function ActionPanel({
             return false;
           }
 
-          if (!viewerCanUseSkill(state, viewer, item.skill.id)) {
+          if (!(state.sakuraTurnEndResponse && item.skill.id === SAKURA_FALL_ID) && !viewerCanUseSkill(state, viewer, item.skill.id)) {
             return false;
           }
+          if ([ETERNAL_BIND_ID, ETERNAL_REPLACE_ID, ETERNAL_THOUGHT_ID].includes(item.skill.id) &&
+            !state.eternalReadySkills?.includes(item.skill.id)) return false;
+          if (isSaintMove(item.skill.id) && !getSaintMoveMultiplier(viewer, item.skill.id, undefined, state.roundNumber)) return false;
 
           if (
             pendingDeathWindow &&
+            item.skill.id !== SOUL_EXTINGUISH_ID &&
+            item.skill.id !== SAKURA_FALL_ID &&
             (!viewerPendingDeath ||
-              !ACTIVE_REVIVAL_SKILL_IDS.has(item.skill.id))
+              !ACTIVE_REVIVAL_SKILL_IDS.has(item.skill.id) && item.skill.id !== FALLEN_SPLENDOR_CONVERT)
           ) {
             return false;
           }
@@ -453,7 +636,7 @@ export function ActionPanel({
           }
 
           return (
-            !item.play.usesPerGame ||
+            item.play.usesPerGame === undefined ||
             getSkillUseCount(viewer, item.skill.id) <
               (getSkillUseLimit(viewer, item.skill.id) ?? item.play.usesPerGame * getActiveSkillCount(viewer, item.skill.id))
           );
@@ -461,88 +644,367 @@ export function ActionPanel({
         .filter((item): item is NonNullable<typeof item> => Boolean(item)),
     [pendingDeathWindow, state, viewer, viewerNoRevive, viewerPendingDeath]
   );
-  const turnActionSkills = playableSkills.filter(({ skill }) =>
-    skill.timingPhases.includes("turn_action")
+  const freeMoveChoices = getFreeMoveChoices(viewer).filter(({ move }) =>
+    move.type !== "skill" || !swordArrayPiBlocksSkill(state, viewer, move.skillId) &&
+      (!isSaintMove(move.skillId) || getSaintMoveMultiplier(viewer, move.skillId) > 0));
+  const selectedFreeMove = freeMoveChoices.find(({ id }) => id === freeMoveId);
+  const swordExecuteSources = viewer?.bigCards?.flatMap((card, index) =>
+    bigAbilitySource(viewer, { skillId: SWORD_ARRAY_EXECUTE_ID, bigCardInstanceId: card.instanceId }) ?
+      [{ id: card.instanceId, label: `${card.onlyAbilityId ? "单独子技能" : "完整卡"} · 第 ${index + 1} 张` }] : []) ?? [];
+  const borrowedSkillId = selectedFreeMove?.move.type === "skill" ? selectedFreeMove.move.skillId : undefined;
+  const borrowedSkill = borrowedSkillId ? getSkill(borrowedSkillId) : undefined;
+  const borrowedPlay = borrowedSkillId ? getSkillPlay(borrowedSkillId) : undefined;
+  const availableTurnSkills = borrowedSkill && borrowedPlay && (!isSaintMove(borrowedSkill.id) || getSaintMoveMultiplier(viewer, borrowedSkill.id)) &&
+    !playableSkills.some(({ skill }) => skill.id === borrowedSkill.id)
+    ? [...playableSkills, { skill: borrowedSkill, play: borrowedPlay }] : playableSkills;
+  const isShadowDancing = viewer?.buffs.some(({ stateType }) => stateType === SHADOW_STANCE_STATE);
+  const turnActionSkills = availableTurnSkills.filter(({ skill }) =>
+    (skill.id !== CRYSTAL_SHIELD_ID || viewer && crystalShieldAvailable(state, viewer)) &&
+    (skill.id !== SHADOW_LEAVE_ID || isShadowDancing) &&
+    (!viewer || canPayStarWheel(viewer, skill.id) || selectedFreeMove?.move.type === "skill" && selectedFreeMove.move.skillId === skill.id) &&
+    (skill.id !== TIGER_EXTINCTION_MOVE || selectedFreeMove || viewer && tigerMieThirds(viewer) >= 3) && skill.timingPhases.includes("turn_action") && (skill.id !== SKY_STRIKE_ID || skyAbsoluteActive(viewer, state.roundNumber))
   );
-  const actionSkills = playableSkills.filter(
+  const actionSkills = turnActionSkills.filter(
     ({ skill, play }) =>
       skill.timingPhases.includes("turn_action") &&
       play.kind === "attack" && (skill.id !== DRAGON_BLOOD_FIELD_ID || dragonBloodMode !== "heal") &&
-      skill.id !== ELECTRIC_SHOCK_SKILL_ID
+      skill.id !== ELECTRIC_SHOCK_SKILL_ID && skill.id !== SWARM_RETURN_ID
   );
   const nonAttackSkills = turnActionSkills.filter(
-    ({ skill, play }) => (play.kind !== "attack" || skill.id === ELECTRIC_SHOCK_SKILL_ID ||
+    ({ skill, play }) => (play.kind !== "attack" || skill.id === ELECTRIC_SHOCK_SKILL_ID || skill.id === SWARM_RETURN_ID ||
       skill.id === DRAGON_BLOOD_FIELD_ID && dragonBloodMode === "heal") &&
       (skill.id !== RELEASE_DAMAGE_ID || storedDamageOptions.length > 0)
   );
-  const windowSkills = playableSkills.filter(
+  const qianqiuGains = getQianqiuDefenseGains(state, viewer);
+  const qianqiuGain = qianqiuGains.find((buff) => buff.id === defenseGainId) ?? qianqiuGains[0];
+  const purpleForesightCard = viewer?.bigCards?.find((card) => bigAbilitySource(viewer, {
+    skillId: PURPLE_FORESIGHT_ID, bigCardInstanceId: card.instanceId
+  }) && purpleForesightUses(state.roundNumber, card) > 0);
+  const purpleInsightCard = viewer?.bigCards?.find((card) => bigAbilitySource(viewer, {
+    skillId: PURPLE_INSIGHT_ID, bigCardInstanceId: card.instanceId
+  }) && card.purpleInsightUsedRound !== state.roundNumber);
+  const imps = viewer ? controlledDemons(state, viewer.id, DEMON_IMP_ORDER_ID) : [];
+  const demonGuards = viewer ? controlledDemons(state, viewer.id, DEMON_GUARD_ORDER_ID) : [];
+  const cheatCardChoices = state.cheatCardChoices ?? [];
+  const starMoonChoices = state.starMoonCardChoices ?? [];
+  const selectedStarMoonCard = starMoonChoices.find(({ instanceId }) => instanceId === starMoonCardId);
+  const cheatUseChoices = state.cheatTransferChoices ?? [];
+  const cheatDonors = cheatUseChoices.filter(({ remaining }) => remaining > 0);
+  const cheatDamageUses = getCheatSharpDamageUses(viewer);
+  const regularWindowSkills = playableSkills.filter(
     ({ skill, play }) =>
       state.phase === "action_window" &&
+      !(moveBlockReason && skill.id === SHENGLING_ID) &&
+      ![TIGER_SWITCH, FIVE_ELEMENTS_CHOOSE, HEXAGRAM_CHOOSE, HEXAGRAM_SPIRIT, HEXAGRAM_ABSOLUTE, HEXAGRAM_RESTORE, SEVEN_STAR_CHOOSE,
+        SACRED_BEAST_ID, TIME_REWIND_ID, CLOUD_BYPASS_ID, SKY_ABSOLUTE_ID, LINGTA_VICTORY_ID,
+        SOUL_RESTORE_EXTINGUISH_ID, SOUL_RESTORE_SINK_ID, CHARITY_QUICK_ID, TIAN_YE_CHOICE_ID, CURTAIN_FINALE_ID,
+        ORIGIN_SHOT_FUSION, THORN_PIERCE_ID, YIYUAN_REPEAT, YIYUAN_RESTORE, KARMA_SONG_END_ID, TIAN_SHA_STAR_BREAK].includes(skill.id) &&
+      (skill.id !== HEALING_ART_ID || !hasCharityDestiny(viewer)) &&
+      (skill.id !== SHADOW_LEAVE_ID || isShadowDancing) &&
+      (!state.bloodRitualResistance || skill.id === STAR_RESIST_ID) &&
       skill.timingPhases.includes(state.activeTimingPhase) &&
-      (!state.reversalResponseOnly || skill.id === "skill_93_50224") &&
+      (skill.id !== KARMA_CONVERT_ID || getKarmaConversionSources(viewer).length > 0) &&
+      (skill.id !== NINE_COLD || Boolean(viewer && coldLightSource(viewer, state.turnNumber))) &&
+      (skill.id !== CHEAT_TRANSFER_ID || cheatDonors.length > 0 && cheatUseChoices.length > 1) &&
+      (skill.id !== CHEAT_SHARP_DAMAGE_ID || cheatDamageUses > 0 && selectableEnemies.length > 0) &&
+      (skill.id !== DEMON_IMP_ORDER_ID || imps.length > 0) &&
+      (skill.id !== DEMON_GUARD_ORDER_ID || demonGuards.length > 0) &&
+      (!isDemonSummonSkill(skill.id) || viewer && demonSummonUses(state, viewer, skill.id) > 0) &&
+      (!state.sakuraTurnEndResponse || skill.id === SAKURA_FALL_ID) &&
+      (skill.id !== SAKURA_FALL_ID || Boolean(state.sakuraCardChoices?.length)) &&
+      (![ETERNAL_BIND_ID, ETERNAL_REPLACE_ID].includes(skill.id) || Boolean(state.eternalMoveChoices?.length)) &&
+      (skill.id !== PURPLE_FORESIGHT_ID || Boolean(purpleForesightCard)) &&
+      (skill.id !== PURPLE_INSIGHT_ID || state.roundNumber % 3 === 0 && !state.purpleInsight && Boolean(purpleInsightCard)) &&
+      (skill.id !== ASURA_RITUAL_UPGRADE_ID || hasBloodQi(viewer, 50) && !viewer?.buffs.some((buff) => buff.id === "asura_ritual_upgrade")) &&
+      (skill.id !== FALLEN_SPLENDOR_RELEASE) &&
+      (skill.id !== RED_LOTUS_NINE || redLotusFlameCount(viewer) >= 9) &&
+      (skill.id !== RED_LOTUS_FINALE || !viewer?.redLotusFinaleUsed || !getActiveSkillCount(viewer, RED_LOTUS_KARMA)) &&
+      (skill.id !== ERA_RESTART || Boolean(viewer && eraRestartSource(viewer))) &&
+      skill.id !== ERA_CHOOSE_TARGETS &&
+      skill.id !== BUBBLE_FORGET &&
+      (skill.id !== STAR_MOON_CHOOSE_CARD || starMoonChoices.length > 0) &&
+      (skill.id !== STAR_MOON_FREE_HUIYUE || viewer?.buffs.some((buff) =>
+        buff.stateType === STAR_MOON_HUIYUE_STOCK && buff.stacks > 0)) &&
+      (skill.id !== BUBBLE_REBUILD || viewer && Boolean(bubbleDreamStock(viewer, BUBBLE_REBUILD_STOCK)) &&
+        viewer.bigCards?.some((card) => !card.bubbleDreamRebuild && bigAbilitySource(viewer, { skillId: BUBBLE_REBUILD, bigCardInstanceId: card.instanceId }))) &&
+      (skill.id !== BUBBLE_ENHANCE || viewer && Boolean(bubbleDreamEnhancement(viewer))) &&
+      (skill.id !== FALLEN_SPLENDOR_CONVERT || viewer && viewer.bigCards?.some((card) =>
+        bigAbilitySource(viewer, { skillId: FALLEN_SPLENDOR_CONVERT, bigCardInstanceId: card.instanceId }) &&
+        fallenSplendorHealingRemaining(viewer, card) > 0)) &&
+      (skill.id !== BLOOD_RITUAL_FUSION_ID || selectableEnemies.some((target) => target.id !== viewer?.id)) &&
+      (skill.id !== ASURA_FERRY_ID || hasBloodQi(viewer, 31)) &&
+      (skill.id !== ASURA_IMMUNITY_ID || viewer && bloodQiNumber(viewer) > 0 &&
+        !viewer.buffs.some((buff) => buff.id === "asura_immunity_used") &&
+        Object.values(previewPlayerAttackStats(state, viewer.id).stats).some((stats) => stats.id === ASURA_SWORD_ID)) &&
+      (!state.reversalResponseOnly || skill.id === "1092") && !isStarWheelWindowMove(skill.id) &&
+      (!viewer || canPayStarWheel(viewer, skill.id)) &&
       (skill.id !== KUISHI_ID || state.roundNumber === 1 && state.turnNumber === 1 && peekTargets.length > 0 &&
         viewer?.bigCards?.some((card) => card.openingCopyAvailable)) &&
-      (skill.id !== SELF_ISOLATION_ID || !viewer?.spaceId && (viewer?.cakes ?? 0) >= 3) &&
+      (skill.id !== KURONG_LEAF_ID || leafCards.length > 0) &&
+      (skill.id !== SELF_ISOLATION_ID || viewer && !viewer.spaceId &&
+        viewer.cakes + youkaiCakeCount(viewer) >= getTurnSkillActionCost(viewer, { type: "skill", skillId: skill.id, stacks: 1 }, state)) &&
+      (skill.id !== CRYSTAL_GUARD_ID || crystalGuardMarkCount(viewer) > 0) &&
       (skill.id !== STORE_DAMAGE_ID || junengAmount > 0 && storableDamages.length > 0) &&
+      (skill.id !== QIANQIU_RESPONSE_ID || qianqiuGains.length > 0) &&
+      (skill.id !== WIND_PURSUIT_ID || viewer && getWindPursuitTargets(state, viewer).length > 0) &&
+      (![TIANLIE_CONTINUE_ID, TIANLIE_FEEDBACK_ID].includes(skill.id) ||
+        state.tianlieResponseChoices?.some((choice) => choice.skillId === skill.id)) &&
       (skill.id !== STAR_RESIST_ID || viewer && canUseStarResistance(viewer) && resistibleDamages.length > 0) &&
       (skill.id !== RELEASE_DAMAGE_ID || storedDamageOptions.length > 0) &&
       (skill.id !== JUSHEN_ID || junengAmount >= (getSkillElementCost(viewer, { skillId: JUSHEN_ID })?.perStack ?? 7)) &&
+      (skill.id !== XIELING_RESET_ID || viewer?.bigCards?.some((card) => card.xielingCooldown?.remaining)) &&
       (skill.id !== SLOT_MACHINE_ID || viewer && getReadySlotMachines(viewer).length > 0) &&
       (!isHunyaoPursuit(skill.id) || getHunyaoPursuitTargets(state, skill.id).length > 0) &&
       (state.activeTimingPhase !== "turn_damage_modify" ||
-        skill.id === "skill_94_627" ||
+        skill.id === STAR_MOON_CHOOSE_CARD ||
+        isBrokenBladeMaintenance(skill.id) ||
+        isDemonSummonSkill(skill.id) ||
+        isCheatServerAnytimeSkill(skill.id) ||
+        isRedLotusAnytimeSkill(skill.id) ||
+        skill.id === ERA_RESTART ||
+        skill.id === FALLEN_SPLENDOR_CONVERT || skill.id === BUBBLE_REBUILD ||
+        skill.id === KARMA_CONVERT_ID ||
+        skill.id === "1093" ||
         skill.id === SIX_STAR_SKILL_ID ||
+        [TIANMANG_CLEANSE_ID, TIANMANG_CONVERSION_ID, TIANMANG_FIELD_CLEANSE_ID, WIND_PURSUIT_ID,
+          ASURA_RITUAL_UPGRADE_ID, BLOOD_RITUAL_FUSION_ID].includes(skill.id) ||
         skill.id === ICE_RAIN_SKILL_ID ||
-        skill.id === CROSS_GUARD_SKILL_ID || skill.id === STORE_DAMAGE_ID || skill.id === STAR_RESIST_ID || skill.id === RELEASE_DAMAGE_ID ||
-        skill.id === JUSHEN_ID || skill.id === SELF_ISOLATION_ID || skill.id === FOUR_EMPTINESS_ID || skill.id === SLOT_MACHINE_ID || isHunyaoPursuit(skill.id)) &&
+        skill.id === CROSS_GUARD_SKILL_ID || skill.id === CRYSTAL_GUARD_ID || skill.id === STORE_DAMAGE_ID || skill.id === STAR_RESIST_ID || skill.id === RELEASE_DAMAGE_ID ||
+        skill.id === JUSHEN_ID || skill.id === SELF_ISOLATION_ID || skill.id === FOUR_EMPTINESS_ID || skill.id === SLOT_MACHINE_ID ||
+        skill.id === QIANQIU_RESPONSE_ID || skill.id === TIANLIE_CONTINUE_ID || skill.id === TIANLIE_FEEDBACK_ID ||
+        skill.id === XIELING_BODY_ID || skill.id === XIELING_RESET_ID ||
+        isHunyaoPursuit(skill.id)) &&
       (skill.id !== XIEYU_SKILL_ID ||
-        (state.roundNumber % 3 === 0 &&
-          viewer !== undefined &&
+        (viewer !== undefined &&
           viewer.buffs.filter((buff) => buff.id === "xieyu_target").length <
-            getActiveSkillCount(viewer, XIEYU_SKILL_ID))) &&
+            getDueXieyuCount(viewer, state.roundNumber))) &&
       (skill.id !== getFusionSkillId("魔域") || (state.roundNumber % 3 === 0 && viewer &&
         viewer.buffs.filter((buff) => buff.id === "demon_domain_target").length < 3 * getManualDemonDomainCount(viewer))) &&
       play.kind !== "attack"
   );
+  const vacuumSources = viewer && state.phase === "action_window" && !state.bloodRitualResistance &&
+    !swordArrayPiBlocksSkill(state, viewer, VACUUM_FLASH_SKILL_ID) &&
+    !isSkillBlockedByJingu(state, VACUUM_FLASH_SKILL_ID, viewer.spaceId, viewer) ? vacuumOptions(state, viewer) : [];
+  const vacuumChoices = (["normal", "extra"] as const).flatMap((mode) => vacuumSources.map((source, index) => ({
+    id: `${source.cardId}:${mode}`,
+    cardId: source.cardId,
+    mode,
+    available: mode === "normal" ? source.normal : source.extra > 0,
+    label: `${vacuumSources.length > 1 ? `第 ${index + 1} 份 · ` : ""}${mode === "normal" ? "普通虚无" :
+      `额外虚无（${source.extra} 次）`} · 判定 ${source.rank}`
+  })));
+  const selectedVacuumChoice = vacuumChoices.find(({ id, available }) => id === vacuumChoiceId && available) ??
+    vacuumChoices.find(({ available }) => available);
+  const vacuumSkill = selectedVacuumChoice ? getSkill(VACUUM_FLASH_SKILL_ID) : undefined;
+  const vacuumPlay = selectedVacuumChoice ? getSkillPlay(VACUUM_FLASH_SKILL_ID) : undefined;
+  const windowSkills = regularWindowSkills.map((item) => ({ ...item, optionId: item.skill.id }));
+  if (vacuumSkill && vacuumPlay) windowSkills.push({ skill: vacuumSkill, play: vacuumPlay, optionId: VACUUM_WINDOW_OPTION });
   const selectedSkill = nonAttackSkills.find((item) => item.skill.id === skillId) ?? nonAttackSkills[0];
+  const sevenStarRestorations = selectedSkill?.skill.id === SEVEN_STAR_YAOGUANG ? (viewer?.bigCards ?? []).flatMap((card) =>
+    bigAbilitySource(viewer!, { skillId: SEVEN_STAR_YAOGUANG, bigCardInstanceId: card.instanceId }) ?
+      lostSevenStarForms(card).map((cardForm) => ({ id: `${card.instanceId}:${cardForm}`, cardForm, bigCardInstanceId: card.instanceId })) : []) : [];
+  const sevenStarRestoration = sevenStarRestorations.find(({ id }) => id === sevenStarRestoreId) ?? sevenStarRestorations[0];
   const selectedWindowSkill =
-    windowSkills.find((item) => item.skill.id === windowSkillId) ?? windowSkills[0];
-  const selectedWindowSkillPlay = selectedWindowSkill?.play;
+    windowSkills.find((item) => item.optionId === windowSkillId) ?? windowSkills[0];
+  const skillCanTargetTotem = Boolean(selectedSkill && canSkillSelectTotem(selectedSkill.skill.id));
+  const windowSkillCanTargetTotem = Boolean(selectedWindowSkill && canSkillSelectTotem(selectedWindowSkill.skill.id));
+  const isVacuumWindowSkill = selectedWindowSkill?.optionId === VACUUM_WINDOW_OPTION;
+  const isKarmaConvert = selectedWindowSkill?.skill.id === KARMA_CONVERT_ID;
+  const karmaConversionSources = viewer && isKarmaConvert ? getKarmaConversionSources(viewer) : [];
+  const selectedKarmaConvertFrom = karmaConversionSources.includes(karmaConvertFrom) ? karmaConvertFrom : "";
+  const karmaConversionTargets = selectedKarmaConvertFrom ? getKarmaConversionTargets(selectedKarmaConvertFrom) : [];
+  const selectedKarmaConvertTo = karmaConversionTargets.includes(karmaConvertTo) ? karmaConvertTo : "";
+  const isCheatCardPick = selectedWindowSkill?.skill.id === CHEAT_NOGLUES_ID;
+  const isCheatTransfer = selectedWindowSkill?.skill.id === CHEAT_TRANSFER_ID;
+  const isCheatSharpDamage = selectedWindowSkill?.skill.id === CHEAT_SHARP_DAMAGE_ID;
+  const selectedCheatCard = cheatCardChoices.find(({ instanceId }) => instanceId === cheatCardId);
+  const selectedCheatDonor = cheatDonors.find(({ id }) => id === cheatTransferFrom);
+  const cheatRecipients = cheatUseChoices.filter(({ id }) => id !== selectedCheatDonor?.id);
+  const selectedCheatRecipient = cheatRecipients.find(({ id }) => id === cheatTransferTo);
+  const cheatDamageTargets = selectableEnemies;
+  const cheatDamageTarget = cheatDamageTargets.find(({ id }) => id === windowSkillTargetId) ?? cheatDamageTargets[0];
+  const cheatAnytimeSkills = playableSkills.filter(({ skill }) => isCheatServerAnytimeSkill(skill.id) &&
+    (skill.id !== CHEAT_TRANSFER_ID || cheatDonors.length > 0 && cheatUseChoices.length > 1) &&
+    (skill.id !== CHEAT_SHARP_DAMAGE_ID || cheatDamageUses > 0 && cheatDamageTarget));
+  const cheatActionIncomplete = (id: SkillId) =>
+    id === CHEAT_NOGLUES_ID && cheatCardChoices.length > 0 && !selectedCheatCard ||
+    id === CHEAT_TRANSFER_ID && (!selectedCheatDonor || !selectedCheatRecipient) ||
+    id === CHEAT_SHARP_DAMAGE_ID && (!cheatDamageUses || !cheatDamageTarget);
+  const addCheatActionChoices = (action: SkillAction) => {
+    if (action.skillId === CHEAT_NOGLUES_ID && selectedCheatCard) action.cheatCardInstanceId = selectedCheatCard.instanceId;
+    if (action.skillId === CHEAT_TRANSFER_ID && selectedCheatDonor && selectedCheatRecipient) {
+      action.cheatTransferFrom = selectedCheatDonor.id;
+      action.cheatTransferTo = selectedCheatRecipient.id;
+    }
+    if (action.skillId === CHEAT_SHARP_DAMAGE_ID && cheatDamageTarget) action.targetId = cheatDamageTarget.id;
+  };
+  const cheatCardPicker = () => cheatCardChoices.length ? (
+    <label className="block text-sm font-medium text-gray-700">
+      要获得的大卡
+      <select className="soft-input mt-1 w-full" value={selectedCheatCard?.instanceId ?? ""}
+        onChange={(event) => setCheatCardId(event.currentTarget.value)}>
+        <option value="">请选择其他玩家的大卡</option>
+        {cheatCardChoices.map((choice) => <option key={choice.instanceId} value={choice.instanceId}>
+          {state.players.find(({ id }) => id === choice.playerId)?.name ?? "玩家"} · 大卡 {choice.number}
+          {choice.visibleCardId ? ` · ${getBigCard(choice.visibleCardId)?.name ?? choice.visibleCardId}` : ""}
+        </option>)}
+      </select>
+    </label>
+  ) : null;
+  const cheatTransferPickers = () => <div className="grid gap-2 sm:grid-cols-2">
+    <label className="block text-sm">减少 1 次的限定技
+      <select className="soft-input mt-1 w-full" value={selectedCheatDonor?.id ?? ""} onChange={(event) => {
+        setCheatTransferFrom(event.currentTarget.value);
+        setCheatTransferTo("");
+      }}>
+        <option value="">请选择限定技</option>
+        {cheatDonors.map(({ id, label, remaining }) => <option key={id} value={id}>{label} · 剩余 {remaining} 次</option>)}
+      </select>
+    </label>
+    <label className="block text-sm">增加 1 次的限定技
+      <select className="soft-input mt-1 w-full" value={selectedCheatRecipient?.id ?? ""}
+        disabled={!selectedCheatDonor} onChange={(event) => setCheatTransferTo(event.currentTarget.value)}>
+        <option value="">请选择限定技</option>
+        {cheatRecipients.map(({ id, label, remaining }) => <option key={id} value={id}>{label} · 剩余 {remaining} 次</option>)}
+      </select>
+    </label>
+  </div>;
+  const isImpOrder = selectedWindowSkill?.skill.id === DEMON_IMP_ORDER_ID;
+  const isGuardOrder = selectedWindowSkill?.skill.id === DEMON_GUARD_ORDER_ID;
+  const isDemonOrder = isImpOrder || isGuardOrder;
+  const isDemonSummon = Boolean(selectedWindowSkill && isDemonSummonSkill(selectedWindowSkill.skill.id));
+  const isHoundSummon = isTargetedDemonSummon(selectedWindowSkill?.skill.id);
+  const houndSummonTargets = isHoundSummon && viewer ? demonSummonTargets(state, viewer) : [];
+  const houndSummonTarget = houndSummonTargets.find(({ id }) => id === windowSkillTargetId) ?? houndSummonTargets[0];
+  const summonUses = isDemonSummon && selectedWindowSkill && viewer ?
+    demonSummonUses(state, viewer, selectedWindowSkill.skill.id) : undefined;
+  const orderDemons = isImpOrder ? imps : isGuardOrder ? demonGuards : [];
+  const selectedDemon = orderDemons.find(({ id }) => id === demonId) ?? orderDemons[0];
+  const availableOrders = isImpOrder ? IMP_ORDERS : GUARD_ORDERS;
+  const selectedDemonOrder = availableOrders.includes(demonOrder) ? demonOrder : "standby";
+  const needsDemonTarget = selectedDemonOrder === "fireball" || selectedDemonOrder === "legion_area" || selectedDemonOrder === "legion_single";
+  const demonTargets = selectedDemon && needsDemonTarget ? demonOrderTargets(state, selectedDemon) : [];
+  const selectedDemonTarget = demonTargets.find(({ id }) => id === demonTargetId);
+  const currentDemonOrder = selectedDemon?.summon?.demonOrder ?? "standby";
+  const automaticStarWheel = starWheelCanRedirect(viewer);
+  const selectedWindowSkillPlay = selectedWindowSkill?.skill.id === "1093" && automaticStarWheel ?
+    { ...selectedWindowSkill.play, targetMode: "none" as const } : selectedWindowSkill?.play;
+  const isBloodRitual = selectedWindowSkill?.skill.id === BLOOD_RITUAL_FUSION_ID;
+  const ritualOpponents = enemies.filter((target) => target.id !== viewer?.id);
+  const ritualTargets = selectableEnemies.filter((target) => target.id !== viewer?.id);
+  const ritualNeedsSecond = ritualOpponents.length > 1;
+  const ritualFirst = ritualTargets.find(({ id }) => id === windowSkillTargetId) ?? ritualTargets[0];
+  const ritualSecondChoices = ritualTargets.filter(({ id }) => id !== ritualFirst?.id);
+  const ritualSecond = ritualSecondChoices.find(({ id }) => id === windowSkillExtraTargetId) ?? ritualSecondChoices[0];
+  const isTianlieResponse = selectedWindowSkill?.skill.id === TIANLIE_CONTINUE_ID || selectedWindowSkill?.skill.id === TIANLIE_FEEDBACK_ID;
+  const isTianlieMight = selectedWindowSkill?.skill.id === TIANLIE_MIGHT_ID;
+  const isPurpleScale = selectedWindowSkill?.skill.id === PURPLE_SCALE_ID;
+  const isFiveElementsLevel = selectedWindowSkill?.skill.id === FIVE_ELEMENTS_LEVEL;
+  const isColdLight = selectedWindowSkill?.skill.id === NINE_COLD;
+  const isBubbleEnhance = selectedWindowSkill?.skill.id === BUBBLE_ENHANCE;
+  const isAsuraFerry = selectedWindowSkill?.skill.id === ASURA_FERRY_ID;
+  const isAttackAttachment = isTianlieMight || isAsuraFerry || isPurpleScale || isBubbleEnhance || isFiveElementsLevel || isColdLight ||
+    selectedWindowSkill?.skill.id === WIND_TRACK_ID || selectedWindowSkill?.skill.id === FALLEN_SPLENDOR_DOUBLE;
+  const isEternalMove = selectedWindowSkill?.skill.id === ETERNAL_BIND_ID || selectedWindowSkill?.skill.id === ETERNAL_REPLACE_ID;
+  const eternalMove = state.eternalMoveChoices?.find(({ index }) => index === eternalMoveIndex) ?? state.eternalMoveChoices?.[0];
+  const isChaosWave = selectedWindowSkill?.skill.id === CHAOS_WAVE_ID;
+  const chaosMoves = isChaosWave && viewer ? chaosWaveChoices(state, viewer.id) : [];
+  const chaosMove = chaosMoves.find(({ index }) => index === tianlieAttackIndex) ?? chaosMoves[0];
+  const tianlieChoices = isTianlieResponse ?
+    state.tianlieResponseChoices?.filter((choice) => choice.skillId === selectedWindowSkill?.skill.id) ?? [] : [];
+  const tianlieResponse = tianlieChoices.find((choice) => choice.id === tianlieResponseId) ?? tianlieChoices[0];
+  const tianlieAttacks = isAttackAttachment && viewer ? Object.entries(previewPlayerAttackStats(state, viewer.id, undefined, isPurpleScale || isBubbleEnhance || isColdLight).stats)
+    .filter(([index, stats]) => isPurpleScale ? !viewer.buffs.some((buff) => buff.id.startsWith(`${PURPLE_SCALE_PREFIX}${index}:`) &&
+      (buff.expiresAtTurn ?? 0) > state.turnNumber) : isBubbleEnhance ?
+      !bubbleDreamMoveEnhanced(viewer, Number(index), state.turnNumber) : isColdLight ? !stats.nonAttackMove || !stats.noClashLevel : !stats.nonAttackMove)
+    .filter(([index]) => selectedWindowSkill?.skill.id !== WIND_TRACK_ID ||
+      !viewer.buffs.some((buff) => buff.stateType === "wind_track" && buff.attackActionIndex === Number(index)))
+    .filter(([index]) => !isFiveElementsLevel || !viewer.buffs.some((buff) =>
+      buff.id.startsWith(`${FIVE_ELEMENTS_LEVEL_PREFIX}${index}:`) && (buff.expiresAtTurn ?? 0) > state.turnNumber)) : [];
+  const tianlieAttack = tianlieAttacks.find(([index]) => Number(index) === tianlieAttackIndex) ?? tianlieAttacks[0];
+  const coldTargetField = tianlieAttack?.[1].nonAttackMove ? "level" : tianlieAttack?.[1].noClashLevel ? "power" : coldLightField;
+  const purpleCanSetPower = Boolean(tianlieAttack && !tianlieAttack[1].nonAttackMove && !tianlieAttack[1].fixedPointPower);
   const readySlotMachines = viewer ? getReadySlotMachines(viewer) : [];
   const chosenSlotMachine = readySlotMachines.find((entry) => entry.id === slotMachineId) ?? readySlotMachines[0];
   const selectedBlindIds = blindSelected.filter((id) => state.blindSkillChoices?.some((choice) => choice.instanceId === id));
+  const selectedSakuraIds = sakuraSelected.filter((id) => state.sakuraCardChoices?.some((choice) => choice.instanceId === id));
+  const karmaSelections = karmaChanges.turn === state.turnNumber ? karmaChanges.byPlayer : {};
+  const karmaTargetIds = [...new Set(state.karmaCardChoices?.map(({ playerId }) => playerId))];
+  const isKarmaChangedCardValid = ({ cardInstanceId }: Partial<KarmaCardChange>, playerId: string) =>
+    state.karmaCardChoices?.some((choice) => choice.playerId === playerId && choice.instanceId === cardInstanceId);
+  const karmaCardChanges = karmaTargetIds.flatMap((playerId): KarmaCardChange[] => {
+    const choice = karmaSelections[playerId];
+    return choice?.cardInstanceId && choice.replacementCardId && isKarmaChangedCardValid(choice, playerId) &&
+      state.karmaReplacementIds?.includes(choice.replacementCardId) ?
+      [{ cardInstanceId: choice.cardInstanceId, replacementCardId: choice.replacementCardId }] : [];
+  });
+  const karmaSelectionIncomplete = mode === "skill" && selectedSkill?.skill.id === KARMA_CYCLE_ID && karmaTargetIds.some((playerId) => {
+    const selection = karmaSelections[playerId];
+    return Boolean(selection?.cardInstanceId && isKarmaChangedCardValid(selection, playerId) &&
+      (!selection.replacementCardId || !state.karmaReplacementIds?.includes(selection.replacementCardId)));
+  });
+  const setKarmaSelection = (playerId: string, choice: Partial<KarmaCardChange>) =>
+    setKarmaChanges({ turn: state.turnNumber, byPlayer: { ...karmaSelections, [playerId]: choice } });
+  const sakuraPicker = (limit: number) => (
+    <fieldset className="grid max-h-56 gap-1 overflow-y-auto text-sm">
+      <legend>{state.sakuraTurnEndResponse || pendingDeathWindow ? "选择要弃置的一张大卡" :
+        `选择要弃置的大卡（${selectedSakuraIds.length}/${limit}）`}</legend>
+      {state.sakuraCardChoices?.map((choice) => {
+        const checked = selectedSakuraIds.includes(choice.instanceId);
+        const playerCount = state.sakuraCardChoices?.filter((item) => item.playerId === choice.playerId &&
+          selectedSakuraIds.includes(item.instanceId)).length ?? 0;
+        const name = state.players.find((player) => player.id === choice.playerId)?.name;
+        return <label key={choice.instanceId} className="flex items-center gap-2">
+          <input type={state.sakuraTurnEndResponse || pendingDeathWindow ? "radio" : "checkbox"} name="sakura-card" checked={checked}
+            disabled={!state.sakuraTurnEndResponse && !pendingDeathWindow && !checked && (selectedSakuraIds.length >= limit || playerCount >= choice.remainingDiscards)}
+            onChange={() => setSakuraSelected(state.sakuraTurnEndResponse || pendingDeathWindow ? [choice.instanceId] : checked ?
+              selectedSakuraIds.filter((id) => id !== choice.instanceId) : [...selectedSakuraIds, choice.instanceId])} />
+          {name} · 大卡 {choice.number}{choice.visibleCardId ? ` · ${getBigCard(choice.visibleCardId)?.name ?? choice.visibleCardId}` : ""}
+          {limit > 1 ? `（该玩家剩 ${choice.remainingDiscards} 次）` : ""}
+        </label>;
+      })}
+    </fieldset>
+  );
   const verdictFreeAvailable = viewer?.buffs.some((buff) => buff.id === "free_imperial_verdict" && buff.stacks > 0) ?? false;
-  const freeVerdict = selectedSkill?.skill.id === VERDICT_ACTION_ID && verdictFreeAvailable && useFreeVerdict;
+  const freeVerdict = !selectedFreeMove && selectedSkill?.skill.id === VERDICT_ACTION_ID && verdictFreeAvailable && useFreeVerdict;
   const isWindowAttackMark = Boolean(selectedWindowSkill && getAttackMarkKind(selectedWindowSkill.skill.id));
   const windowMarkAttackOptions = viewer ? getAttackMarkChoices(state, viewer.id) : [];
   const selectedWindowMarkAttack = windowMarkAttackOptions.find((option) => option.actionIndex === windowMarkAttackIndex) ?? windowMarkAttackOptions[0];
   const isWindowActionSwitch =
     selectedWindowSkill ? isActionSwitchSkillId(selectedWindowSkill.skill.id) : false;
   const isWindowAttackStatModifier =
-    selectedWindowSkill?.skill.id === "skill_45_30424" ||
-    selectedWindowSkill?.skill.id === "skill_91_89631";
+    selectedWindowSkill?.skill.id === "1044" ||
+    selectedWindowSkill?.skill.id === "1090";
   const isWindowDoubleEdge = isDoubleEdgeSwordSkill(selectedWindowSkill?.skill);
   const isWindowLiegong = selectedWindowSkill?.skill.id === LIEGONG_SKILL_ID;
   const isWindowAbsoluteGuard = isAbsoluteGuardSkill(selectedWindowSkill?.skill);
   const isWindowSandTransform = selectedWindowSkillPlay?.effect === "sand_transform";
-  const isWindowDamageRedirect = selectedWindowSkill?.skill.id === "skill_94_627";
-  const isWindowBalance = selectedWindowSkill?.skill.id === "skill_111_51056";
-  const isWindowLightning = selectedWindowSkill?.skill.id === "skill_35_16792";
-  const isWindowLishang = selectedWindowSkill?.skill.id === "skill_68_57581";
+  const isWindowDamageRedirect = selectedWindowSkill?.skill.id === "1093";
+  const isWindowBalance = selectedWindowSkill?.skill.id === "1110";
+  const isWindowLightning = selectedWindowSkill?.skill.id === "1034";
+  const isWindowLishang = selectedWindowSkill?.skill.id === "1067";
   const isWindowHellOverlord = selectedWindowSkill?.skill.id === HELL_OVERLORD_SKILL_ID;
-  const pursuitSkillId = selectedWindowSkill && isHunyaoPursuit(selectedWindowSkill.skill.id) ? selectedWindowSkill.skill.id : undefined;
-  const pursuitTargetOptions = useMemo(() => pursuitSkillId ? getHunyaoPursuitTargets(state, pursuitSkillId) : [],
-    [state.players, pursuitSkillId]);
+  const pursuitSkillId = selectedWindowSkill &&
+    (isHunyaoPursuit(selectedWindowSkill.skill.id) || selectedWindowSkill.skill.id === WIND_PURSUIT_ID) ? selectedWindowSkill.skill.id : undefined;
+  const pursuitTargetOptions = useMemo(() => pursuitSkillId === WIND_PURSUIT_ID && viewer ? getWindPursuitTargets(state, viewer) :
+    pursuitSkillId ? getHunyaoPursuitTargets(state, pursuitSkillId) : [], [state, viewer, pursuitSkillId]);
   const isWindowIceRain = selectedWindowSkill?.skill.id === ICE_RAIN_SKILL_ID;
   const isWindowCrossGuard = selectedWindowSkill?.skill.id === CROSS_GUARD_SKILL_ID;
-  const isWindowDamageMark = isWindowIceRain || isWindowCrossGuard;
+  const isWindowCrystalGuard = selectedWindowSkill?.skill.id === CRYSTAL_GUARD_ID;
+  const maxCrystalMarks = crystalGuardMarkCount(viewer);
+  const isWindowDamageMark = isWindowIceRain || isWindowCrossGuard || isWindowCrystalGuard;
   const isWindowShunshouSteal = selectedWindowSkill?.skill.id === SHUNSHOU_STEAL_SKILL_ID;
   const isWindowMagic = selectedWindowSkill?.skill.id === getFusionSkillId("魔域");
   const smallSkills = useMemo(
     () => getSmallSkills(),
     []
   );
-  const guessSkills = useMemo(() => getAllSkills({ includeFusions: true }), []);
+  const guessBigCard = isBigSkillMode(state.config.skillMode);
+  const guessSkills = useMemo(() => guessBigCard
+    ? getBigCards().map(({ id, name }) => ({ id, label: `${id} · ${name}`, search: `${id} ${name}` }))
+    : getAllSkills({ includeFusions: true }).map((skill) => ({
+      id: skill.id, label: `${skill.name} #${skill.sourceRow}`, search: searchSkillText(skill)
+    })), [guessBigCard]);
   const sandSkills = viewer && selectedWindowSkill ? getAcquisitionSkillChoices(viewer, selectedWindowSkill.skill.id)
     .map(getSkill).filter((skill): skill is NonNullable<ReturnType<typeof getSkill>> => Boolean(skill)) : smallSkills;
   const filteredSandSkills = useMemo(() => {
@@ -618,13 +1080,13 @@ export function ActionPanel({
     .map((id) => getSkill(id))
     .filter((skill): skill is NonNullable<ReturnType<typeof getSkill>> => Boolean(skill))
     .filter((skill) => {
-      if (selectedWindowSkill?.skill.id === "skill_5_34881") {
+      if (selectedWindowSkill?.skill.id === "1004") {
         return skillHasTypeTag(skill, "锁定技");
       }
       if (isWindowLishang) {
         return smallSkills.some((smallSkill) => smallSkill.id === skill.id);
       }
-      if (selectedWindowSkill?.skill.id === "skill_101_4254") return !getFusionRecipe(skill.id);
+      if (selectedWindowSkill?.skill.id === "1100") return !getFusionRecipe(skill.id);
       if (selectedWindowSkill?.skill.id === getFusionSkillId("天魔舞")) return getFusionTier(skill.id) === 2 && skill.id !== getFusionSkillId("天魔舞");
       return true;
     });
@@ -642,7 +1104,7 @@ export function ActionPanel({
   const filteredGuessSkills = useMemo(() => {
     const normalized = windowGuessSkillQuery.trim();
     const filtered = normalized
-      ? guessSkills.filter((skill) => searchSkillText(skill).includes(normalized))
+      ? guessSkills.filter((skill) => skill.search.includes(normalized))
       : guessSkills;
     const selectedSkill = guessSkills.find((skill) => skill.id === windowGuessSkillId);
     if (selectedSkill && !filtered.some((skill) => skill.id === selectedSkill.id)) {
@@ -660,11 +1122,12 @@ export function ActionPanel({
         (item) =>
           item.targetId === viewer.id &&
           isDamageWithinLimit(item, fromLegacyCombatStat(getDamageRedirectLimit(viewer))) &&
-          !(item.redirectedByPlayerIds ?? []).includes(viewer.id)
+          (automaticStarWheel || !(item.redirectedByPlayerIds ?? []).includes(viewer.id))
       );
     },
-    [state.pendingDamageItems, viewer]
+    [state.pendingDamageItems, viewer, automaticStarWheel]
   );
+  const starWheelStatusOptions = useMemo(() => starWheelStatusChoices(state, viewer), [state.starWheelPendingStatuses, viewer]);
   const iceRainDamageOptions = useMemo(() => {
     if (!viewer?.id) {
       return [];
@@ -726,8 +1189,8 @@ export function ActionPanel({
         ? iceRainDamageOptions
         : isWindowCrossGuard
           ? crossGuardDamageOptions
-          : [],
-    [crossGuardDamageOptions, iceRainDamageOptions, isWindowCrossGuard, isWindowIceRain]
+          : isWindowCrystalGuard ? crossGuardDamageOptions.filter((item) => item.targetId === viewer?.id) : [],
+    [crossGuardDamageOptions, iceRainDamageOptions, isWindowCrossGuard, isWindowCrystalGuard, isWindowIceRain, viewer?.id]
   );
   const shunshouChoiceOptions = useMemo(
     () =>
@@ -750,15 +1213,53 @@ export function ActionPanel({
   const alreadyFailedSkillGuess = Boolean(
     viewer?.buffs.some((buff) => buff.id === `skill_guess_failed:${state.turnNumber}`)
   );
-  const selectedSkillPlay = selectedSkill?.play;
-  const selectedSkillElementCost = selectedSkill ? getSkillElementCost(viewer, { skillId: selectedSkill.skill.id }) : undefined;
-  const selectedSkillStats =
-    selectedSkillPlay?.kind === "attack" &&
+  const selectedSkillPlay = selectedSkill?.skill.id === HOUND_SUMMON_ID && houndBiteIsArea(viewer)
+    ? { ...selectedSkill.play, targetMode: "all" as const } : selectedSkill?.play;
+  const [totemKind, setTotemKind] = useState<TotemKind>("flame");
+  const [totemRange, setTotemRange] = useState<TotemRange>("center");
+  const [totemAfterId, setTotemAfterId] = useState("");
+  const [totemPrimaryId, setTotemPrimaryId] = useState("");
+  const selectingTotem = mode === "skill" && Boolean(selectedSkill && isTotemCreation(selectedSkill.skill.id));
+  const totemSeats = selectingTotem ? getCombatSeats(state, viewer?.spaceId) : [];
+  const totemSeatNumbers = selectingTotem ? getCombatSeatNumbers(state) : undefined;
+  const totemPrimary = totemSeats.find(({ id }) => id === (junengLock ? junengTargetId : totemPrimaryId)) ??
+    (junengLock ? undefined : totemSeats[0]);
+  const totemAfter = totemSeats.find(({ id }) => id === totemAfterId);
+  const selectingShadowWind = mode === "skill" && selectedSkill?.skill.id === SHADOW_WIND_DANCE_ID;
+  const selectingShadowFollow = mode === "skill" && selectedSkill?.skill.id === SHADOW_FOLLOW_ID;
+  const selectingShadowMove = selectingShadowWind || selectingShadowFollow;
+  const shadowSeatMode = selectingShadowFollow ? "behind" : shadowMoveMode;
+  const shadowCombo = selectingShadowWind && viewer ? shadowComboForAction(viewer,
+    { type: "skill", skillId: SHADOW_WIND_DANCE_ID, stacks: 1 }) : 0;
+  const shadowAnchors = selectingShadowMove && viewer ? shadowSeatChoices(state, viewer, shadowSeatMode, shadowCombo)
+    .filter(({ player }) => (!junengLock || player.id === junengTargetId) && (!lockedHound || player.id === lockedHound.id)) : [];
+  const selectedShadowAnchor = shadowAnchors.find(({ player }) => player.id === shadowAnchorId) ?? shadowAnchors[0];
+  const selectedShadowAnchorId = selectedShadowAnchor?.player.id;
+  const shadowAnchorOptions = shadowAnchors.map(({ player, primary, behind }) => ({
+    id: player.id,
+    name: shadowSeatMode === "insert" ? `座次 ${primary} 和 ${primary + 1} 之间` :
+      `${player.name} · 座次 ${behind > 1 ? `(${primary}, ${behind})` : primary}`
+  }));
+  const [gameSwitchMode, setGameSwitchMode] = useState<GameSwitchMode>("rock_paper_scissors");
+  const selectedSaint = Boolean(selectedSkill && isSaintMove(selectedSkill.skill.id));
+  const saintElements = selectedSaint ? getSaintElements(viewer) : [];
+  const selectedSaintElement = saintElements.includes(saintElement) ? saintElement : undefined;
+  const saintResource = selectedSaintElement ? { saintElement: selectedSaintElement } : {};
+  const selectedXielingTransform = !selectedFreeMove && selectedSkill?.skill.id === XIELING_TRANSFORM_ID;
+  const xielingMarkLimit = getXielingConversionLimit(viewer);
+  const invalidXielingMarks = selectedXielingTransform &&
+    (!Number.isSafeInteger(xielingMarkCost) || xielingMarkCost < 1 || xielingMarkCost > xielingMarkLimit);
+  const selectedSkillElementCost = selectedSkill && !selectedFreeMove
+    ? getSkillElementCosts(viewer, { skillId: selectedSkill.skill.id, ...saintResource }) : [];
+  const selectedBaseSkillStats =
     selectedSkill &&
-    selectedSkill.skill.id !== ELECTRIC_SHOCK_SKILL_ID
+    (selectedSkillPlay?.kind === "attack" && selectedSkill.skill.id !== ELECTRIC_SHOCK_SKILL_ID ||
+      selectedSkill.skill.id === SEA_GOD_WAVES_ID)
       ? getSkillAttackStats(selectedSkill.skill.id, skillStacks)
       : undefined;
+  const selectedSkillStats = selectedBaseSkillStats && shapeDecayAttack(viewer, selectedBaseSkillStats);
   const skillTargetIds =
+    selectingShadowMove ? (selectedShadowAnchorId ? [selectedShadowAnchorId] : []) :
     selectedSkill && isMultiTargetAttackSkill(selectedSkill.skill.id)
       ? Array.from(
           new Set(
@@ -771,6 +1272,7 @@ export function ActionPanel({
         ? [skillTargetId]
         : [];
   const selectedSkillTargetError =
+    selectedSkill?.skill.id === SEVEN_STAR_YAOGUANG && !sevenStarRestoration ? "当前没有已失去的七星形态" :
     selectedSkill && isMultiTargetAttackSkill(selectedSkill.skill.id)
       ? multiTargetSkillTargetErrorForIds(
           state,
@@ -778,84 +1280,130 @@ export function ActionPanel({
           skillTargetIds
         )
       : undefined;
-  const skillMaxStacks =
-    selectedSkillPlay && viewer
-      ? Math.max(
-          1,
-          Math.min(
-            selectedSkillPlay.maxStacks,
-            selectedSkillElementCost?.perStack
-              ? Math.floor(getElementAmount(viewer, selectedSkillElementCost.element) / selectedSkillElementCost.perStack)
-              : selectedSkillPlay.cost > 0
-              ? Math.floor(viewer.cakes / selectedSkillPlay.cost)
-              : selectedSkillPlay.maxStacks
-          )
-        )
-      : 1;
-  const skillCost = selectedSkill && viewer ? getTurnSkillActionCost(viewer, {
-    type: "skill", skillId: selectedSkill.skill.id, stacks: skillStacks, ...(freeVerdict ? { freeStacks: 1 } : {})
-  }) : selectedSkillPlay ? selectedSkillPlay.cost * skillStacks : 0;
-  const windowSkillMaxStacks =
-    selectedWindowSkillPlay && viewer
-      ? Math.max(
-          1,
-          Math.min(
-            selectedWindowSkillPlay.maxStacks,
-            isWindowAttackMark && selectedWindowMarkAttack
-              ? getAttackMarkCapacity(viewer, selectedWindowSkill.skill.id, selectedWindowMarkAttack.actionIndex) : selectedWindowSkillPlay.maxStacks,
-            getSkillResourceStacks(viewer, selectedWindowSkill.skill.id) ??
-              selectedWindowSkillPlay.maxStacks,
-            selectedWindowSkillPlay.cost > 0
-              ? Math.floor(viewer.cakes / selectedWindowSkillPlay.cost)
-              : selectedWindowSkillPlay.maxStacks
-          )
-        )
-      : 1;
-  const windowSkillCost = selectedWindowSwitch
+  const skillMaxStacks = selectedFreeMove?.move.type === "skill" ? selectedFreeMove.move.stacks : selectedSkill && viewer
+    ? Math.max(1, getAffordableSkillStacks(state, viewer, selectedSkill.skill.id, freeVerdict ? 1 : 0, selectedSaintElement))
+    : 1;
+  const skillCost = selectedFreeMove ? 0 : selectedSkill && viewer ? getTurnSkillActionCost(viewer, {
+    type: "skill", skillId: selectedSkill.skill.id, stacks: skillStacks, ...saintResource, ...(freeVerdict ? { freeStacks: 1 } : {})
+  }, state) : selectedSkillPlay ? selectedSkillPlay.cost * skillStacks : 0;
+  const windowSkillMaxStacks = selectedWindowSkill && viewer && !isDemonOrder && !isDemonSummon && !isVacuumWindowSkill
+    ? Math.max(1, Math.min(
+        getAffordableSkillStacks(state, viewer, selectedWindowSkill.skill.id),
+        isWindowAttackMark && selectedWindowMarkAttack
+          ? getAttackMarkCapacity(viewer, selectedWindowSkill.skill.id, selectedWindowMarkAttack.actionIndex)
+          : MAX_ACTION_STACKS
+      ))
+    : 1;
+  const windowSkillCost = isVacuumWindowSkill ? 0 : selectedWindowSwitch
     ? selectedWindowSwitch.cost
     : isWindowAbsoluteGuard && selectedWindowAbsoluteGuard
       ? selectedWindowAbsoluteGuard.cost
-    : selectedWindowSkillPlay
-      ? selectedWindowSkillPlay.cost * windowSkillStacks
+    : selectedWindowSkill && viewer
+      ? getTurnSkillActionCost(viewer, { type: "skill", skillId: selectedWindowSkill.skill.id, stacks: windowSkillStacks }, state)
       : 0;
+  const antiCakeBalance = viewer && canUseAntiCakes(state, viewer) ? antiCakeCount(viewer) : 0;
+  const youkaiCakeBalance = youkaiCakeCount(viewer);
+  const chooseAntiCakes = (key: string, cost: number, cakes = viewer?.cakes ?? 0, anti = antiCakeBalance): number => {
+    const max = Math.max(0, Math.min(Math.floor(cost), anti));
+    const fallback = cakes >= cost ? 0 : max >= cost ? cost : Math.ceil(cost - cakes);
+    return Math.max(0, Math.min(max, antiCakeChoices[key] ?? fallback));
+  };
+  const changeAntiCakeChoice = (key: string, amount: number) => setAntiCakeChoices((previous) => ({ ...previous, [key]: amount }));
+  const chooseYoukaiCakes = (key: string, cost: number, cakes: number, youkai: number): number =>
+    Math.max(0, Math.min(cost, youkai, youkaiCakeChoices[key] ?? Math.max(0, cost - cakes)));
+  const changeYoukaiCakeChoice = (key: string, amount: number) => setYoukaiCakeChoices((previous) => ({ ...previous, [key]: amount }));
+  const windowPrice = !isVacuumWindowSkill && selectedWindowSkill ? getSkillElementCost(viewer, { skillId: selectedWindowSkill.skill.id }) : undefined;
+  const windowYoukaiBalance = Math.max(0, youkaiCakeBalance - (windowPrice?.element === YOUKAI_ELEMENT ? windowPrice.perStack * windowSkillStacks : 0));
+  const windowAntiCakes = chooseAntiCakes("window", windowSkillCost, (viewer?.cakes ?? 0) + windowYoukaiBalance);
+  const windowYoukaiCakes = chooseYoukaiCakes("window", windowSkillCost - windowAntiCakes, viewer?.cakes ?? 0, windowYoukaiBalance);
   const attackCost = attackRows.reduce((sum, row) => {
     return sum + rowCost(row);
   }, 0);
   const elementCosts = new Map<string, number>();
+  let thunderBallCost = 0;
+  let bloodQiSpent = 0;
+  let bloodQiRequired = 0;
   const chargeElement = (cost: SkillPlayDefinition["elementCost"], stacks: number) => {
     if (cost) elementCosts.set(cost.element, (elementCosts.get(cost.element) ?? 0) + cost.perStack * stacks);
   };
-  if (mode === "attack") for (const row of attackRows) {
-    if (row.kind === "skill") chargeElement(getSkillElementCost(viewer, { skillId: row.skillId }), row.stacks);
+  const chargeBloodQi = (skillId: SkillId, stacks: number) => {
+    const { cost, minimum } = getSkillBloodQiCosts(skillId, stacks);
+    bloodQiRequired = Math.max(bloodQiRequired, bloodQiSpent + minimum);
+    bloodQiSpent += cost;
+  };
+  if (!selectedFreeMove && mode === "attack") for (const row of attackRows) {
+    if (row.kind === "skill") {
+      for (const cost of getSkillElementCosts(viewer, { skillId: row.skillId })) chargeElement(cost, row.stacks);
+      thunderBallCost += (getSkillPlay(row.skillId)?.itemCost?.perStack ?? 0) * row.stacks;
+      chargeBloodQi(row.skillId, row.stacks);
+    }
   }
-  if (mode === "skill") chargeElement(selectedSkillElementCost, skillStacks);
+  if (!selectedFreeMove && mode === "skill") {
+    for (const cost of selectedSkillElementCost) chargeElement(cost, skillStacks);
+    thunderBallCost = (selectedSkillPlay?.itemCost?.perStack ?? 0) * skillStacks;
+    if (selectedSkill) chargeBloodQi(selectedSkill.skill.id, skillStacks);
+  }
   const elementShortage = [...elementCosts].find(([element, cost]) => cost > getElementAmount(viewer, element));
-  const elementCostLabel = [...elementCosts].map(([element, cost]) => `${cost} ${element}`).join(" ＋ ");
-  const attackCostTooHigh =
-    mode === "attack" && viewer ? attackCost > viewer.cakes : false;
-  const skillCostTooHigh =
-    mode === "skill" && viewer ? skillCost > viewer.cakes : false;
-  const reboundUnavailable =
-    mode === "defense" && defense === "rebound" && (!viewer || viewer.cakes <= 0);
-  const duplicatedTargets = new Set(
-    attackRows.flatMap((row) => rowTargetIds(row)).filter(Boolean)
-  ).size !== attackRows.flatMap((row) => rowTargetIds(row)).filter(Boolean).length;
+  const thunderBallShortage = thunderBallCost > thunderBallCount(viewer);
+  const bloodQiShortage = bloodQiRequired > 0 && !hasBloodQi(viewer, bloodQiRequired);
+  const resourceCostLabel = [...[...elementCosts].map(([element, cost]) => `${cost} ${element}`),
+    ...(thunderBallCost > 0 ? [`${thunderBallCost} 雷球`] : []),
+    ...(bloodQiSpent > 0 ? [`${bloodQiSpent} 血气`] : [])].join(" ＋ ");
+  const freeRebound = selectedFreeMove?.move.type === "defense" || isNextWujinReboundFree(viewer);
+  const reboundCost = viewer ? getReboundCakeCost(state, viewer, freeRebound) : 0;
+  let remainingCakes = viewer?.cakes ?? 0;
+  let remainingAntiCakes = antiCakeBalance;
+  let remainingYoukaiCakes = Math.max(0, youkaiCakeBalance - (elementCosts.get(YOUKAI_ELEMENT) ?? 0));
+  const paymentRows = (mode === "attack" ? attackRows.map((row, index) => ({ key: row.id, cost: rowCost(row), label: `第 ${index + 1} 招` })) :
+    [{ key: "main", cost: mode === "skill" ? skillCost : mode === "defense" && defense === "rebound" ? reboundCost : 0, label: "本次出招" }])
+    .map((row) => {
+      const anti = chooseAntiCakes(row.key, row.cost, remainingCakes + remainingYoukaiCakes, remainingAntiCakes);
+      const maxYoukai = Math.min(row.cost - anti, remainingYoukaiCakes);
+      const youkai = chooseYoukaiCakes(row.key, row.cost - anti, remainingCakes, remainingYoukaiCakes);
+      remainingCakes -= row.cost - anti - youkai;
+      remainingAntiCakes -= anti;
+      remainingYoukaiCakes -= youkai;
+      return { ...row, anti, youkai, maxYoukai };
+    });
+  const attackCostTooHigh = mode === "attack" && remainingCakes < 0;
+  const skillCostTooHigh = mode === "skill" && remainingCakes < 0;
+  const reboundLocked = hasTianyeReboundLock(viewer, state.turnNumber);
+  const reboundUnavailable = mode === "defense" && defense === "rebound" &&
+    (reboundLocked || !freeRebound && (!viewer || !hasReboundCakeBalance(state, viewer) || remainingCakes < 0));
+  const attackTargets = mode === "attack" ? attackRows.flatMap((row) => rowTargetIds(row)).filter(Boolean) : [];
+  const duplicatedTargets = new Set(attackTargets).size !== attackTargets.length;
   const hasAreaMixed =
-    attackRows.length > 1 && attackRows.some((row) => rowIsArea(row));
-  const hasInvalidMultiTargetSkillTargets = attackRows.some((row) =>
+    mode === "attack" && attackRows.length > 1 && attackRows.some((row) => rowIsArea(row));
+  const hasInvalidMultiTargetSkillTargets = mode === "attack" && attackRows.some((row) =>
     Boolean(multiTargetSkillTargetError(state, row))
   );
   const missingTarget =
     (mode === "attack" &&
       attackRows.some((row) => !rowIsArea(row) && rowTargetIds(row).length === 0)) ||
-    (mode === "defense" && defense === "rebound" && !viewerHasScatterRebound && !targetId) ||
-    (mode === "skill" && selectedSkillPlay?.targetMode === "single" && !skillTargetId);
+    (mode === "defense" && defense === "rebound" && !viewerHasScatterRebound &&
+      !reboundTargets.some((target) => target.id === targetId)) ||
+    (selectingTotem && !totemPrimary) ||
+    (selectingShadowMove && !selectedShadowAnchorId) ||
+    (mode === "skill" && (!selectingTotem && !selectingShadowMove && selectedSkillPlay?.targetMode === "single" && !skillTargetId ||
+      selectedSkill?.skill.id === CHARITY_LINK_ID && !skillExtraTargetIds.some(Boolean)));
+  const sakuraFinaleIncomplete = mode === "skill" && selectedSkill?.skill.id === SAKURA_FINALE_ID &&
+    selectedSakuraIds.length !== (state.sakuraFinaleDiscardCount ?? 0);
+  const selectingSwarm = mode === "skill" && selectedSkill?.skill.id === SWARM_RETURN_ID;
+  const selectedSwarmAllocation = Object.fromEntries(SWARM_INSECTS.map((insect) =>
+    [insect, Math.min(swarmAllocation[insect] ?? 0, swarmInsectCount(viewer, insect))]));
+  const swarmIncomplete = selectingSwarm && !selectedFreeMove && (!viewer || !isSwarmAllocationValid(viewer, selectedSwarmAllocation));
+  const tigerStabSelected = mode === "attack" && attackRows.some((row) => row.kind === "skill" && row.skillId === TIGER_STAB);
+  const invalidTigerPower = tigerStabSelected && (!tigerPower.trim() || !Number.isSafeInteger(Number(tigerPower)));
   const actionInvalid = Boolean(
-    elementShortage || attackCostTooHigh ||
+    invalidTigerPower ||
+    (freeMoveId && !selectedFreeMove) || ((mode === "attack" || selectingSwarm) && firstTurnAttackLocked) || swarmIncomplete ||
+      elementShortage || thunderBallShortage || bloodQiShortage || attackCostTooHigh ||
       skillCostTooHigh ||
+      (mode === "skill" && invalidXielingMarks) ||
+      sakuraFinaleIncomplete || karmaSelectionIncomplete ||
       (mode === "skill" && selectedSkill?.skill.id === RELEASE_DAMAGE_ID && !selectedStoredDamage) ||
       (junengBlocked && ((mode === "attack" && attackRows.some((row) => !rowIsArea(row))) ||
-        (mode === "skill" && selectedSkillPlay?.targetMode === "single") ||
+        (mode === "skill" && selectedSkill?.skill.id !== BUBBLE_FINALE && selectedSkillPlay?.targetMode === "single") ||
         (mode === "defense" && defense === "rebound" && !viewerHasScatterRebound))) ||
       (mode === "skill" && (!selectedSkill || !selectedSkillPlay)) ||
       (mode === "skill" && Boolean(selectedSkillTargetError)) ||
@@ -865,7 +1413,16 @@ export function ActionPanel({
       hasAreaMixed ||
       hasInvalidMultiTargetSkillTargets
   );
-  const actionInvalidReason = elementShortage ? `${elementShortage[0]}不足，需要 ${elementShortage[1]} ${elementShortage[0]}` : attackCostTooHigh
+  const actionInvalidReason = freeMoveId && !selectedFreeMove ? "这次免费机会已用完" :
+    invalidTigerPower ? "请输入幽冥刺的整数攻击值" :
+    swarmIncomplete ? "请从库存选择合计10只虫" :
+    karmaSelectionIncomplete ? "请为选中的大卡指定替换卡" :
+    sakuraFinaleIncomplete ? `请选满 ${state.sakuraFinaleDiscardCount} 张可弃置的大卡` :
+    (mode === "attack" || selectingSwarm) && firstTurnAttackLocked ? "本轮第一回合不能攻击" :
+    mode === "skill" && invalidXielingMarks ? "请选择可转换的邪灵印记层数" :
+    thunderBallShortage ? `雷球不足，需要 ${thunderBallCost} 颗` :
+    bloodQiShortage ? `血气不足，需要至少 ${bloodQiRequired} 点` :
+    elementShortage ? `${elementShortage[0]}不足，需要 ${elementShortage[1]} ${elementShortage[0]}` : attackCostTooHigh
     ? `饼不足，需要 ${attackCost} 饼`
     : skillCostTooHigh
       ? `饼不足，需要 ${skillCost} 饼`
@@ -876,7 +1433,7 @@ export function ActionPanel({
           : mode === "skill" && selectedSkillTargetError
             ? selectedSkillTargetError
             : reboundUnavailable
-              ? "饼不足，不能反弹"
+              ? reboundLocked ? "绝坠之翼：无法再次出反弹" : "饼不足，不能反弹"
               : missingTarget
                 ? "还没有选择目标"
                 : duplicatedTargets
@@ -886,8 +1443,8 @@ export function ActionPanel({
                     : hasInvalidMultiTargetSkillTargets
                       ? "追加目标需要补全"
                       : undefined;
-  const actionRecoveryHint = actionInvalid
-    ? attackCostTooHigh || skillCostTooHigh || reboundUnavailable
+  const actionRecoveryHint = !moveBlockReason && actionInvalid
+    ? attackCostTooHigh || skillCostTooHigh || reboundUnavailable || thunderBallShortage
       ? "先改选吃饼或降低消耗"
       : missingTarget
         ? "先选择目标"
@@ -906,25 +1463,25 @@ export function ActionPanel({
   const selectedActionSummary = summarizeActionSelection({
     attackRows,
     cakeGain,
+    gathersYoukai,
     defense,
     mode,
     selectedSkillName: selectedSkill?.skill.name,
     skillCost,
     skillStacks,
     skillTargetNames:
+      selectingShadowMove ? shadowAnchorOptions.filter(({ id }) => id === selectedShadowAnchorId).map(({ name }) => name) :
       selectedSkillPlay?.targetMode === "all"
         ? enemies.filter((enemy) => enemy.id !== viewer?.id).map((enemy) => enemy.name)
         : skillTargetIds.map((id) => getPlayerName(state, id)).filter(Boolean),
     state,
     totalAttackCost: attackCost
   });
-  const lockedActionSummary =
-    huiyueLocked ? "辉月：自动空过" : alreadySubmitted && lastActionSubmission
-      ? summarizeSubmittedAction(lastActionSubmission, state)
-      : "";
+  const lockedActionSummary = moveAutoPassLabel ||
+    (alreadySubmitted && lastActionSubmission ? summarizeSubmittedAction(lastActionSubmission, state) : "");
   const actionDisplaySummary = lockedActionSummary || selectedActionSummary;
   const selectedActionCost =
-    mode === "attack" ? attackCost : mode === "skill" ? skillCost : mode === "defense" && defense === "rebound" ? 1 : 0;
+    mode === "attack" ? attackCost : mode === "skill" ? skillCost : mode === "defense" && defense === "rebound" ? reboundCost : 0;
   const previewTargetIds = useMemo(() => {
     if (!canAct) {
       return [];
@@ -937,10 +1494,14 @@ export function ActionPanel({
       }
     };
 
-    if (mode === "attack") {
+    if (mode === "attack" && lockedHound) {
+      addTarget(lockedHound.id);
+    } else if (mode === "attack") {
       attackRows.forEach((row) => rowTargetIds(row).forEach(addTarget));
     } else if (mode === "skill") {
-      if (selectedSkillPlay?.targetMode === "all") {
+      if (selectingShadowMove) {
+        addTarget(selectedShadowAnchorId);
+      } else if (selectedSkillPlay?.targetMode === "all") {
         enemies
           .filter((enemy) => enemy.id !== viewer?.id)
           .forEach((enemy) => addTarget(enemy.id));
@@ -958,7 +1519,10 @@ export function ActionPanel({
     canAct,
     defense,
     enemies,
+    lockedHound,
     mode,
+    selectingShadowMove,
+    selectedShadowAnchorId,
     selectedSkillPlay?.targetMode,
     skillExtraTargetIds,
     skillTargetId,
@@ -967,7 +1531,7 @@ export function ActionPanel({
     viewerHasScatterRebound
   ]);
   const previewTargetKey = previewTargetIds.join("|");
-  const previewTargetLabel = previewTargetIds.length > 0
+  const previewTargetLabel = moveBlockReason ? "—" : previewTargetIds.length > 0
     ? previewTargetIds.map((id) => getPlayerName(state, id)).join("、")
     : mode === "skill" && selectedSkillPlay?.targetMode === "all"
       ? "全体敌人"
@@ -977,20 +1541,20 @@ export function ActionPanel({
   const attackSubmitName = submitNameForAttackRows(attackRows);
   const submitLabel =
     mode === "gain_cake"
-      ? "提交：吃饼 +1"
+      ? gathersYoukai ? `提交：积妖元 +${cakeGain}` : "提交：吃饼 +1"
       : mode === "defense"
         ? "提交：防御"
         : mode === "attack"
           ? `提交：${attackSubmitName}`
           : `提交：${selectedSkill?.skill.name ?? "技能"}`;
-  const readinessLabel = huiyueLocked ? "辉月生效，自动空过" : alreadySubmitted
+  const readinessLabel = moveBlockReason ? `${moveBlockReason}，自动空过` : alreadySubmitted
       ? "已提交，等待亮招"
       : actionInvalid
         ? "还差一步"
       : "可以锁定";
   const actionBlockReason = !viewer
     ? "请选择座位后再出招"
-    : huiyueLocked ? "辉月生效，本回合不能出招，已自动空过" : alreadySubmitted
+    : moveBlockReason ? moveBlockReason : alreadySubmitted
       ? "已经提交，等待其他玩家"
       : state.phase !== "collecting_actions"
         ? "还没到出招时间"
@@ -1009,7 +1573,7 @@ export function ActionPanel({
     : actionBlockReason
       ? "blocked"
       : "ready";
-  const actionCommandLabel = huiyueLocked ? "辉月：自动空过，无需提交" : alreadySubmitted
+  const actionCommandLabel = moveAutoPassLabel ? `${moveAutoPassLabel}，无需提交` : alreadySubmitted
     ? lockedActionSummary
       ? `已锁定：${lockedActionSummary}`
       : "等待全部玩家亮招"
@@ -1026,21 +1590,26 @@ export function ActionPanel({
   const submitReady = canAct && !submitting && !actionInvalid;
 
   useEffect(() => {
-    if (enemies[0] && !enemies.some((enemy) => enemy.id === targetId)) {
-      setTargetId(enemies[0].id);
-    }
+    setTargetId((current) => reboundTargets.some(({ id }) => id === current) ? current : reboundTargets[0]?.id ?? "");
+  }, [reboundTargets]);
+
+  useEffect(() => {
     setAttackRows((rows) => {
       let changed = false;
       const nextRows = rows.map((row) => {
         const enemyIds = new Set(enemies.map((enemy) => enemy.id));
         const patch: Partial<AttackRow> = {};
+        const validTotemTarget = (row.kind !== "skill" || canSkillSelectTotem(row.skillId)) &&
+          totemOptions.some(({ id }) => id === row.targetId);
 
-        if (enemies[0] && !enemyIds.has(row.targetId)) {
-          patch.targetId = enemies[0].id;
+        const dedicatedTargets = row.kind === "skill" ? specialMoveTargets(row.skillId) : undefined;
+        const available = dedicatedTargets ?? enemies;
+        if (available[0] && !available.some(({ id }) => id === row.targetId) && !validTotemTarget) {
+          patch.targetId = available[0].id;
         }
 
         const extraTargetIds = (row.extraTargetIds ?? []).filter((id) =>
-          enemyIds.has(id)
+          enemyIds.has(id) || canAddTotemAsExtraTarget(row.skillId) && totemOptions.some((totem) => totem.id === id)
         );
         if (
           extraTargetIds.length !== (row.extraTargetIds ?? []).length ||
@@ -1060,14 +1629,17 @@ export function ActionPanel({
       });
       return changed ? nextRows : rows;
     });
-    if (enemies[0] && !enemies.some((enemy) => enemy.id === skillTargetId)) {
-      setSkillTargetId(enemies[0].id);
+    const availableSkillTargets = specialMoveTargets(selectedSkill?.skill.id) ?? enemies;
+    if (availableSkillTargets[0] && !availableSkillTargets.some((enemy) => enemy.id === skillTargetId) &&
+      !(skillCanTargetTotem && totemOptions.some(({ id }) => id === skillTargetId))) {
+      setSkillTargetId(availableSkillTargets[0].id);
     }
     setSkillExtraTargetIds((current) => {
       const next = current.filter(
         (targetId) =>
           targetId !== skillTargetId &&
-          enemies.some((enemy) => enemy.id === targetId)
+          (enemies.some((enemy) => enemy.id === targetId) ||
+            canAddTotemAsExtraTarget(selectedSkill?.skill.id) && totemOptions.some(({ id }) => id === targetId))
       );
       return next.length === current.length ? current : next;
     });
@@ -1077,7 +1649,7 @@ export function ActionPanel({
         ? fatalSourceOptions
         : isWindowHellOverlord
           ? hellOverlordTargetOptions
-          : pursuitSkillId ? pursuitTargetOptions : enemies;
+          : pursuitSkillId ? pursuitTargetOptions : windowSkillCanTargetTotem ? [...enemies, ...totemOptions] : enemies;
     if (
       windowTargetOptions[0] &&
       !windowTargetOptions.some((enemy) => enemy.id === windowSkillTargetId)
@@ -1092,6 +1664,10 @@ export function ActionPanel({
     }
   }, [
     enemies,
+    totemOptions,
+    skillCanTargetTotem,
+    selectedSkill?.skill.id,
+    windowSkillCanTargetTotem,
     fatalSourceOptions,
     hellOverlordTargetOptions,
     isWindowHellOverlord,
@@ -1099,15 +1675,10 @@ export function ActionPanel({
     pursuitTargetOptions,
     isWindowLishang,
     skillTargetId,
-    targetId,
     windowGuessTargetId,
     windowSkillExtraTargetId,
     windowSkillTargetId
   ]);
-
-  useEffect(() => {
-    onPreviewTargets?.(previewTargetKey ? previewTargetKey.split("|") : []);
-  }, [onPreviewTargets, previewTargetKey]);
 
   useEffect(() => {
     return () => onPreviewTargets?.([]);
@@ -1136,7 +1707,7 @@ export function ActionPanel({
 
   useEffect(() => {
     if (!selectedWindowSkill && windowSkills[0]) {
-      setWindowSkillId(windowSkills[0].skill.id);
+      setWindowSkillId(windowSkills[0].optionId);
       setWindowSkillStacks(1);
       return;
     }
@@ -1191,7 +1762,7 @@ export function ActionPanel({
 
     if (isWindowDamageRedirect || isWindowDamageMark) {
       const activeDamageOptions = isWindowDamageRedirect
-        ? redirectableDamageOptions
+        ? [...redirectableDamageOptions, ...starWheelStatusOptions]
         : damageMarkOptions;
       const firstDamageId = activeDamageOptions[0]?.id ?? "";
       if (firstDamageId && !activeDamageOptions.some((item) => item.id === windowDamageId)) {
@@ -1282,6 +1853,7 @@ export function ActionPanel({
     lightningSecondTargetOptions,
     damageMarkOptions,
     redirectableDamageOptions,
+    starWheelStatusOptions,
     shunshouChoiceOptions,
     smallSkills,
     selectedWindowSkill,
@@ -1344,6 +1916,236 @@ export function ActionPanel({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onEnterActionWindow, onPassActionWindow, state.actionWindowMode, state.phase]);
 
+  const collecting = state.phase === "collecting_actions" &&
+    !(state.purpleForesight && "mustSubmit" in state.purpleForesight);
+  const phaseSkills: PhaseSkillOption[] = [];
+  function addPhaseSkill(id: SkillId, controls: ReactNode, label = getSkill(id)?.name ?? id) {
+    phaseSkills.push({ value: `phase:${id}`, label, controls });
+  }
+  function addImmediateSkill(action: SkillAction, label?: string) {
+    addPhaseSkill(action.skillId, (
+      <button type="button" className="btn-primary w-full justify-center" disabled={submitting}
+        onClick={() => onSubmitWindowSkill(action)}>使用技能</button>
+    ), label);
+  }
+  if ((collecting || state.phase === "action_window") && viewer?.status === "alive" &&
+    !sleeping && !isSoulExiled(state, viewer) && !viewer.emptyCityOwnerId &&
+    !state.actionWindowPassPlayerIds.includes(viewer.id) && !state.bloodRitualResistance &&
+    !state.sakuraTurnEndResponse && !state.victoryCounter && !state.retirementCounter &&
+    state.activeTimingPhase !== "turn_reveal_check") {
+    const usable = (id: SkillId) => viewerCanUseSkill(state, viewer, id);
+    if (!state.reversalResponseOnly && !pendingDeathWindow) {
+      const starBreak = usable(TIAN_SHA_STAR_BREAK) && bigAbilitySource(viewer, { skillId: TIAN_SHA_STAR_BREAK }, true);
+      if (starBreak) addImmediateSkill({ type: "skill", skillId: TIAN_SHA_STAR_BREAK, stacks: 1, bigCardInstanceId: starBreak });
+      const beasts = state.activeTimingPhase === "round_before_action" && usable(SACRED_BEAST_ID)
+        ? availableSacredBeasts(viewer, state.roundNumber) : [];
+      if (beasts.length) addPhaseSkill(SACRED_BEAST_ID,
+        <SkillActionChoices label="神兽" submitting={submitting} onSubmit={onSubmitWindowSkill}
+          choices={beasts.map((beast) => ({ id: beast, label: SACRED_BEASTS[beast].name,
+            action: { type: "skill", skillId: SACRED_BEAST_ID, sacredBeast: beast, stacks: 1 } }))} />);
+      if (state.roundNumber >= 2 && usable(TIME_REWIND_ID) && (getSkillUseLimit(viewer, TIME_REWIND_ID) ?? 0) > 0) {
+        addPhaseSkill(TIME_REWIND_ID, <RewindControls state={state} player={viewer}
+          submitting={submitting} onSubmit={onSubmitWindowSkill} />);
+      }
+      const tigerForms = ["round_pre_interval_action", "round_after_interval_action"].includes(state.activeTimingPhase) &&
+        usable(TIGER_SWITCH) ? tigerFormActions(viewer) : [];
+      if (tigerForms.length) addPhaseSkill(TIGER_SWITCH, <SkillActionChoices choices={tigerForms}
+        label="切换形态" submitting={submitting} onSubmit={onSubmitWindowSkill} />, "幽冥白虎 · 切换形态");
+      if (usable(FIVE_ELEMENTS_CHOOSE) && (state.activeTimingPhase === "opening_action" ||
+        state.activeTimingPhase === "round_before_action" && state.roundNumber > 1)) {
+        const sources = bigCardActions(viewer, FIVE_ELEMENTS_CHOOSE, (card) =>
+          canChooseFiveElementsForm(card.fiveElementsForms, state.roundNumber));
+        const choices = sources.flatMap((choice) => viewer.bigCards?.find((card) => card.instanceId === choice.id)?.fiveElementsForms
+          ?.available.flatMap((form) => form === "none" ? [] : [{
+            id: `${choice.id}:${form}`, label: `${FIVE_ELEMENTS_FORMS[form].name}${sources.length > 1 ? ` · ${choice.label}` : ""}`,
+            action: { ...choice.action, cardForm: form }
+          }]) ?? []);
+        if (choices.length) addPhaseSkill(FIVE_ELEMENTS_CHOOSE, <SkillActionChoices key={FIVE_ELEMENTS_CHOOSE}
+          choices={choices} label="五行形态" submitting={submitting} onSubmit={onSubmitWindowSkill} />);
+      }
+      if (usable(HEXAGRAM_CHOOSE) && (state.activeTimingPhase === "opening_action" ||
+        state.activeTimingPhase === "round_before_action" && state.roundNumber > 1)) {
+        const sources = bigCardActions(viewer, HEXAGRAM_CHOOSE, (card) => canChooseRoundCardForm(card.hexagramForms, state.roundNumber));
+        const choices = sources.flatMap((choice) => viewer.bigCards?.find((card) => card.instanceId === choice.id)?.hexagramForms
+          ?.available.flatMap((form) => form === "none" ? [] : [{
+            id: `${choice.id}:${form}`, label: `${HEXAGRAM_FORMS[form].name}${sources.length > 1 ? ` · ${choice.label}` : ""}`,
+            action: { ...choice.action, cardForm: form }
+          }]) ?? []);
+        if (choices.length) addPhaseSkill(HEXAGRAM_CHOOSE, <SkillActionChoices key={HEXAGRAM_CHOOSE} choices={choices}
+          label="六芒形态" submitting={submitting} onSubmit={onSubmitWindowSkill} />);
+      }
+      if (usable(SEVEN_STAR_CHOOSE) && (state.activeTimingPhase === "opening_action" ||
+        state.activeTimingPhase === "round_before_action" && state.roundNumber > 1)) {
+        const sources = bigCardActions(viewer, SEVEN_STAR_CHOOSE, (card) => canChooseRoundCardForm(card.sevenStarForms, state.roundNumber));
+        const choices = sources.flatMap((choice) => viewer.bigCards?.find((card) => card.instanceId === choice.id)?.sevenStarForms
+          ?.available.flatMap((form) => form === "none" ? [] : [{ id: `${choice.id}:${form}`,
+            label: `${SEVEN_STAR_FORMS[form].name}${sources.length > 1 ? ` · ${choice.label}` : ""}`,
+            action: { ...choice.action, cardForm: form } }]) ?? []);
+        if (choices.length) addPhaseSkill(SEVEN_STAR_CHOOSE, <SkillActionChoices key={SEVEN_STAR_CHOOSE} choices={choices}
+          label="七星形态" submitting={submitting} onSubmit={onSubmitWindowSkill} />);
+      }
+      if (usable(HEXAGRAM_SPIRIT) && hexagramRemainingUses(viewer, "1100") >= 2 && state.hexagramCopyChoices?.length) {
+        const choices = state.hexagramCopyChoices.map((choice) => ({
+          id: `${choice.targetBigCardInstanceId}:${choice.targetSkillId}`,
+          label: `${state.players.find(({ id }) => id === choice.targetId)?.name ?? "玩家"} · ${getSkill(choice.targetSkillId)?.name ?? choice.targetSkillId}`,
+          action: { type: "skill" as const, skillId: HEXAGRAM_SPIRIT, stacks: 1, ...choice }
+        }));
+        addPhaseSkill(HEXAGRAM_SPIRIT, <SkillActionChoices key={HEXAGRAM_SPIRIT} choices={choices}
+          label="复制子技能 · 消耗 2 次镜像法术" submitting={submitting} onSubmit={onSubmitWindowSkill} />);
+      }
+      if (state.activeTimingPhase === "turn_change_action" && usable(HEXAGRAM_ABSOLUTE) && hexagramRemainingUses(viewer, HEXAGRAM_SIX_STAR) >= 2 &&
+        !viewer.buffs.some((buff) => buff.sourceAbilityId === HEXAGRAM_ABSOLUTE && buff.expiresAtTurn === state.turnNumber)) {
+        addPhaseSkill(HEXAGRAM_ABSOLUTE, <SkillActionChoices key={HEXAGRAM_ABSOLUTE}
+          choices={bigCardActions(viewer, HEXAGRAM_ABSOLUTE, () => true)} label="绝对无敌 · 消耗 2 次六芒星"
+          submitting={submitting} onSubmit={onSubmitWindowSkill} />);
+      }
+      if (state.activeTimingPhase === "turn_change_action" && usable(HEXAGRAM_RESTORE)) {
+        const choices = bigCardActions(viewer, HEXAGRAM_RESTORE, (card) => Boolean(card.hexagramRestores)).flatMap((choice) => {
+          const card = viewer.bigCards?.find((entry) => entry.instanceId === choice.id);
+          return card ? lostHexagramForms(card).map((form) => ({ id: `${choice.id}:${form}`,
+            label: HEXAGRAM_FORMS[form].name, action: { ...choice.action, cardForm: form } })) : [];
+        });
+        if (choices.length) addPhaseSkill(HEXAGRAM_RESTORE, <SkillActionChoices key={HEXAGRAM_RESTORE} choices={choices}
+          label="恢复已失去的形态" submitting={submitting} onSubmit={onSubmitWindowSkill} />);
+      }
+      if (state.activeTimingPhase === "turn_before_action" && tianyeChoiceOptions(viewer, state.turnNumber).length) {
+        addPhaseSkill(TIAN_YE_CHOICE_ID, <TianyeWingControls state={state} viewer={viewer}
+          enabled={!submitting} onSubmit={onSubmitWindowSkill} />);
+      }
+      if (usable(CURTAIN_FINALE_ID)) addPhaseSkill(CURTAIN_FINALE_ID,
+        <CurtainControls state={state} viewer={viewer} submitting={submitting} onSubmit={onSubmitWindowSkill} />, "谢幕光绮 · 即时使用");
+      const splendorStock = usable(FALLEN_SPLENDOR_RELEASE) && fallenSplendorExecutionStock(viewer);
+      if (splendorStock) addPhaseSkill(FALLEN_SPLENDOR_RELEASE,
+        <FallenSplendorControls key={FALLEN_SPLENDOR_RELEASE} state={state} viewer={viewer} stock={splendorStock}
+          submitting={submitting} onSubmit={onSubmitWindowSkill} />, "陨落天华 · 即时使用");
+      if (getActiveSkillCount(viewer, ORIGIN_SHOT_FUSION) > 0 && !swordArrayPiBlocksSkill(state, viewer, ORIGIN_SHOT_FUSION) &&
+        (collecting || getSkill(ORIGIN_SHOT_FUSION)?.timingPhases.includes(state.activeTimingPhase))) {
+        addImmediateSkill({ type: "skill", skillId: ORIGIN_SHOT_FUSION, stacks: 1 }, "获得 1 次起源弹");
+      }
+      if (usable(SKY_ABSOLUTE_ID)) addPhaseSkill(SKY_ABSOLUTE_ID, <LingtaControls player={viewer}
+        skillId={SKY_ABSOLUTE_ID} submitting={submitting} onSubmit={onSubmitWindowSkill} />, "凌空·天绝（全部饼、10 凌、4 云海）");
+      if (usable(LINGTA_VICTORY_ID)) addPhaseSkill(LINGTA_VICTORY_ID, <LingtaControls player={viewer}
+        skillId={LINGTA_VICTORY_ID} submitting={submitting} onSubmit={onSubmitWindowSkill} />, "凌踏九霄（36 凌、9 云海）");
+      if (usable(CLOUD_SEA_ID)) addPhaseSkill(CLOUD_BYPASS_ID, <LingtaControls player={viewer}
+        skillId={CLOUD_BYPASS_ID} submitting={submitting} onSubmit={onSubmitWindowSkill} />, "云海 · 切换自身出招是否绕过");
+      if (viewer.karmaReincarnation && (collecting || getSkill(KARMA_SONG_END_ID)?.timingPhases.includes(state.activeTimingPhase))) {
+        addImmediateSkill({ type: "skill", skillId: KARMA_SONG_END_ID, stacks: 1 }, "结束轮回");
+      }
+    }
+    if (!state.reversalResponseOnly) {
+      const soulActions = soulRestoreActions(viewer);
+      for (const [id, name] of [[SOUL_RESTORE_EXTINGUISH_ID, "灵熄"], [SOUL_RESTORE_SINK_ID, "魂沉"]] as const) {
+        const choices = soulActions.filter(({ action }) => action.skillId === id);
+        if (choices.length) addPhaseSkill(id, <SkillActionChoices key={id} choices={choices}
+          label="次数来源" submitting={submitting} onSubmit={onSubmitWindowSkill} />, `恢复${name}次数（10 魂）`);
+      }
+      const quickCard = quickHealingCard(viewer, {}, state.roundNumber);
+      if (quickCard && !viewerPendingDeath && !pendingDeathWindow) addPhaseSkill(CHARITY_QUICK_ID, <CharityControls key={CHARITY_QUICK_ID}
+        state={state} viewer={viewer} quickCard={quickCard} submitting={submitting} onSubmit={onSubmitWindowSkill} />);
+      if (hasCharityDestiny(viewer) && hasCharityHealingUses(viewer)) {
+        addPhaseSkill(HEALING_ART_ID, <CharityControls key={HEALING_ART_ID} state={state} viewer={viewer}
+          submitting={submitting} onSubmit={onSubmitWindowSkill} />);
+      }
+    }
+    if (!pendingDeathWindow) {
+      if (!viewer.spaceId && usable(STAR_WHEEL_POSITION)) addPhaseSkill(STAR_WHEEL_POSITION,
+        <StarWheelControls key={STAR_WHEEL_POSITION} state={state} viewer={viewer} skillId={STAR_WHEEL_POSITION}
+          enabled={!submitting} onSubmit={onSubmitWindowSkill} />, "星移 · 座次判定");
+      if (starWheelChoices(state, viewer).length) addPhaseSkill(STAR_WHEEL_RELEASE,
+        <StarWheelControls key={STAR_WHEEL_RELEASE} state={state} viewer={viewer} skillId={STAR_WHEEL_RELEASE}
+          enabled={!submitting} onSubmit={onSubmitWindowSkill} />, "释放星移飞轮封存的招式");
+    }
+    if (!state.reversalResponseOnly && !pendingDeathWindow && viewer.buffs.some(({ stateType }) => stateType === YIYUAN_MIMIC_STATE) &&
+      (collecting || getSkill(YIYUAN_RESTORE)?.timingPhases.includes(state.activeTimingPhase))) {
+      addImmediateSkill({ type: "skill", skillId: YIYUAN_RESTORE, stacks: 1 }, "解除幻化");
+    }
+    if (collecting) {
+      const restartSource = usable(ERA_RESTART) && eraRestartSource(viewer);
+      if (restartSource) addImmediateSkill({
+        type: "skill", skillId: ERA_RESTART, stacks: 1, bigCardInstanceId: restartSource
+      }, "新纪元 · 重新抽卡");
+      for (const id of [RED_LOTUS_NINE, RED_LOTUS_FINALE]) {
+        const source = usable(id) && bigAbilitySource(viewer, { skillId: id }, true);
+        if (source && (id === RED_LOTUS_NINE ? redLotusFlameCount(viewer) >= 9 :
+          !viewer.redLotusFinaleUsed || !getActiveSkillCount(viewer, RED_LOTUS_KARMA))) {
+          addImmediateSkill({ type: "skill", skillId: id, stacks: 1, bigCardInstanceId: source });
+        }
+      }
+      const rebuildStock = bubbleDreamStock(viewer, BUBBLE_REBUILD_STOCK);
+      if (usable(BUBBLE_REBUILD) && rebuildStock > 0) {
+        const choices = bigCardActions(viewer, BUBBLE_REBUILD, (card) => !card.bubbleDreamRebuild);
+        if (choices.length) addPhaseSkill(BUBBLE_REBUILD, <SkillActionChoices key={BUBBLE_REBUILD} choices={choices}
+          label="技能来源" submitting={submitting} onSubmit={onSubmitWindowSkill} />, `自我改造（${rebuildStock} 层）`);
+      }
+      const conversion = usable(FALLEN_SPLENDOR_CONVERT) && viewer.bigCards?.find((card) =>
+        bigAbilitySource(viewer, { skillId: FALLEN_SPLENDOR_CONVERT, bigCardInstanceId: card.instanceId }) &&
+        fallenSplendorHealingRemaining(viewer, card) > 0);
+      if (conversion) addImmediateSkill({
+        type: "skill", skillId: FALLEN_SPLENDOR_CONVERT, stacks: 1, bigCardInstanceId: conversion.instanceId
+      }, "治愈术转为离殇");
+      for (const { skill } of playableSkills) {
+        if (!isDemonSummonSkill(skill.id)) continue;
+        const uses = demonSummonUses(state, viewer, skill.id);
+        if (uses > 0) addPhaseSkill(skill.id, <DemonSummonControls key={skill.id} state={state} viewer={viewer}
+          skillId={skill.id} submitting={submitting} onSubmit={onSubmitWindowSkill} />, `${skill.name} · 剩余 ${uses} 次`);
+      }
+      for (const { skill } of cheatAnytimeSkills) {
+        addPhaseSkill(skill.id, <div className="grid gap-2">
+          {skill.id === CHEAT_NOGLUES_ID ? cheatCardPicker() : null}
+          {skill.id === CHEAT_TRANSFER_ID ? cheatTransferPickers() : null}
+          {skill.id === CHEAT_SHARP_DAMAGE_ID ? <TargetSelect enemies={cheatDamageTargets}
+            targetId={cheatDamageTarget?.id ?? ""} onChange={setWindowSkillTargetId} label="技能目标" /> : null}
+          <p className="text-sm text-gray-600">{skill.description}</p>
+          <button type="button" className="btn-primary w-full justify-center" disabled={submitting || cheatActionIncomplete(skill.id)}
+            onClick={() => {
+              const action: SkillAction = { type: "skill", stacks: 1, skillId: skill.id };
+              addCheatActionChoices(action);
+              onSubmitWindowSkill(action);
+            }}>使用技能</button>
+        </div>, skill.id === CHEAT_SHARP_DAMAGE_ID ? `${skill.name} · 剩余 ${cheatDamageUses} 次` : skill.name);
+      }
+      if (usable(ASURA_RITUAL_UPGRADE_ID) && hasBloodQi(viewer, 50) &&
+        !viewer.buffs.some((buff) => buff.id === "asura_ritual_upgrade")) {
+        addImmediateSkill({ type: "skill", skillId: ASURA_RITUAL_UPGRADE_ID, stacks: 1 }, "修罗·祭（50 血气）");
+      }
+      if (usable(BLOOD_RITUAL_FUSION_ID) && ritualTargets.length) {
+        addPhaseSkill(BLOOD_RITUAL_FUSION_ID, <div className="space-y-2">
+          <TargetSelect enemies={ritualTargets} targetId={ritualFirst?.id ?? ""} onChange={setWindowSkillTargetId} label="祭天第一目标" />
+          {ritualNeedsSecond ? <TargetSelect enemies={ritualSecondChoices} targetId={ritualSecond?.id ?? ""}
+            onChange={setWindowSkillExtraTargetId} label="祭天第二目标" /> : null}
+          <button type="button" className="btn-primary w-full justify-center"
+            disabled={submitting || !ritualFirst || ritualNeedsSecond && !ritualSecond} onClick={() => {
+              if (!ritualFirst) return;
+              const targetIds = ritualNeedsSecond && ritualSecond ? [ritualFirst.id, ritualSecond.id] : [ritualFirst.id];
+              onSubmitWindowSkill({ type: "skill", skillId: BLOOD_RITUAL_FUSION_ID, stacks: 1, targetId: ritualFirst.id, targetIds });
+            }}>使用技能</button>
+        </div>, "祭天");
+      }
+    }
+  }
+  const collectingPhaseSkill = collecting && mode === "skill" ? phaseSkills.find(({ value }) => value === skillId) : undefined;
+  const previewingMainAction = !collectingPhaseSkill && !state.sevenStarLegacy;
+  useEffect(() => {
+    onPreviewTargets?.(previewingMainAction && previewTargetKey ? previewTargetKey.split("|") : []);
+  }, [onPreviewTargets, previewTargetKey, previewingMainAction]);
+
+  if (state.sevenStarLegacy) {
+    const choices = state.sevenStarLegacy.choices.map(({ targetId, cardInstanceId }, index) => ({
+      id: `${cardInstanceId}:${targetId}`,
+      label: state.players.find(({ id }) => id === targetId)?.name ?? `玩家 ${index + 1}`,
+      action: { type: "skill" as const, skillId: SEVEN_STAR_YUHENG, stacks: 1, targetId, bigCardInstanceId: cardInstanceId }
+    }));
+    return <section className="surface-card grid gap-3 p-4">
+      <h3 className="font-bold">复活阶段</h3>
+      {choices.length ? <>
+        <PhaseSkillSelect testId="window-skill-select" selected={windowSkillId}
+          onChange={setWindowSkillId} moves={[]} phaseSkills={[{ value: `phase:${SEVEN_STAR_YUHENG}`, label: "玉衡" }]} />
+        {windowSkillId === `phase:${SEVEN_STAR_YUHENG}` ? <SkillActionChoices choices={choices}
+          label="传承给玩家" submitting={submitting} onSubmit={onSubmitWindowSkill} /> : null}
+        <button type="button" className="btn-secondary" onClick={onPassActionWindow} disabled={submitting}>放弃传承</button>
+      </> : <p>等待玉衡传承结算</p>}
+    </section>;
+  }
   if (state.phase === "action_window") {
     const alreadyPassed = viewer?.id
       ? state.actionWindowPassPlayerIds.includes(viewer.id)
@@ -1351,10 +2153,12 @@ export function ActionPanel({
     const showWindowSkillPanel = state.actionWindowMode === "active" || pendingDeathWindow;
     const canUseWindow =
       viewer?.status === "alive" &&
-      !alreadyPassed &&
-      (state.actionWindowMode === "active" || (pendingDeathWindow && viewerPendingDeath));
+      !alreadyPassed && !sleeping && !isSoulExiled(state, viewer) &&
+      (state.actionWindowMode === "active" || pendingDeathWindow &&
+        (viewerPendingDeath || windowSkills.some(({ skill }) => skill.id === SOUL_EXTINGUISH_ID || skill.id === SAKURA_FALL_ID)));
     const canSelfDestructBeforeTurn =
       viewer?.status === "alive" &&
+      !selfDestructBlockReason &&
       !alreadyPassed &&
       state.activeTimingPhase === "turn_before_action";
     const lateSelfDestructLimit = viewer
@@ -1369,9 +2173,59 @@ export function ActionPanel({
     const canLateSelfDestruct =
       !state.reversalResponseOnly &&
       viewer?.status === "alive" &&
+      !selfDestructBlockReason &&
       !alreadyPassed &&
       state.activeTimingPhase === "turn_change_action" &&
       lateSelfDestructRemaining > 0;
+
+    if (canUseWindow && !state.sakuraTurnEndResponse && !state.bloodRitualResistance) {
+      if (state.eraTargetChoices?.length) addPhaseSkill(ERA_CHOOSE_TARGETS,
+        <EraTargetControls key={state.turnNumber} state={state} disabled={submitting} onSubmit={onSubmitWindowSkill} />, "神控纪元 · 修改目标");
+      if (state.yiyuanRepeatChoice) addPhaseSkill(YIYUAN_REPEAT, <div className="space-y-2">
+        <p className="text-sm">{state.yiyuanRepeatChoice.casterNames.join("、")} 发动一元·永恒</p>
+        <p className="text-sm">下回合复刻 {state.yiyuanRepeatChoice.moves.join("、") || "空过"}</p>
+        <SkillActionChoices key={YIYUAN_REPEAT} label="是否复刻" submitting={submitting} onSubmit={onSubmitWindowSkill}
+          choices={[true, false].map((repeat) => ({
+            id: String(repeat), label: repeat ? "复刻" : "拒绝",
+            action: { type: "skill", skillId: YIYUAN_REPEAT, stacks: 1, yiyuanRepeat: repeat }
+          }))} />
+      </div>, "一元·永恒 · 复刻响应");
+      if (bubbleHit && state.activeTimingPhase === "turn_damage_modify") addPhaseSkill(BUBBLE_FORGET, <div className="space-y-2">
+          <label className="block text-sm font-medium">忘却补正 · 选择单攻
+            <select className="soft-input mt-1 w-full" value={bubbleHit.id} onChange={(event) => setBubbleHitId(event.currentTarget.value)}>
+              {state.bubbleDreamHitChoices?.map(({ id, label, sourceId }) => <option key={id} value={id}>
+                {state.players.find((player) => player.id === sourceId)?.name ?? "玩家"} · {label}
+              </option>)}
+            </select>
+          </label>
+          <button className="btn-primary w-full justify-center" type="button" disabled={submitting}
+            onClick={() => onSubmitWindowSkill({ type: "skill", skillId: BUBBLE_FORGET, stacks: 1, attackResponseId: bubbleHit.id })}>
+            无视该招并获得改造
+          </button>
+        </div>);
+      const insight = state.purpleInsight;
+      if (insight) addPhaseSkill(PURPLE_INSIGHT_ID, <section className="space-y-2" aria-label="入微私密结果">
+        <p>入微 · {state.players.find(({ id }) => id === insight.targetId)?.name} 的子技能「{getSkill(insight.abilityId)?.name ?? insight.abilityId}」</p>
+        <SkillActionChoices key={PURPLE_INSIGHT_ID} label="入微效果" submitting={submitting} onSubmit={onSubmitWindowSkill}
+          choices={(["lose", "gain"] as const).map((choice) => ({
+            id: choice, label: choice === "lose" ? "令其失去 5 轮" : "自己获得 3 轮",
+            action: { type: "skill", skillId: PURPLE_INSIGHT_ID, stacks: 1,
+              bigCardInstanceId: insight.sourceCardId, purpleInsightChoice: choice }
+          }))} />
+      </section>);
+      if (state.thornPierceChoices?.length) addPhaseSkill(THORN_PIERCE_ID, <SkillActionChoices key={THORN_PIERCE_ID}
+        label="穿 · 选择要失效的防御" submitting={submitting} onSubmit={onSubmitWindowSkill}
+        choices={state.thornPierceChoices.map(({ id, label }) => ({ id, label, action: {
+          type: "skill", skillId: THORN_PIERCE_ID, stacks: 1, attackResponseId: id
+        } }))} />, "穿 · 使防御失效");
+      if (lateSelfDestructLimit > 0 && !state.reversalResponseOnly && state.activeTimingPhase === "turn_change_action") {
+        addPhaseSkill(SELF_DESTRUCTER_DEATH_SKILL_ID, <button type="button" className="btn-secondary w-full"
+          disabled={submitting || !canLateSelfDestruct} title={selfDestructBlockReason}
+          onClick={() => onSubmit({ type: "defense", defense: "self_destruct" })}>自爆</button>,
+        `后期自爆（剩余 ${lateSelfDestructRemaining}）`);
+      }
+    }
+    const selectedPhaseSkill = phaseSkills.find(({ value }) => value === windowSkillId);
     const needsSkillTarget = selectedWindowSkill
       ? requiresExposedSkillTarget(selectedWindowSkill.skill)
       : false;
@@ -1404,24 +2258,42 @@ export function ActionPanel({
     const lightningTargetIds = [windowSkillTargetId, windowSkillExtraTargetId].filter(Boolean);
     const lightningResolvedTargetIds =
       viewer && isWindowLightning
-        ? resolveLightningSpellTargetIds(state.players.filter((player) => player.spaceId === viewer.spaceId), viewer.id, lightningTargetIds)
+        ? resolveLightningSpellTargetIds(state.players.filter((player) => canAffectAcrossSpace(state, viewer.id, player.id)), viewer.id, lightningTargetIds)
         : undefined;
     const lightningTargetsInvalid = Boolean(
       isWindowLightning && !junengTargetId &&
         (!lightningResolvedTargetIds ||
           lightningResolvedTargetIds.length !== lightningTargetPlan.targetCount)
     );
-    const windowElementCost = selectedWindowSkill ? getSkillElementCost(viewer, { skillId: selectedWindowSkill.skill.id }) : undefined;
+    const windowElementCost = windowPrice;
     const windowSkillInvalid = Boolean(
         !canUseWindow ||
         !selectedWindowSkill ||
         !selectedWindowSkillPlay ||
+        (isVacuumWindowSkill && !selectedVacuumChoice) ||
+        (isKarmaConvert && (!selectedKarmaConvertFrom || !selectedKarmaConvertTo)) ||
+        (selectedWindowSkill.skill.id === STAR_MOON_CHOOSE_CARD && !selectedStarMoonCard) ||
+        cheatActionIncomplete(selectedWindowSkill.skill.id) ||
+        (isDemonOrder && (!selectedDemon || !demonOrderAvailable(state, selectedDemon, selectedDemonOrder) ||
+          needsDemonTarget && !selectedDemonTarget)) ||
+        (isHoundSummon && !houndSummonTarget) ||
+        (isBloodRitual && (!ritualFirst || ritualNeedsSecond && !ritualSecond)) ||
         (junengBlocked && selectedWindowSkillPlay.targetMode === "single") ||
         (windowElementCost && windowElementCost.perStack * windowSkillStacks > getElementAmount(viewer, windowElementCost.element)) ||
         (selectedWindowSkill.skill.id === STORE_DAMAGE_ID && !storableDamage) ||
+        (selectedWindowSkill.skill.id === QIANQIU_RESPONSE_ID && (!qianqiuGain || windowSkillTargetId === viewer?.id)) ||
+        (selectedWindowSkill.skill.id === SAKURA_FALL_ID && selectedSakuraIds.length !== 1) ||
+        (isTianlieResponse && !tianlieResponse) || (isAttackAttachment && !tianlieAttack) ||
+        (isEternalMove && !eternalMove) ||
+        (isPurpleScale && tianlieAttack && ((!(purpleCanSetPower && purplePower) && !purpleLevel) ||
+          (purpleCanSetPower && purplePower && !validPurpleValue(attackPowerValue(tianlieAttack[1]), Number(purplePower))) ||
+          (purpleLevel && !validPurpleValue(attackLevelValue(tianlieAttack[1]), Number(purpleLevel))))) ||
+        (isAsuraFerry && (!Number.isSafeInteger(asuraFerryQi) || asuraFerryQi < 1 || !hasBloodQi(viewer, 30 + asuraFerryQi))) ||
+        (isChaosWave && !chaosMove) ||
         (selectedWindowSkill.skill.id === STAR_RESIST_ID && !resistibleDamage) ||
         (selectedWindowSkill.skill.id === RELEASE_DAMAGE_ID && !selectedStoredDamage) ||
         (selectedWindowSkill.skill.id === KUISHI_ID && !peekTarget) ||
+        (selectedWindowSkill.skill.id === KURONG_LEAF_ID && (!leafAbilityChoices.length || leafAbilityChoices.length > 3)) ||
         (isWindowAttackMark && (!selectedWindowMarkAttack || (viewer && windowSkillStacks >
           getAttackMarkCapacity(viewer, selectedWindowSkill.skill.id, selectedWindowMarkAttack.actionIndex)))) ||
         (isWindowActionSwitch && !selectedWindowSwitch) ||
@@ -1429,12 +2301,13 @@ export function ActionPanel({
         (isWindowDoubleEdge && !selectedWindowDoubleEdge && !hasWindowAttackAction) ||
         (isWindowLiegong && !selectedWindowLiegong) ||
         (isWindowAbsoluteGuard && !selectedWindowAbsoluteGuard) ||
-        (!isWindowActionSwitch && selectedWindowSkillPlay.targetMode === "single" && !windowSkillTargetId) ||
+        (!isWindowActionSwitch && !isHoundSummon && !isCheatSharpDamage && selectedWindowSkillPlay.targetMode === "single" && !windowSkillTargetId) ||
         (!isWindowActionSwitch && needsSkillTarget && !windowSkillTargetId) ||
         (!isWindowActionSwitch && needsSkillTarget && !windowTargetSkillId) ||
         (!isWindowActionSwitch && isWindowSandTransform && !windowSandSkillId) ||
         (!isWindowActionSwitch && isWindowDamageRedirect && !windowDamageId) ||
         (!isWindowActionSwitch && isWindowDamageMark && !damageMarkOptions.some((item) => item.id === windowDamageId)) ||
+        (isWindowCrystalGuard && (!Number.isSafeInteger(crystalMarkCount) || crystalMarkCount < 1 || crystalMarkCount > maxCrystalMarks)) ||
         (!isWindowActionSwitch && isWindowShunshouSteal && !windowTargetSkillId) ||
         (!isWindowActionSwitch && balanceTargetsInvalid) ||
         (!isWindowActionSwitch && lightningTargetsInvalid) ||
@@ -1447,7 +2320,7 @@ export function ActionPanel({
           (!windowSkillTargetId ||
             !hellOverlordTargetOptions.some((player) => player.id === windowSkillTargetId))) ||
         (pursuitSkillId && !pursuitTargetOptions.some((target) => target.id === windowSkillTargetId)) ||
-        (viewer && windowSkillCost > viewer.cakes)
+        (viewer && windowSkillCost - windowAntiCakes - windowYoukaiCakes > viewer.cakes)
     );
 
     return (
@@ -1459,6 +2332,9 @@ export function ActionPanel({
             <h2 className="text-lg font-black text-gray-950">
               {pendingDeathWindow ? "复活阶段" : "行动阶段"}
             </h2>
+            {pendingDeathWindow && kaigeSpareLives > 0 ? (
+              <p className="mt-1 text-sm text-gray-600">剩余 {kaigeSpareLives} 条备用命。复活阶段结束后，若仍未复活，再结算备用命。</p>
+            ) : null}
             <p className="mt-1 text-sm text-gray-500">
               第 {state.roundNumber} 轮 · 本轮第 {state.roundTurnNumber} 回合 · {state.reversalResponseOnly ? "逆转响应（普通变招已结束）" : phaseLabel(state.activeTimingPhase)}
             </p>
@@ -1478,20 +2354,10 @@ export function ActionPanel({
                 className="btn-secondary justify-center border-rose-200 bg-rose-50 py-3 text-rose-700 hover:bg-rose-100 sm:col-span-2"
                 disabled={submitting || !canSelfDestructBeforeTurn}
                 onClick={() => onSubmit({ type: "defense", defense: "self_destruct" })}
+                title={selfDestructBlockReason}
                 type="button"
               >
                 自爆
-              </button>
-            ) : null}
-            {state.activeTimingPhase === "turn_change_action" &&
-            lateSelfDestructLimit > 0 ? (
-              <button
-                className="btn-secondary justify-center border-rose-200 bg-rose-50 py-3 text-rose-700 hover:bg-rose-100 sm:col-span-2"
-                disabled={submitting || !canLateSelfDestruct}
-                onClick={() => onSubmit({ type: "defense", defense: "self_destruct" })}
-                type="button"
-              >
-                后期自爆（剩余 {lateSelfDestructRemaining}）
               </button>
             ) : null}
             <button
@@ -1531,27 +2397,17 @@ export function ActionPanel({
                 className="btn-secondary w-full justify-center border-rose-200 bg-rose-50 py-3 text-rose-700 hover:bg-rose-100"
                 disabled={submitting || !canSelfDestructBeforeTurn}
                 onClick={() => onSubmit({ type: "defense", defense: "self_destruct" })}
+                title={selfDestructBlockReason}
                 type="button"
               >
                 自爆
-              </button>
-            ) : null}
-            {state.activeTimingPhase === "turn_change_action" &&
-            lateSelfDestructLimit > 0 ? (
-              <button
-                className="btn-secondary w-full justify-center border-rose-200 bg-rose-50 py-3 text-rose-700 hover:bg-rose-100"
-                disabled={submitting || !canLateSelfDestruct}
-                onClick={() => onSubmit({ type: "defense", defense: "self_destruct" })}
-                type="button"
-              >
-                后期自爆（剩余 {lateSelfDestructRemaining}）
               </button>
             ) : null}
             {state.activeTimingPhase === "turn_end_action" ? (
               <div className="rounded-lg border border-indigo-200 bg-indigo-50/70 p-3">
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-indigo-900">
                   <Search className="h-4 w-4" aria-hidden="true" />
-                  技能猜测
+                  {guessBigCard ? "大卡猜测" : "技能猜测"}
                 </div>
                 <div className="grid gap-3 md:grid-cols-[1fr_1.4fr_auto]">
                   <TargetSelect
@@ -1561,11 +2417,11 @@ export function ActionPanel({
                     label="猜测对象"
                   />
                   <label className="block text-sm font-medium text-gray-700">
-                    技能（含融合）
+                    {guessBigCard ? "大卡" : "技能（含融合）"}
                     <input
                       className="soft-input mt-1 w-full"
                       onChange={(event) => setWindowGuessSkillQuery(event.target.value)}
-                      placeholder={`搜索 ${guessSkills.length} 个技能（含融合）`}
+                      placeholder={`搜索 ${guessSkills.length} 张${guessBigCard ? "大卡" : "技能（含融合）"}`}
                       value={windowGuessSkillQuery}
                     />
                     <select
@@ -1575,7 +2431,7 @@ export function ActionPanel({
                     >
                       {filteredGuessSkills.map((skill) => (
                         <option key={skill.id} value={skill.id}>
-                          {skill.name} #{skill.sourceRow}
+                          {skill.label}
                         </option>
                       ))}
                     </select>
@@ -1613,7 +2469,7 @@ export function ActionPanel({
                     >
                       {discardableSkills.map((item) => (
                         <option key={`${item.id}:${item.index}`} value={item.id}>
-                          {item.skill?.name ?? item.id}
+                          {huntLabel(item.id, item.skill?.name ?? item.id)}
                         </option>
                       ))}
                     </select>
@@ -1637,29 +2493,27 @@ export function ActionPanel({
                 </div>
               </div>
             ) : null}
-            {windowSkills.length > 0 ? (
+            {windowSkills.length > 0 || phaseSkills.length > 0 ? (
+              <PhaseSkillSelect testId="window-skill-select" selected={selectedPhaseSkill?.value ?? selectedWindowSkill?.optionId ?? ""}
+                onChange={(id) => {
+                  setWindowSkillId(id);
+                  setWindowSkillStacks(1);
+                  setVacuumChoiceId("");
+                  setDemonOrder("standby");
+                  setDemonTargetId("");
+                }}
+                moves={windowSkills.map(({ skill, optionId }) => ({
+                  value: optionId,
+                  label: optionId === VACUUM_WINDOW_OPTION ? "虚无 · 无耗饼" :
+                    `${skill.id === BLOOD_RITUAL_FUSION_ID ? "祭天" : skill.name} · ${formatSkillCakeCost(skill.id, undefined, viewer)}`
+                }))}
+                phaseSkills={phaseSkills} />
+            ) : null}
+            {selectedPhaseSkill ? selectedPhaseSkill.controls : selectedWindowSkill ? (
               <>
-                <div className="grid gap-3 md:grid-cols-[1fr_96px_1fr]">
-                  <label className="block text-sm font-medium text-gray-700">
-                    技能
-                    <select
-                      className="soft-input mt-1 w-full"
-                      value={selectedWindowSkill?.skill.id ?? ""}
-                      data-testid="window-skill-select"
-                      onChange={(event) => {
-                        setWindowSkillId(event.target.value);
-                        setWindowSkillStacks(1);
-                      }}
-                    >
-                      {windowSkills.map(({ skill, play }) => (
-                        <option key={skill.id} value={skill.id}>
-                          {skill.name} · {formatSkillCakeCost(skill.id, undefined, viewer)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="block text-sm font-medium text-gray-700">
-                    重数
+                <div className={isDemonOrder || isDemonSummon || isVacuumWindowSkill ? "grid gap-3 md:grid-cols-2" : "grid gap-3 md:grid-cols-[96px_1fr]"}>
+                  {!isDemonOrder && !isDemonSummon && !isVacuumWindowSkill ? <label className="block text-sm font-medium text-gray-700">
+                    {isTianlieMight ? "额外耗饼" : "重数"}
                     <input
                       className="soft-input mt-1 w-full"
                       min={1}
@@ -1672,8 +2526,79 @@ export function ActionPanel({
                         )
                       }
                     />
-                  </label>
-                  {selectedWindowSkill?.skill.id === STAR_RAGE_ID ? (
+                  </label> : null}
+                  {isVacuumWindowSkill ? (
+                    <label className="block text-sm font-medium text-gray-700">
+                      次数来源
+                      <select className="soft-input mt-1 w-full" value={selectedVacuumChoice?.id ?? ""}
+                        onChange={(event) => setVacuumChoiceId(event.currentTarget.value)}>
+                        {vacuumChoices.map(({ id, label, available }) =>
+                          <option key={id} value={id} disabled={!available}>{label}</option>)}
+                      </select>
+                    </label>
+                  ) : isChaosWave ? (
+                    <label className="block text-sm font-medium text-gray-700">
+                      选择要附加乱之波动的出招
+                      <select className="soft-input mt-1 w-full" value={chaosMove?.index ?? ""}
+                        onChange={(event) => setTianlieAttackIndex(Number(event.target.value))}>
+                        {chaosMoves.map(({ index, action }) =>
+                          <option key={index} value={index}>{index + 1}. {action.type === "skill" ?
+                            getSkill(action.skillId)?.name ?? action.skillId : getActionLabel(action)}</option>)}
+                      </select>
+                    </label>
+                  ) : isEternalMove ? (
+                    <label className="block text-sm font-medium">
+                      选择永久续发的出招
+                      <select className="soft-input mt-1 w-full" value={eternalMove?.index ?? ""}
+                        onChange={(event) => setEternalMoveIndex(Number(event.currentTarget.value))}>
+                        {state.eternalMoveChoices?.map(({ index, label }) => <option key={index} value={index}>{label}</option>)}
+                      </select>
+                    </label>
+                  ) : isTianlieResponse || isAttackAttachment ? (
+                    <>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {isPurpleScale || isBubbleEnhance || isColdLight ? "选择本回合出招" : isAttackAttachment ? "选择本回合攻击" : "选择未命中的攻击"}
+                      <select className="soft-input mt-1 w-full" value={isAttackAttachment ? tianlieAttack?.[0] ?? "" : tianlieResponse?.id ?? ""}
+                        onChange={(event) => isAttackAttachment ? setTianlieAttackIndex(Number(event.target.value)) : setTianlieResponseId(event.target.value)}>
+                        {isAttackAttachment ? tianlieAttacks.map(([index, stats]) => <option key={index} value={index}>{stats.name}</option>) :
+                          tianlieChoices.map((choice) => <option key={choice.id} value={choice.id}>{choice.label}</option>)}
+                      </select>
+                    </label>
+                    {isFiveElementsLevel && tianlieAttack ? <label className="text-sm">
+                      等级运算
+                      <select className="soft-input mt-1 w-full" value={fiveElementsOperation}
+                        onChange={(event) => setFiveElementsOperation(event.currentTarget.value as FiveElementsOperation)}>
+                        {FIVE_ELEMENTS_OPERATIONS.map((operation, index) => <option key={operation} value={operation}>
+                          {["加无限", "减无限", "乘无限", "除以无限"][index]}
+                        </option>)}
+                      </select>
+                    </label> : null}
+                    {isColdLight && tianlieAttack ? <label className="text-sm">
+                      强化数值
+                      <select className="soft-input mt-1 w-full" value={coldTargetField}
+                        onChange={(event) => setColdLightField(event.currentTarget.value as ColdLightField)}>
+                        {!tianlieAttack[1].nonAttackMove && <option value="power">攻击</option>}
+                        {!tianlieAttack[1].noClashLevel && <option value="level">等级</option>}
+                      </select>
+                    </label> : null}
+                    {isPurpleScale && tianlieAttack ? <div className="grid grid-cols-2 gap-2">
+                      {purpleCanSetPower ? <label className="text-xs">
+                        攻击（原值 {formatAttackStatNumber(tianlieAttack[1].power, tianlieAttack[1].powerValue)}）
+                        <input aria-label="浩瀚攻击" className="soft-input mt-1 w-full" type="number" step={1} placeholder="留空保留"
+                          value={purplePower} onChange={(event) => setPurplePower(event.target.value)} />
+                      </label> : null}
+                      <label className="text-xs">等级（原值 {formatAttackStatNumber(tianlieAttack[1].level, tianlieAttack[1].levelValue)}）
+                        <input aria-label="浩瀚等级" className="soft-input mt-1 w-full" type="number" step={1} placeholder="留空保留"
+                          value={purpleLevel} onChange={(event) => setPurpleLevel(event.target.value)} />
+                      </label>
+                    </div> : null}
+                    {isAsuraFerry ? <label className="block text-xs">
+                      消耗血气（至少保留 30）
+                      <input className="soft-input mt-1 w-full" type="number" min={1} max={Math.floor(bloodQiNumber(viewer) - 30)}
+                        value={asuraFerryQi || ""} onChange={(event) => setAsuraFerryQi(Number(event.target.value))} />
+                    </label> : null}
+                    </>
+                  ) : selectedWindowSkill?.skill.id === STAR_RAGE_ID ? (
                     <label className="block text-sm font-medium text-gray-700">
                       消耗 3 层星印记
                       <select className="soft-input mt-1 w-full"
@@ -1767,7 +2692,31 @@ export function ActionPanel({
                         当前没有可获得的候选技能
                       </div>
                     )
-                  ) : selectedWindowSkillPlay?.targetMode === "single" || needsSkillTarget ? (
+                  ) : isBloodRitual ? (
+                    <>
+                      <TargetSelect enemies={ritualTargets} targetId={ritualFirst?.id ?? ""} onChange={setWindowSkillTargetId} label="祭天第一目标" />
+                      {ritualNeedsSecond ? <TargetSelect enemies={ritualSecondChoices}
+                        targetId={ritualSecond?.id ?? ""} onChange={setWindowSkillExtraTargetId} label="祭天第二目标" /> : null}
+                    </>
+                  ) : isDemonOrder ? (
+                    <TargetSelect enemies={orderDemons} targetId={selectedDemon?.id ?? ""} label="指挥恶魔" onChange={(id) => {
+                      setDemonId(id);
+                      setDemonOrder("standby");
+                      setDemonTargetId("");
+                    }} />
+                  ) : selectedWindowSkill?.skill.id === DEMON_GUARD_ID ? (
+                    <DemonPlacementSelect value={demonPlacement} onChange={setDemonPlacement} />
+                  ) : selectedWindowSkill?.skill.id === STAR_MOON_CHOOSE_CARD ? (
+                    <label className="text-sm">
+                      获得的大卡
+                      <select value={selectedStarMoonCard?.instanceId ?? ""} onChange={(event) => setStarMoonCardId(event.target.value)}>
+                        <option value="">请选择命中目标的大卡</option>
+                        {starMoonChoices.map(({ targetId, instanceId, label }) => (
+                          <option key={instanceId} value={instanceId}>{state.players.find(({ id }) => id === targetId)?.name} · {label}</option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : isCheatCardPick ? cheatCardPicker() : isCheatTransfer ? null : selectedWindowSkillPlay?.targetMode === "single" || needsSkillTarget ? (
                     <>
                       <TargetSelect
                         enemies={
@@ -1779,12 +2728,13 @@ export function ActionPanel({
                                 ? fatalSourceOptions
                                 : isWindowHellOverlord
                                   ? hellOverlordTargetOptions
-                                  : pursuitSkillId ? pursuitTargetOptions : enemies
+                                  : pursuitSkillId ? pursuitTargetOptions : isHoundSummon ? houndSummonTargets :
+                                    isCheatSharpDamage ? cheatDamageTargets : windowSkillCanTargetTotem ? [...enemies, ...totemOptions] : enemies
                         }
-                        targetId={windowSkillTargetId}
+                        targetId={isHoundSummon ? houndSummonTarget?.id ?? "" : isCheatSharpDamage ? cheatDamageTarget?.id ?? "" : windowSkillTargetId}
                         onChange={setWindowSkillTargetId}
                         label={
-                          needsSkillTarget
+                          isHoundSummon ? "召唤目标" : needsSkillTarget
                             ? "技能持有者"
                             : isWindowLishang
                               ? "致死者"
@@ -1802,13 +2752,58 @@ export function ActionPanel({
                         />
                       ) : null}
                     </>
-                  ) : (
+                  ) : !isDemonSummon ? (
                     <div className="self-end rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-sm text-teal-800">
                       {selectedWindowSkillPlay?.targetMode === "all" ? "作用全体敌人" : "不需要目标"}
                     </div>
-                  )}
+                  ) : null}
                 </div>
+                {isDemonOrder && selectedDemon ? (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      下达指令
+                      <select className="soft-input mt-1 w-full" value={selectedDemonOrder}
+                        onChange={(event) => setDemonOrder(event.currentTarget.value as DemonOrder)}>
+                        {availableOrders.map((order) => {
+                          const ready = demonOrderAvailable(state, selectedDemon, order);
+                          return <option key={order} value={order} disabled={!ready}>
+                            {DEMON_ORDER_LABELS[order]}{ready ? "" : "（本回合不可用）"}
+                          </option>;
+                        })}
+                      </select>
+                    </label>
+                    {needsDemonTarget ? <TargetSelect enemies={demonTargets} targetId={selectedDemonTarget?.id ?? ""}
+                      label="指令目标" onChange={setDemonTargetId} allowEmpty
+                      emptyLabel={demonTargets.length ? "请选择目标" : "没有可选目标"} /> : null}
+                    <p className="text-sm text-gray-600 sm:col-span-2">
+                      已设定指令 · {DEMON_ORDER_LABELS[currentDemonOrder]}
+                      {currentDemonOrder !== "standby" && selectedDemon.summon?.demonTargetId ?
+                        ` → ${state.players.find(({ id }) => id === selectedDemon.summon?.demonTargetId)?.name ?? "目标已离场"}` : ""}
+                      {selectedDemon.summon?.demonPowered ? " · 恶魔力量已开启" : ""}
+                    </p>
+                  </div>
+                ) : null}
                 {selectedWindowSkill?.skill.id === FOUR_EMPTINESS_ID ? <BlindSkillPicker state={state} selected={selectedBlindIds} onChange={setBlindSelected} limit={16} /> : null}
+                {selectedWindowSkill?.skill.id === SAKURA_FALL_ID ? sakuraPicker(1) : null}
+                {isKarmaConvert ? <div className="grid gap-2 sm:grid-cols-2">
+                  <label className="block text-sm">使用哪项技能转换
+                    <select className="soft-input mt-1 w-full" value={selectedKarmaConvertFrom} onChange={(event) => {
+                      setKarmaConvertFrom(event.currentTarget.value);
+                      setKarmaConvertTo("");
+                    }}>
+                      <option value="">请选择技能</option>
+                      {karmaConversionSources.map((id) => <option key={id} value={id}>{getSkill(id)?.name ?? id}</option>)}
+                    </select>
+                  </label>
+                  <label className="block text-sm">转换成哪项技能
+                    <select className="soft-input mt-1 w-full" value={selectedKarmaConvertTo}
+                      disabled={!selectedKarmaConvertFrom} onChange={(event) => setKarmaConvertTo(event.currentTarget.value)}>
+                      <option value="">请选择技能</option>
+                      {karmaConversionTargets.map((id) => <option key={id} value={id}>{getSkill(id)?.name ?? id}</option>)}
+                    </select>
+                  </label>
+                </div> : null}
+                {isCheatTransfer ? cheatTransferPickers() : null}
                 {selectedWindowSkill?.skill.id === SLOT_MACHINE_ID && readySlotMachines.length > 1 ? <label className="block text-sm">重抽的老虎机
                   <select className="soft-input mt-1 w-full" value={chosenSlotMachine?.id ?? ""} onChange={(event) => setSlotMachineId(event.target.value)}>
                     {readySlotMachines.map((entry, index) => <option key={entry.id} value={entry.id}>第 {index + 1} 组</option>)}
@@ -1827,6 +2822,12 @@ export function ActionPanel({
                     {storableDamages.map((item) => <option key={item.id} value={item.id}>{formatPendingDamageLabel(state, item)}</option>)}
                   </select>
                 </label> : null}
+                {selectedWindowSkill?.skill.id === QIANQIU_RESPONSE_ID ? <label className="block text-sm">
+                  选择要响应的防御值
+                  <select className="soft-input mt-1 w-full" value={qianqiuGain?.id ?? ""} onChange={(event) => setDefenseGainId(event.target.value)}>
+                    {qianqiuGains.map((buff) => <option key={buff.id} value={buff.id}>{buff.name}</option>)}
+                  </select>
+                </label> : null}
                 {selectedWindowSkill?.skill.id === RELEASE_DAMAGE_ID ? storedDamageSelect() : null}
                 {selectedWindowSkill?.skill.id === KUISHI_ID ? <label className="block text-sm">
                   选择并公开声明要复制的大卡
@@ -1837,14 +2838,35 @@ export function ActionPanel({
                     </option>)}
                   </select>
                 </label> : null}
+                {selectedWindowSkill?.skill.id === KURONG_LEAF_ID && <div className="space-y-2">
+                  <p className="text-sm">已选择 {leafAbilityChoices.length}/3 项。每张卡可选一项。</p>
+                  {leafCards.map(({ ownerId, cardId, cardInstanceId, abilityIds }) => {
+                    const card = getBigCard(cardId);
+                    const selected = leafSelections[cardInstanceId] ?? "";
+                    return <label key={cardInstanceId} className="block text-sm">
+                      {getPlayerName(state, ownerId)} · {card?.name ?? cardId}
+                      <select className="soft-input mt-1 w-full" value={selected}
+                        disabled={leafAbilityChoices.length >= 3 && !selected}
+                        onChange={(event) => setLeafSelections((prior) => ({ ...prior, [cardInstanceId]: event.target.value }))}>
+                        <option value="">不选这张卡</option>
+                        {card?.abilities.filter(({ id }) => abilityIds.includes(id)).map(({ id, description }) =>
+                          <option key={id} value={id}>{id} · {description.length > 62 ? `${description.slice(0, 62)}…` : description}</option>)}
+                      </select>
+                      {selected && <span className="mt-1 block text-xs text-gray-600">
+                        {card?.abilities.find(({ id }) => id === selected)?.description}
+                      </span>}
+                    </label>;
+                  })}
+                </div>}
                 {isWindowDamageRedirect ? (
                   <label className="block text-sm font-medium text-gray-700">
-                    待转移伤害
+                    {automaticStarWheel ? "待转移的伤害、不良或印记（按逆时针自动尝试）" : "待转移伤害"}
                     <select
                       className="soft-input mt-1 w-full"
                       value={windowDamageId}
                       onChange={(event) => setWindowDamageId(event.target.value)}
                     >
+                      {starWheelStatusOptions.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
                       {redirectableDamageOptions.map((item) => (
                         <option key={item.id} value={item.id}>
                           {formatPendingDamageLabel(state, item)}
@@ -1872,6 +2894,13 @@ export function ActionPanel({
                         </option>
                       ))}
                     </select>
+                  </label>
+                ) : null}
+                {isWindowCrystalGuard ? (
+                  <label className="block text-sm font-medium text-gray-700">
+                    消耗护佑印记层数
+                    <input type="number" className="soft-input mt-1 w-full" min={1} max={maxCrystalMarks}
+                      value={crystalMarkCount} onChange={(event) => setCrystalMarkCount(event.target.valueAsNumber || 0)} />
                   </label>
                 ) : null}
                 {isWindowActionSwitch ? (
@@ -1931,7 +2960,7 @@ export function ActionPanel({
                         const stats = previewPlayerAttackStats(state, viewer.id).stats[selectedWindowAttackStatModifier.actionIndex];
                         const action = state.revealedActions?.[viewer.id]?.actions[selectedWindowAttackStatModifier.actionIndex];
                         return stats && action ? <span className="mt-2 block text-xs" data-testid="attack-stat-current">
-                          当前：{actionHasCakeCost(action, viewer) ? `耗饼 ${formatAttackStatNumber(stats.cost, stats.costValue)}` : "无耗饼"} · 攻击 {formatAttackDamageParts(stats)} · 等级 {formatAttackStatNumber(stats.level, stats.levelValue)}
+                          当前：{actionHasCakeCost(action, viewer) ? `耗饼 ${formatAttackStatNumber(stats.cost, stats.costValue)}` : "无耗饼"} · 攻击 {formatAttackDamageParts(stats)} · {stats.noClashLevel ? "无等级" : `等级 ${formatAttackStatNumber(stats.level, stats.levelValue)}`}
                         </span> : null;
                       })() : null}
                     </label>
@@ -2017,19 +3046,31 @@ export function ActionPanel({
                   <TargetSelect enemies={enemies} targetId={magicThirdTargetId || enemies[0]?.id || ""} onChange={setMagicThirdTargetId} label="魔域目标 3" />
                   <p className="text-xs text-gray-500 sm:col-span-3">可重复选择同一玩家，每次吸取 1 血。</p>
                 </div> : null}
-                <div className="grid gap-2 text-sm text-gray-600 sm:grid-cols-3">
-                  <Stat label="消耗" value={formatSkillCakeCost(selectedWindowSkill?.skill.id, windowSkillCost, viewer, windowSkillStacks)} />
-                  <Stat label="阶段" value={phaseLabel(state.activeTimingPhase)} />
-                  <Stat label="次数" value={selectedWindowSkillPlay?.usesPerGame ? "本局限定" : "可重复"} />
-                </div>
-                <p className="text-sm leading-6 text-gray-600">
-                  {selectedWindowSkill?.skill.description}
-                </p>
+                {!isVacuumWindowSkill ? (
+                  <>
+                    <div className="grid gap-2 text-sm text-gray-600 sm:grid-cols-3">
+                      <Stat label="消耗" value={windowElementCost ? `${windowElementCost.perStack * windowSkillStacks} ${windowElementCost.element}` :
+                        formatSkillCakeCost(selectedWindowSkill?.skill.id, windowSkillCost, viewer, windowSkillStacks)} />
+                      <Stat label="阶段" value={phaseLabel(state.activeTimingPhase)} />
+                      <Stat label="次数" value={isCheatSharpDamage ? `剩余 ${cheatDamageUses} 次` : summonUses === undefined ?
+                        selectedWindowSkillPlay?.usesPerGame ? "本局限定" : "可重复" : `剩余 ${summonUses} 次`} />
+                    </div>
+                    <p className="text-sm leading-6 text-gray-600">
+                      {selectedWindowSkill?.skill.description}
+                    </p>
+                  </>
+                ) : null}
                 <button
                   className="btn-primary w-full justify-center py-3 disabled:cursor-not-allowed disabled:bg-gray-300"
                   disabled={submitting || windowSkillInvalid}
                   onClick={() => {
                     if (!selectedWindowSkill) {
+                      return;
+                    }
+
+                    if (isVacuumWindowSkill && selectedVacuumChoice) {
+                      onSubmitWindowSkill({ type: "skill", skillId: VACUUM_FLASH_SKILL_ID, stacks: 1,
+                        bigCardInstanceId: selectedVacuumChoice.cardId, vacuumUse: selectedVacuumChoice.mode });
                       return;
                     }
 
@@ -2045,14 +3086,47 @@ export function ActionPanel({
                     const action: SkillAction = {
                       type: "skill",
                       skillId: selectedWindowSkill.skill.id,
-                      stacks: windowSkillStacks
+                      stacks: isDemonSummon || isDemonOrder ? 1 : windowSkillStacks,
+                      ...(windowAntiCakes ? { antiCakeSpent: windowAntiCakes } : {}),
+                      ...(windowYoukaiCakes ? { youkaiCakeSpent: windowYoukaiCakes } : {})
                     };
+                    if (action.skillId === DEMON_GUARD_ID) action.demonPlacement = demonPlacement;
+                    if (isKarmaConvert) {
+                      action.karmaConvertFromSkillId = selectedKarmaConvertFrom;
+                      action.karmaConvertToSkillId = selectedKarmaConvertTo;
+                    }
+                    addCheatActionChoices(action);
+                    if (isDemonOrder && selectedDemon) {
+                      action.demonId = selectedDemon.id;
+                      action.demonOrder = selectedDemonOrder;
+                      if (needsDemonTarget && selectedDemonTarget) action.targetId = selectedDemonTarget.id;
+                    }
                     if (action.skillId === STORE_DAMAGE_ID && storableDamage) action.targetDamageId = storableDamage.id;
+                    if (action.skillId === QIANQIU_RESPONSE_ID && qianqiuGain) action.defenseGainId = qianqiuGain.id;
+                    if (isTianlieResponse && tianlieResponse) action.attackResponseId = tianlieResponse.id;
+                    if (isAttackAttachment && tianlieAttack) action.switchActionIndex = Number(tianlieAttack[0]);
+                    if (isFiveElementsLevel) action.fiveElementsLevelOperation = fiveElementsOperation;
+                    if (isColdLight) action.coldLightField = coldTargetField;
+                    if (isEternalMove && eternalMove) action.switchActionIndex = eternalMove.index;
+                    if (isPurpleScale) {
+                      if (purpleCanSetPower && purplePower) action.purplePower = Number(purplePower);
+                      if (purpleLevel) action.purpleLevel = Number(purpleLevel);
+                    }
+                    if (action.skillId === PURPLE_FORESIGHT_ID && purpleForesightCard) action.bigCardInstanceId = purpleForesightCard.instanceId;
+                    if (action.skillId === PURPLE_INSIGHT_ID && purpleInsightCard) action.bigCardInstanceId = purpleInsightCard.instanceId;
+                    if (isAsuraFerry) action.bloodQiSpent = asuraFerryQi;
+                    if (isChaosWave && chaosMove) action.switchActionIndex = chaosMove.index;
                     if (action.skillId === FOUR_EMPTINESS_ID) action.removeSkillInstanceIds = selectedBlindIds;
+                    if (action.skillId === SAKURA_FALL_ID) {
+                      if (selectedSakuraIds.length !== 1) return;
+                      action.removeSkillInstanceIds = selectedSakuraIds;
+                      setSakuraSelected([]);
+                    }
                     if (action.skillId === SLOT_MACHINE_ID && chosenSlotMachine) action.rerollFusionInstanceId = chosenSlotMachine.id;
                     if (action.skillId === STAR_RESIST_ID && resistibleDamage) action.targetDamageId = resistibleDamage.id;
                     if (action.skillId === RELEASE_DAMAGE_ID && selectedStoredDamage) action.storedDamageId = selectedStoredDamage.id;
                     if (action.skillId === KUISHI_ID && peekTarget) action.targetBigCardInstanceId = peekTarget.instanceId;
+                    if (action.skillId === KURONG_LEAF_ID) action.leafAbilityChoices = leafAbilityChoices;
                     if (action.skillId === STAR_RAGE_ID) action.targetSkillId = windowTargetSkillId === STAR_RAGE_SIX_STAR ? STAR_RAGE_SIX_STAR : STAR_RAGE_ID;
                     if (isWindowActionSwitch && selectedWindowSwitch) {
                       action.switchActionIndex = selectedWindowSwitch.actionIndex;
@@ -2069,6 +3143,7 @@ export function ActionPanel({
                       action.switchActionIndex = selectedWindowDoubleEdge.actionIndex;
                       action.targetId = selectedWindowDoubleEdge.targetId;
                       if (selectedWindowDoubleEdge.mode) action.doubleEdgeMode = selectedWindowDoubleEdge.mode;
+                      if (selectedWindowDoubleEdge.cardId) action.bigCardInstanceId = selectedWindowDoubleEdge.cardId;
                     } else if (isWindowDoubleEdge) {
                       action.switchActionIndex = 0;
                     }
@@ -2082,19 +3157,25 @@ export function ActionPanel({
                       if (selectedWindowAbsoluteGuard.mode === "area_to_sky") action.absoluteGuardToSky = true;
                     }
                     if (!isWindowActionSwitch && selectedWindowSkillPlay?.targetMode === "single") {
-                      action.targetId = windowSkillTargetId;
+                      action.targetId = houndSummonTarget?.id ?? (isCheatSharpDamage ? cheatDamageTarget?.id ?? "" : windowSkillTargetId);
                     }
                     if (!isWindowActionSwitch && isWindowDamageRedirect) {
-                      action.targetDamageId = windowDamageId;
+                      if (starWheelStatusOptions.some(({ id }) => id === windowDamageId)) action.starWheelStatusId = windowDamageId;
+                      else action.targetDamageId = windowDamageId;
                     }
                     if (!isWindowActionSwitch && isWindowDamageMark) {
                       action.targetDamageId = windowDamageId;
+                      if (isWindowCrystalGuard) action.crystalMarkCount = crystalMarkCount;
                     }
                     if (!isWindowActionSwitch && isWindowShunshouSteal) {
                       action.targetSkillId = windowTargetSkillId;
                     }
                     if (!isWindowActionSwitch && isWindowBalance) {
                       action.targetIds = [windowSkillTargetId, windowSkillExtraTargetId];
+                    }
+                    if (isBloodRitual && ritualFirst) {
+                      action.targetId = ritualFirst.id;
+                      action.targetIds = ritualNeedsSecond && ritualSecond ? [ritualFirst.id, ritualSecond.id] : [ritualFirst.id];
                     }
                     if (isWindowMagic) action.targetIds = [windowSkillTargetId || enemies[0]?.id, windowSkillExtraTargetId || enemies[0]?.id,
                       magicThirdTargetId || enemies[0]?.id].filter((id): id is string => Boolean(id));
@@ -2111,19 +3192,28 @@ export function ActionPanel({
                     if (!isWindowActionSwitch && isWindowSandTransform) {
                       action.targetSkillId = windowSandSkillId;
                     }
+                    if (action.skillId === STAR_MOON_CHOOSE_CARD) {
+                      if (!selectedStarMoonCard) return;
+                      action.targetBigCardInstanceId = selectedStarMoonCard.instanceId;
+                    }
                     onSubmitWindowSkill(action);
                   }}
                   type="button"
                 >
                   <Send className="h-4 w-4" aria-hidden="true" />
-                  使用技能
+                  {isDemonOrder ? "下达指令" : isDemonSummon ? "召唤" : "使用技能"}
                 </button>
+                {antiCakeBalance > 0 && windowSkillCost > 0 ? <AntiCakePayment key="window" label="本次技能" cost={windowSkillCost}
+                  balance={antiCakeBalance} anti={windowAntiCakes} onChange={(amount) => changeAntiCakeChoice("window", amount)} /> : null}
+                {windowYoukaiBalance > 0 && windowSkillCost > 0 ? <YoukaiCakePayment label="本次技能"
+                  max={Math.min(windowYoukaiBalance, windowSkillCost - windowAntiCakes)} amount={windowYoukaiCakes}
+                  onChange={(amount) => changeYoukaiCakeChoice("window", amount)} /> : null}
               </>
-            ) : (
+            ) : phaseSkills.length === 0 ? (
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                 当前阶段没有可主动使用的技能。
               </div>
-            )}
+            ) : null}
             <button
               className="btn-secondary w-full justify-center py-3"
               data-testid="pass-action-window"
@@ -2131,7 +3221,7 @@ export function ActionPanel({
               onClick={onPassActionWindow}
               type="button"
             >
-              结束行动
+              {pendingDeathWindow ? "结束复活响应" : "结束行动"}
             </button>
             <button
               className="btn-secondary w-full justify-center py-3"
@@ -2151,20 +3241,56 @@ export function ActionPanel({
     );
   }
 
+  function selectMode(nextMode: Mode) {
+    setFreeMoveId("");
+    setMode(nextMode);
+  }
+
+  function selectFreeMove(id: string) {
+    setFreeMoveId(id);
+    const move = freeMoveChoices.find((choice) => choice.id === id)?.move;
+    if (!move) return;
+    if (move.type === "defense") {
+      setMode("defense");
+      setDefense(move.defense);
+    } else if (move.type === "gain_cake") {
+      setMode("gain_cake");
+    } else if (move.type === "skill" && (getSkillPlay(move.skillId)?.kind !== "attack" ||
+      move.skillId === ELECTRIC_SHOCK_SKILL_ID || move.skillId === SWARM_RETURN_ID ||
+      move.skillId === DRAGON_BLOOD_FIELD_ID && dragonBloodMode === "heal")) {
+      setMode("skill");
+      setSkillId(move.skillId);
+      setSkillStacks(move.stacks);
+      setSkillExtraTargetIds([]);
+    } else {
+      setMode("attack");
+      setAttackExtraEffectTargetId("");
+      setAttackRows([{ id: "free-move", kind: move.type, attackId: move.type === "attack" ? move.attackId : "sha",
+        skillId: move.type === "skill" ? move.skillId : "", stacks: move.stacks, targetId: enemies[0]?.id ?? "" }]);
+    }
+  }
+
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (!canAct || submitting) {
+    if (!canAct || submitting || actionInvalid || collectingPhaseSkill) {
       return;
     }
+    const withPayment = (action: PlayerAction, anti: number, youkai: number): PlayerAction =>
+      action.type === "attack" || action.type === "skill" || action.type === "defense"
+        ? { ...action, ...(anti ? { antiCakeSpent: anti } : {}), ...(youkai ? { youkaiCakeSpent: youkai } : {}) }
+        : action;
+    const submitMove = (action: Exclude<PlayerAction, { type: "discard_skill" }>) =>
+      onSubmit(selectedFreeMove ? { ...action, freeMoveId: selectedFreeMove.id } :
+        withPayment(action, paymentRows[0]?.anti ?? 0, paymentRows[0]?.youkai ?? 0));
 
     if (mode === "gain_cake") {
-      onSubmit({ type: "gain_cake" });
+      submitMove({ type: "gain_cake" });
       return;
     }
 
     if (mode === "defense") {
       if (defense === "rebound") {
-        onSubmit({
+        submitMove({
           type: "defense",
           defense,
           ...(viewerHasScatterRebound ? {} : { targetId })
@@ -2172,7 +3298,7 @@ export function ActionPanel({
         return;
       }
 
-      onSubmit({
+      submitMove({
         type: "defense",
         defense
       });
@@ -2184,15 +3310,26 @@ export function ActionPanel({
         return;
       }
 
+      if (selectingTotem && totemPrimary) {
+        submitMove({ type: "skill", skillId: selectedSkill.skill.id, stacks: 1, targetId: totemPrimary.id, totemRange,
+          ...(selectedSkill.skill.id === TOTEM_CHOOSE_ID ? { totemKind } : {}),
+          ...(totemAfter ? { totemAfterId: totemAfter.id } : {}) });
+        return;
+      }
+      if (selectingShadowMove && selectedShadowAnchorId) {
+        submitMove({ type: "skill", skillId: selectedSkill.skill.id, stacks: skillStacks, targetId: selectedShadowAnchorId,
+          ...(selectingShadowWind ? { shadowMoveMode } : {}) });
+        return;
+      }
       if (selectedSkillPlay.optionalTargetCount !== undefined && selectedSkill.skill.id !== DRAGON_BLOOD_FIELD_ID) {
-        onSubmit({ type: "skill", skillId: selectedSkill.skill.id, stacks: skillStacks,
+        submitMove({ type: "skill", skillId: selectedSkill.skill.id, stacks: skillStacks,
           targetIds: skillExtraTargetIds.filter(Boolean) });
         return;
       }
 
       if (selectedSkillPlay.targetMode === "single") {
         if (isMultiTargetAttackSkill(selectedSkill.skill.id)) {
-          onSubmit({
+          submitMove({
             type: "skill",
             skillId: selectedSkill.skill.id,
             stacks: skillStacks,
@@ -2202,32 +3339,46 @@ export function ActionPanel({
           return;
         }
 
-        onSubmit({
+        submitMove({
           type: "skill",
           skillId: selectedSkill.skill.id,
           stacks: skillStacks,
           targetId: skillTargetId,
+          ...spaceTimeMoveOptions(selectedSkill.skill.id, spaceTimeOptions),
           ...(freeVerdict ? { freeStacks: 1 } : {}),
           ...(selectedSkill.skill.id === RELEASE_DAMAGE_ID && selectedStoredDamage ? { storedDamageId: selectedStoredDamage.id } : {})
         });
         return;
       }
 
-      onSubmit({
+      submitMove({
         type: "skill",
         skillId: selectedSkill.skill.id,
-        stacks: skillStacks
+        stacks: skillStacks,
+        ...saintResource,
+        ...(selectedSkill.skill.id === SEVEN_STAR_YAOGUANG && sevenStarRestoration ?
+          { cardForm: sevenStarRestoration.cardForm, bigCardInstanceId: sevenStarRestoration.bigCardInstanceId } : {}),
+        ...spaceTimeMoveOptions(selectedSkill.skill.id, spaceTimeOptions),
+        ...(selectedSkill.skill.id === GAME_SWITCH_ACTION_ID ? { gameSwitchMode } : {}),
+        ...(selectedSkill.skill.id === KARMA_CYCLE_ID && karmaCardChanges.length ? { karmaCardChanges } : {}),
+        ...(selectedSkill.skill.id === SAKURA_FINALE_ID ? { removeSkillInstanceIds: selectedSakuraIds } : {}),
+        ...(selectedSkill.skill.id === SWARM_RETURN_ID && !selectedFreeMove ? { swarmAllocation: selectedSwarmAllocation } : {}),
+        ...(selectedXielingTransform ? { xielingMarkCost } : {})
       });
       return;
     }
 
     const actions = attackRows.map((row) => {
       if (row.kind === "skill") {
+        const swordSource = row.skillId === SWORD_ARRAY_EXECUTE_ID && !selectedFreeMove ? swordExecuteSource(row) : undefined;
         const freeStacks =
-          Boolean(viewer && getFreeSkillChargeId(viewer, row.skillId))
+          Boolean(!selectedFreeMove && viewer && getFreeSkillChargeId(viewer, row.skillId))
             ? Math.min(row.stacks, row.freeStacks ?? 0, getFreeLianBaoStacks(row.skillId))
             : 0;
-        const freePatch = freeStacks > 0 ? { freeStacks } : {};
+        const freePatch = { ...(freeStacks > 0 ? { freeStacks } : {}),
+          ...spaceTimeMoveOptions(row.skillId, row),
+          ...(row.skillId === TIGER_STAB ? { tigerPower: Number(tigerPower) } : {}),
+          ...(swordSource ? { bigCardInstanceId: swordSource } : {}) };
         if (rowIsArea(row)) {
           return {
             type: "skill" as const,
@@ -2280,12 +3431,12 @@ export function ActionPanel({
     }
 
     if (actions.length === 1) {
-      onSubmit(actions[0]!);
+      submitMove(actions[0]!);
       return;
     }
 
     onSubmit({
-      actions
+      actions: actions.map((action, index) => withPayment(action, paymentRows[index]?.anti ?? 0, paymentRows[index]?.youkai ?? 0))
     });
   }
 
@@ -2294,18 +3445,19 @@ export function ActionPanel({
       className="surface-card action-board p-5"
       data-action-invalid={actionInvalid ? "true" : "false"}
       data-already-submitted={alreadySubmitted ? "true" : "false"}
-      data-can-submit={submitReady ? "true" : "false"}
+      data-can-submit={submitReady && !collectingPhaseSkill ? "true" : "false"}
       data-locked-action={lockedActionSummary}
       data-ready-state={actionReadyState}
       data-round-number={state.roundNumber}
       data-round-turn-number={state.roundTurnNumber}
       data-selected-action={actionDisplaySummary}
-      data-submit-ready={submitReady ? "true" : "false"}
+      data-submit-ready={submitReady && !collectingPhaseSkill ? "true" : "false"}
       data-testid="action-board"
       data-viewer-id={viewer?.id ?? ""}
     >
       {junengStatus}
-      {viewer?.spaceId ? <p className="text-sm font-semibold">小空间 · {state.smallSpaces?.[viewer.spaceId]?.name} · 出饼×3</p> : null}
+      {viewer?.spaceId ? <p className="text-sm font-semibold">小空间 · {state.smallSpaces?.[viewer.spaceId]?.name}
+        {(state.smallSpaces?.[viewer.spaceId]?.cakeMultiplier ?? 1) > 1 ? ` · 出饼×${state.smallSpaces![viewer.spaceId]!.cakeMultiplier}` : ""}</p> : null}
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-black text-gray-950">出招</h2>
@@ -2320,7 +3472,7 @@ export function ActionPanel({
         ) : null}
       </div>
 
-      <div
+      {!collectingPhaseSkill ? <div
         className={[
           "action-command-strip",
           `action-command-strip-${actionReadyState}`
@@ -2348,43 +3500,74 @@ export function ActionPanel({
           <span>牌面状态</span>
           <strong>{actionStatusLabel}</strong>
         </div>
-      </div>
+      </div> : null}
 
       <form className="action-form mt-4" onSubmit={submit}>
+        {!collectingPhaseSkill && antiCakeBalance > 0 && paymentRows.some(({ cost }) => cost > 0) ? <div className="space-y-2">
+          {paymentRows.filter(({ cost }) => cost > 0).map(({ key, cost, label, anti }) => <AntiCakePayment key={key} label={label}
+            cost={cost} balance={antiCakeBalance} anti={anti} onChange={(amount) => changeAntiCakeChoice(key, amount)} />)}
+        </div> : null}
+        {!collectingPhaseSkill && youkaiCakeBalance > 0 && paymentRows.some(({ cost }) => cost > 0) ? <div className="space-y-2">
+          {paymentRows.filter(({ cost }) => cost > 0).map(({ key, label, maxYoukai, youkai }) =>
+            <YoukaiCakePayment key={key} label={label} max={maxYoukai} amount={youkai}
+              onChange={(amount) => changeYoukaiCakeChoice(key, amount)} />)}
+        </div> : null}
         <div className="action-scroll-body space-y-4">
           <div className="action-mode-grid grid grid-cols-2 gap-2 sm:grid-cols-4">
           <ModeButton
             active={mode === "gain_cake"}
+            disabled={Boolean(moveBlockReason)}
             icon={<Cookie className="h-4 w-4" aria-hidden="true" />}
-            label="吃饼"
-            onClick={() => setMode("gain_cake")}
+            label={gathersYoukai ? "积妖元" : "吃饼"}
+            onClick={() => selectMode("gain_cake")}
             testId="action-mode-gain-cake"
           />
           <ModeButton
             active={mode === "defense"}
+            disabled={Boolean(moveBlockReason)}
             icon={<Shield className="h-4 w-4" aria-hidden="true" />}
             label="防御"
-            onClick={() => setMode("defense")}
+            onClick={() => selectMode("defense")}
             testId="action-mode-defense"
           />
           <ModeButton
             active={mode === "attack"}
-            disabled={firstTurnAttackLocked}
+            disabled={Boolean(moveBlockReason) || firstTurnAttackLocked}
             icon={<Swords className="h-4 w-4" aria-hidden="true" />}
             label="攻击"
-            onClick={() => setMode("attack")}
+            onClick={() => selectMode("attack")}
             testId="action-mode-attack"
           />
           <ModeButton
             active={mode === "skill"}
-            disabled={nonAttackSkills.length === 0}
+            disabled={phaseSkills.length === 0 && (Boolean(moveBlockReason) || nonAttackSkills.length === 0)}
             icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}
             label="技能"
-            onClick={() => setMode("skill")}
+            onClick={() => selectMode("skill")}
             testId="action-mode-skill"
           />
           </div>
 
+          {lockedHound ? <p className="text-sm font-semibold">受邪犬限制，指向性出招只能以 {lockedHound.name} 为目标。</p> : null}
+
+          {freeMoveChoices.length > 0 || freeMoveId ? (
+            <label className="block text-sm font-medium text-gray-700">
+              免费出招
+              <select className="soft-input mt-1 w-full" data-testid="free-move-select"
+                value={freeMoveId} onChange={(event) => selectFreeMove(event.target.value)}>
+                <option value="">使用普通出招</option>
+                {freeMoveId && !selectedFreeMove ? <option value={freeMoveId}>机会已用完</option> : null}
+                {freeMoveChoices.map(({ id, move, remaining }) => (
+                  <option key={id} value={id}>{getActionLabel(move)} · 剩 {remaining} 次</option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          {tigerStabSelected ? <label className="block text-sm font-medium">幽冥刺攻击值
+            <input className="soft-input mt-1 w-full" type="number" step={1} value={tigerPower}
+              onChange={(event) => setTigerPower(event.target.value)} />
+          </label> : null}
           {mode === "defense" ? (
           <div className="grid gap-3 md:grid-cols-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -2393,10 +3576,11 @@ export function ActionPanel({
                 className="soft-input mt-1 w-full"
                 data-testid="defense-select"
                 value={defense}
+                disabled={Boolean(selectedFreeMove)}
                 onChange={(event) => setDefense(event.target.value as typeof defense)}
               >
                 {(["small", "youtiao", "stone", "rebound", "self_destruct"] as const).map((item) => (
-                  <option key={item} value={item}>
+                  <option key={item} value={item} disabled={item === "rebound" && reboundLocked}>
                     {DEFENSE_LABELS[item]}
                   </option>
                 ))}
@@ -2408,10 +3592,12 @@ export function ActionPanel({
               </div>
             ) : defense === "rebound" ? (
               <TargetSelect
-                enemies={enemies}
+                enemies={reboundTargets}
                 targetId={targetId}
                 onChange={setTargetId}
                 label="反弹目标"
+                allowEmpty={!reboundTargets.length}
+                emptyLabel="没有可选目标"
               />
             ) : defense === "self_destruct" ? (
               <div className="self-end rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
@@ -2450,6 +3636,7 @@ export function ActionPanel({
                       <select
                         className="soft-input mt-1 w-full"
                         data-testid={`attack-row-kind-${index}`}
+                        disabled={Boolean(selectedFreeMove)}
                         value={rowValue(row)}
                         onChange={(event) => updateRowKind(row.id, event.target.value)}
                       >
@@ -2467,7 +3654,7 @@ export function ActionPanel({
                           <optgroup label="技能招式">
                             {actionSkills.map(({ skill, play }) => (
                               <option key={skill.id} value={`skill:${skill.id}`}>
-                                {play.attackName ? `${play.attackName}（${skill.name}）` : skill.name} · {formatSkillCakeCost(skill.id)}
+                                {huntLabel(skill.id, play.attackName ? `${play.attackName}（${skill.name}）` : skill.name)} · {formatSkillCakeCost(skill.id)}
                               </option>
                             ))}
                           </optgroup>
@@ -2480,6 +3667,7 @@ export function ActionPanel({
                         className="soft-input mt-1 w-full"
                         min={1}
                         max={maxStacks}
+                        readOnly={Boolean(selectedFreeMove)}
                         type="number"
                         value={row.stacks}
                         onChange={(event) =>
@@ -2492,7 +3680,9 @@ export function ActionPanel({
                         }
                       />
                     </label>
-                    {row.kind === "skill" && Boolean(viewer && getFreeSkillChargeId(viewer, row.skillId)) ? (
+                    {row.kind === "skill" ? <SpaceTimeMoveOptions id={row.id} skillId={row.skillId} options={row}
+                      onChange={(patch) => updateAttackRow(row.id, patch)} /> : null}
+                    {!selectedFreeMove && row.kind === "skill" && Boolean(viewer && getFreeSkillChargeId(viewer, row.skillId)) ? (
                       <label className="attack-row-free-stacks block text-sm font-medium text-gray-700">
                         免费重数
                         <select
@@ -2526,7 +3716,7 @@ export function ActionPanel({
                         }
                       >
                         <TargetSelect
-                          enemies={enemies}
+                          enemies={attackRowTargetOptions(row)}
                           targetId={row.targetId}
                           testId={`attack-row-target-${index}`}
                           onChange={(nextTargetId) =>
@@ -2574,13 +3764,22 @@ export function ActionPanel({
                       <Trash2 className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </div>
+                  {row.kind === "skill" && row.skillId === SWORD_ARRAY_EXECUTE_ID && !selectedFreeMove && swordExecuteSources.length > 1 && (
+                    <label className="mt-3 block text-sm">诛灭来源
+                      <select className="soft-input mt-1 w-full" value={swordExecuteSource(row)}
+                        onChange={(event) => updateAttackRow(row.id, { bigCardInstanceId: event.target.value })}>
+                        {swordExecuteSources.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
+                      </select>
+                    </label>
+                  )}
                   <div className="attack-row-stats mt-3 grid gap-2 text-sm text-gray-600 sm:grid-cols-4">
                     <Stat label="消耗" value={`${rowCost(row)}饼`} />
                     {stats ? (
                       <>
-                        <Stat label="攻击" value={formatAttackDamageParts(stats)} />
-                        <Stat label="等级" value={formatAttackStatNumber(stats.level, stats.levelValue)} />
-                        <Stat label="防御" value={DEFENSE_TAG_LABELS[stats.defenseTag]} />
+                        <Stat label="攻击" value={row.skillId === SHADOW_STOP_SHRIEK_ID ? "目标血量 + 1" : formatAttackDamageParts(stats)} />
+                        <Stat label="等级" value={row.skillId === SHADOW_STOP_SHRIEK_ID ? "等同攻击" :
+                          stats.noClashLevel ? "无等级" : formatAttackStatNumber(stats.level, stats.levelValue)} />
+                        <Stat label="防御" value={row.skillId === SHADOW_STOP_SHRIEK_ID ? "出招即可防" : DEFENSE_TAG_LABELS[stats.defenseTag]} />
                       </>
                     ) : (
                       <>
@@ -2608,7 +3807,7 @@ export function ActionPanel({
                 className="btn-secondary disabled:opacity-40"
                 data-testid="add-attack-row"
                 disabled={
-                  attackRows.length >= enemies.length ||
+                  Boolean(selectedFreeMove) || attackRows.length >= enemies.length ||
                   attackRows.some((row) => rowIsArea(row))
                 }
                 onClick={addAttackRow}
@@ -2618,7 +3817,7 @@ export function ActionPanel({
                 添加目标
               </button>
               <div className="text-sm font-medium text-gray-600">
-                总消耗：{[attackCost > 0 || !elementCostLabel ? `${attackCost} 饼` : "", elementCostLabel].filter(Boolean).join(" ＋ ")}
+                总消耗：{[attackCost > 0 || !resourceCostLabel ? `${attackCost} 饼` : "", resourceCostLabel].filter(Boolean).join(" ＋ ")}
               </div>
             </div>
             {hasAreaMixed ? (
@@ -2629,37 +3828,31 @@ export function ActionPanel({
 
           {mode === "skill" ? (
           <div className="action-row space-y-3">
-            {selectedSkill?.skill.id === VERDICT_ACTION_ID && verdictFreeAvailable ? <label className="flex gap-2 text-sm">
+            {!collectingPhaseSkill && !selectedFreeMove && selectedSkill?.skill.id === VERDICT_ACTION_ID && verdictFreeAvailable ? <label className="flex gap-2 text-sm">
               <input type="checkbox" checked={useFreeVerdict} onChange={(event) => setUseFreeVerdict(event.target.checked)} /> 使用一次免费裁决
             </label> : null}
-            {nonAttackSkills.length > 0 ? (
+            {nonAttackSkills.length > 0 || phaseSkills.length > 0 ? (
+              <PhaseSkillSelect testId="skill-action-select" selected={collectingPhaseSkill?.value ?? selectedSkill?.skill.id ?? ""}
+                disabled={Boolean(selectedFreeMove)} onChange={(id) => {
+                  setSkillId(id);
+                  setSkillStacks(1);
+                  setSkillExtraTargetIds([]);
+                }}
+                moves={nonAttackSkills.map(({ skill }) => ({
+                  value: skill.id, label: `${skill.name} · ${formatSkillCakeCost(skill.id)}`, disabled: Boolean(moveBlockReason)
+                }))}
+                phaseSkills={phaseSkills} standardLabel="主出招" />
+            ) : null}
+            {collectingPhaseSkill ? collectingPhaseSkill.controls : nonAttackSkills.length > 0 ? (
               <>
-                <div className="grid gap-3 md:grid-cols-[1fr_96px_1fr]">
-                  <label className="block text-sm font-medium text-gray-700">
-                    技能
-                    <select
-                      className="soft-input mt-1 w-full"
-                      data-testid="skill-action-select"
-                      value={selectedSkill?.skill.id ?? ""}
-                      onChange={(event) => {
-                        setSkillId(event.target.value);
-                        setSkillStacks(1);
-                        setSkillExtraTargetIds([]);
-                      }}
-                    >
-                      {nonAttackSkills.map(({ skill, play }) => (
-                        <option key={skill.id} value={skill.id}>
-                          {skill.name} · {formatSkillCakeCost(skill.id)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                <div className="grid gap-3 md:grid-cols-[96px_1fr]">
                   <label className="block text-sm font-medium text-gray-700">
                     重数
                     <input
                       className="soft-input mt-1 w-full"
                       min={1}
                       max={skillMaxStacks}
+                      readOnly={Boolean(selectedFreeMove)}
                       type="number"
                       value={skillStacks}
                       onChange={(event) =>
@@ -2669,7 +3862,67 @@ export function ActionPanel({
                       }
                     />
                   </label>
-                  {selectedSkill && isDoubleEdgeSwordSkill(selectedSkill.skill) ? (
+                  {selectedSkill?.skill.id === SEVEN_STAR_YAOGUANG ? (
+                    <label className="block text-sm font-medium text-gray-700">
+                      恢复形态
+                      <select className="soft-input mt-1 w-full" value={sevenStarRestoration?.id ?? ""}
+                        onChange={(event) => setSevenStarRestoreId(event.currentTarget.value)}>
+                        {sevenStarRestorations.map(({ id, cardForm }) => <option key={id} value={id}>{SEVEN_STAR_FORMS[cardForm].name}</option>)}
+                      </select>
+                    </label>
+                  ) : selectedSkill?.skill.id === GAME_SWITCH_ACTION_ID ? (
+                    <label className="block text-sm font-medium text-gray-700">
+                      切换游戏
+                      <select className="soft-input mt-1 w-full" data-testid="game-switch-mode" value={gameSwitchMode}
+                        onChange={(event) => setGameSwitchMode(event.currentTarget.value as GameSwitchMode)}>
+                        {Object.entries(GAME_SWITCH_MODES).map(([mode, label]) => <option key={mode} value={mode}>{label}</option>)}
+                      </select>
+                    </label>
+                  ) : selectingSwarm && !selectedFreeMove ? (
+                    <fieldset className="grid grid-cols-2 gap-2">
+                      <legend>选择要消耗的虫（{Object.values(selectedSwarmAllocation).reduce((total, count) => total + count, 0)}/10）</legend>
+                      {SWARM_INSECTS.map((insect) => {
+                        const stock = swarmInsectCount(viewer, insect);
+                        return <label key={insect} className="text-sm">{SWARM_INSECT_LABELS[insect]}（{stock}只）
+                          <select className="soft-input mt-1 w-full" value={selectedSwarmAllocation[insect]}
+                            onChange={(event) => setSwarmAllocation({ ...selectedSwarmAllocation, [insect]: Number(event.currentTarget.value) })}>
+                            {Array.from({ length: Math.min(stock, 10) + 1 }, (_, count) => <option key={count}>{count}</option>)}
+                          </select>
+                        </label>;
+                      })}
+                    </fieldset>
+                  ) : selectedSkill?.skill.id === KARMA_CYCLE_ID && karmaTargetIds.length > 0 && state.karmaReplacementIds?.length ? (
+                    <fieldset className="col-span-full grid max-h-72 gap-2 overflow-y-auto text-sm" data-testid="karma-card-changes">
+                      <legend>改变大卡（每人可选一张）</legend>
+                      {karmaTargetIds.map((playerId) => {
+                        const choice = karmaSelections[playerId] ?? {};
+                        const name = state.players.find((player) => player.id === playerId)?.name ?? "玩家";
+                        const selectedId = isKarmaChangedCardValid(choice, playerId) ? choice.cardInstanceId : "";
+                        return <div key={playerId} className="grid gap-1 sm:grid-cols-2">
+                          <label className="min-w-0">{name}的大卡
+                            <select className="soft-input mt-1 w-full" value={selectedId ?? ""} onChange={(event) =>
+                              setKarmaSelection(playerId, event.currentTarget.value ? { cardInstanceId: event.currentTarget.value } : {})}>
+                              <option value="">保留</option>
+                              {state.karmaCardChoices?.filter((card) => card.playerId === playerId).map((card) =>
+                                <option key={card.instanceId} value={card.instanceId}>
+                                  大卡 {card.number}{card.visibleCardId ? ` · ${getBigCard(card.visibleCardId)?.name ?? card.visibleCardId}` : ""}
+                                </option>)}
+                            </select>
+                          </label>
+                          {selectedId ? <label className="min-w-0">更换为
+                            <select className="soft-input mt-1 w-full" value={choice.replacementCardId ?? ""} onChange={(event) =>
+                              setKarmaSelection(playerId, { cardInstanceId: selectedId, replacementCardId: event.currentTarget.value })}>
+                              <option value="">请选择大卡</option>
+                              {state.karmaReplacementIds?.map((id) => <option key={id} value={id}>{id} · {getBigCard(id)?.name ?? id}</option>)}
+                            </select>
+                          </label> : null}
+                        </div>;
+                      })}
+                    </fieldset>
+                  ) : selectedSkill?.skill.id === SAKURA_FINALE_ID ? sakuraPicker(state.sakuraFinaleDiscardCount ?? 0) :
+                    selectedSkill?.skill.id === SAKURA_RAIN_ID ? (
+                      <p className="text-sm">消耗当前持有的全部樱（{getElementAmount(viewer, "樱")} 个）</p>
+                  ) : selectedSkill && isDoubleEdgeSwordSkill(selectedSkill.skill) ? (
                     <div className="self-end rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
                       双刃剑请在变招阶段选择被防住的攻击目标
                     </div>
@@ -2680,11 +3933,56 @@ export function ActionPanel({
                   ) : selectedSkillPlay?.optionalTargetCount !== undefined && selectedSkill?.skill.id !== DRAGON_BLOOD_FIELD_ID ? (
                     <div className="grid gap-2">
                       {Array.from({ length: selectedSkillPlay.optionalTargetCount }, (_, index) => (
-                        <TargetSelect key={index} allowEmpty label={`限制目标 ${index + 1}（可不选）`}
-                          enemies={enemies.filter((enemy) => !skillExtraTargetIds.some((id, position) => position !== index && id === enemy.id))}
+                        <TargetSelect key={index} allowEmpty label={selectedSkill?.skill.id === CHARITY_LINK_ID ?
+                          `共享目标 ${index + 1}` : `限制目标 ${index + 1}（可不选）`}
+                          enemies={(selectedSkill?.skill.id === CHARITY_LINK_ID ? selectableEnemies.filter(({ id }) => id !== viewer?.id) : enemies)
+                            .filter((enemy) => !skillExtraTargetIds.some((id, position) => position !== index && id === enemy.id))}
                           targetId={skillExtraTargetIds[index] ?? ""} testId={`skill-optional-target-${index}`}
                           onChange={(id) => setSkillExtraTargetIds((current) => Array.from({ length: selectedSkillPlay.optionalTargetCount! }, (_, position) => position === index ? id : current[position] ?? ""))} />
                       ))}
+                    </div>
+                  ) : selectingShadowMove ? (
+                    <div className="grid gap-2">
+                      {selectingShadowWind && <label className="block text-sm font-medium text-gray-700">
+                        移动方式
+                        <select className="soft-input mt-1 w-full" data-testid="shadow-move-mode" value={shadowMoveMode}
+                          onChange={(event) => {
+                            setShadowMoveMode(event.currentTarget.value as typeof shadowMoveMode);
+                            setShadowAnchorId("");
+                          }}>
+                          <option value="insert">移到两个座次之间</option>
+                          <option value="behind">移到目标身后</option>
+                        </select>
+                      </label>}
+                      <TargetSelect label={shadowSeatMode === "insert" ? "插入位置" : "目标"} testId="shadow-move-target"
+                        targetId={selectedShadowAnchorId ?? ""} onChange={setShadowAnchorId}
+                        allowEmpty={shadowAnchors.length === 0} emptyLabel="没有可用位置"
+                        enemies={shadowAnchorOptions} />
+                    </div>
+                  ) : selectingTotem ? (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <TargetSelect enemies={junengLock ? totemSeats.filter(({ id }) => id === junengTargetId) : totemSeats}
+                        targetId={totemPrimary?.id ?? ""} onChange={setTotemPrimaryId} label="图腾主目标" testId="totem-primary-target" />
+                      <label className="block text-sm">生效范围
+                        <select className="soft-input mt-1 w-full" value={totemRange}
+                          onChange={(event) => setTotemRange(event.currentTarget.value as TotemRange)}>
+                          {Object.entries(TOTEM_RANGES).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+                        </select>
+                      </label>
+                      <label className="block text-sm">摆放位置
+                        <select className="soft-input mt-1 w-full" value={totemAfter?.id ?? ""}
+                          onChange={(event) => setTotemAfterId(event.currentTarget.value)}>
+                          <option value="">附属造物区（其他物品）</option>
+                          {totemSeats.map(({ id, name }) =>
+                            <option key={id} value={id}>座次 {totemSeatNumbers?.get(id) === Infinity ? "∞" : totemSeatNumbers?.get(id)} · {name}之后</option>)}
+                        </select>
+                      </label>
+                      {selectedSkill?.skill.id === TOTEM_CHOOSE_ID && <label className="block text-sm">图腾种类
+                        <select className="soft-input mt-1 w-full" value={totemKind}
+                          onChange={(event) => setTotemKind(event.currentTarget.value as TotemKind)}>
+                          {Object.entries(TOTEM_KINDS).map(([id, { name }]) => <option key={id} value={id}>{name}</option>)}
+                        </select>
+                      </label>}
                     </div>
                   ) : selectedSkillPlay?.targetMode === "single" ? (
                     <div
@@ -2695,7 +3993,8 @@ export function ActionPanel({
                       }
                     >
                       <TargetSelect
-                        enemies={enemies}
+                        enemies={specialMoveTargets(selectedSkill?.skill.id) ??
+                          (skillCanTargetTotem ? [...selectableEnemies, ...totemOptions] : selectableEnemies)}
                         targetId={skillTargetId}
                         testId="skill-action-target"
                         onChange={(nextTargetId) => {
@@ -2732,21 +4031,43 @@ export function ActionPanel({
                   )}
                 </div>
                 {selectedSkill?.skill.id === RELEASE_DAMAGE_ID ? storedDamageSelect() : null}
+                {selectedSkill ? <SpaceTimeMoveOptions id="main" skillId={selectedSkill.skill.id} options={spaceTimeOptions}
+                  onChange={(patch) => setSpaceTimeOptions((current) => ({ ...current, ...patch }))} /> : null}
+                {selectedXielingTransform && (
+                  <label className="block text-sm font-medium text-gray-700">
+                    转为邪元素的邪灵印记层数（可转换 {xielingMarkLimit} 层）
+                    <input className="soft-input mt-1 w-full" type="number" min={1} max={xielingMarkLimit}
+                      data-testid="xieling-mark-cost" value={xielingMarkCost}
+                      onChange={(event) => setXielingMarkCost(Number(event.target.value))} />
+                  </label>
+                )}
+                {selectedSaint && saintElements.length > 0 && (
+                  <label className="block text-sm font-medium text-gray-700">
+                    倍增资源
+                    <select className="soft-input mt-1 w-full" value={selectedSaintElement ?? ""}
+                      data-testid="saint-resource-select" onChange={(event) => setSaintElement(event.target.value)}>
+                      <option value="">饼</option>
+                      {saintElements.map((element) => (
+                        <option key={element} value={element}>{element}（现有 {getElementAmount(viewer, element)}）</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 <div className="grid gap-2 text-sm text-gray-600 sm:grid-cols-4">
-                  <Stat label="消耗" value={formatSkillCakeCost(selectedSkill?.skill.id, skillCost, viewer, skillStacks)} />
+                  <Stat label="消耗" value={resourceCostLabel || formatSkillCakeCost(selectedSkill?.skill.id, skillCost, viewer, skillStacks)} />
                   {selectedSkillPlay?.kind === "resource" ? (
                     <>
                       <Stat
-                        label="获得"
-                        value={`${getSkillResourceGainPerStack(viewer, selectedSkill?.skill.id ?? "") * skillStacks}饼`}
+                        label={selectedSaint ? "回合末获得" : "获得"}
+                        value={`${getSkillResourceGainPerStack(viewer, selectedSkill?.skill.id ?? "", undefined, state.roundNumber) * skillStacks}${selectedSaintElement ?? "饼"}`}
                       />
                       <Stat label="类型" value="资源" />
                       <Stat label="目标" value="自身" />
                     </>
                   ) : selectedSkillStats ? (
                     <>
-                      <Stat label="攻击" value={formatAttackDamageParts(selectedSkillStats)} />
-                      <Stat label="等级" value={String(selectedSkillStats.level)} />
+                      {!selectedSkillStats.nonAttackMove && <Stat label="攻击" value={formatAttackDamageParts(selectedSkillStats)} />}
+                      <Stat label="等级" value={formatCombatValue(attackLevelValue(selectedSkillStats))} />
                       <Stat label="防御" value={DEFENSE_TAG_LABELS[selectedSkillStats.defenseTag]} />
                     </>
                   ) : null}
@@ -2766,13 +4087,13 @@ export function ActionPanel({
           </div>
           ) : null}
 
-          {mode === "gain_cake" ? (
+          {mode === "gain_cake" && !moveBlockReason ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-3 text-sm text-amber-900 shadow-sm">
-            本回合获得 {cakeGain} 个饼。若对方使用超核爆，出饼也能作为“饼防”。
+            本回合获得 {cakeGain} {gathersYoukai ? "妖元" : "个饼"}。若对方使用超核爆，出饼也能作为“饼防”。
           </div>
           ) : null}
 
-          <div
+          {!collectingPhaseSkill ? <div
           className={[
             "action-summary-panel",
             actionInvalid ? "action-summary-panel-warning" : ""
@@ -2784,15 +4105,18 @@ export function ActionPanel({
           </div>
           <div className="action-summary-meta">
             <span>{readinessLabel}</span>
-            <span>{selectedActionCost > 0 ? `消耗 ${selectedActionCost} 饼` : "无消耗"}</span>
-            <span>{previewTargetLabel}</span>
+            {!moveBlockReason ? <>
+              <span>{selectedActionCost > 0 || resourceCostLabel
+                ? `消耗 ${[selectedActionCost > 0 ? `${selectedActionCost} 饼` : "", resourceCostLabel].filter(Boolean).join(" ＋ ")}` : "无消耗"}</span>
+              <span>{previewTargetLabel}</span>
+            </> : null}
             {actionRecoveryHint ? <span data-testid="action-recovery-hint">{actionRecoveryHint}</span> : null}
           </div>
-          </div>
+          </div> : null}
           {fusionSection}
         </div>
 
-        <div
+        {!collectingPhaseSkill ? <div
           className="action-command-footer"
           data-testid="action-command-footer"
           data-ready-state={actionReadyState}
@@ -2828,12 +4152,13 @@ export function ActionPanel({
             )}
             {submitLabel}
           </button>
-        </div>
+        </div> : null}
       </form>
     </section>
   );
 
   function addAttackRow() {
+    if (selectedFreeMove) return;
     const usedTargets = new Set(attackRows.map((row) => row.targetId));
     const nextTarget = enemies.find((enemy) => !usedTargets.has(enemy.id)) ?? enemies[0];
     if (!nextTarget) {
@@ -2943,6 +4268,10 @@ export function ActionPanel({
     return row.kind === "skill" ? `skill:${row.skillId}` : `attack:${row.attackId}`;
   }
 
+  function swordExecuteSource(row: AttackRow): string | undefined {
+    return swordExecuteSources.find(({ id }) => id === row.bigCardInstanceId)?.id ?? swordExecuteSources[0]?.id;
+  }
+
   function getFreeLianBaoStacks(id = LIAN_BAO_SKILL_ID): number {
     const charge = viewer && getFreeSkillChargeId(viewer, id);
     return viewer?.buffs.find((buff) => buff.id === charge)?.stacks ?? 0;
@@ -2950,7 +4279,11 @@ export function ActionPanel({
 
   function rowStats(row: AttackRow) {
     if (row.kind === "skill") {
-      const rawStats = getSkillAttackStats(row.skillId, row.stacks, viewer);
+      const baseSkillStats = getSkillAttackStats(row.skillId, row.stacks, viewer);
+      const statsForSkill = baseSkillStats && shapeDecayAttack(viewer, baseSkillStats);
+      const rawStats = statsForSkill && row.skillId === TIGER_STAB && Number.isSafeInteger(Number(tigerPower))
+        ? shapeTigerStab({ type: "skill", skillId: row.skillId, stacks: row.stacks, tigerPower: Number(tigerPower) }, statsForSkill)
+        : statsForSkill;
       const raw = rawStats && viewer ? scaleJunengAttack(viewer, rawStats) : rawStats;
       const base = raw && viewer ? shapeDragonBloodAttack(state, viewer.id, { type: "skill", skillId: row.skillId, stacks: row.stacks }, raw) : raw;
       const priorRi = row.skillId === RI_SKILL_ID ? attackRows.slice(0, Math.max(0, attackRows.indexOf(row)))
@@ -2971,9 +4304,10 @@ export function ActionPanel({
   }
 
   function rowCost(row: AttackRow): number {
+    if (selectedFreeMove) return 0;
     if (row.kind === "skill") {
       if (viewer) return getTurnSkillActionCost(viewer, { type: "skill", skillId: row.skillId, stacks: row.stacks,
-        ...(row.freeStacks ? { freeStacks: Math.min(row.freeStacks, getFreeLianBaoStacks(row.skillId)) } : {}) });
+        ...(row.freeStacks ? { freeStacks: Math.min(row.freeStacks, getFreeLianBaoStacks(row.skillId)) } : {}) }, state);
       const play = getSkillPlay(row.skillId);
       return (play?.cost ?? 0) * row.stacks;
     }
@@ -2982,9 +4316,10 @@ export function ActionPanel({
   }
 
   function rowIsArea(row: AttackRow): boolean {
-    if (viewerHasForcedAreaAttacks()) {
-      return true;
-    }
+    if (row.kind === "skill" && [SAND_DESOLATION_ID, FALLEN_SPLENDOR_EXECUTION, TIME_RIFT, SPACE_BURST].includes(row.skillId)) return false;
+    if (hasTianyeWing(viewer, TIAN_YE_FALL_ID, state.turnNumber) &&
+      (row.kind !== "skill" || row.skillId !== ELECTRIC_SHOCK_SKILL_ID && !getSkillPlay(row.skillId)?.nonAttackMove)) return true;
+    if (viewerHasForcedAreaAttacks()) return true;
 
     if (row.kind === "skill") {
       return rowStats(row)?.isArea || getSkillPlay(row.skillId)?.targetMode === "all";
@@ -3001,29 +4336,13 @@ export function ActionPanel({
   }
 
   function rowMaxStacks(row: AttackRow): number {
-    if (!viewer) {
-      return 1;
+    if (selectedFreeMove?.move.type === "attack" || selectedFreeMove?.move.type === "skill") return selectedFreeMove.move.stacks;
+    if (!viewer) return 1;
+    if (row.kind === "skill") {
+      return Math.max(1, getAffordableSkillStacks(state, viewer, row.skillId, getFreeLianBaoStacks(row.skillId)));
     }
-
-    const play = row.kind === "skill" ? getSkillPlay(row.skillId) : undefined;
-    const limit = play?.maxStacks ?? 20;
-    const resourceStacks =
-      row.kind === "skill" ? getSkillResourceStacks(viewer, row.skillId) : undefined;
-    const cost =
-      row.kind === "skill"
-        ? getTurnSkillActionCost(viewer, { type: "skill", skillId: row.skillId, stacks: 1 })
-        : getEffectiveAttackCost(row.attackId, 1);
-    if (row.kind === "skill" && Boolean(viewer && getFreeSkillChargeId(viewer, row.skillId)) && cost > 0) {
-      return Math.max(
-        1,
-        Math.min(limit, Math.floor(viewer.cakes / cost) + getFreeLianBaoStacks(row.skillId))
-      );
-    }
-    if (cost <= 0) {
-      return Math.max(1, Math.min(limit, resourceStacks ?? limit));
-    }
-
-    return Math.max(1, Math.min(limit, resourceStacks ?? limit, Math.floor(viewer.cakes / cost)));
+    const cost = getEffectiveAttackCost(row.attackId, 1);
+    return cost > 0 ? Math.max(1, Math.min(MAX_ACTION_STACKS, Math.floor(availableCakeBalance(state, viewer) / cost))) : MAX_ACTION_STACKS;
   }
 
   function getEffectiveAttackCost(attackId: AttackId, stacks: number): number {
@@ -3035,7 +4354,27 @@ export function ActionPanel({
       row.targetId,
       ...(row.extraTargetIds ?? []).filter((_, index) => index !== extraIndex)
     ]);
-    return enemies.filter((enemy) => !excludedTargetIds.has(enemy.id));
+    if (row.kind === "skill" && row.skillId === "1078" && totemOptions.some(({ id }) => id === row.targetId)) return [];
+    const options = row.kind === "skill" && canAddTotemAsExtraTarget(row.skillId) ? [...selectableEnemies, ...totemOptions] : attackEnemies;
+    return options.filter((enemy) => !excludedTargetIds.has(enemy.id));
+  }
+
+  function attackRowTargetOptions(row: AttackRow) {
+    if (row.kind !== "skill") return [...attackEnemies, ...totemOptions];
+    const dedicatedTargets = specialMoveTargets(row.skillId);
+    if (dedicatedTargets) return dedicatedTargets;
+    const options = canAddTotemAsExtraTarget(row.skillId) ? selectableEnemies : attackEnemies;
+    return canSkillSelectTotem(row.skillId) && (row.skillId !== "1078" || !row.extraTargetIds?.length)
+      ? [...options, ...totemOptions] : options;
+  }
+
+  function specialMoveTargets(id?: SkillId) {
+    if (id === BUBBLE_FINALE && viewer) return state.players.filter((target) => target.id !== viewer.id &&
+      target.kind !== "spectator" && target.status === "alive" && canAffectAcrossSpace(state, viewer.id, target.id));
+    if (id === TIME_RIFT && viewer) return [{ id: viewer.id, name: `${viewer.name}（自己 · 先制重开）` }, ...selectableEnemies];
+    if (id === SPACE_BURST && viewer) return state.players.filter((target) => target.id !== viewer.id &&
+      target.kind !== "spectator" && target.status === "alive" &&
+      (!preventsTargetSelection(target) || canBypassTargetSelection(state, viewer.id, target)));
   }
 
   function skillExtraTargetOptions(extraIndex: number) {
@@ -3043,8 +4382,258 @@ export function ActionPanel({
       skillTargetId,
       ...skillExtraTargetIds.filter((_, index) => index !== extraIndex)
     ]);
-    return enemies.filter((enemy) => !excludedTargetIds.has(enemy.id));
+    const options = canAddTotemAsExtraTarget(selectedSkill?.skill.id) ? [...selectableEnemies, ...totemOptions] : selectableEnemies;
+    return options.filter((enemy) => !excludedTargetIds.has(enemy.id));
   }
+}
+
+function DemonPlacementSelect({ value, onChange }: {
+  value: DemonPlacement;
+  onChange: (placement: DemonPlacement) => void;
+}) {
+  return (
+    <label className="block text-sm font-medium text-gray-700">
+      部署位置
+      <select className="soft-input mt-1 w-full" value={value}
+        onChange={(event) => onChange(event.currentTarget.value as DemonPlacement)}>
+        {DEMON_DEPLOYMENTS.map(([placement, label]) =>
+          <option key={placement} value={placement}>{label}</option>)}
+      </select>
+    </label>
+  );
+}
+
+function DemonSummonControls({ state, viewer, skillId, submitting, onSubmit }: {
+  state: PublicGameState;
+  viewer: PublicGameState["players"][number];
+  skillId: SkillId;
+  submitting: boolean;
+  onSubmit: (action: SkillAction) => void;
+}) {
+  const [targetId, setTargetId] = useState("");
+  const [placement, setPlacement] = useState<DemonPlacement>("front");
+  const needsTarget = isTargetedDemonSummon(skillId);
+  const targets = needsTarget ? demonSummonTargets(state, viewer) : [];
+  const target = targets.find(({ id }) => id === targetId) ?? targets[0];
+  return (
+    <div className="grid gap-2">
+      {needsTarget ? <TargetSelect enemies={targets} targetId={target?.id ?? ""} label="召唤目标"
+        onChange={setTargetId} allowEmpty={!target} emptyLabel="没有可选目标" /> : null}
+      {skillId === DEMON_GUARD_ID ? <DemonPlacementSelect value={placement} onChange={setPlacement} /> : null}
+      <button type="button" className="btn-primary w-full justify-center" disabled={submitting || needsTarget && !target}
+        onClick={() => onSubmit({ type: "skill", skillId, stacks: 1, ...(target ? { targetId: target.id } : {}),
+          ...(skillId === DEMON_GUARD_ID ? { demonPlacement: placement } : {}) })}>召唤</button>
+    </div>
+  );
+}
+
+type SkillActionChoice = { id: string; label: string; action: SkillAction };
+
+function bigCardActions(player: PublicGameState["players"][number], skillId: SkillId,
+  available: (card: NonNullable<typeof player.bigCards>[number]) => boolean): SkillActionChoice[] {
+  return (player.bigCards ?? []).flatMap((card, index) => available(card) &&
+    bigAbilitySource(player, { skillId, bigCardInstanceId: card.instanceId }) ?
+    [{ id: card.instanceId, label: `第 ${index + 1} 张`, action: {
+      type: "skill", skillId, stacks: 1, bigCardInstanceId: card.instanceId
+    } }] : []);
+}
+
+function tigerFormActions(player: PublicGameState["players"][number]): SkillActionChoice[] {
+  return bigCardActions(player, TIGER_SWITCH, (card) => Boolean(card.tigerForms)).flatMap((choice) => {
+    const forms = player.bigCards?.find((card) => card.instanceId === choice.id)?.tigerForms;
+    return forms?.available.filter((form) => form !== forms.active).map((form) => ({
+      id: `${choice.id}:${form}`, label: `${TIGER_FORM_NAMES[form]}${(player.bigCards?.length ?? 0) > 1 ? ` · ${choice.label}` : ""}`,
+      action: { ...choice.action, cardForm: form }
+    })) ?? [];
+  });
+}
+
+function soulRestoreActions(player: PublicGameState["players"][number]): SkillActionChoice[] {
+  if (getElementAmount(player, SOUL_ELEMENT) < 10) return [];
+  return [[SOUL_RESTORE_EXTINGUISH_ID, SOUL_EXTINGUISH_ID], [SOUL_RESTORE_SINK_ID, SOUL_SINK_ID]].flatMap(([skillId, abilityId]) =>
+    getActiveSkillCount(player, skillId!) ? bigCardActions(player, skillId!, (card) =>
+      (card.abilityUses?.[abilityId!] ?? 0) > 0 && (!card.onlyAbilityId || card.onlyAbilityId === abilityId) &&
+      !card.lostAbilityIds?.includes(abilityId!)) : []);
+}
+
+function SkillActionChoices({ choices, label, submitting, onSubmit }: {
+  choices: SkillActionChoice[]; label: string; submitting: boolean; onSubmit: (action: SkillAction) => void;
+}) {
+  const [id, setId] = useState("");
+  const selected = choices.find((choice) => choice.id === id) ?? choices[0];
+  return <div className="space-y-2">
+    <label className="block text-sm font-medium">{label}
+      <select className="soft-input mt-1 w-full" value={selected?.id ?? ""} onChange={(event) => setId(event.currentTarget.value)}>
+        {choices.map((choice) => <option key={choice.id} value={choice.id}>{choice.label}</option>)}
+      </select>
+    </label>
+    <button type="button" className="btn-primary w-full justify-center" disabled={submitting || !selected}
+      onClick={() => { if (selected) onSubmit(selected.action); }}>使用技能</button>
+  </div>;
+}
+
+function CurtainControls({ state, viewer, submitting, onSubmit }: {
+  state: PublicGameState; viewer: PublicGameState["players"][number]; submitting: boolean; onSubmit: (action: SkillAction) => void;
+}) {
+  const [targetId, setTargetId] = useState("");
+  const targets = state.players.filter((player) => player.id !== viewer.id && player.status === "alive" &&
+    canAffectAcrossSpace(state, viewer.id, player.id));
+  const target = targets.find(({ id }) => id === targetId) ?? targets[0];
+  const quote = curtainDiscardQuote(viewer);
+  return (
+    <section className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
+      <h3 className="mb-2 text-sm font-semibold">谢幕光绮 · 立即释放</h3>
+      <p>{quote.blocked ? "有不可弃置的复活技" : `弃置 ${quote.count} 份复活技（含 ${quote.veils} 份光绮），自身命数归零`}</p>
+      <div className="flex flex-wrap gap-2">
+        <select className="soft-input" aria-label="谢幕光绮目标" value={target?.id ?? ""} onChange={(event) => setTargetId(event.target.value)}>
+          {!target ? <option value="">暂无可选目标</option> : null}
+          {targets.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
+        </select>
+        <button type="button" className="btn-secondary" disabled={submitting || !target || quote.blocked}
+          onClick={() => target && onSubmit({ type: "skill", skillId: CURTAIN_FINALE_ID, stacks: 1, targetId: target.id })}>立即释放</button>
+      </div>
+    </section>
+  );
+}
+
+function FallenSplendorControls({ state, viewer, stock, submitting, onSubmit }: {
+  state: PublicGameState; viewer: PublicGameState["players"][number];
+  stock: NonNullable<ReturnType<typeof fallenSplendorExecutionStock>>; submitting: boolean; onSubmit: (action: SkillAction) => void;
+}) {
+  const [firstId, setFirstId] = useState("");
+  const [secondId, setSecondId] = useState("");
+  const eligible = fallenSplendorTargets(state, viewer);
+  const targets = state.players.filter((target) => eligible.includes(target.id) &&
+    (!preventsTargetSelection(target) || canBypassTargetSelection(state, viewer.id, target)));
+  const first = targets.find(({ id }) => id === firstId) ?? targets[0];
+  const others = targets.filter(({ id }) => id !== first?.id);
+  const second = others.find(({ id }) => id === secondId) ?? others[0];
+  const ids = [first?.id, ...(eligible.length > 1 ? [second?.id] : [])].filter((id): id is string => Boolean(id));
+  return <div className="space-y-2">
+      <TargetSelect enemies={targets} targetId={first?.id ?? ""} onChange={setFirstId} label="陨落天华第一目标" />
+      {eligible.length > 1 ? <TargetSelect enemies={others} targetId={second?.id ?? ""} onChange={setSecondId} label="陨落天华第二目标" /> : null}
+      <button type="button" className="btn-secondary" disabled={submitting || !ids.length || ids.length < Math.min(2, eligible.length)}
+        onClick={() => onSubmit({ type: "skill", skillId: FALLEN_SPLENDOR_RELEASE, stacks: 1,
+          targetIds: ids, ...(stock.sourceBigCardInstanceId ? { bigCardInstanceId: stock.sourceBigCardInstanceId } : {}) })}>立即释放陨落天华</button>
+  </div>;
+}
+
+type SpaceTimeMoveDraft = Pick<SkillAction, "spaceTimeSource" | "spaceTimeDuration">;
+
+function spaceTimeMoveOptions(skillId: SkillId, draft: SpaceTimeMoveDraft): SpaceTimeMoveDraft {
+  if (skillId === SPACE_SHATTER) return { spaceTimeSource: draft.spaceTimeSource ?? "sky" };
+  const maxRounds = spaceTimeMaxRounds(skillId);
+  if (!maxRounds) return {};
+  return { spaceTimeDuration: { turns: draft.spaceTimeDuration?.turns ?? 1,
+    rounds: Math.min(maxRounds, draft.spaceTimeDuration?.rounds ?? maxRounds) } };
+}
+
+function SpaceTimeMoveOptions({ id, skillId, options, onChange }: {
+  id: string; skillId: SkillId; options: SpaceTimeMoveDraft; onChange: (patch: SpaceTimeMoveDraft) => void;
+}) {
+  const chosen = spaceTimeMoveOptions(skillId, options);
+  if (chosen.spaceTimeSource) return <label className="block text-sm">退游来源
+    <select className="soft-input mt-1 w-full" value={chosen.spaceTimeSource}
+      onChange={(event) => onChange({ spaceTimeSource: event.currentTarget.value as NonNullable<SkillAction["spaceTimeSource"]> })}>
+      <option value="left">目标左邻</option>
+      <option value="right">目标右邻</option>
+      <option value="sky">天</option>
+    </select>
+  </label>;
+  const cap = spaceTimeMaxRounds(skillId);
+  const duration = chosen.spaceTimeDuration;
+  if (!cap || !duration) return null;
+  return <div className="grid gap-2 sm:grid-cols-2">
+    <label className="block text-sm">回合上限
+      <input className="soft-input mt-1 w-full" type="number" min={1} max={Number.MAX_SAFE_INTEGER}
+        list={`space-time-turns-${id}`} value={duration.turns} onChange={(event) => onChange({
+          spaceTimeDuration: { ...duration, turns: Math.max(1, Math.min(Number.MAX_SAFE_INTEGER, Math.trunc(event.currentTarget.valueAsNumber || 1))) }
+        })} />
+      <datalist id={`space-time-turns-${id}`}>
+        {[1, 2, 3, 5, 10, 100, 1000].map((turns) => <option key={turns} value={turns} />)}
+      </datalist>
+    </label>
+    <label className="block text-sm">轮上限
+      <select className="soft-input mt-1 w-full" value={duration.rounds} onChange={(event) => onChange({
+        spaceTimeDuration: { ...duration, rounds: Number(event.currentTarget.value) }
+      })}>
+        {Array.from({ length: cap }, (_, index) => <option key={index + 1} value={index + 1}>{index + 1} 轮</option>)}
+      </select>
+    </label>
+  </div>;
+}
+
+function CharityControls({ state, viewer, quickCard, submitting, onSubmit }: {
+  state: PublicGameState; viewer: PublicGameState["players"][number];
+  quickCard?: NonNullable<ReturnType<typeof quickHealingCard>>; submitting: boolean; onSubmit: (action: SkillAction) => void;
+}) {
+  const [targetId, setTargetId] = useState("");
+  const [youkaiPayment, setYoukaiPayment] = useState<number>();
+  const targets = quickCard ? getQuickHealingTargets(state, viewer.id) : [];
+  const target = targets.find(({ id }) => id === targetId) ?? targets[0];
+  const price = getTurnSkillActionCost(viewer, { type: "skill", skillId: CHARITY_QUICK_ID, stacks: 1 }, state);
+  const maxYoukai = Math.min(price, youkaiCakeCount(viewer));
+  const youkai = Math.min(maxYoukai, Math.max(0, youkaiPayment ?? price - viewer.cakes));
+  const canPay = viewer.cakes >= price - youkai;
+  if (!quickCard) return <SkillActionChoices label="治愈方式" submitting={submitting} onSubmit={onSubmit}
+    choices={[
+      { id: "heal", label: "普通治愈", action: { type: "skill", skillId: HEALING_ART_ID, stacks: 1 } },
+      { id: "restore", label: "天命 · 恢复至初始", action: { type: "skill", skillId: HEALING_ART_ID, stacks: 1, charityRestoreInitial: true } }
+    ]} />;
+  return <div className="space-y-2">
+          {maxYoukai > 0 ? <YoukaiCakePayment label="速愈" max={maxYoukai} amount={youkai} onChange={setYoukaiPayment} /> : null}
+          <select className="soft-input" aria-label="速愈目标" value={target?.id ?? ""} onChange={(event) => setTargetId(event.target.value)}>
+            {!target ? <option value="">暂无可速愈目标</option> : null}
+            {targets.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
+          </select>
+          <button type="button" className="btn-secondary" disabled={submitting || !target || !canPay} onClick={() => {
+            if (target) onSubmit({ type: "skill", skillId: CHARITY_QUICK_ID, stacks: 1, targetId: target.id, bigCardInstanceId: quickCard.instanceId,
+              ...(youkai ? { youkaiCakeSpent: youkai } : {}) });
+          }}>速愈</button>
+  </div>;
+}
+
+function RewindControls({ state, player, submitting, onSubmit }: {
+  state: PublicGameState; player: PublicGameState["players"][number];
+  submitting: boolean; onSubmit: (action: SkillAction) => void;
+}) {
+  const [targetCount, setTargetCount] = useState<1 | 2>(2);
+  const [first, setFirst] = useState("");
+  const [second, setSecond] = useState("");
+  const targets = state.players.filter((candidate) => candidate.status === "alive" && candidate.hp >= 0 &&
+    candidate.defeatLevel === undefined && canAffectAcrossSpace(state, player.id, candidate.id));
+  const count = state.roundNumber >= 3 ? targetCount : 2;
+  const selected = [first, ...(count === 2 ? [second] : [])];
+  const ready = new Set(selected).size === count && selected.every((id) => targets.some((target) => target.id === id));
+  return <div className="space-y-2">
+    <label className="block text-sm font-medium">时溯范围
+      <select className="soft-input mt-1 w-full" value={count} onChange={(event) => setTargetCount(event.target.value === "1" ? 1 : 2)}>
+        {state.roundNumber >= 3 ? <option value={1}>1 人回到 2 轮前</option> : null}
+        <option value={2}>2 人回到 1 轮前</option>
+      </select>
+    </label>
+    <TargetSelect enemies={targets} label="时溯目标一" allowEmpty emptyLabel="选择目标" targetId={first} onChange={setFirst} />
+    {count === 2 ? <TargetSelect enemies={targets.filter((target) => target.id !== first)} label="时溯目标二"
+      allowEmpty emptyLabel="选择第二人" targetId={second} onChange={setSecond} /> : null}
+    <button className="btn-primary w-full justify-center" type="button" disabled={submitting || !ready}
+      onClick={() => onSubmit({ type: "skill", skillId: TIME_REWIND_ID, stacks: 1, targetIds: selected, targetId: selected[0]! })}>
+      使用技能
+    </button>
+  </div>;
+}
+
+function LingtaControls({ player, skillId, submitting, onSubmit }: {
+  player: PublicGameState["players"][number]; skillId: SkillId; submitting: boolean; onSubmit: (action: SkillAction) => void;
+}) {
+  const ling = getElementAmount(player, LING_ELEMENT);
+  const seas = cloudSeaCount(player);
+  const bypass = player.buffs.some((buff) => buff.id === CLOUD_BYPASS_STATE);
+  const unavailable = skillId === SKY_ABSOLUTE_ID && (ling < 10 || seas < 4) ||
+    skillId === LINGTA_VICTORY_ID && (ling < 36 || seas < 9);
+  return <button className="btn-primary w-full justify-center" type="button" disabled={submitting || unavailable}
+    onClick={() => onSubmit({ type: "skill", skillId, stacks: 1 })}>
+    {skillId === CLOUD_BYPASS_ID ? bypass ? "恢复云海限制" : "自身出招绕过云海" : "使用技能"}
+  </button>;
 }
 
 function rowTargetIds(row: AttackRow): string[] {
@@ -3090,6 +4679,9 @@ function getRepeatActionError({
   if (actions.length === 0) {
     return "上回合行动为空";
   }
+  if (actions.some((action) => action.type === "skill" && action.skillId === KARMA_CYCLE_ID && action.karmaCardChanges?.length)) {
+    return "请重新选择要改变的大卡";
+  }
   if (
     state.config.firstTurnNoAttack &&
     state.roundTurnNumber === 1 &&
@@ -3098,12 +4690,13 @@ function getRepeatActionError({
     return "第一回合不能沿用攻击行动";
   }
 
-  const aliveIds = new Set(
-    state.players.filter((player) => player.status === "alive").map((player) => player.id)
-  );
+  const targetIds = new Set([
+    ...state.players.filter((player) => player.status === "alive").map((player) => player.id),
+    ...targetableTotems(state, viewer).map(({ id }) => id)
+  ]);
   const missingTarget = actions
     .flatMap(repeatActionTargetIds)
-    .find((targetId) => !aliveIds.has(targetId));
+    .find((targetId) => !targetIds.has(targetId));
   if (missingTarget) {
     return "上回合目标已不可用";
   }
@@ -3148,7 +4741,7 @@ function repeatActionCost(action: PlayerAction, state: PublicGameState, viewer: 
     return getAttackActionCost(state, viewer, action);
   }
   if (action.type === "skill") {
-    return getTurnSkillActionCost(viewer, action);
+    return getTurnSkillActionCost(viewer, action, state);
   }
   if (action.type === "defense" && action.defense === "rebound") {
     return 1;
@@ -3157,15 +4750,15 @@ function repeatActionCost(action: PlayerAction, state: PublicGameState, viewer: 
 }
 
 function isMultiTargetAttackSkill(skillId: SkillId): boolean {
-  return MULTI_TARGET_ATTACK_SKILL_IDS.has(skillId);
+  return isHurricane(skillId) || MULTI_TARGET_ATTACK_SKILL_IDS.has(skillId);
 }
 
 function getMultiTargetLimit(skillId: SkillId): number {
-  if (skillId === "skill_118_53580" || skillId === "skill_119_78843" || skillId === getFusionSkillId("冰火双漩")) {
+  if (isHurricane(skillId) || skillId === "1117" || skillId === "1118" || skillId === getFusionSkillId("冰火双漩")) {
     return 3;
   }
 
-  if (skillId === "skill_36_14343" || skillId === "skill_79_36319") {
+  if (skillId === "1035" || skillId === "1078" || skillId === UTOPIA_MOVE_ID || skillId === FALLEN_SPLENDOR_EXECUTION) {
     return 2;
   }
 
@@ -3176,6 +4769,52 @@ function getExtraTargetSlotCount(skillId: SkillId): number {
   return Math.max(0, getMultiTargetLimit(skillId) - 1);
 }
 
+function EraTargetControls({ state, disabled, onSubmit }: {
+  state: PublicGameState;
+  disabled: boolean;
+  onSubmit: (action: SkillAction) => void;
+}) {
+  const [moveKey, setMoveKey] = useState("");
+  const [draft, setDraft] = useState<{ moveKey: string; previous: string; targetIds: string[] }>();
+  const choices = state.eraTargetChoices ?? [];
+  const keyFor = (choice: (typeof choices)[number]) => `${choice.sourceId}:${choice.moveIndex}`;
+  const choice = choices.find((item) => keyFor(item) === moveKey) ?? choices[0];
+  if (!choice) return null;
+  const key = keyFor(choice);
+  const previous = choice.selectedIds.join(",");
+  const selected = draft?.moveKey === key && draft.previous === previous ? draft.targetIds : choice.selectedIds;
+  return <div className="space-y-2">
+    <label className="block text-sm font-medium">神控纪元 · 选择招式
+      <select className="soft-input mt-1 w-full" value={key} disabled={disabled} onChange={(event) => {
+        setMoveKey(event.currentTarget.value);
+        setDraft(undefined);
+      }}>
+        {choices.map((item) => <option key={keyFor(item)} value={keyFor(item)}>{item.label}</option>)}
+      </select>
+    </label>
+    <details className="rounded-lg border border-line px-3 py-2">
+      <summary className="cursor-pointer text-sm">选择目标（{selected.length}）</summary>
+      <div className="mt-2 max-h-44 space-y-1 overflow-auto">
+        {choice.targets.map(({ id, name }) => <label className="flex items-center gap-2 text-sm" key={id}>
+          <input type="checkbox" checked={selected.includes(id)} disabled={disabled}
+            onChange={(event) => setDraft({ moveKey: key, previous, targetIds: event.currentTarget.checked
+              ? [...selected, id] : selected.filter((targetId) => targetId !== id) })} />
+          {name}
+        </label>)}
+      </div>
+    </details>
+    <button className="btn-secondary w-full" type="button" disabled={disabled} onClick={() => {
+      onSubmit({ type: "skill", skillId: ERA_CHOOSE_TARGETS, stacks: 1, eraMoveSourceId: choice.sourceId,
+        eraMoveIndex: choice.moveIndex, targetIds: selected });
+      setDraft(undefined);
+    }}>{selected.length ? "确认目标" : "清空目标"}</button>
+  </div>;
+}
+
+function canAddTotemAsExtraTarget(skillId: SkillId | undefined): boolean {
+  return skillId === "1035" || skillId === UTOPIA_MOVE_ID;
+}
+
 function multiTargetSkillTargetError(
   state: PublicGameState,
   row: AttackRow
@@ -3183,6 +4822,9 @@ function multiTargetSkillTargetError(
   if (row.kind !== "skill" || !isMultiTargetAttackSkill(row.skillId)) {
     return undefined;
   }
+  const viewer = state.players.find((player) => player.id === state.viewerPlayerId);
+  if (hasTianyeWing(viewer, TIAN_YE_FALL_ID, state.turnNumber) && row.skillId !== ELECTRIC_SHOCK_SKILL_ID &&
+    !getSkillPlay(row.skillId)?.nonAttackMove) return undefined;
 
   return multiTargetSkillTargetErrorForIds(state, row.skillId, rowTargetIds(row));
 }
@@ -3192,6 +4834,18 @@ function multiTargetSkillTargetErrorForIds(
   skillId: SkillId,
   targetIds: string[]
 ): string | undefined {
+  if (skillId === FALLEN_SPLENDOR_EXECUTION) {
+    const viewer = state.players.find(({ id }) => id === state.viewerPlayerId);
+    if (!viewer) return "无法确认出招者。";
+    const eligible = fallenSplendorTargets(state, viewer);
+    const count = Math.min(2, eligible.length);
+    return count > 0 && targetIds.length === count && new Set(targetIds).size === count &&
+      targetIds.every((id) => eligible.includes(id)) ? undefined : `请选择 ${count} 名其他存活玩家。`;
+  }
+  if (isHurricane(skillId)) {
+    const viewer = state.players.find((player) => player.id === state.viewerPlayerId);
+    return viewer && validHurricaneTargets(state, viewer, targetIds) ? undefined : "飓风须选择座位连续的 1 至 3 名其他存活玩家。";
+  }
   if (!isMultiTargetAttackSkill(skillId)) {
     return undefined;
   }
@@ -3203,57 +4857,24 @@ function multiTargetSkillTargetErrorForIds(
       : "这个技能需要选择 1 到 2 名目标。";
   }
 
-  const aliveIds = state.players
-    .filter((player) => player.status === "alive")
-    .map((player) => player.id);
-  if (targetIds.some((targetId) => !aliveIds.includes(targetId))) {
+  const alive = state.players.filter((player) => player.status === "alive");
+  const viewer = state.players.find((player) => player.id === state.viewerPlayerId);
+  const totemIds = canAddTotemAsExtraTarget(skillId) || skillId === "1078" && targetIds.length === 1
+    ? targetableTotems(state, viewer).map(({ id }) => id) : [];
+  if (targetIds.some((targetId) => !alive.some(({ id }) => id === targetId) && !totemIds.includes(targetId))) {
     return "目标不存在或已死亡。";
   }
 
   if (
     CONTIGUOUS_MULTI_TARGET_SKILL_IDS.has(skillId) &&
-    !areContiguousTargetIds(aliveIds, targetIds)
+    !areCombatTargetsContiguous(alive, targetIds)
   ) {
-    return skillId === "skill_79_36319"
+    return skillId === "1078"
       ? "火箭的目标必须是座次连续的玩家。"
       : "冰漩决和火漩决的目标必须是座次连续的玩家。";
   }
 
   return undefined;
-}
-
-function areContiguousTargetIds(aliveIds: string[], targetIds: string[]): boolean {
-  const uniqueTargetIds = Array.from(new Set(targetIds));
-  if (uniqueTargetIds.length <= 1) {
-    return true;
-  }
-
-  if (
-    aliveIds.length < uniqueTargetIds.length ||
-    uniqueTargetIds.some((targetId) => !aliveIds.includes(targetId))
-  ) {
-    return false;
-  }
-
-  const targetSet = new Set(uniqueTargetIds);
-  for (let start = 0; start < aliveIds.length; start += 1) {
-    const forward = Array.from(
-      { length: uniqueTargetIds.length },
-      (_, offset) => aliveIds[(start + offset) % aliveIds.length]!
-    );
-    const backward = Array.from(
-      { length: uniqueTargetIds.length },
-      (_, offset) => aliveIds[(start - offset + aliveIds.length) % aliveIds.length]!
-    );
-    if (
-      forward.every((targetId) => targetSet.has(targetId)) ||
-      backward.every((targetId) => targetSet.has(targetId))
-    ) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 interface ModeButtonProps {
@@ -3268,6 +4889,7 @@ interface ModeButtonProps {
 function summarizeActionSelection({
   attackRows,
   cakeGain,
+  gathersYoukai,
   defense,
   mode,
   selectedSkillName,
@@ -3277,6 +4899,7 @@ function summarizeActionSelection({
 }: {
   attackRows: AttackRow[];
   cakeGain: number;
+  gathersYoukai: boolean;
   defense: DefenseKind;
   mode: Mode;
   selectedSkillName: string | undefined;
@@ -3287,7 +4910,7 @@ function summarizeActionSelection({
   totalAttackCost: number;
 }): string {
   if (mode === "gain_cake") {
-    return `吃饼：本回合获得 ${cakeGain} 饼`;
+    return gathersYoukai ? `本回合积累 ${cakeGain} 妖元` : `吃饼：本回合获得 ${cakeGain} 饼`;
   }
 
   if (mode === "defense") {
@@ -3404,7 +5027,9 @@ function isAttackRowArea(row: AttackRow): boolean {
 }
 
 function getPlayerName(state: PublicGameState, playerId: string): string {
-  return state.players.find((player) => player.id === playerId)?.name ?? "";
+  const player = state.players.find(({ id }) => id === playerId);
+  const totem = state.totems?.find(({ id }) => id === playerId);
+  return player?.name ?? (totem ? TOTEM_KINDS[totem.kind].name : "");
 }
 
 function ModeButton({ active, disabled, icon, label, onClick, testId }: ModeButtonProps) {
@@ -3428,6 +5053,7 @@ function ModeButton({ active, disabled, icon, label, onClick, testId }: ModeButt
 
 interface TargetSelectProps {
   allowEmpty?: boolean;
+  emptyLabel?: string;
   enemies: Array<{ id: string; name: string }>;
   targetId: string;
   label: string;
@@ -3435,8 +5061,58 @@ interface TargetSelectProps {
   testId?: string;
 }
 
+function TianyeWingControls({ state, viewer, enabled, onSubmit }: { state: PublicGameState;
+  viewer?: PublicGameState["players"][number] | undefined; enabled: boolean; onSubmit: (action: SkillAction) => void }) {
+  const [wing, setWing] = useState<TianyeWingChoice>(TIAN_YE_SOARING_ID);
+  const [cardId] = tianyeChoiceOptions(viewer, state.turnNumber);
+  if (!cardId || state.activeTimingPhase !== "turn_before_action" || state.pointGame || state.retirementCounter || state.victoryCounter) return null;
+  return <div className="flex items-end gap-2">
+    <label className="flex-1 text-sm font-medium">
+      天野之翼
+      <select className="soft-input mt-1 w-full" disabled={!enabled} value={wing}
+        onChange={(event) => setWing(event.currentTarget.value as TianyeWingChoice)}>
+        {TIAN_YE_WINGS.filter((id) => id !== TIAN_YE_CHOICE_ID).map((id) =>
+          <option key={id} value={id}>{TIAN_YE_WING_DETAILS[id].name}</option>)}
+      </select>
+    </label>
+    <button type="button" className="btn-secondary" disabled={!enabled}
+      onClick={() => onSubmit({ type: "skill", skillId: TIAN_YE_CHOICE_ID, stacks: 1, bigCardInstanceId: cardId, tianyeWingChoice: wing })}>
+      转换
+    </button>
+  </div>;
+}
+
+function StarWheelControls({ state, viewer, skillId, enabled, onSubmit }: { state: PublicGameState;
+  viewer: PublicGameState["players"][number]; skillId: SkillId; enabled: boolean; onSubmit: (action: SkillAction) => void }) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const moves = starWheelChoices(state, viewer);
+  const visibleIds = selected.filter((id) => moves.some((move) => move.id === id));
+  const playerName = (id: string) => state.players.find((player) => player.id === id)?.name ?? "已离场";
+  if (skillId === STAR_WHEEL_POSITION) {
+    const original = !viewer.starWheelOriginalPosition;
+    return <button type="button" className="btn-primary w-full justify-center" disabled={!enabled}
+      onClick={() => onSubmit({ type: "skill", skillId, stacks: 1, starWheelUseOriginal: original })}>
+      {original ? "视为在开局原位" : "按当前座次判定"}
+    </button>;
+  }
+  return <div data-testid="star-wheel-controls">
+    <div className="grid gap-2 py-2">
+      {moves.map((move) => <label key={move.id} className="flex items-start gap-2 text-sm">
+        <input type="checkbox" checked={visibleIds.includes(move.id)}
+          onChange={(event) => setSelected(event.currentTarget.checked ? [...visibleIds, move.id] : visibleIds.filter((id) => id !== move.id))} />
+        <span>{move.label} {move.deliveries.map(({ sourceId, targetId }) => `${playerName(sourceId)} → ${playerName(targetId)}`).join("、")}</span>
+      </label>)}
+      <button type="button" className="btn-secondary" disabled={!enabled || !visibleIds.length}
+        onClick={() => onSubmit({ type: "skill", skillId: STAR_WHEEL_RELEASE, stacks: 1, starWheelMoveIds: visibleIds })}>
+        释放选中的招式
+      </button>
+    </div>
+  </div>;
+}
+
 function TargetSelect({
   allowEmpty = false,
+  emptyLabel = "不追加",
   enemies,
   targetId,
   label,
@@ -3452,7 +5128,7 @@ function TargetSelect({
         value={targetId}
         onChange={(event) => onChange(event.target.value)}
       >
-        {allowEmpty ? <option value="">不追加</option> : null}
+        {allowEmpty ? <option value="">{emptyLabel}</option> : null}
         {enemies.map((enemy) => (
           <option key={enemy.id} value={enemy.id}>
             {enemy.name}
@@ -3485,15 +5161,15 @@ function getSkillResourceStacks(
 ): number | undefined {
   const marks = getAttackMarkCount(player, skillId);
   if (marks !== undefined) return marks;
-  if (skillId === "skill_37_68416") {
+  if (skillId === "1036") {
     return player.buffs.find((buff) => buff.id === "guidao_charge")?.stacks ?? 0;
   }
 
-  if (skillId === "skill_21_36332") {
+  if (skillId === "1020") {
     return player.buffs.find((buff) => buff.id === "lava_mark")?.stacks ?? 0;
   }
 
-  if (skillId === "skill_22_54978") {
+  if (skillId === "1021") {
     return player.buffs.find((buff) => buff.id === "winter_mark")?.stacks ?? 0;
   }
 
@@ -3506,21 +5182,51 @@ function viewerCanUseSkill(
   skillId: SkillId
 ): boolean {
   return Boolean(
-    player && getActiveSkillCount(player, skillId) > 0 &&
+    player && getActiveSkillCount(player, skillId) > 0 && !swordArrayPiBlocksSkill(state, player, skillId) &&
+      (skillId !== FALLEN_SPLENDOR_EXECUTION || Boolean(fallenSplendorExecutionStock(player))) &&
+      (skillId !== ORIGIN_SHOT_FUSION || player.buffs.some((buff) => buff.id === ORIGIN_SHOT_STOCK && buff.stacks > 0)) &&
+      (skillId !== SEA_GOD_RETURN_ID || isSeaGodReturnReady(player, state.roundNumber)) &&
+      (!isBrokenBladeMaintenance(skillId) || canMaintainBrokenBlade(player, skillId)) &&
+      (skillId !== DIVINE_FLAME_ID || !player.buffs.some((buff) =>
+        buff.id === DIVINE_FLAME_ENABLED && buff.startsAtRound === state.roundNumber)) &&
+      (skillId !== VETERAN_SHATTER_ID || player.buffs.some((buff) => buff.id === VETERAN_SHATTER_USES && buff.stacks > 0)) &&
+      (skillId !== CURTAIN_ENCORE_ID || player.bigCards?.some((card) =>
+        bigAbilitySource(player, { skillId, bigCardInstanceId: card.instanceId }) && curtainEncoreReady(player, card.instanceId))) &&
+      (skillId !== CURTAIN_FINALE_ID || !curtainDiscardQuote(player).blocked) &&
+      (skillId !== XIELING_ULTIMATE_ID && skillId !== GOD_KING_JUDGMENT_ID || Boolean(bigAbilitySource(player, { skillId }, true))) &&
       (skillId !== STAR_RAGE_ID || canSpendStarRageMarks(player)) &&
-      (skillId !== "skill_24_71363" || player.hp === 0) &&
-      (skillId !== "skill_45_30424" ||
+      (skillId !== "1023" || player.hp === 0) &&
+      (skillId !== "1044" ||
         getDestroyPowerCooldownCount(player, state.roundNumber) <
           getActiveSkillCount(player, skillId)) &&
-      (skillId !== FLASH_DODGE_SKILL_ID ||
-        getFlashDodgeCooldownCount(player, state.roundNumber) <
-          getActiveSkillCount(player, skillId)) &&
+      (skillId !== FLASH_DODGE_SKILL_ID || getFlashFamilySlots(player, state.roundNumber).some((slot) => slot.kind === "flash" && slot.ready <= state.roundNumber)) &&
+      (![VACUUM_ENTER_ID, VACUUM_EXTRACT_ID].includes(skillId) || Boolean(vacuumMode(state, player))) &&
+      (skillId !== VACUUM_MAX_ID || vacuumMode(state, player) === "absolute") &&
       (skillId !== getFusionSkillId("辉月") || (getHuiyueCooldownCount(player, state.roundNumber) < getActiveFusionCount(player, "辉月") &&
         !player.buffs.some((buff) => buff.id === "huiyue_stasis" && (buff.expiresAtTurn ?? -1) > state.turnNumber))) &&
-      !player.buffs.some((buff) => buff.id === `sealed_skill:${skillId}`) &&
-      !isPlayerInCollapse(player) &&
-      !isSkillBlockedByJingu(state, skillId, player.spaceId)
+      !isSkillBlockedByJingu(state, skillId, player.spaceId, player)
   );
+}
+
+function AntiCakePayment({ label, cost, balance, anti, onChange }: {
+  label: string; cost: number; balance: number; anti: number; onChange: (amount: number) => void;
+}) {
+  return <label className="block text-sm">
+    {label} · {cost - anti} 饼 ＋ {anti} 反饼
+    <input className="soft-input ml-2 w-20" aria-label={`${label}反饼数量`} type="number" min={0} max={Math.min(Math.floor(cost), balance)}
+      step={1} value={anti} onChange={(event) => onChange(Math.max(0, Math.floor(Number(event.currentTarget.value) || 0)))} />
+    {anti > 0 && anti < cost ? <span className="ml-2">混付会清空两种资源、退回该招并自退游</span> : null}
+  </label>;
+}
+
+function YoukaiCakePayment({ label, max, amount, onChange }: {
+  label: string; max: number; amount: number; onChange: (amount: number) => void;
+}) {
+  return <label className="block text-sm">
+    {label}用妖元代付
+    <input className="soft-input ml-2 w-20" aria-label={`${label}代付妖元数量`} type="number" min={0} max={max}
+      step="any" value={amount} onChange={(event) => onChange(Number(event.currentTarget.value) || 0)} />
+  </label>;
 }
 
 function isPendingDeathPlayer(player: PublicGameState["players"][number]): boolean {
@@ -3540,15 +5246,34 @@ function buildActionSwitchOptions(
     return [];
   }
 
+  const payer = state.players.find((player) => player.id === playerId);
+  const attackTargets = state.players.filter((target) => target.id !== playerId && target.status === "alive" &&
+    canAffectAcrossSpace(state, playerId, target.id) && !preventsTargetSelection(target));
   return plan.actions.flatMap((current, actionIndex) =>
-    getActionSwitchChoicesForAction(skillId, current, state.players.find((player) => player.id === playerId)).map((choice) => ({
-      key: `${actionIndex}:${switchActionKey(choice.action)}`,
-      actionIndex,
-      current,
-      action: choice.action,
-      cost: choice.cost,
-      label: `${getActionLabel(current)} -> ${getActionLabel(choice.action)} / ${formatSkillCakeCost(skillId, choice.cost, state.players.find((player) => player.id === playerId))}`
-    }))
+    getActionSwitchChoicesForAction(skillId, current, payer, attackTargets.map(({ id }) => id), (cost) =>
+      !payer || discountCakeCost(state, payer, cost) <= payer.cakes + (canUseAntiCakes(state, payer) ? antiCakeCount(payer) : 0)).flatMap<ActionSwitchOption>((choice) => {
+      if (choice.action.type === "defense" && choice.action.defense === "rebound") {
+        if (hasTianyeReboundLock(payer, state.turnNumber)) return [];
+        return state.players.filter((target) => target.status === "alive" && target.id !== playerId &&
+          canAffectAcrossSpace(state, playerId, target.id) &&
+          (!preventsTargetSelection(target) || canBypassTargetSelection(state, playerId, target))).map((target) => {
+          const action = { type: "defense", defense: "rebound", targetId: target.id } as const;
+          return { key: `${actionIndex}:${switchActionKey(action)}`, actionIndex, current, action,
+            cost: 0, label: `${getActionLabel(current)} → 反弹给 ${target.name}（消耗神罩、鬼罩各1次）` };
+        });
+      }
+      const cost = payer ? discountCakeCost(state, payer, choice.cost) : choice.cost;
+      return [{
+        key: `${actionIndex}:${switchActionKey(choice.action)}`,
+        actionIndex,
+        current,
+        action: choice.action,
+        cost,
+        label: `${getActionLabel(current)} -> ${getActionLabel(choice.action)}${choice.action.type === "attack" && choice.action.targetId ?
+          " → " + (attackTargets.find(({ id }) => id === (choice.action.type === "attack" ? choice.action.targetId : undefined))?.name ?? "") : ""}
+          / ${formatSkillCakeCost(skillId, cost, payer)}`
+      }];
+    })
   );
 }
 
@@ -3564,9 +5289,9 @@ function buildAttackStatModifierOptions(
 
   const player = state.players.find((entry) => entry.id === playerId);
   const modifiers =
-    skillId === "skill_91_89631"
+    skillId === "1090"
       ? undefined
-      : skillId === "skill_45_30424"
+      : skillId === "1044"
         ? getDestructionModifiers(player)
         : [];
 
@@ -3577,7 +5302,7 @@ function buildAttackStatModifierOptions(
 
     return (modifiers ?? getLevelSwapModifiers(player, current)).map((modifier) => {
       const preview = previewPlayerAttackStats(state, playerId, { id: "candidate", actionIndex, modifier,
-        enhanced: skillId === "skill_91_89631" && hasEnhancedLevelSwap(player) });
+        enhanced: skillId === "1090" && hasEnhancedLevelSwap(player) });
       const failure = preview.failures.find((item) => item.id === "candidate");
       const stats = preview.stats[actionIndex];
       const difference = preview.costs.reduce((sum, cost) => sum + cost, 0) - preview.originalCosts.reduce((sum, cost) => sum + cost, 0);
@@ -3658,6 +5383,12 @@ function buildDoubleEdgeOptionsV2(
     return [];
   }
 
+  const owner = state.players.find((player) => player.id === playerId)!;
+  const heavenSwordSuppressed = hasLingtaField(state, owner.id);
+  const blade = heavenSwordSuppressed ? undefined : getBrokenBladeDoubleEdge(owner);
+  const defaultBlade = selectBrokenBladeDoubleEdge(owner, "ignore_defense");
+  const trueBlade = blade && getBrokenBlade(blade).tier === 4 && !heavenSwordSuppressed;
+  const defendedOptions = new Set<string>();
   const options: DoubleEdgeOption[] = plan.actions.flatMap((current, actionIndex) => {
     if (!isAttackLikeAction(current)) {
       return [];
@@ -3675,41 +5406,41 @@ function buildDoubleEdgeOptionsV2(
           playerId,
           targetId
         );
-        if (
-          !targetAction ||
-          targetAction.type === "attack" ||
-          targetAction.type === "skill" ||
-          (targetAction.type === "defense" && targetAction.defense === "rebound") ||
-          isDoubleEdgeTargetQueued(state, playerId, actionIndex, targetId) ||
-          !canActionDefend(targetAction, stats.defenseTag)
-        ) {
+        const defended = targetAction && targetAction.type !== "attack" && targetAction.type !== "skill" &&
+          !(targetAction.type === "defense" && targetAction.defense === "rebound") && canActionDefend(targetAction, stats.defenseTag);
+        const key = `${actionIndex}:${targetId}`;
+        if ((!trueBlade && !defended) || isDoubleEdgeTargetQueued(state, playerId, actionIndex, targetId)) {
           return [];
         }
+        if (defended) defendedOptions.add(key);
 
         const targetName =
           state.players.find((player) => player.id === targetId)?.name ?? "目标";
-        return [
-          {
-            key: `${actionIndex}:${targetId}`,
-            actionIndex,
-            current,
-            targetId,
-            label: `第 ${actionIndex + 1} 招 ${getActionLabel(current)} -> ${targetName} / 无视 ${getActionLabel(targetAction)}`
-          }
-        ];
+        const label = `第 ${actionIndex + 1} 招 ${getActionLabel(current)} -> ${targetName}`;
+        const choices: DoubleEdgeOption[] = [];
+        if (defended && (!trueBlade || !defaultBlade)) choices.push({ key, actionIndex, current, targetId,
+          label: `${label} / 无视 ${getActionLabel(targetAction!)}` });
+        if (blade && (trueBlade || !defaultBlade && defended)) choices.push({ key: `${key}:blade`, actionIndex, current, targetId,
+          cardId: blade.instanceId, label: `${label} / ${trueBlade ? "真·破天圣剑无视技能效果" : "破损战刃无视防御"}` });
+        return choices;
       }
     );
   });
-  const owner = state.players.find((player) => player.id === playerId)!;
   if (getFusionEnhancementCount(owner, DOUBLE_EDGE_SWORD_SKILL_ID, ["破军"]) > 0) {
-    options.push(...options.filter((item, index, all) => all.findIndex((other) => other.actionIndex === item.actionIndex) === index)
-      .map((item): DoubleEdgeOption => ({ ...item, key: `${item.actionIndex}:group`, mode: "ignore_all_defense", label: `第 ${item.actionIndex + 1} 招 / -1血群破防` })));
+    const defended = options.filter((item) => defendedOptions.has(`${item.actionIndex}:${item.targetId}`));
+    options.push(...defended.filter((item, index, all) => all.findIndex((other) => other.actionIndex === item.actionIndex) === index)
+      .map(({ actionIndex, current, targetId }): DoubleEdgeOption => ({ actionIndex, current, targetId,
+        key: `${actionIndex}:group`, mode: "ignore_all_defense", label: `第 ${actionIndex + 1} 招 / -1血群破防` })));
   }
-  if (getFusionEnhancementCount(owner, DOUBLE_EDGE_SWORD_SKILL_ID, ["破天圣剑"]) > 0) {
+  if (!heavenSwordSuppressed && getFusionEnhancementCount(owner, DOUBLE_EDGE_SWORD_SKILL_ID, ["破天圣剑"]) > 0) {
+    const defaultReboundBlade = selectBrokenBladeDoubleEdge(owner, "pierce_rebound");
     for (const [actionIndex, current] of plan.actions.entries()) if (isAttackLikeAction(current) &&
-      !owner.buffs.some((buff) => buff.id === `double_edge_pierce:${actionIndex}`)) options.push({
-        key: `${actionIndex}:pierce`, actionIndex, current, targetId: playerId, mode: "pierce_rebound", label: `第 ${actionIndex + 1} 招 / -2血破弹`
-      });
+      !owner.buffs.some((buff) => buff.id === `double_edge_pierce:${actionIndex}`)) {
+      const choice = { actionIndex, current, targetId: playerId, mode: "pierce_rebound" as const };
+      if (!trueBlade || !defaultReboundBlade) options.push({ ...choice, key: `${actionIndex}:pierce`, label: `第 ${actionIndex + 1} 招 / -2血破弹` });
+      if (blade && (trueBlade || !defaultReboundBlade)) options.push({ ...choice, key: `${actionIndex}:pierce:blade`, cardId: blade.instanceId,
+        label: `第 ${actionIndex + 1} 招 / ${trueBlade ? "-2血破弹并无视技能效果" : "破损战刃 -2血破弹"}` });
+    }
   }
   return options;
 }
@@ -3794,7 +5525,8 @@ function buildAbsoluteGuardOptions(
         : "single_to_area";
       const guard = state.players.find((player) => player.id === playerId)!;
       const currentStats = previewPlayerAttackStats(state, source.id).stats[actionIndex];
-      const cost = getAbsoluteGuardCost(guard, currentStats ? payableAttackCost(currentStats.cost) : getActionCostForPlayer(state, source, action));
+      const cost = discountCakeCost(state, guard,
+        getAbsoluteGuardCost(guard, currentStats ? payableAttackCost(currentStats.cost) : getActionCostForPlayer(state, source, action)));
       const options: AbsoluteGuardOption[] = [
         {
           key: `${source.id}:${actionIndex}`,
@@ -3900,7 +5632,8 @@ function isActionForcedArea(
   return Boolean(
     !isElectricShockAction &&
       !stats.isArea &&
-      (viewerCanUseSkill(state, source, LUANWU_SKILL_ID) ||
+      (!stats.nonAttackMove && hasTianyeWing(source, TIAN_YE_FALL_ID, state.turnNumber) ||
+        viewerCanUseSkill(state, source, LUANWU_SKILL_ID) ||
         viewerCanUseSkill(state, source, PUTIAN_TONGQING_SKILL_ID))
   );
 }
@@ -3924,24 +5657,10 @@ function filterPutianTongqingBlindSpotTargetIds(
 }
 
 function getFarthestAlivePlayerIds(state: PublicGameState, sourceId: string): Set<string> {
-  const alive = state.players.filter((player) => player.status === "alive");
-  const sourceIndex = alive.findIndex((player) => player.id === sourceId);
-  if (sourceIndex < 0 || alive.length <= 3) {
-    return new Set();
-  }
-
-  const maxDistance = Math.floor(alive.length / 2);
-  return new Set(
-    alive
-      .filter((player, index) => {
-        if (player.id === sourceId) {
-          return false;
-        }
-        const distance = Math.abs(index - sourceIndex);
-        return Math.min(distance, alive.length - distance) === maxDistance;
-      })
-      .map((player) => player.id)
-  );
+  const source = state.players.find(({ id }) => id === sourceId);
+  if (!source) return new Set();
+  const groups = getCombatSeatGroups(state, source.spaceId);
+  return new Set(groups.length <= 3 ? [] : getCombatFarthestPlayers(groups, sourceId).map(({ id }) => id));
 }
 
 function isImplicitAreaAction(
@@ -3968,7 +5687,7 @@ function getActionCostForPlayer(
   }
 
   if (action.type === "skill") {
-    return getTurnSkillActionCost(source, action);
+    return getTurnSkillActionCost(source, action, state);
   }
 
   return 0;
@@ -3985,7 +5704,7 @@ function getDefensiveActionForDoubleEdgeOption(
   }
 
   const source = state.players.find((player) => player.id === sourceId);
-  if (!source?.skills.includes("skill_30_38815")) {
+  if (!source?.skills.includes("1029")) {
     return actionWithIndex.action;
   }
 
@@ -4040,7 +5759,7 @@ function getOriginalDefenseBeforeQinggangIgnoredSwitch(
       event.playerId === playerId &&
       event.roundNumber === state.roundNumber &&
       event.turnNumber === state.turnNumber &&
-      (event.skillId === "skill_88_62906" || event.skillId === "skill_89_99375") &&
+      (event.skillId === "1087" || event.skillId === "1088") &&
       event.actionIndex === actionIndex &&
       event.before.type === "defense"
   );
@@ -4049,8 +5768,9 @@ function getOriginalDefenseBeforeQinggangIgnoredSwitch(
 }
 
 function switchActionKey(action: NonNullable<SkillAction["switchToAction"]>): string {
+  if (action.type === "gain_cake") return "gain_cake";
   if (action.type === "defense") {
-    return `defense:${action.defense}`;
+    return `defense:${action.defense}:${action.targetId ?? ""}`;
   }
 
   return `attack:${action.attackId}:${action.stacks}:${action.targetId ?? ""}`;
@@ -4066,12 +5786,12 @@ function isAttackLikeAction(action: PlayerAction): boolean {
 function requiresExposedSkillTarget(
   skill: NonNullable<ReturnType<typeof getSkill>>
 ): boolean {
-  if (skill.play?.effect === "sand_transform" || skill.id === "skill_68_57581") {
+  if (skill.play?.effect === "sand_transform" || skill.id === "1067") {
     return false;
   }
 
   return (
-    skill.id === "skill_5_34881" ||
+    skill.id === "1004" ||
     (skill.description.includes("暴露") && skill.description.includes("技能"))
   );
 }
@@ -4124,17 +5844,8 @@ function areAdjacentPlayerIds(
   playerId: string,
   otherPlayerId: string
 ): boolean {
-  const alive = state.players.filter((player) => player.status === "alive");
-  const index = alive.findIndex((player) => player.id === playerId);
-  const otherIndex = alive.findIndex((player) => player.id === otherPlayerId);
-  if (index === -1 || otherIndex === -1 || alive.length <= 1) {
-    return false;
-  }
-
-  return (
-    otherIndex === (index + 1) % alive.length ||
-    otherIndex === (index - 1 + alive.length) % alive.length
-  );
+  const source = state.players.find(({ id }) => id === playerId);
+  return Boolean(source && getCombatSeatDistance(getCombatSeatGroups(state, source.spaceId), playerId, otherPlayerId) === 1);
 }
 
 function phaseLabel(phase: PublicGameState["activeTimingPhase"]): string {

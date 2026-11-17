@@ -9,7 +9,7 @@
       "model": "doubao-seedance-2-0-260128",
       "notes": "First successful Fireball Seedance loop. Includes generated mp4/webm and poster/keyframe asset validation.",
       "provider": "volcengine",
-      "skillId": "skill_78_18866",
+      "skillId": "1077",
       "skillName": "火球",
       "status": "succeeded",
       "taskId": "cgt-20260616032151-pr4n7"
@@ -22,7 +22,7 @@
       "model": "doubao-seedance-2-0-260128",
       "notes": "Synced from local Seedance task manifest; excludes prompt payloads, URLs, and API credentials.",
       "provider": "volcengine",
-      "skillId": "skill_78_18866",
+      "skillId": "1077",
       "skillName": "火球",
       "status": "succeeded",
       "taskId": "cgt-20260616214034-76mkl"

@@ -1,0 +1,16 @@
+export const FALLEN_SPLENDOR_CARD_ID = "10604";
+export const FALLEN_SPLENDOR_HEALING = "1060401";
+export const FALLEN_SPLENDOR_CONVERT = "1060401_convert";
+export const FALLEN_SPLENDOR_REBIRTH_STAGES = ["1060402", "1060403", "1060404", "1060405", "1060406", "1060407", "1060408"] as const;
+export const FALLEN_SPLENDOR_REBOUND = "1060403";
+export const FALLEN_SPLENDOR_ELEMENTAL = "1060404";
+export const FALLEN_SPLENDOR_DOUBLE = "1060404_double";
+export const FALLEN_SPLENDOR_PIERCE = "1060405";
+export const FALLEN_SPLENDOR_DEFENSE_VALUE = "1060406";
+export const FALLEN_SPLENDOR_EXECUTION = "1060408";
+export const FALLEN_SPLENDOR_RELEASE = "1060408_release";
+export const FALLEN_SPLENDOR_IGNORE_DAMAGE = "1060409";
+export const FALLEN_SPLENDOR_EXECUTION_STATE = "fallen_splendor_execution";
+export const ORIGIN_SHOT_FUSION = "4017";
+export const ORIGIN_SHOT_STOCK = "origin_shot_stock";
+export const DIVINE_DOMAIN_FUSION = "4022";

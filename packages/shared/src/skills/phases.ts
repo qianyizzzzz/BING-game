@@ -21,6 +21,8 @@ export const SKILL_TIMING_PHASE_LABELS: Record<SkillTimingPhase, string> = {
   turn_after_interval_action: "回合后间隙",
   round_end_check: "轮末判定",
   round_after_interval_action: "轮后轮间行动",
+  victory_counter_action: "胜利反制阶段",
+  retirement_counter_action: "反制退游",
   passive_check: "锁定/被动"
 };
 
@@ -35,7 +37,9 @@ export const ACTION_WINDOW_PHASES = new Set<SkillTimingPhase>([
   "revival_action",
   "turn_end_action",
   "turn_after_interval_action",
-  "round_after_interval_action"
+  "round_after_interval_action",
+  "victory_counter_action",
+  "retirement_counter_action"
 ]);
 
 const ROUND_INTERVAL_SKILLS = new Set([

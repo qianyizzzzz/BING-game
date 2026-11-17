@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Compass, Crown, Gauge, RadioTower, UsersRound } from "lucide-react";
+import { Compass, Crown, Dog, Flame, Gauge, Landmark, RadioTower, UsersRound } from "lucide-react";
 import {
   GameEvent,
   CombatValue,
@@ -10,6 +10,14 @@ import {
   combatValue,
   compareCombatValues,
   formatCombatValue,
+  formatPlayerHp,
+  activeTotems,
+  TOTEM_KINDS,
+  TOTEM_RANGES,
+  getCombatSeatNumbers,
+  getTablePlayers,
+  TIGER_SWITCH,
+  getActiveSkillCount,
   INFINITY_VALUE,
   projectCombatValue,
   subtractCombatValues
@@ -22,7 +30,6 @@ import { buildSeatFeedbackMap, buildTableEffects } from "../lib/tableFeedback";
 import type { SkillEffectType, TableEffect } from "../lib/tableFeedback";
 import { PlayerSeat, SeatPosition } from "./PlayerSeat";
 import { SkillEffectLayer } from "./SkillEffectLayer";
-import { TableScene3D } from "./TableScene3D";
 
 interface PokerTableGameProps {
   actionPanel?: ReactNode;
@@ -48,21 +55,36 @@ export function PokerTableGame({
   viewerPlayerId
 }: PokerTableGameProps) {
   const [actionDockCollapsed, setActionDockCollapsed] = useState(false);
+  const viewer = state.players.find((player) => player.id === viewerPlayerId);
+  const waitingForChoice = state.phase === "action_window" && (Boolean(state.thornPierceChoices?.length) ||
+    (["round_after_interval_action", "round_pre_interval_action"].includes(state.activeTimingPhase) &&
+      Boolean(getActiveSkillCount(viewer, TIGER_SWITCH) && viewer?.bigCards?.some((card) =>
+        card.tigerForms?.available.some((form) => form !== card.tigerForms?.active)))));
   useEffect(() => {
-    if (readingSidePanel) setActionDockCollapsed(true);
-  }, [readingSidePanel]);
+    if (state.victoryCounter || state.retirementCounter || waitingForChoice) setActionDockCollapsed(false);
+    else if (readingSidePanel) setActionDockCollapsed(true);
+  }, [readingSidePanel, Boolean(state.victoryCounter), Boolean(state.retirementCounter), waitingForChoice]);
   const orderedPlayers = useMemo(
     () =>
       orderPlayersForViewer(
-        state.players.filter((player) => player.kind !== "spectator"),
+        getTablePlayers(state),
         viewerPlayerId
       ),
     [state.players, viewerPlayerId]
   );
-  const seatPositions = useMemo(
+  const fixedPositions = useMemo(
     () => buildSeatPositions(orderedPlayers.map((player) => player.id)),
     [orderedPlayers]
   );
+  const combatSeats = useMemo(() => getCombatSeatNumbers(state), [state.players]);
+  const creationZones = useMemo(() => buildCreationZones(orderedPlayers, state, fixedPositions, combatSeats),
+    [orderedPlayers, state, fixedPositions, combatSeats]);
+  const seatPositions = useMemo(() => ({
+    ...fixedPositions,
+    ...Object.fromEntries(creationZones.flatMap(({ occupants, totems, position, front }) =>
+      [...occupants.filter((unit) => front ? unit.status === "alive" : combatSeats.has(unit.id)), ...totems]
+        .map(({ id }) => [id, position])))
+  }), [fixedPositions, creationZones, combatSeats]);
   const feedbackMap = useMemo(() => buildSeatFeedbackMap(state), [state]);
   const effects = useMemo(() => buildTableEffects(state), [state]);
   const director = useBattleDirector(state);
@@ -117,11 +139,10 @@ export function PokerTableGame({
   const readoutSummaryTarget = summaryStep?.targetName ?? "所有玩家";
   const readoutSummaryResult =
     summaryAmountLabel || summaryStep?.description || "等待所有玩家提交行动。";
-  const seatedPlayers = state.players.filter((player) => player.kind !== "spectator");
+  const seatedPlayers = state.players.filter((player) => player.kind !== "spectator" && !player.summon);
   const activePlayers = seatedPlayers.filter((player) => player.status === "alive");
   const spectators = state.players.filter((player) => player.kind === "spectator");
   const owner = state.players.find((player) => player.id === state.ownerId);
-  const viewer = state.players.find((player) => player.id === viewerPlayerId);
   const hasImpactEffect = effects.some((effect) => effect.type === "damage");
   const [clockNow, setClockNow] = useState(() => Date.now());
   const activeDeadline =
@@ -154,8 +175,8 @@ export function PokerTableGame({
     state.phase === "lobby"
       ? `${seatedPlayers.length} 人已入座`
       : state.phase === "action_window"
-      ? `${state.actionWindowPassPlayerIds.length}/${activePlayers.length} 已结束`
-      : `${state.pendingActionPlayerIds.length}/${activePlayers.length} 已出招`;
+      ? `${activePlayers.filter((player) => state.actionWindowPassPlayerIds.includes(player.id)).length}/${activePlayers.length} 已结束`
+      : `${activePlayers.filter((player) => state.pendingActionPlayerIds.includes(player.id)).length}/${activePlayers.length} 已出招`;
   const waitingPlayers =
     state.phase === "action_window"
       ? activePlayers.filter((player) => !state.actionWindowPassPlayerIds.includes(player.id))
@@ -178,14 +199,12 @@ export function PokerTableGame({
       : state.phase === "action_window"
         ? "RIFT"
         : "CALM";
-  const activeDirectorTargetSeatCount = orderedPlayers.filter((player) =>
-    director.activeTargetIds.includes(player.id)
-  ).length;
+  const activeDirectorTargetSeatCount = director.activeTargetIds.filter((id) => seatPositions[id]).length;
   const activeDirectorSourceSeatCount =
-    director.activeSourceId && orderedPlayers.some((player) => player.id === director.activeSourceId)
+    director.activeSourceId && seatPositions[director.activeSourceId]
       ? 1
       : 0;
-  const seatPlayerIds = orderedPlayers.map((player) => player.id).join(",");
+  const seatPlayerIds = Object.keys(seatPositions).join(",");
 
   useEffect(() => {
     if (!activeDeadline) {
@@ -297,12 +316,7 @@ export function PokerTableGame({
           data-cue-count={director.cueCount}
           data-seat-player-ids={seatPlayerIds}
         />
-        <TableScene3D
-          directorCue={activeDirectorCue}
-          players={orderedPlayers}
-          seatPositions={seatPositions}
-          viewerPlayerId={viewerPlayerId}
-        />
+        <div className="poker-table-felt" aria-hidden="true" />
 
         <div className="abyss-table-hud" aria-hidden="true">
           <div className="abyss-depth-gauge">
@@ -437,6 +451,36 @@ export function PokerTableGame({
         </div>
 
         <SkillEffectLayer effects={skillLayerEffects} seatPositions={seatPositions} />
+
+        {creationZones.map(({ id, name, occupants, totems, position, front }) => {
+          const first = occupants[0];
+          const firstTotem = totems[0];
+          const ZoneIcon = !first ? Landmark :
+            first.entityClasses?.includes("demon") && !first.entityClasses?.includes("hound") ? Flame : Dog;
+          return (
+            <details key={id} className="table-creation-zone" data-testid="table-creation-zone" data-zone-kind={front ? "front" : "side"}
+              style={{ left: position.x + "%", top: position.y + "%" }}>
+              <summary aria-label={front ? `${name}傀儡区` : `傀儡和造物区 · ${name}`}
+                title={first?.name ?? (firstTotem ? TOTEM_KINDS[firstTotem.kind].name : name)}>
+                <ZoneIcon className="h-6 w-6" aria-hidden="true" />
+              </summary>
+              <ul aria-label={name}>
+                {occupants.map((unit) => {
+                  const seat = combatSeats.get(unit.id);
+                  return <li key={unit.id} data-creation-id={unit.id}>
+                    <strong>{unit.name}</strong>
+                    <span>{unit.status !== "alive" || !front && seat === undefined ? "已离场" :
+                      `${unit.spaceId ? state.smallSpaces?.[unit.spaceId]?.name ?? "小空间" : "主空间"} · ${front ? "无座次" : `座次 ${seat === Infinity ? "∞" : seat}`} · ${formatPlayerHp(unit)} 血`}</span>
+                  </li>;
+                })}
+                {totems.map((totem) => <li key={totem.id} data-creation-id={totem.id}>
+                  <strong>{TOTEM_KINDS[totem.kind].name}</strong>
+                  <span>主目标 {state.players.find(({ id }) => id === totem.primaryTargetId)?.name ?? "未知"} · {TOTEM_RANGES[totem.range]} · 余 {totem.expiresAtTurn - state.turnNumber} 回合</span>
+                </li>)}
+              </ul>
+            </details>
+          );
+        })}
 
         {orderedPlayers.map((player) => {
           const isActiveActor =
@@ -594,7 +638,7 @@ function buildPresentationTableEffects(cues: BattlePresentationCue[]): TableEffe
       type: effectTypeForCue(cue),
       color: effectColorForCue(cue),
       duration: Math.max(900, cue.durationMs),
-      targetType: cue.targetIds.length > 1 ? "all" : "single",
+      targetType: cue.targetIds.length > 1 ? "all" : cue.targetIds[0] === cue.sourceId ? "self" : "single",
       sourceId: cue.sourceId,
       targetIds: cue.targetIds,
       label: cue.label
@@ -768,6 +812,63 @@ function orderPlayersForViewer(
   }
 
   return [...players.slice(viewerIndex), ...players.slice(0, viewerIndex)];
+}
+
+function buildCreationZones(
+  players: PublicGameState["players"],
+  state: PublicGameState,
+  positions: Record<PlayerId, SeatPosition>,
+  seats: ReadonlyMap<PlayerId, number>
+) {
+  const allPlayers = state.players;
+  const byId = new Map(allPlayers.map((player) => [player.id, player]));
+  const nextById = new Map(players.map((player, index) => [player.id, players[(index + 1) % players.length]!]));
+  const previousById = new Map(players.map((player, index) => [player.id, players[(index + players.length - 1) % players.length]!]));
+  const groups = new Map<PlayerId, PublicGameState["players"]>();
+  const frontGroups = new Map<PlayerId, PublicGameState["players"]>();
+  for (const player of allPlayers) {
+    const summon = player.summon;
+    if (!summon) continue;
+    if (summon.tableFrontPlayerId) {
+      const occupants = frontGroups.get(summon.tableFrontPlayerId) ?? [];
+      occupants.push(player);
+      frontGroups.set(summon.tableFrontPlayerId, occupants);
+      continue;
+    }
+    const target = byId.get(summon.targetId);
+    const boundary = summon.tableZoneAfterPlayerId ?? target?.summon?.tableZoneAfterPlayerId ??
+      (summon.side === "right" ? target?.id : previousById.get(summon.targetId)?.id);
+    if (!boundary) continue;
+    const occupants = groups.get(boundary) ?? [];
+    occupants.push(player);
+    groups.set(boundary, occupants);
+  }
+  const tableTotems = activeTotems(state).filter(({ tableZoneAfterPlayerId }) => tableZoneAfterPlayerId);
+  const boundaries = new Set([...groups.keys(), ...tableTotems.map(({ tableZoneAfterPlayerId }) => tableZoneAfterPlayerId!)]);
+  const sortOccupants = (occupants: PublicGameState["players"]) => occupants.sort((left, right) =>
+    (left.summon?.firstTurn ?? 0) - (right.summon?.firstTurn ?? 0) ||
+    (left.summon?.tableCreationOrder ?? 0) - (right.summon?.tableCreationOrder ?? 0));
+  const sideZones = [...boundaries].flatMap((id) => {
+    const occupants = groups.get(id) ?? [];
+    const totems = tableTotems.filter(({ tableZoneAfterPlayerId }) => tableZoneAfterPlayerId === id);
+    const next = nextById.get(id);
+    if (!next || (!totems.length && !occupants.some((unit) => seats.has(unit.id)))) return [];
+    const a = positions[id], b = positions[next.id];
+    if (!a || !b) return [];
+    // With two players the clockwise and counterclockwise edges have the same midpoint.
+    const offset = players.length === 2 ? (players[0]!.id === id ? -6 : 6) : 0;
+    return [{ id, name: `${byId.get(id)?.name ?? "玩家"}与${next.name}之间`, front: false,
+      position: { x: (a.x + b.x) / 2 + offset, y: (a.y + b.y) / 2, angle: a.angle },
+      totems, occupants: sortOccupants(occupants) }];
+  });
+  const frontZones = [...frontGroups].flatMap(([id, occupants]) => {
+    const anchor = positions[id];
+    if (!anchor || !occupants.some((unit) => unit.status === "alive")) return [];
+    return [{ id: `front:${id}`, name: `${byId.get(id)?.name ?? "玩家"}面前`, front: true,
+      position: { x: 50 + (anchor.x - 50) * 0.62, y: 50 + (anchor.y - 50) * 0.62, angle: anchor.angle },
+      totems: [], occupants: sortOccupants(occupants) }];
+  });
+  return [...sideZones, ...frontZones];
 }
 
 function buildSeatPositions(playerIds: PlayerId[]): Record<PlayerId, SeatPosition> {

@@ -5,7 +5,7 @@ import {
   PlayerId,
   PublicGameState
 } from "@bing/shared";
-import { formatDamage, playerName } from "./format";
+import { attackInterceptionLabel, formatDamage, formatEvent, playerName } from "./format";
 
 export interface Broadcast {
   reveal: Extract<GameEvent, { type: "turn_revealed" }>;
@@ -149,6 +149,7 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
   if (event.type === "attack_blocked") {
     const source = playerRef(state, event.sourceId);
     const target = playerRef(state, event.targetId);
+    const outcome = attackInterceptionLabel(event);
     return {
       id: event.id,
       kind: "block",
@@ -158,8 +159,8 @@ export function buildBattleStepForEvent(event: GameEvent, state: PublicGameState
       sourceAvatarUrl: source.avatarUrl,
       targetName: target.name,
       targetAvatarUrl: target.avatarUrl,
-      label: event.attackName,
-      description: `${target.name} 防住了 ${event.attackName}`
+      label: outcome ? `${event.attackName} · ${outcome}` : event.attackName,
+      description: outcome ? formatEvent(event, state) : `${target.name} 防住了 ${event.attackName}`
     };
   }
 

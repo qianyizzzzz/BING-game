@@ -167,7 +167,7 @@ check("mark attack selection rejects omissions, invalid slots, and non-attack pl
   const noAttack = reveal(mark(fixture()), gain);
   assert.throws(() => cast(noAttack), /没有.*攻击/);
   assert.equal(getAttackMarkChoices(noAttack, noAttack.players[0]!.id).length, 0);
-  assert.throws(() => cast(state, 4, 0), /重数/);
+  assert.throws(() => cast(state, 4, 0), /印记不足/);
 });
 
 check("cannot use marks outside turn-change or spend more than available", () => {
@@ -273,7 +273,7 @@ check("freeze blocks exactly the next x turns and then allows normal submission"
   state = end(cast(reveal(state, attack(state)), 2));
   for (let i = 0; i < 2; i++) {
     state = collecting(state);
-    assert.deepEqual(state.pendingActions[state.players[1]!.id], { actions: [] });
+    assert.deepEqual(state.pendingActions[state.players[1]!.id]?.actions, []);
     state = end(reveal(state, { type: "defense", defense: "small" }));
   }
   state = collecting(state);

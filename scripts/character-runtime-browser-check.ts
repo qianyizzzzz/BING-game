@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawn, type ChildProcess } from "node:child_process";
-import zlib from "node:zlib";
 import { chromium, type Browser, type Locator, type Page } from "playwright";
 import { CHARACTER_ROSTER, type CharacterProfile } from "../apps/client/src/lib/characters.js";
 
@@ -11,27 +10,12 @@ interface RunConfig {
   url: string;
 }
 
-interface SceneSample {
-  characterCount: number;
-  characterMinHeightRatio: number;
-  characterMinVisibleRatio: number;
-  characterScreenBboxes: string;
-  clientHeight: number;
-  clientWidth: number;
-  colorBuckets: number;
-  opaquePixels: number;
-  pixelCheck: "screenshot" | "unreadable";
-  visibleRatio: number;
-}
-
 interface CharacterRuntimeResult {
   characterId: string;
   characterName: string;
   consoleIssues: string[];
-  expectedModel: string;
-  observedModels: string[];
+  avatarUrl: string;
   roomId: string;
-  scene?: SceneSample;
   screenshot?: string;
 }
 
@@ -93,9 +77,7 @@ async function verifyCharacter(
   character: CharacterProfile,
   index: number
 ): Promise<CharacterRuntimeResult> {
-  const expectedModel = path.basename(new URL(character.modelUrl, config.url).pathname);
   const consoleIssues: string[] = [];
-  const observedModels = new Set<string>();
   const hostContext = await browser.newContext({ viewport: { width: 1280, height: 860 } });
   const spectatorContext = await browser.newContext({ viewport: { width: 1280, height: 860 } });
   const host = await hostContext.newPage();
@@ -104,41 +86,27 @@ async function verifyCharacter(
   attachIssueLogging(spectator, `${character.id}:spectator`, consoleIssues);
 
   let roomId = "";
-  let scene: SceneSample | undefined;
   let screenshot: string | undefined;
 
   try {
     await openPlaytestHome(host);
+    if (await host.locator(".hero-page video").count()) {
+      throw new Error("首页仍有背景视频");
+    }
     await selectCharacter(host, character);
+    await waitForAvatar(host.locator(".character-select-preview img"), character.avatarUrl);
+    await waitForAvatar(host.locator(".account-avatar img"), character.avatarUrl);
     await fillPlayerName(host, `角色验证-${index + 1}`);
     await clickByTestId(host, "create-room");
     roomId = await readRoomId(host);
     await startLobbyGame(host);
 
-    const expectedModelResponse = spectator
-      .waitForResponse((response) => {
-        const url = response.url();
-        if (!url.endsWith(".glb")) {
-          return false;
-        }
-        const modelName = path.basename(new URL(url).pathname);
-        observedModels.add(modelName);
-        return response.status() < 400 && modelName === expectedModel;
-      }, { timeout: 60_000 })
-      .then(
-        () => undefined,
-        (error) => new Error(`${expectedModel} model response timed out; observed=${[...observedModels].sort().join(",") || "none"}; ${errorMessage(error)}`)
-      );
-
     await openPlaytestHome(spectator);
     await fillRoomId(spectator, roomId);
     await clickByTestId(spectator, "spectate-room");
     await waitForRoomLobby(spectator, "观战房间");
-    const modelResponseError = await expectedModelResponse;
-    if (modelResponseError) {
-      throw modelResponseError;
-    }
-    scene = await waitForRenderableScene(spectator);
+    const hostSeat = spectator.locator(`.poker-seat[data-player-name="角色验证-${index + 1}"]`);
+    await waitForAvatar(hostSeat.locator("img"), character.avatarUrl);
 
     screenshot = `${String(index + 1).padStart(2, "0")}-${character.id}.png`;
     await spectator.screenshot({
@@ -149,17 +117,6 @@ async function verifyCharacter(
       timeout: 60_000
     });
 
-    if (!scene || scene.clientWidth < 300 || scene.clientHeight < 180) {
-      failures.push(`${character.id}: 3D canvas size is too small`);
-    } else if (scene.characterCount < 1) {
-      failures.push(`${character.id}: character runtime bbox metadata missing`);
-    } else if (scene.characterMinHeightRatio < 0.12) {
-      failures.push(`${character.id}: character screen height ratio is too small (${scene.characterMinHeightRatio})`);
-    } else if (scene.characterMinVisibleRatio < 0.55) {
-      failures.push(`${character.id}: character bbox is heavily clipped (${scene.characterMinVisibleRatio})`);
-    } else if (scene.pixelCheck === "screenshot" && (scene.visibleRatio <= 0.04 || scene.colorBuckets < 6)) {
-      failures.push(`${character.id}: 3D scene screenshot sample looks blank`);
-    }
   } catch (error) {
     failures.push(`${character.id}: ${errorMessage(error)}`);
   } finally {
@@ -171,10 +128,8 @@ async function verifyCharacter(
     characterId: character.id,
     characterName: character.name,
     consoleIssues,
-    expectedModel,
-    observedModels: [...observedModels].sort(),
+    avatarUrl: character.avatarUrl,
     roomId,
-    scene,
     screenshot
   };
 }
@@ -291,7 +246,7 @@ async function startLobbyGame(page: Page): Promise<void> {
   }
 
   await clickDomTestId(page, "start-game");
-  await page.locator(".table-scene-3d").first().waitFor({ state: "visible", timeout: 20_000 });
+  await page.getByTestId("table-turn-summary").getByText(/开局准备|第 \d+ 轮/).waitFor({ timeout: 20_000 });
 }
 
 async function isDomEnabled(page: Page, testId: string): Promise<boolean> {
@@ -342,226 +297,15 @@ async function readStatusMessage(page: Page): Promise<string> {
   return (await message.innerText()).trim();
 }
 
-async function waitForRenderableScene(page: Page): Promise<SceneSample> {
-  const scene = page.locator(".table-scene-3d").first();
-  await scene.waitFor({ state: "visible", timeout: 20_000 });
-  await page.waitForFunction(
-    () => {
-      const element = document.querySelector(".table-scene-3d");
-      return element instanceof HTMLElement && Number(element.dataset.characterRuntimeCount ?? "0") > 0;
-    },
-    undefined,
-    { timeout: 20_000 }
+async function waitForAvatar(image: Locator, avatarUrl: string): Promise<void> {
+  await image.waitFor({ state: "visible", timeout: 10_000 });
+  const element = await image.elementHandle();
+  await image.page().waitForFunction(
+    ([img, url]) => img instanceof HTMLImageElement &&
+      img.getAttribute("src") === url && img.complete && img.naturalWidth > 0,
+    [element, avatarUrl] as const,
+    { timeout: 10_000 }
   );
-  await page.waitForTimeout(900);
-  const box = await scene.boundingBox();
-  if (!box) {
-    throw new Error("未找到 3D scene bounding box");
-  }
-  const runtimeMetrics = await scene.evaluate((element) => ({
-    characterCount: Number(element.getAttribute("data-character-runtime-count") ?? "0"),
-    characterMinHeightRatio: Number(element.getAttribute("data-character-min-height-ratio") ?? "0"),
-    characterMinVisibleRatio: Number(element.getAttribute("data-character-min-visible-ratio") ?? "0"),
-    characterScreenBboxes: element.getAttribute("data-character-screen-bboxes") ?? ""
-  }));
-
-  try {
-    const image = await scene.screenshot({
-      animations: "disabled",
-      timeout: 60_000
-    });
-    const analysis = analyzePng(image);
-    return {
-      ...runtimeMetrics,
-      clientHeight: Math.round(box.height),
-      clientWidth: Math.round(box.width),
-      colorBuckets: analysis.uniqueBuckets,
-      opaquePixels: analysis.visibleSamples,
-      pixelCheck: "screenshot",
-      visibleRatio: analysis.visibleRatio
-    };
-  } catch {
-    return {
-      ...runtimeMetrics,
-      clientHeight: Math.round(box.height),
-      clientWidth: Math.round(box.width),
-      colorBuckets: 0,
-      opaquePixels: 0,
-      pixelCheck: "unreadable",
-      visibleRatio: 0
-    };
-  }
-}
-
-interface PngAnalysis {
-  height: number;
-  uniqueBuckets: number;
-  visibleRatio: number;
-  visibleSamples: number;
-  width: number;
-}
-
-function analyzePng(buffer: Buffer): PngAnalysis {
-  const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-  if (!buffer.subarray(0, pngSignature.length).equals(pngSignature)) {
-    return { height: 0, uniqueBuckets: 0, visibleRatio: 0, visibleSamples: 0, width: 0 };
-  }
-
-  let offset = pngSignature.length;
-  let width = 0;
-  let height = 0;
-  let bitDepth = 0;
-  let colorType = 0;
-  const idatChunks: Buffer[] = [];
-
-  while (offset + 12 <= buffer.length) {
-    const length = buffer.readUInt32BE(offset);
-    const type = buffer.toString("ascii", offset + 4, offset + 8);
-    const dataStart = offset + 8;
-    const dataEnd = dataStart + length;
-    if (dataEnd + 4 > buffer.length) {
-      break;
-    }
-
-    if (type === "IHDR") {
-      width = buffer.readUInt32BE(dataStart);
-      height = buffer.readUInt32BE(dataStart + 4);
-      bitDepth = buffer[dataStart + 8] ?? 0;
-      colorType = buffer[dataStart + 9] ?? 0;
-    } else if (type === "IDAT") {
-      idatChunks.push(buffer.subarray(dataStart, dataEnd));
-    } else if (type === "IEND") {
-      break;
-    }
-
-    offset = dataEnd + 4;
-  }
-
-  const bytesPerPixel = pngBytesPerPixel(colorType);
-  if (width <= 0 || height <= 0 || bitDepth !== 8 || bytesPerPixel === 0 || idatChunks.length === 0) {
-    return { height, uniqueBuckets: 0, visibleRatio: 0, visibleSamples: 0, width };
-  }
-
-  const inflated = zlib.inflateSync(Buffer.concat(idatChunks));
-  const stride = width * bytesPerPixel;
-  const pixels = Buffer.alloc(height * stride);
-  let sourceOffset = 0;
-
-  for (let y = 0; y < height; y += 1) {
-    const filter = inflated[sourceOffset] ?? 0;
-    sourceOffset += 1;
-    const row = inflated.subarray(sourceOffset, sourceOffset + stride);
-    sourceOffset += stride;
-    const output = pixels.subarray(y * stride, (y + 1) * stride);
-    const previous = y > 0 ? pixels.subarray((y - 1) * stride, y * stride) : undefined;
-    unfilterPngRow(filter, row, output, previous, bytesPerPixel);
-  }
-
-  const stepX = Math.max(1, Math.floor(width / 48));
-  const stepY = Math.max(1, Math.floor(height / 48));
-  const buckets = new Set<string>();
-  let totalSamples = 0;
-  let visibleSamples = 0;
-
-  for (let y = 0; y < height; y += stepY) {
-    for (let x = 0; x < width; x += stepX) {
-      const pixelOffset = y * stride + x * bytesPerPixel;
-      const [red, green, blue, alpha] = readPngPixel(pixels, pixelOffset, colorType);
-      totalSamples += 1;
-      if (alpha > 0 && red + green + blue > 18) {
-        visibleSamples += 1;
-        buckets.add(`${red >> 5}:${green >> 5}:${blue >> 5}`);
-      }
-    }
-  }
-
-  return {
-    height,
-    uniqueBuckets: buckets.size,
-    visibleRatio: totalSamples > 0 ? visibleSamples / totalSamples : 0,
-    visibleSamples,
-    width
-  };
-}
-
-function pngBytesPerPixel(colorType: number): number {
-  if (colorType === 0) {
-    return 1;
-  }
-  if (colorType === 2) {
-    return 3;
-  }
-  if (colorType === 4) {
-    return 2;
-  }
-  if (colorType === 6) {
-    return 4;
-  }
-  return 0;
-}
-
-function unfilterPngRow(
-  filter: number,
-  row: Buffer,
-  output: Buffer,
-  previous: Buffer | undefined,
-  bytesPerPixel: number
-): void {
-  for (let index = 0; index < row.length; index += 1) {
-    const left = index >= bytesPerPixel ? output[index - bytesPerPixel] ?? 0 : 0;
-    const up = previous ? previous[index] ?? 0 : 0;
-    const upLeft = previous && index >= bytesPerPixel ? previous[index - bytesPerPixel] ?? 0 : 0;
-    const value = row[index] ?? 0;
-
-    if (filter === 0) {
-      output[index] = value;
-    } else if (filter === 1) {
-      output[index] = (value + left) & 0xff;
-    } else if (filter === 2) {
-      output[index] = (value + up) & 0xff;
-    } else if (filter === 3) {
-      output[index] = (value + Math.floor((left + up) / 2)) & 0xff;
-    } else if (filter === 4) {
-      output[index] = (value + paethPredictor(left, up, upLeft)) & 0xff;
-    } else {
-      output[index] = value;
-    }
-  }
-}
-
-function paethPredictor(left: number, up: number, upLeft: number): number {
-  const estimate = left + up - upLeft;
-  const leftDistance = Math.abs(estimate - left);
-  const upDistance = Math.abs(estimate - up);
-  const upLeftDistance = Math.abs(estimate - upLeft);
-
-  if (leftDistance <= upDistance && leftDistance <= upLeftDistance) {
-    return left;
-  }
-  if (upDistance <= upLeftDistance) {
-    return up;
-  }
-  return upLeft;
-}
-
-function readPngPixel(buffer: Buffer, offset: number, colorType: number): [number, number, number, number] {
-  if (colorType === 0) {
-    const value = buffer[offset] ?? 0;
-    return [value, value, value, 255];
-  }
-  if (colorType === 2) {
-    return [buffer[offset] ?? 0, buffer[offset + 1] ?? 0, buffer[offset + 2] ?? 0, 255];
-  }
-  if (colorType === 4) {
-    const value = buffer[offset] ?? 0;
-    return [value, value, value, buffer[offset + 1] ?? 0];
-  }
-  return [
-    buffer[offset] ?? 0,
-    buffer[offset + 1] ?? 0,
-    buffer[offset + 2] ?? 0,
-    buffer[offset + 3] ?? 0
-  ];
 }
 
 function attachIssueLogging(page: Page, label: string, consoleIssues: string[]): void {
@@ -689,16 +433,10 @@ function renderReport(): string {
   ];
 
   for (const result of results) {
-    const sceneText = result.scene
-      ? `${result.scene.clientWidth}x${result.scene.clientHeight}, visible=${Math.round(result.scene.visibleRatio * 100)}%, samples=${result.scene.opaquePixels}, buckets=${result.scene.colorBuckets}, characters=${result.scene.characterCount}, minHeight=${Math.round(result.scene.characterMinHeightRatio * 100)}%, minVisible=${Math.round(result.scene.characterMinVisibleRatio * 100)}%, ${result.scene.pixelCheck}`
-      : "未采样";
     lines.push(
       `- ${result.characterName} (${result.characterId})`,
       `  - 房间: ${result.roomId || "未读取"}`,
-      `  - 期望模型: ${result.expectedModel}`,
-      `  - 观察到模型: ${result.observedModels.length > 0 ? result.observedModels.join(", ") : "无"}`,
-      `  - Canvas: ${sceneText}`,
-      `  - BBox: ${result.scene?.characterScreenBboxes || "无"}`,
+      `  - 元素头像: ${result.avatarUrl}`,
       `  - 截图: ${result.screenshot ? `\`${result.screenshot}\`` : "无"}`,
       `  - Console/Page Error: ${result.consoleIssues.length > 0 ? result.consoleIssues.length : "无"}`,
       ""

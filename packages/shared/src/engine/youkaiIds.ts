@@ -1,0 +1,12 @@
+export const YOUKAI_CARD_ID = "10552";
+export const YOUKAI_RESOURCE_ID = "1055201";
+export const YOUKAI_LAYERS_ID = "1055202";
+export const YOUKAI_WIND_ID = "1055203";
+export const YOUKAI_SOUL_ID = "1055204";
+export const YOUKAI_HALF_ID = "1055205";
+export const YOUKAI_FULL_ID = "1055206";
+export const YOUKAI_RITUAL_ID = "1055207";
+export const YOUKAI_ELEMENT = "妖元";
+export const YOUKAI_HALF_STATE = "youkai_half";
+export const YOUKAI_FULL_STATE = "youkai_full";
+export const YOUKAI_RITUAL_STATE = "youkai_ritual";

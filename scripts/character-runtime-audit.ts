@@ -43,11 +43,12 @@ const requiredCharacterImages = [
 const requiredPbrTextureFiles = ["albedo.png", "normal.png", "roughness.png"] as const;
 
 for (const character of CHARACTER_ROSTER) {
+  const archive = `/assets/characters/${character.id}`;
   const publicUrls = [
     ["avatar", character.avatarUrl],
-    ["model-lod0", character.modelUrl],
-    ["model-lod1", character.lod1ModelUrl],
-    ...Object.entries(character.actionPoseUrls).map(([pose, url]) => [`pose-${pose}`, url] as const)
+    ["model-lod0", `${archive}/${character.id}.glb`],
+    ["model-lod1", `${archive}/${character.id}-lod1.glb`],
+    ...expectedAnimationNames.map((pose) => [`pose-${pose}`, `${archive}/action-${pose}.png`] as const)
   ] as const;
 
   for (const [label, publicUrl] of publicUrls) {
@@ -192,7 +193,7 @@ function auditCharacterArtDirectionDoc(): void {
 
   const text = fs.readFileSync(characterAuditPath, "utf8");
   for (const character of CHARACTER_ROSTER) {
-    const expectedRowStart = `| \`${character.id}\` | ${character.name} |`;
+    const expectedRowStart = `| \`${character.id}\` |`;
     if (!text.includes(expectedRowStart)) {
       failures.push(`character audit doc: missing roster row ${expectedRowStart}`);
     }

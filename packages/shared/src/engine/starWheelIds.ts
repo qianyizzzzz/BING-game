@@ -1,0 +1,12 @@
+export const STAR_WHEEL_CARD = "10547";
+export const STAR_WHEEL_INHERIT = "1054701";
+export const STAR_WHEEL_SEAL = "1054702";
+export const STAR_WHEEL_RELEASE = "1054702_release";
+export const STAR_WHEEL_SHIFT = "1054703";
+export const STAR_WHEEL_POSITION = "1054703_position";
+export const STAR_WHEEL_BUY = "1054704";
+export const STAR_WHEEL_SHUFFLE = "1054705";
+export const STAR_WHEEL_VICTORY = "1054706";
+export const STAR_WHEEL_REVERSE = "1092";
+export const STAR_WHEEL_REDIRECT = "1093";
+export const STAR_WHEEL_COUNTDOWN = "star_wheel_countdown";

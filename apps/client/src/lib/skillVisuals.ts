@@ -1,5 +1,5 @@
 import { CSSProperties } from "react";
-import { SkillDefinition } from "@bing/shared";
+import { legacySmallSkillId, SkillDefinition } from "@bing/shared";
 
 export type SkillAffinity =
   | "ember"
@@ -143,7 +143,7 @@ export function getSkillVisualProfile(
     "vital",
     "venom"
   ];
-  const index = stableIndex(skillId, fallbackOrder.length);
+  const index = stableIndex(legacySmallSkillId(skillId), fallbackOrder.length);
   return AFFINITY_VISUALS[fallbackOrder[index]!];
 }
 

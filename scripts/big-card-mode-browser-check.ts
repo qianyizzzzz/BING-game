@@ -5,7 +5,7 @@ import net from "node:net";
 import { spawn } from "node:child_process";
 import { chromium, Browser, BrowserContext, Page } from "playwright";
 import { io, Socket } from "socket.io-client";
-import { getBigCard, PublicGameState } from "@bing/shared";
+import { getActiveFusionCount, getBigCard, getRandomBigCardIds, PublicGameState, SEA_GOD_CARD_ID, SEA_GOD_WAVES_ID } from "@bing/shared";
 
 const port = await new Promise<number>((resolve, reject) => {
   const probe = net.createServer(); probe.once("error", reject);
@@ -87,24 +87,30 @@ try {
   await pageA.getByTestId(`big-card-add-${aiId}`).selectOption("10502");
   const pageB = await openPlayer(room.roomId, guest.playerId, true);
   await pageB.getByTestId(`big-card-add-${guest.playerId}`).selectOption("20813");
-  await pageB.getByTestId("big-card-detail-20813").locator("summary").click();
-  await pageA.getByTestId("big-card-detail-10501").locator("summary").click();
+  await pageB.getByTestId("big-card-detail-20813").locator(":scope > summary").click();
+  await pageA.getByTestId("big-card-detail-10501").locator(":scope > summary").click();
   assert.equal(await pageA.getByText("1050103", { exact: true }).count(), 1);
   assert.equal(await pageA.getByText(getBigCard("10501")!.abilities[2]!.description, { exact: true }).count(), 1);
   await noHorizontalOverflow(pageA); await noHorizontalOverflow(pageB);
   await pageA.screenshot({ path: path.join(output, "specified-desktop.png"), fullPage: true });
   await pageB.screenshot({ path: path.join(output, "specified-mobile.png"), fullPage: true });
   await pageA.getByTestId("start-game").click();
+  const gamePanelA = pageA.locator("#game-side-panel");
+  const gamePanelB = pageB.locator("#game-side-panel");
   await pageA.getByRole("tab", { name: "大卡", exact: true }).click();
-  await pageA.getByTestId("big-card-detail-20920").waitFor();
+  await gamePanelA.getByTestId("big-card-detail-20920").waitFor();
   await pageA.waitForFunction(() => document.querySelector('[data-testid="toggle-action-dock"]')?.getAttribute("aria-expanded") === "false");
-  await pageA.getByTestId("big-card-detail-10501").locator("summary").click();
-  assert.ok(await pageA.getByText("1050103", { exact: true }).isVisible());
-  assert.equal(await pageA.getByTestId("big-card-detail-20813").count(), 0);
-  assert.equal(await pageA.getByTestId("big-card-detail-10502").count(), 0);
+  await gamePanelA.getByTestId("big-card-detail-10501").locator(":scope > summary").click();
+  assert.ok(await gamePanelA.getByText("1050103", { exact: true }).isVisible());
+  assert.equal(await gamePanelA.getByTestId("big-card-detail-20813").count(), 0);
+  assert.equal(await gamePanelA.getByTestId("big-card-detail-10502").count(), 0);
+  await pageA.getByRole("tab", { name: "状态", exact: true }).click();
+  await pageA.getByTestId("status-panel").getByText("所处空间", { exact: true }).click();
+  assert.ok(await pageA.getByTestId("status-panel").getByText("主空间", { exact: true }).isVisible());
   let state: PublicGameState = (await emit(a, "room:resume", { roomId: room.roomId, playerId: room.playerId })).state;
   timer(state);
-  assert.equal(state.players[0]!.skills.length, 2);
+  assert.equal(getActiveFusionCount(state.players[0]!, "天火之狱"), 1);
+  assert.equal(getActiveFusionCount(state.players[0]!, "炽焰"), 1);
   assert.deepEqual(state.players[1]!.bigCards, []);
   state = (await emit(a, "game:enter_action_window", { roomId: room.roomId })).state; timer(state);
   for (let guard = 0; state.phase === "action_window" && guard < 12; guard++) {
@@ -124,30 +130,77 @@ try {
   state = (await emit(a, "room:resume", { roomId: room.roomId, playerId: room.playerId })).state;
   assert.deepEqual(state.players[0]!.bigCards, owned, "Resume must retain instance identity"); timer(state);
   await pageA.getByRole("tab", { name: "大卡", exact: true }).click();
-  await pageA.getByTestId("big-card-detail-10501").locator("summary").click();
+  await gamePanelA.getByTestId("big-card-detail-10501").locator(":scope > summary").click();
   await pageB.getByTestId("read-big-cards").click();
-  await pageB.getByTestId("big-card-detail-20813").locator("summary").click();
+  await gamePanelB.getByTestId("big-card-detail-20813").locator(":scope > summary").click();
   await noHorizontalOverflow(pageA);
   await pageA.screenshot({ path: path.join(output, "game-desktop.png"), fullPage: true });
   await pageB.screenshot({ path: path.join(output, "game-mobile.png"), fullPage: true });
 
+  const seaHost = await connect(), seaGuest = await connect();
+  const seaRoom = await emit(seaHost, "room:create", { playerName: "海神" });
+  const joinedSea = await emit(seaGuest, "room:join", { roomId: seaRoom.roomId, playerName: "对手" });
+  const seaPage = await openPlayer(seaRoom.roomId, seaRoom.playerId);
+  await seaPage.getByTestId("toggle-settings").click();
+  await seaPage.getByTestId("settings-skill-mode").selectOption("big_test_select");
+  await seaPage.getByTestId(`big-card-add-${seaRoom.playerId}`).selectOption(SEA_GOD_CARD_ID);
+  const seaCard = seaPage.getByTestId(`big-card-picker-${seaRoom.playerId}`).getByTestId(`big-card-detail-${SEA_GOD_CARD_ID}`);
+  await seaCard.getByText("已接入，部分效果待实现", { exact: true }).waitFor();
+  await seaPage.getByTestId("start-game").click();
+  let seaState: PublicGameState = (await emit(seaHost, "game:enter_action_window", { roomId: seaRoom.roomId })).state;
+  for (let guard = 0; seaState.phase === "action_window" && guard < 12; guard++) {
+    for (const [socket, playerId] of [[seaHost, seaRoom.playerId], [seaGuest, joinedSea.playerId]] as const) {
+      seaState = (await emit(socket, "room:resume", { roomId: seaRoom.roomId, playerId })).state;
+      if (seaState.phase === "action_window" && !seaState.actionWindowPassPlayerIds.includes(playerId))
+        seaState = (await emit(socket, "game:pass_action_window", { roomId: seaRoom.roomId })).state;
+    }
+  }
+  assert.equal(seaState.phase, "collecting_actions");
+  await seaPage.getByTestId("action-mode-skill").click();
+  await seaPage.getByTestId("skill-action-select").selectOption(SEA_GOD_WAVES_ID);
+  await seaPage.getByText("反弹防", { exact: true }).waitFor();
+  await seaPage.getByText("∞^3", { exact: true }).waitFor();
+  await seaPage.getByTestId("submit-action").click();
+  seaState = (await emit(seaHost, "room:resume", { roomId: seaRoom.roomId, playerId: seaRoom.playerId })).state;
+  assert.ok(seaState.pendingActionPlayerIds.includes(seaRoom.playerId), "无定风波应该可作为首回合非攻击提交");
+
   const randomHost = await connect(), randomGuest = await connect();
   const randomRoom = await emit(randomHost, "room:create", { playerName: "随机大卡房主" });
-  await emit(randomGuest, "room:join", { roomId: randomRoom.roomId, playerName: "随机玩家" });
-  const randomPage = await openPlayer(randomRoom.roomId, randomRoom.playerId);
+  const joinedRandom = await emit(randomGuest, "room:join", { roomId: randomRoom.roomId, playerName: "随机玩家" });
+  const randomPage = await openPlayer(randomRoom.roomId, randomRoom.playerId, true);
   await randomPage.getByTestId("toggle-settings").click();
   await randomPage.getByTestId("settings-skill-mode").selectOption("big_random");
   await randomPage.getByTestId("settings-skill-count").selectOption("3");
   await randomPage.getByTestId("big-card-pending-notice").waitFor();
+  const packs = randomPage.getByRole("group", { name: "参与随机的大卡包" });
+  await packs.getByText("随机卡池共 202 张大卡", { exact: true }).waitFor();
+  for (const name of ["王者卡（番外）", "至尊卡（番外）", "言灵卡", "言灵卡（番外）", "无上卡", "无上卡（番外）"]) {
+    await packs.getByRole("checkbox", { name, exact: true }).click();
+    await packs.getByRole("checkbox", { name, exact: true, checked: false }).waitFor();
+  }
+  await packs.getByText("随机卡池共 55 张大卡", { exact: true }).waitFor();
+  await packs.getByRole("checkbox", { name: "允许重复", exact: true }).click();
+  await packs.getByRole("checkbox", { name: "允许重复", exact: true, checked: false }).waitFor();
+  await noHorizontalOverflow(randomPage);
+  await randomPage.screenshot({ path: path.join(output, "random-settings-mobile.png"), fullPage: true });
   assert.equal(await randomPage.locator('[data-testid^="big-card-add-"]').count(), 0);
   await randomPage.getByTestId("start-game").click();
   await randomPage.getByTestId("read-big-cards").click();
   await randomPage.locator('[data-testid^="big-card-detail-"]').first().waitFor();
-  await randomPage.locator('[data-testid^="big-card-detail-"]').first().locator("summary").click();
+  await randomPage.locator('[data-testid^="big-card-detail-"]').first().locator(":scope > summary").click();
   const randomState = (await emit(randomHost, "room:resume", { roomId: randomRoom.roomId, playerId: randomRoom.playerId })).state as PublicGameState;
-  assert.equal(randomState.players[0]!.bigCards!.length, 3);
-  assert.ok(randomState.players[0]!.bigCards!.every((card) => getBigCard(card.cardId)?.kind === "native")); timer(randomState);
-  await randomPage.screenshot({ path: path.join(output, "random-desktop.png"), fullPage: true });
+  const guestState = (await emit(randomGuest, "room:resume", { roomId: randomRoom.roomId, playerId: joinedRandom.playerId })).state as PublicGameState;
+  assert.equal(randomState.config.allowDuplicateBigCards, false);
+  const hostCards = randomState.players.find((player) => player.id === randomRoom.playerId)!.bigCards!;
+  const guestCards = guestState.players.find((player) => player.id === joinedRandom.playerId)!.bigCards!;
+  assert.equal(hostCards.length, 3);
+  assert.equal(guestCards.length, 3);
+  const pool = new Set(getRandomBigCardIds(["royal", "supreme"]));
+  const dealt = [...hostCards, ...guestCards].map((card) => card.cardId);
+  assert.ok(dealt.every((id) => pool.has(id)));
+  assert.equal(new Set(dealt).size, dealt.length);
+  timer(randomState);
+  await randomPage.screenshot({ path: path.join(output, "random-mobile.png"), fullPage: true });
   assert.deepEqual(errors, []);
   fs.writeFileSync(path.join(output, "report.md"), `# 大技能模式联调报告\n\n结果：通过。\n\n- 新增两种模式，原三种选项保留。\n- 双玩家 + AI 指定大卡、搜索 ID、移除卡牌、展开子技能原文正常。\n- 1280px / 390px 无横向溢出，浏览器无未捕获异常。\n- 随机模式仅分配原生大卡。\n- 出招、准备与技能行动窗口均为 300 秒。\n- 重连保留卡牌实例，其他玩家卡面隐藏。\n- 大卡标注待实现，未开放卡面效果。\n`);
   console.log(`Big-card browser checks passed: ${output}`);

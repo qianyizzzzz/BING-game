@@ -45,11 +45,11 @@ test("开局按来源发放逆转星移、外星人和两份独立烽火赤壁�
   const star = fixture("10506");
   assert.equal(getActiveFusionCount(owner(star), "外星人"), 1);
   assert.equal(getActiveFusionCount(owner(star), "逆转星移"), 1);
-  assert.equal(getSkillUseLimit(owner(star), "skill_93_50224"), 4);
+  assert.equal(getSkillUseLimit(owner(star), "1092"), 4);
   const dragon = fixture("10507");
   const fire = getFusionSkillId("烽火赤壁");
   assert.equal(getRootFusions(owner(dragon)).filter(({ skillId }) => skillId === fire).length, 2);
-  assert.equal(owner(dragon).skillInventory?.filter(({ skillId }) => skillId === "skill_35_16792").length, 2);
+  assert.equal(owner(dragon).skillInventory?.filter(({ skillId }) => skillId === "1034").length, 2);
   assert.equal(new Set(owner(dragon).skillInventory?.map(({ instanceId }) => instanceId)).size, 6);
 });
 
@@ -69,9 +69,9 @@ test("异星共振可选抵御非伤害退游，消费来自其他来源的全�
   let state = fixture("10506");
   owner(state).hp = 1;
   owner(state).buffs.push({ id: "defense_value", name: "防御值", stacks: 3 });
-  appendSkillInstances(state.players[1]!, ["skill_107_53513"]);
+  appendSkillInstances(state.players[1]!, ["1106"]);
   beginActionPrompt(state, "turn_before_action");
-  state = submitActionWindowSkill(state, state.players[1]!.id, cast("skill_107_53513"));
+  state = submitActionWindowSkill(state, state.players[1]!.id, cast("1106"));
   const retire = state.pendingDamageItems?.find((item) => item.targetId === owner(state).id && item.directDefeat);
   assert.ok(retire);
   assert.equal(state.activeTimingPhase, "turn_damage_modify");
@@ -102,7 +102,7 @@ test("异星共振令斗转星移的转移伤害乘以符号无限", () => {
   state.pendingDamageItems = [{ id: "packet", targetId: owner(state).id, amount: 2 }];
   beginActionPrompt(state, "turn_damage_modify");
   state = enterActionWindow(state, owner(state).id);
-  state = submitActionWindowSkill(state, owner(state).id, cast("skill_94_627", {
+  state = submitActionWindowSkill(state, owner(state).id, cast("1093", {
     targetDamageId: "packet", targetId: state.players[1]!.id
   }));
   assert.ok(state.eventLog.some((event) => event.type === "system" && event.message.includes("2∞ 点伤害")) ||
@@ -112,14 +112,16 @@ test("异星共振令斗转星移的转移伤害乘以符号无限", () => {
 test("毁灭星辰击保留真实攻击，压制原攻击者的群攻技能并按来源保护不良", () => {
   let state = fixture("10506");
   changeElementAmount(owner(state), STAR_ELEMENT, 2);
-  appendSkillInstances(state.players[1]!, ["skill_98_7182", "skill_82_45540"]);
-  state = turn(state, [cast(STAR_STRIKE_ID), cast("skill_82_45540"), cake]);
+  appendSkillInstances(state.players[1]!, ["1097", "1081"]);
+  state = turn(state, [cast(STAR_STRIKE_ID), cast("1081"), cake]);
   assert.equal(state.players[1]!.hp, 20);
   assert.equal(state.players[2]!.hp, 20);
   assert.equal(owner(state).hp, 30);
   const attacker = state.players[1]!.id;
   assert.ok(state.players[1]!.buffs.some(({ stateType }) => stateType === "star_group_attack_disabled"));
-  assert.equal(applyNegativeStatus(state, owner(state).id, "frozen", () => assert.fail("immune"), attacker), false);
+  assert.equal(applyNegativeStatus(state, owner(state).id, "frozen", () => assert.fail("ignored"), attacker), false);
+  const event = state.eventLog.at(-1);
+  assert.ok(event?.type === "system" && event.message.includes("无视了新增的冰冻"));
   assert.equal(applyNegativeStatus(state, owner(state).id, "frozen", () => {}, state.players[2]!.id), true);
 });
 
@@ -137,8 +139,8 @@ test("魂耀九州将焚天君燚拉成群攻后，群攻失效也取消清场",
 test("狂龙之舞在付款后也检查自己为零饼，并阻挡来自他人的主动技能攻击", () => {
   let state = fixture("10507");
   owner(state).cakes = 2;
-  appendSkillInstances(state.players[1]!, ["skill_82_45540"]);
-  state = turn(state, [cast(DRAGON_DANCE_ID), cast("skill_82_45540", { targetId: owner(state).id }), cake]);
+  appendSkillInstances(state.players[1]!, ["1081"]);
+  state = turn(state, [cast(DRAGON_DANCE_ID), cast("1081", { targetId: owner(state).id }), cake]);
   assert.equal(owner(state).cakes, 4);
   assert.equal(defense(state, 0), 3);
   assert.equal(owner(state).hp, 30);
@@ -176,7 +178,7 @@ test("星对每名攻击者各吸取一个大卡子技能，失去被拦截时�
   for (const [index, target] of state.players.slice(1).entries()) {
     target.bigCards = [{ instanceId: `target-${index}`, cardId: "10507", initialized: true,
       abilityUses: { [DRAGON_DISAPPEAR_ID]: 2 }, lostAbilityIds: ["1050702", "1050703", "1050704", "1050705", "1050706"] }];
-    appendSkillInstances(target, ["skill_82_45540"]);
+    appendSkillInstances(target, ["1081"]);
   }
   state.players[2]!.buffs.push({ id: "no-loss", name: "免技能失去", stacks: 1, immuneEffectCategories: ["skill_loss"] });
   const attack: PlayerAction = { type: "attack", attackId: "sha", targetId: owner(state).id, stacks: 1 };
@@ -185,7 +187,7 @@ test("星对每名攻击者各吸取一个大卡子技能，失去被拦截时�
   assert.equal(getSkillUseLimit(owner(state), DRAGON_DISAPPEAR_ID), 2);
   assert.ok(state.players[1]!.bigCards![0]!.lostAbilityIds?.includes(DRAGON_DISAPPEAR_ID));
   assert.ok(!state.players[2]!.bigCards![0]!.lostAbilityIds?.includes(DRAGON_DISAPPEAR_ID));
-  assert.ok(state.players[1]!.skills.includes("skill_82_45540"));
+  assert.ok(state.players[1]!.skills.includes("1081"));
 });
 
 test("龙卷残云使2血玩家直接消失，获得未公开且次数初始化的完整大卡", () => {
@@ -208,7 +210,7 @@ test("龙子诞辰诀按反弹与散弹的声明目标分支，额外命在普�
     let state = fixture("10507");
     const target = state.players[1]!;
     const halfHp = Math.floor(getPlayerInitialHp(owner(state)) / 2);
-    if (scatter) appendSkillInstances(target, ["skill_58_88471"]);
+    if (scatter) appendSkillInstances(target, ["1057"]);
     state = turn(state, [cast(DRAGON_HEIR_ID, { targetId: target.id }),
       { type: "defense", defense: "rebound", ...(scatter ? {} : { targetId: owner(state).id }) }, cake]);
     assert.equal(owner(state).spareLives?.[0]?.hp, halfHp);
@@ -249,15 +251,15 @@ test("霸龙初始化借来的副本，归还原次数；第三轮烽火加次�
   assert.equal(getSkillUseLimit(owner(state), DRAGON_DISAPPEAR_ID), 3);
   state.roundNumber = originalRound + 3;
   settleDragonRoundChanges(state);
-  assert.equal(getSkillUseLimit(owner(state), "skill_13_68869"), 21);
-  assert.equal(getSkillUseLimit(owner(state), "skill_15_64971"), 14);
+  assert.equal(getSkillUseLimit(owner(state), "1012"), 21);
+  assert.equal(getSkillUseLimit(owner(state), "1014"), 14);
   state.roundNumber = originalRound + 5;
   settleDragonRoundChanges(state);
   assert.equal(state.players[1]!.bigCards?.[0]?.instanceId, "victim");
   assert.equal(getSkillUseLimit(state.players[1]!, DRAGON_DISAPPEAR_ID), 1);
   assert.equal(getSkillUseLimit(owner(state), DRAGON_DISAPPEAR_ID), 3);
-  assert.equal(getSkillUseLimit(owner(state), "skill_13_68869"), 15);
-  assert.equal(getSkillUseLimit(owner(state), "skill_15_64971"), 10);
+  assert.equal(getSkillUseLimit(owner(state), "1012"), 15);
+  assert.equal(getSkillUseLimit(owner(state), "1014"), 10);
   borrowBigCards(state, owner(state), state.players[1]!);
   assert.equal(getSkillUseLimit(owner(state), DRAGON_DISAPPEAR_ID), 5);
   assert.ok(owner(state).bigCards?.some((card) => card.borrowedUntilRound && card.instanceId !== copy.instanceId &&

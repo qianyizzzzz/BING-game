@@ -1,0 +1,9 @@
+export const TIAN_SHA_CARD = "10616";
+export const TIAN_SHA_POWER = "1061601";
+export const TIAN_SHA_SWORD = "1061602";
+export const TIAN_SHA_STAR_BREAK = "1061603";
+export const TIAN_SHA_SHADOW = "1061604";
+export const TIAN_SHA_VERDICT = "1061605";
+export const TIAN_SHA_FINALE = "1061606";
+export const TIAN_SHA_IGNORED_MOVE = "tian_sha_star_break_ignore";
+export const TIAN_SHA_REFLECTION = "tian_sha_verdict_reflection";

@@ -25,7 +25,7 @@
 
 | 技能 | 已有文件 | 缺失文件 | 备注 |
 | --- | --- | --- | --- |
-| `skill_78_18866` 火球 | `keyframe-01.png`、`keyframe-02.png`、`keyframe-03.png`、`keyframe-04.png`、`poster.png`、`effect.webm`、`effect.mp4` | 无 | 可作为 Seedance 关键帧输入验证样例 |
+| `1077` 火球 | `keyframe-01.png`、`keyframe-02.png`、`keyframe-03.png`、`keyframe-04.png`、`poster.png`、`effect.webm`、`effect.mp4` | 无 | 可作为 Seedance 关键帧输入验证样例 |
 
 ## 当前缺口
 

@@ -5,11 +5,15 @@ import {
   JUSHEN_ID, RELEASE_DAMAGE_ID, SELF_DESTRUCTER_DEATH_SKILL_ID, STORE_DAMAGE_ID, FENTIAN_ATTACK_ID, JUNENG_RESPONSE_ID,
   INFINITY_VALUE, RETIRE_VALUE, addPlayerToGame, advanceActionWindow, appendSkillInstances, beginActionPrompt,
   createGame, createPlayer, enterActionWindow, formatCombatValue, getActiveFusionCount, getActiveSkillCount, getElementAmount,
-  getPlayerHpValue, getSelectableJunengTarget, startGame, submitActionWindowSkill, submitPlayerAction,
+  getPlayerHpValue, getSelectableJunengTarget, getStoredDamages, getVisibleStatusOverview, startGame, submitActionWindowSkill, submitPlayerAction,
+  ETERNAL_THUNDER_ID,
   getSkillElementCost, getTurnSkillActionCost, previewPlayerAttackStats, toPublicGameState, validateAction, type GameState, type PlayerAction, type SkillAction
 } from "@bing/shared";
 import { scheduleJunengResponse, settleJunengRoundChanges } from "../packages/shared/src/engine/junengNumbers";
 import { clearFentianBattlefield } from "../packages/shared/src/engine/bigCards";
+import { addCombatValues, combatValue } from "../packages/shared/src/engine/combatValues";
+import { setPlayerHpValue } from "../packages/shared/src/engine/infiniteValues";
+import { grantThunderBalls, THUNDER_RITE_STATE } from "../packages/shared/src/engine/thunderItems";
 
 const cake = { type: "gain_cake" } as const;
 const stone = { type: "defense", defense: "stone" } as const;
@@ -79,6 +83,28 @@ test("电系攻击实际扣血后整卡停一轮，再增强两轮，独立同�
   assert.equal(getTurnSkillActionCost(state.players[0]!, skill(GATHER_ELEMENT_ID)), 2);
 });
 
+test("电系退游点攻击实际从血量扣除时触发电系响应", (context) => {
+  let state = fixture();
+  const [owner, attacker] = state.players;
+  assert.ok(owner && attacker);
+  attacker.bigCards = [{ cardId: "10510", instanceId: "thunder", onlyAbilityId: ETERNAL_THUNDER_ID }];
+  appendSkillInstances(attacker, ["1090"]);
+  attacker.buffs.push({ id: THUNDER_RITE_STATE, stateType: THUNDER_RITE_STATE, name: "雷祭", stacks: 1,
+    expiresAtRound: state.roundNumber + 3 });
+  grantThunderBalls(state, attacker, 20);
+  setPlayerHpValue(owner, addCombatValues(RETIRE_VALUE, combatValue(3)));
+  context.mock.method(Math, "random", () => 0.9);
+  state = turn(state, [cake, skill(ETERNAL_THUNDER_ID, { targetId: owner.id })], "turn_change_action");
+  state = submitActionWindowSkill(state, attacker.id, skill("1090", { switchActionIndex: 0, attackStatModifier: "swap_power_level" }));
+  state = drain(state, "turn_end_action");
+  const target = state.players[0]!;
+  assert.equal(target.status, "alive");
+  assert.deepEqual(getPlayerHpValue(target), combatValue(3));
+  assert.ok(target.bigCards?.[0]?.junengResponse);
+  assert.ok(state.eventLog.some((event) => event.type === "damage" && event.targetId === target.id &&
+    event.attackDamage && event.element === "electric" && event.pointDefeatLevel === 2));
+});
+
 test("被防住的电系攻击、非攻击法伤和纯储存释放不触发", () => {
   let state = fixture();
   const owner = state.players[0]!;
@@ -121,7 +147,7 @@ test("确定稿倍率用于聚能盾、电磁炮、储存与湮灭炮，固定�
     beginActionPrompt(state, "turn_damage_modify");
     state = enterActionWindow(state, state.players[0]!.id);
     state = submitActionWindowSkill(state, state.players[0]!.id, skill(STORE_DAMAGE_ID, { targetDamageId: "packet" }));
-    assert.equal(formatCombatValue(state.players[0]!.storedDamages![0]!.amountValue), retire ? formatCombatValue(RETIRE_VALUE) : "6∞");
+    assert.equal(formatCombatValue(getStoredDamages(state.players[0])[0]!.amountValue), retire ? formatCombatValue(RETIRE_VALUE) : "6∞");
   }
 });
 
@@ -134,7 +160,7 @@ test("增强期间再次触发按当时倍率排下一次周期，清场移除�
   state.roundNumber += 2;
   settleJunengRoundChanges(state);
   assert.equal(getSkillElementCost(owner, { skillId: JUSHEN_ID })?.perStack, 2);
-  clearFentianBattlefield(state);
+  clearFentianBattlefield(state, () => true, () => false);
   assert.equal(getSkillElementCost(owner, { skillId: JUSHEN_ID })?.perStack, 7);
   state.roundNumber++;
   settleJunengRoundChanges(state);
@@ -203,8 +229,8 @@ test("聚能盾按攻分别反弹和防住，电磁炮独立造成法伤", () =>
 test("存下冰系攻击仍会结算命中效果；释放保持冰系攻击伤害", () => {
   let state = fixture(1);
   const [a, b, c] = state.players;
-  appendSkillInstances(b!, ["skill_118_53580"]);
-  state = turn(state, [cake, skill("skill_118_53580", { targetId: a!.id }), cake, cake], "turn_damage_modify");
+  appendSkillInstances(b!, ["1117"]);
+  state = turn(state, [cake, skill("1117", { targetId: a!.id }), cake, cake], "turn_damage_modify");
   assert.equal(state.activeTimingPhase, "turn_damage_modify");
   const packet = state.pendingDamageItems!.find((item) => item.targetId === a!.id)!;
   assert.ok(packet.fromAttack);
@@ -213,14 +239,21 @@ test("存下冰系攻击仍会结算命中效果；释放保持冰系攻击伤�
   assert.equal(state.players[0]!.hp, 30);
   assert.ok(state.players[0]!.buffs.some((buff) => buff.id.startsWith("frozen") || buff.stateType === "freeze"));
   assert.equal(getElementAmount(state.players[0], "聚"), 0);
-  assert.equal(toPublicGameState(state, b!.id).players[0]!.storedDamages, undefined);
-  const stored = state.players[0]!.storedDamages![0]!;
+  const opponentView = toPublicGameState(state, b!.id);
+  assert.deepEqual(getStoredDamages(opponentView.players[0]), []);
+  assert.ok(!getVisibleStatusOverview(opponentView, a!.id)?.counted.some(({ label }) => label === "储存伤害"));
+  const ownerView = toPublicGameState(state, a!.id);
+  const stored = getStoredDamages(ownerView.players[0])[0]!;
+  const counted = getVisibleStatusOverview(ownerView, a!.id)?.counted ?? [];
+  assert.ok(counted.some(({ label, value }) => label === "储存伤害" && value === "剩 1 份"));
+  assert.ok(counted.some(({ value }) => value === "3 · 冰系攻击伤害"));
   assert.equal(stored.element, "ice");
   assert.equal(stored.fromAttack, true);
   beginActionPrompt(state, "turn_end_action");
   state = submitActionWindowSkill(state, a!.id, skill(RELEASE_DAMAGE_ID, { targetId: c!.id, storedDamageId: stored.id }));
   state = drain(state);
   assert.equal(state.players[2]!.hp, 27);
+  assert.deepEqual(getStoredDamages(state.players[0]), []);
   assert.ok(state.eventLog.some((event) => event.type === "damage" && event.attackName === "释放伤害" && event.element === "ice"));
 });
 
@@ -234,7 +267,7 @@ test("储存并释放无限与退游点伤害，保留数值档位", () => {
     beginActionPrompt(state, "turn_damage_modify");
     state = enterActionWindow(state, a!.id);
     state = submitActionWindowSkill(state, a!.id, skill(STORE_DAMAGE_ID, { targetDamageId: "packet" }));
-    const stored = state.players[0]!.storedDamages![0]!;
+    const stored = getStoredDamages(state.players[0])[0]!;
     assert.equal(formatCombatValue(stored.amountValue), retire ? formatCombatValue(RETIRE_VALUE) : "3∞");
     beginActionPrompt(state, "turn_before_action");
     state = submitActionWindowSkill(state, a!.id, skill(RELEASE_DAMAGE_ID, { targetId: c!.id, storedDamageId: stored.id }));
@@ -257,6 +290,11 @@ test("聚神先制重开、强制自打、不可选中与离场时卡手，原�
   assert.equal(state.roundNumber, round + 1);
   assert.equal(state.junengTargetLock?.expiresAtRound, round + 3);
   assert.equal(getElementAmount(state.players[0], "聚"), 0);
+  const panel = (playerId: string) => getVisibleStatusOverview(toPublicGameState(state, a!.id), playerId);
+  for (const player of [a!, c!]) {
+    assert.deepEqual(panel(player.id)?.longTerm.find(({ label }) => label === "聚神"),
+      { label: "聚神", value: `仅可选择 B · 持续至第 ${round + 2} 轮轮末` });
+  }
   state = drain(state);
   state.players[1]!.cakes = 10;
   state = turn(state, [cake, sha(c!.id), cake, cake]);
@@ -270,17 +308,22 @@ test("聚神先制重开、强制自打、不可选中与离场时卡手，原�
   assert.equal(validateAction(state, a!.id, { type: "attack", attackId: "wan_jian", stacks: 1 }).ok, true);
   state.players[1]!.status = "dead";
   assert.equal(validateAction(state, a!.id, sha(c!.id)).ok, false);
+  assert.match(panel(a!.id)?.longTerm.find(({ label }) => label === "聚神")?.value ?? "", /B 当前不可选/);
+  state.players[2]!.spaceId = "independent";
+  assert.ok(!panel(c!.id)?.longTerm.some(({ label }) => label === "聚神"));
+  delete state.players[2]!.spaceId;
   state.roundNumber = round + 3;
   assert.equal(validateAction(state, a!.id, sha(c!.id)).ok, true);
+  assert.ok(!panel(a!.id)?.longTerm.some(({ label }) => label === "聚神"));
 });
 
 test("聚神仅保留一个多目标招式目标", () => {
   let state = fixture();
   const [a, b, c, d] = state.players;
-  appendSkillInstances(b!, ["skill_35_16792"]);
+  appendSkillInstances(b!, ["1034"]);
   state.junengTargetLock = { targetId: d!.id, expiresAtRound: state.roundNumber + 2 };
   beginActionPrompt(state, "turn_before_action");
-  state = submitActionWindowSkill(state, b!.id, skill("skill_35_16792", { targetIds: [a!.id, c!.id] }));
+  state = submitActionWindowSkill(state, b!.id, skill("1034", { targetIds: [a!.id, c!.id] }));
   state = drain(state);
   assert.equal(state.players[0]!.hp, 30);
   assert.equal(state.players[2]!.hp, 30);
@@ -290,7 +333,7 @@ test("聚神仅保留一个多目标招式目标", () => {
 test("湮灭炮发炮回合结算退游／必杀，逐步失败立即命中，完整序列防住", () => {
   let state = fixture(14);
   const [a, b, c, d] = state.players;
-  appendSkillInstances(d!, ["skill_69_22138"]);
+  appendSkillInstances(d!, ["1068"]);
   const random = Math.random;
   Math.random = () => 0.1;
   try {

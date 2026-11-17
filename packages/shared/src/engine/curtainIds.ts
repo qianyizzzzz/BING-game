@@ -1,0 +1,16 @@
+export const CURTAIN_CARD_ID = "10542";
+export const CURTAIN_REBIRTH_ID = "1054201";
+export const CURTAIN_OPEN_ID = "1054202";
+export const CURTAIN_PRELUDE_ID = "1054203";
+export const CURTAIN_INTERLUDE_ID = "1054204";
+export const CURTAIN_DARK_ID = "1054205";
+export const CURTAIN_ENCORE_ID = "1054206";
+export const CURTAIN_FINALE_ID = "1054207";
+export const CURTAIN_VEIL_ID = "1054208";
+export const CURTAIN_MARK = "curtain_sound_mark";
+export const CURTAIN_VEILS = "curtain_veils";
+export const CURTAIN_DARK_STATE = "curtain_darkness";
+export const CURTAIN_LIGHT_BOOST = "curtain_light_boost";
+export const CURTAIN_REFLECT_PIERCE = "curtain_reflect_pierce";
+export const CURTAIN_RECOVERY_BLOCK = "curtain_recovery_block";
+export const CURTAIN_ACTS = [CURTAIN_OPEN_ID, CURTAIN_PRELUDE_ID, CURTAIN_INTERLUDE_ID, CURTAIN_DARK_ID] as const;

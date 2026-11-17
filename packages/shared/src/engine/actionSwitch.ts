@@ -1,6 +1,7 @@
 import {
   AttackAction,
   DefenseAction,
+  GainCakeAction,
   GameState,
   PlayerAction,
   PlayerId,
@@ -8,27 +9,36 @@ import {
   SkillAction,
   ValidationResult
 } from "../types";
-import { getFusionSkillId, getFusionEnhancementCount } from "../skills/fusion";
+import { getActiveFusionCount, getFusionSkillId, getFusionEnhancementCount } from "../skills/fusion";
+import { getSkillUseLimit } from "../skills/registry";
+import { canAffectAcrossSpace, canBypassTargetSelection, preventsTargetSelection } from "./spaces";
+import { hasTianyeReboundLock } from "./tianye";
+import { ATTACK_ORDER, BASE_ATTACKS, getStackedAttackStats } from "./attacks";
+import { MAX_ACTION_STACKS } from "../types";
+import { validCakePayment } from "./vacuum";
+
+type SwitchAction = AttackAction | DefenseAction | GainCakeAction;
 
 export const ACTION_SWITCH_SKILL_IDS = [
-  "skill_88_62906",
-  "skill_89_99375",
-  "skill_90_32911",
+  "1087",
+  "1088",
+  "1089",
   getFusionSkillId("虚幻")
 ] as const;
 
 export type ActionSwitchSkillId = (typeof ACTION_SWITCH_SKILL_IDS)[number];
 
 export interface ActionSwitchChoice {
-  action: AttackAction | DefenseAction;
+  action: SwitchAction;
   cost: number;
 }
 
 export interface ActionSwitchPlan {
   actionIndex: number;
   before: PlayerAction;
-  after: AttackAction | DefenseAction;
+  after: SwitchAction;
   cost: number;
+  spendBothCovers?: boolean;
 }
 
 export function isActionSwitchSkillId(skillId: string): skillId is ActionSwitchSkillId {
@@ -38,22 +48,44 @@ export function isActionSwitchSkillId(skillId: string): skillId is ActionSwitchS
 export function getActionSwitchChoicesForAction(
   skillId: string,
   current: PlayerAction,
-  player?: PlayerState
+  player?: PlayerState,
+  attackTargets: readonly PlayerId[] = [],
+  canOfferAttack: (cost: number) => boolean = () => true
 ): ActionSwitchChoice[] {
   if (skillId === getFusionSkillId("虚幻") && current.type === "defense") {
     const choices = current.defense === "small" || current.defense === "stone" ? ["youtiao"] :
       current.defense === "youtiao" ? ["small", "stone"] : [];
-    return choices.map((defense) => ({ action: { type: "defense", defense: defense as DefenseAction["defense"] }, cost: 1 }));
+    const result: ActionSwitchChoice[] = choices.map((defense) => ({
+      action: { type: "defense", defense: defense as DefenseAction["defense"] }, cost: 1
+    }));
+    if (player && choices.length && getActiveFusionCount(player, "玄•幻") > 0) {
+      for (const attackId of ATTACK_ORDER) {
+        const attack = BASE_ATTACKS[attackId];
+        for (let stacks = 1; stacks <= MAX_ACTION_STACKS; stacks++) {
+          const cost = 2 + getStackedAttackStats(attack, stacks).cost;
+          if (!canOfferAttack(cost)) break;
+          if (attack.isArea) result.push({ action: { type: "attack", attackId, stacks }, cost });
+          else for (const targetId of attackTargets) result.push({ action: { type: "attack", attackId, stacks, targetId }, cost });
+        }
+      }
+    }
+    if (player && choices.length && getActiveFusionCount(player, "天•幻") > 0) {
+      result.push({ action: { type: "gain_cake" }, cost: 2 });
+      if (["1054", "1055"].every((id) => (getSkillUseLimit(player, id) ?? 0) >
+        (player.buffs.find((buff) => buff.id === `skill_used:${id}`)?.stacks ?? 0)))
+        result.push({ action: { type: "defense", defense: "rebound" }, cost: 0 });
+    }
+    return result;
   }
-  if (skillId === "skill_88_62906") {
+  if (skillId === "1087") {
     return getBasicDefenseSwitchChoices(current);
   }
 
-  if (skillId === "skill_89_99375") {
+  if (skillId === "1088") {
     return getFlexibleDefenseSwitchChoices(current);
   }
 
-  if (skillId === "skill_90_32911") {
+  if (skillId === "1089") {
     return getShaQinSwitchChoices(current).map((choice) => ({ ...choice,
       cost: player && getFusionEnhancementCount(player, skillId, ["杀级换", "火•杀•换"]) > 0 ? 0 : choice.cost }));
   }
@@ -77,18 +109,30 @@ export function getActionSwitchPlan(
     return undefined;
   }
 
-  const choice = getActionSwitchChoicesForAction(action.skillId, before, state.players.find((player) => player.id === playerId)).find((item) =>
-    sameSwitchAction(item.action, action.switchToAction!)
+  const player = state.players.find((entry) => entry.id === playerId);
+  if (!player) return undefined;
+  const requested = action.switchToAction;
+  const targets = requested.type === "attack" && requested.targetId && state.players.some((target) => target.id === requested.targetId &&
+    target.id !== playerId && target.status === "alive" && canAffectAcrossSpace(state, playerId, target.id) &&
+    !preventsTargetSelection(target)) ? [requested.targetId] : [];
+  const choice = getActionSwitchChoicesForAction(action.skillId, before, player, targets).find((item) =>
+    sameSwitchAction(item.action, requested)
   );
   if (!choice) {
     return undefined;
   }
+  const rebound = requested.type === "defense" && requested.defense === "rebound";
+  if (rebound && (hasTianyeReboundLock(player, state.turnNumber) || !requested.targetId ||
+    !state.players.some((target) => target.id === requested.targetId && target.status === "alive" &&
+      canAffectAcrossSpace(state, playerId, target.id) &&
+      (!preventsTargetSelection(target) || canBypassTargetSelection(state, playerId, target))))) return undefined;
 
   return {
     actionIndex,
     before,
-    after: choice.action,
-    cost: choice.cost
+    after: rebound ? requested : choice.action,
+    ...(rebound ? { spendBothCovers: true } : {}),
+    cost: discountCakeCost(state, player, choice.cost)
   };
 }
 
@@ -111,7 +155,7 @@ export function validateActionSwitch(
   }
 
   const player = state.players.find((item) => item.id === playerId);
-  if (!player || player.cakes < plan.cost) {
+  if (!player || !validCakePayment(state, player, plan.cost, action.antiCakeSpent ?? 0, action.youkaiCakeSpent)) {
     return invalid(`饼不足，切换出招需要 ${plan.cost} 个饼`);
   }
 
@@ -215,8 +259,8 @@ function getShaQinSwitchChoices(current: PlayerAction): ActionSwitchChoice[] {
 }
 
 function sameSwitchAction(
-  left: AttackAction | DefenseAction,
-  right: AttackAction | DefenseAction
+  left: SwitchAction,
+  right: SwitchAction
 ): boolean {
   if (left.type !== right.type) {
     return false;
@@ -225,6 +269,7 @@ function sameSwitchAction(
   if (left.type === "defense" && right.type === "defense") {
     return left.defense === right.defense;
   }
+  if (left.type === "gain_cake" && right.type === "gain_cake") return true;
 
   if (left.type === "attack" && right.type === "attack") {
     return (
@@ -248,3 +293,4 @@ function valid(): ValidationResult {
 function invalid(error: string): ValidationResult {
   return { ok: false, error };
 }
+import { discountCakeCost } from "./actionCosts";

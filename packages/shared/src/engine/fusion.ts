@@ -1,20 +1,23 @@
 import { GameState, PlayerId, SkillAction, SkillId, ValidationResult } from "../types";
 import { getActionWindowSeconds, cloneGameState, createBaseEvent, createId, findPlayer, queueZhuRiOpeningChoices } from "./gameFactory";
-import { clearFusionMarks, COMMON_FUSION_SKILL_ID, FUSION_CAKE_COST, getFusionMaterialSelection,
+import { clearFusionMarks, COMMON_FUSION_SKILL_ID, getFusionMaterialSelection,
   getFusionRecipe, getFusionTier, getRootFusions, isFusionImplemented, isFusionPreparation, reconcileSkillFusions } from "../skills/fusion";
-import { getNextWitherSelectionIndex, isValidWitherNumber } from "../skills/fusion";
+import { getReservedWitherIndices, isValidWitherNumber, reserveWitherSelections } from "../skills/fusion";
 import { initializeFusionAcquisition } from "./skillAcquisition";
-import { ensureFusionSkillInventory, removeSkillInstanceAt } from "./skillInventory";
+import { ensureFusionSkillInventory, nextSkillAcquisitionOrder, pruneRemovedSkillKnowledge, removeSkillInstanceAt } from "./skillInventory";
 import { revealSkillForExposureTiming } from "./gameFactory";
 import { getSkill } from "../skills/registry";
+import { getTurnSkillActionCost } from "./actionCosts";
+import { validCakePayment } from "./vacuum";
+import { isBoundBrokenBladeFusion } from "./brokenBladeIds";
 
 export function chooseWitherNumber(state: GameState, playerId: PlayerId, selectionIndex: number, value: number): GameState {
   if (!isFusionPreparation(state)) throw new Error("枯萎只能在开局准备阶段选数");
   const player = findPlayer(state, playerId);
   if (!player || player.status !== "alive") throw new Error("只有存活玩家可以选数");
   if (state.actionWindowPassPlayerIds.includes(playerId)) throw new Error("你已经结束开局准备");
-  const capacity = Math.max(1, Math.floor(player.skills.length / 2), ...(player.skillFusions ?? []).map((fusion) =>
-    (fusion.witherSelectionIndex ?? 0) + 1));
+  const capacity = Math.max(1, Math.floor(player.skills.length / 2),
+    ...(player.skillFusions ?? []).flatMap(getReservedWitherIndices).map((index) => index + 1));
   if (!Number.isSafeInteger(selectionIndex) || selectionIndex < 0 || selectionIndex >= capacity) throw new Error("枯萎选择位置无效");
   if (!isValidWitherNumber(value)) throw new Error("请选择有效的正整数");
   const next = cloneGameState(state);
@@ -33,16 +36,19 @@ export function chooseWitherNumber(state: GameState, playerId: PlayerId, selecti
 
 export function validateFusionAction(state: GameState, playerId: PlayerId, action: SkillAction): ValidationResult {
   const fail = (error: string): ValidationResult => ({ ok: false, error });
+  if (state.fusionClosedByStarMoon) return fail("日月星辰生效后无法再次融合");
   const player = findPlayer(state, playerId);
   if (!player || player.status !== "alive") return fail("只有存活玩家可以融合技能");
   if (typeof action.fusionRequestId !== "string" || !/^[a-zA-Z0-9_-]{8,100}$/.test(action.fusionRequestId)) return fail("融合请求标识无效");
   if (player.fusionRequestIds?.includes(action.fusionRequestId)) return fail("这次融合请求已经处理，请勿重复提交");
   if (action.skillId !== COMMON_FUSION_SKILL_ID || action.stacks !== 1) return fail("融合必须作为一次独立出招使用");
   if (isFusionPreparation(state)) {
+    if (action.antiCakeSpent || action.youkaiCakeSpent) return fail("开局融合无需支付资源");
     if (state.actionWindowPassPlayerIds.includes(playerId)) return fail("你已经结束开局准备");
   } else {
     if (state.phase !== "collecting_actions") return fail("当前不能融合：请在开局准备或出招阶段使用");
-    if (player.cakes < FUSION_CAKE_COST) return fail("融合需要2饼");
+    const cost = getTurnSkillActionCost(player, action, state);
+    if (!validCakePayment(state, player, cost, action.antiCakeSpent ?? 0, action.youkaiCakeSpent)) return fail(`融合需要${cost}饼`);
   }
   if (!action.targetSkillId || !getFusionRecipe(action.targetSkillId)) return fail("请选择有效的融合配方");
   if (!isFusionImplemented(action.targetSkillId)) return fail("这个融合技能的效果尚未开放");
@@ -55,6 +61,7 @@ export function validateFusionAction(state: GameState, playerId: PlayerId, actio
 /** Mutates an already-cloned settlement state, after the ordinary action cost is paid. */
 export function applySkillFusion(state: GameState, playerId: PlayerId, skillId: SkillId,
   selected?: SkillId[], requestId?: string, instanceIds?: string[]): void {
+  if (state.fusionClosedByStarMoon) return;
   const player = findPlayer(state, playerId);
   const recipe = getFusionRecipe(skillId);
   const materials = player && getFusionMaterialSelection(player, skillId, selected, instanceIds);
@@ -68,12 +75,13 @@ export function applySkillFusion(state: GameState, playerId: PlayerId, skillId: 
     player.buffs = player.buffs.filter((buff) => buff.fusionMarkKind === "solar_lava" ||
       (!["lava_mark", "stone_defense_count"].includes(buff.id) && !/^pending_lava_mark(?::|$)/.test(buff.id)));
   }
-  const selection = recipe.skill.name === "枯萎" ? { witherSelectionIndex: getNextWitherSelectionIndex(player) } : {};
+  const selection = reserveWitherSelections(player, skillId);
   if (getFusionTier(skillId) > 2 || instanceIds) ensureFusionSkillInventory(player);
   const materialFusionIds = materials.filter((entry) => entry.kind === "fusion").map((entry) => entry.instanceId);
   const materialInstanceIds = player.skillInventory ? materials.filter((entry) => entry.kind === "skill").map(({ instanceId }) =>
     instanceId.startsWith("legacy:") ? player.skillInventory![Number(instanceId.slice("legacy:".length))]!.instanceId : instanceId) : undefined;
-  player.skillFusions.push({ id: createId("fusion_instance"), skillId, materialSkillIds: materials.map((entry) => entry.skillId), ...selection,
+  player.skillFusions.push({ id: createId("fusion_instance"), skillId, acquisitionOrder: nextSkillAcquisitionOrder(player),
+    materialSkillIds: materials.map((entry) => entry.skillId), ...selection,
     ...(materialInstanceIds ? { materialInstanceIds } : {}), ...(materialFusionIds.length ? { materialFusionIds } : {}) });
   initializeFusionAcquisition(player, player.skillFusions.at(-1)!);
   if (getSkill(skillId)?.exposureTiming === "开局") revealSkillForExposureTiming(state, playerId, skillId, "开局", "融合开局宣告");
@@ -85,6 +93,19 @@ export function applySkillFusion(state: GameState, playerId: PlayerId, skillId: 
   // Materials, cumulative uses, cooldowns and seals stay in place under the cover.
   state.eventLog.push({ ...createBaseEvent(state, "system"), type: "system", privatePlayerId: playerId,
     message: `${player.name} 融合获得 ${recipe.skill.name}（占${getFusionTier(skillId)}槽）` });
+}
+
+export function closeStarMoonFusions(state: GameState): void {
+  if (state.fusionClosedByStarMoon) return;
+  state.fusionClosedByStarMoon = true;
+  for (const player of state.players) {
+    for (const fusion of player.skillFusions ?? []) clearFusionMarks(player, fusion.id);
+    player.skillFusions = [];
+    for (let index = (player.skillInventory?.length ?? 0) - 1; index >= 0; index--)
+      if (player.skillInventory?.[index]?.convertedMaterial) removeSkillInstanceAt(player, index);
+    pruneRemovedSkillKnowledge(state, player);
+  }
+  state.eventLog.push({ ...createBaseEvent(state, "system"), type: "system", message: "日月星辰解除全场融合，本局无法再次主动融合" });
 }
 
 export function fuseSkillsInPreparation(state: GameState, playerId: PlayerId, action: SkillAction): GameState {
@@ -101,6 +122,7 @@ export function fuseSkillsInPreparation(state: GameState, playerId: PlayerId, ac
 }
 
 export function decomposeSkill(state: GameState, playerId: PlayerId, fusionId: string): GameState {
+  if (state.verdictTurn?.opening) throw new Error("主游戏已暂停，等待玩点结算");
   if (state.phase !== "action_window" || (!isFusionPreparation(state) && state.activeTimingPhase !== "turn_end_action")) {
     throw new Error("分解只能在开局阶段或回合末行动阶段使用");
   }
@@ -108,6 +130,7 @@ export function decomposeSkill(state: GameState, playerId: PlayerId, fusionId: s
   if (!player || player.status !== "alive") throw new Error("只有存活玩家可以分解技能");
   if (state.actionWindowPassPlayerIds.includes(playerId)) throw new Error("你已经结束本次回合末行动");
   if (!player.skillFusions?.some((fusion) => fusion.id === fusionId)) throw new Error("只能分解自己持有的融合技能");
+  if (isBoundBrokenBladeFusion(player.bigCards, fusionId)) throw new Error("破损战刃重铸的剑不可分解");
   if (!getRootFusions(player).some((fusion) => fusion.id === fusionId)) throw new Error("请先分解覆盖此技能的上级融合");
   const next = cloneGameState(state);
   const owner = findPlayer(next, playerId)!;
@@ -120,6 +143,11 @@ export function decomposeSkill(state: GameState, playerId: PlayerId, fusionId: s
     }
   }
   owner.skillFusions = owner.skillFusions!.filter((item) => item.id !== fusionId);
+  for (const id of fusion.materialInstanceIds ?? []) {
+    const index = owner.skillInventory?.findIndex((item) => item.instanceId === id && item.convertedMaterial) ?? -1;
+    if (index >= 0) removeSkillInstanceAt(owner, index);
+  }
+  pruneRemovedSkillKnowledge(next, owner);
   if (fusion.slotMachineExtraInstanceIds) {
     owner.skillFusions = owner.skillFusions.filter((item) => !fusion.materialFusionIds?.includes(item.id));
     for (const id of fusion.slotMachineExtraInstanceIds) removeSkillInstanceAt(owner, owner.skillInventory?.findIndex((item) => item.instanceId === id) ?? -1);
@@ -133,7 +161,7 @@ export function decomposeSkill(state: GameState, playerId: PlayerId, fusionId: s
   }
   if (getFusionRecipe(fusion.skillId)?.skill.name === "沙皇") {
     for (let used = 0; used < Number(Boolean(fusion.acquisition?.smallUsed)) + Number(Boolean(fusion.acquisition?.fusionUsed)); used++) {
-      const index = owner.skills.indexOf("skill_4_65637"); if (index >= 0) removeSkillInstanceAt(owner, index);
+      const index = owner.skills.indexOf("1003"); if (index >= 0) removeSkillInstanceAt(owner, index);
     }
   }
   if (fusion.acquisition?.bonusSkillId) {

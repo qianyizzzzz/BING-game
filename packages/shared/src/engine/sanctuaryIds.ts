@@ -1,0 +1,10 @@
+export const SANCTUARY_CARD_ID = "10610";
+export const SANCTUARY_INHERIT_ID = "1061001";
+export const SANCTUARY_GATE_ID = "1061002";
+export const SANCTUARY_WARD_ID = "1061003";
+export const SANCTUARY_AURA_ID = "1061004";
+export const SANCTUARY_SWEEP_ID = "1061005";
+export const HOLY_POTENTIAL_FUSION_ID = "3025";
+export const SANCTUARY_GATE_STATE = "sanctuary_gate";
+export const SANCTUARY_WARD_STATE = "sanctuary_next_damage";
+export const SANCTUARY_AURA_STATE = "sanctuary_attack_aura";

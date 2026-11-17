@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawn, type ChildProcess } from "node:child_process";
-import zlib from "node:zlib";
 import { chromium, type Browser, type Locator, type Page } from "playwright";
 
 interface AgentLog {
@@ -24,7 +23,7 @@ interface RunConfig {
 const config = readConfig();
 const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 const runDir = path.resolve(config.outDir, `ui-agents-${timestamp}`);
-const ROCKET_SKILL_ID = "skill_79_36319";
+const ROCKET_SKILL_ID = "1078";
 
 fs.mkdirSync(runDir, { recursive: true });
 logStep(`run directory ${runDir}`);
@@ -56,8 +55,6 @@ const visualChecks: string[] = [];
 const visualIssues: string[] = [];
 const complexSkillChecks: string[] = [];
 const screenshots: string[] = [];
-const pageNames = new WeakMap<Page, string>();
-const glbResponses = new Map<string, Set<string>>();
 let roomId = "";
 let serverProcess: ChildProcess | undefined;
 let fatalError: unknown;
@@ -186,7 +183,7 @@ try {
     logStep("after-turn screenshots captured");
 
     if (config.smokeOnly) {
-      const message = "Quick UI smoke skipped full visual health checks; run test:ui-agents:run for strict overlap and canvas QA.";
+      const message = "Quick UI smoke skipped full visual health checks; run test:ui-agents:run for table and overlap QA.";
       runNotes.push(message);
       producer.observations.push(message);
     }
@@ -245,8 +242,6 @@ async function newAgentPage(browser: Browser, name: string): Promise<Page> {
     isMobile: name !== "competitor"
   });
   const page = await context.newPage();
-  pageNames.set(page, name);
-  glbResponses.set(name, new Set());
   page.on("console", (message) => {
     if (message.type() === "error") {
       const text = message.text();
@@ -263,11 +258,6 @@ async function newAgentPage(browser: Browser, name: string): Promise<Page> {
     if (url.includes("/assets/placeholders/")) {
       placeholderRequests.push(`[${name}] ${new URL(url).pathname}`);
     }
-    if (!url.endsWith(".glb") || response.status() >= 400) {
-      return;
-    }
-    const modelName = path.basename(new URL(url).pathname);
-    glbResponses.get(name)?.add(modelName);
   });
   return page;
 }
@@ -968,24 +958,20 @@ async function collectHeroCtaPrepCheck(page: Page, agent: AgentLog, label: strin
 }
 
 async function collectVisualHealth(page: Page, agent: AgentLog, label: string): Promise<void> {
-  const canvasHealth = await inspectCanvas(page);
-  if (canvasHealth.ok) {
-    const message = `${label}: 3D 牌桌 canvas 正常渲染（${canvasHealth.message}）。`;
+  const table = page.locator(".poker-table-felt");
+  const isPlainTable = await table.isVisible() && await table.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const boardStyle = getComputedStyle(element.parentElement!);
+    return style.borderRadius === "50%" && style.backgroundImage === "none" &&
+      boardStyle.backgroundImage === "none" && style.backgroundColor !== boardStyle.backgroundColor;
+  });
+  const hasCanvas = await page.locator(".poker-table-board canvas").count() > 0;
+  if (isPlainTable && !hasCanvas) {
+    const message = label + ": 纯色椭圆牌桌正常显示。";
     visualChecks.push(message);
     agent.observations.push(message);
   } else {
-    const message = `${label}: 3D 牌桌 canvas 异常（${canvasHealth.message}）。`;
-    visualIssues.push(message);
-    agent.issues.push(message);
-  }
-
-  const modelHealth = await inspectCharacterModelLoads(page);
-  if (modelHealth.ok) {
-    const message = `${label}: 3D 牌桌已加载角色 GLB（${modelHealth.message}）。`;
-    visualChecks.push(message);
-    agent.observations.push(message);
-  } else {
-    const message = `${label}: 3D 牌桌未检测到角色 GLB 加载（${modelHealth.message}）。`;
+    const message = label + ": 纯色椭圆牌桌未正常显示。";
     visualIssues.push(message);
     agent.issues.push(message);
   }
@@ -1565,238 +1551,6 @@ async function collectLobbyPrepCopyCheck(page: Page, agent: AgentLog, label: str
   const message = `${label}: 房间准备阶段文案仍可能和战斗回合混淆（prep=${hasPrepCopy}, leaksTurn=${leaksTurnCopy}）。`;
   visualIssues.push(message);
   agent.issues.push(message);
-}
-
-async function inspectCharacterModelLoads(page: Page): Promise<{ ok: boolean; message: string }> {
-  const pageName = pageNames.get(page);
-  const models = pageName ? glbResponses.get(pageName) : undefined;
-  const startedAt = Date.now();
-  while (models && models.size === 0 && Date.now() - startedAt < 10_000) {
-    await page.waitForTimeout(250);
-  }
-
-  if (!models || models.size === 0) {
-    return { ok: false, message: "10s 内没有成功的 .glb 响应" };
-  }
-
-  const observed = Array.from(models).sort();
-  const expectedLod = pageName === "first-timer" ? "lod1" : pageName === "competitor" ? "lod0" : undefined;
-  if (expectedLod === "lod1" && !observed.some((model) => model.endsWith("-lod1.glb"))) {
-    return { ok: false, message: `移动端应加载 LOD1，实际=${observed.join(", ")}` };
-  }
-  if (expectedLod === "lod0" && !observed.some((model) => model.endsWith(".glb") && !model.endsWith("-lod1.glb"))) {
-    return { ok: false, message: `桌面端应加载 LOD0，实际=${observed.join(", ")}` };
-  }
-
-  return {
-    ok: true,
-    message: `${observed.join(", ")}${expectedLod ? `, expected=${expectedLod}` : ""}`
-  };
-}
-
-async function inspectCanvas(page: Page): Promise<{ ok: boolean; message: string }> {
-  let lastResult: { ok: boolean; message: string } = { ok: false, message: "尚未检查" };
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
-    lastResult = await inspectCanvasOnce(page);
-    if (lastResult.ok || !lastResult.message.includes("canvas 边界")) {
-      return lastResult;
-    }
-    await page.waitForTimeout(500);
-  }
-  return lastResult;
-}
-
-async function inspectCanvasOnce(page: Page): Promise<{ ok: boolean; message: string }> {
-  const canvas = page.locator("canvas").first();
-  await canvas.waitFor({ state: "visible", timeout: 10_000 });
-  const box = await canvas.boundingBox();
-  if (!box) {
-    return { ok: false, message: "未读取到 canvas 边界" };
-  }
-  if (box.width < 120 || box.height < 120) {
-    return { ok: false, message: `尺寸过小 ${Math.round(box.width)}x${Math.round(box.height)}` };
-  }
-
-  const image = await page.screenshot({
-    animations: "allow",
-    clip: {
-      x: Math.max(0, Math.floor(box.x)),
-      y: Math.max(0, Math.floor(box.y)),
-      width: Math.max(1, Math.floor(box.width)),
-      height: Math.max(1, Math.floor(box.height))
-    }
-  });
-  const analysis = analyzePng(image);
-  return {
-    ok: analysis.visibleRatio > 0.04 && analysis.uniqueBuckets >= 6,
-    message: `尺寸 ${analysis.width}x${analysis.height}，可见采样 ${Math.round(
-      analysis.visibleRatio * 100
-    )}%，色彩桶 ${analysis.uniqueBuckets}`
-  };
-}
-
-interface PngAnalysis {
-  height: number;
-  uniqueBuckets: number;
-  visibleRatio: number;
-  width: number;
-}
-
-function analyzePng(buffer: Buffer): PngAnalysis {
-  const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-  if (!buffer.subarray(0, pngSignature.length).equals(pngSignature)) {
-    return { height: 0, uniqueBuckets: 0, visibleRatio: 0, width: 0 };
-  }
-
-  let offset = pngSignature.length;
-  let width = 0;
-  let height = 0;
-  let bitDepth = 0;
-  let colorType = 0;
-  const idatChunks: Buffer[] = [];
-
-  while (offset + 12 <= buffer.length) {
-    const length = buffer.readUInt32BE(offset);
-    const type = buffer.toString("ascii", offset + 4, offset + 8);
-    const dataStart = offset + 8;
-    const dataEnd = dataStart + length;
-    if (dataEnd + 4 > buffer.length) {
-      break;
-    }
-
-    if (type === "IHDR") {
-      width = buffer.readUInt32BE(dataStart);
-      height = buffer.readUInt32BE(dataStart + 4);
-      bitDepth = buffer[dataStart + 8];
-      colorType = buffer[dataStart + 9];
-    } else if (type === "IDAT") {
-      idatChunks.push(buffer.subarray(dataStart, dataEnd));
-    } else if (type === "IEND") {
-      break;
-    }
-
-    offset = dataEnd + 4;
-  }
-
-  const bytesPerPixel = pngBytesPerPixel(colorType);
-  if (width <= 0 || height <= 0 || bitDepth !== 8 || bytesPerPixel === 0 || idatChunks.length === 0) {
-    return { height, uniqueBuckets: 0, visibleRatio: 0, width };
-  }
-
-  const inflated = zlib.inflateSync(Buffer.concat(idatChunks));
-  const stride = width * bytesPerPixel;
-  const pixels = Buffer.alloc(height * stride);
-  let sourceOffset = 0;
-
-  for (let y = 0; y < height; y += 1) {
-    const filter = inflated[sourceOffset];
-    sourceOffset += 1;
-    const row = inflated.subarray(sourceOffset, sourceOffset + stride);
-    sourceOffset += stride;
-    const output = pixels.subarray(y * stride, (y + 1) * stride);
-    const previous = y > 0 ? pixels.subarray((y - 1) * stride, y * stride) : undefined;
-    unfilterPngRow(filter, row, output, previous, bytesPerPixel);
-  }
-
-  const stepX = Math.max(1, Math.floor(width / 36));
-  const stepY = Math.max(1, Math.floor(height / 36));
-  const buckets = new Set<string>();
-  let totalSamples = 0;
-  let visibleSamples = 0;
-
-  for (let y = 0; y < height; y += stepY) {
-    for (let x = 0; x < width; x += stepX) {
-      const pixelOffset = y * stride + x * bytesPerPixel;
-      const [red, green, blue, alpha] = readPngPixel(pixels, pixelOffset, colorType);
-      totalSamples += 1;
-      if (alpha > 0 && red + green + blue > 18) {
-        visibleSamples += 1;
-        buckets.add(`${red >> 5}:${green >> 5}:${blue >> 5}`);
-      }
-    }
-  }
-
-  return {
-    height,
-    uniqueBuckets: buckets.size,
-    visibleRatio: totalSamples > 0 ? visibleSamples / totalSamples : 0,
-    width
-  };
-}
-
-function pngBytesPerPixel(colorType: number): number {
-  if (colorType === 0) {
-    return 1;
-  }
-  if (colorType === 2) {
-    return 3;
-  }
-  if (colorType === 4) {
-    return 2;
-  }
-  if (colorType === 6) {
-    return 4;
-  }
-  return 0;
-}
-
-function unfilterPngRow(
-  filter: number,
-  row: Buffer,
-  output: Buffer,
-  previous: Buffer | undefined,
-  bytesPerPixel: number
-): void {
-  for (let index = 0; index < row.length; index += 1) {
-    const left = index >= bytesPerPixel ? output[index - bytesPerPixel] : 0;
-    const up = previous ? previous[index] : 0;
-    const upLeft = previous && index >= bytesPerPixel ? previous[index - bytesPerPixel] : 0;
-    const value = row[index];
-
-    if (filter === 0) {
-      output[index] = value;
-    } else if (filter === 1) {
-      output[index] = (value + left) & 0xff;
-    } else if (filter === 2) {
-      output[index] = (value + up) & 0xff;
-    } else if (filter === 3) {
-      output[index] = (value + Math.floor((left + up) / 2)) & 0xff;
-    } else if (filter === 4) {
-      output[index] = (value + paethPredictor(left, up, upLeft)) & 0xff;
-    } else {
-      output[index] = value;
-    }
-  }
-}
-
-function paethPredictor(left: number, up: number, upLeft: number): number {
-  const estimate = left + up - upLeft;
-  const leftDistance = Math.abs(estimate - left);
-  const upDistance = Math.abs(estimate - up);
-  const upLeftDistance = Math.abs(estimate - upLeft);
-
-  if (leftDistance <= upDistance && leftDistance <= upLeftDistance) {
-    return left;
-  }
-  if (upDistance <= upLeftDistance) {
-    return up;
-  }
-  return upLeft;
-}
-
-function readPngPixel(buffer: Buffer, offset: number, colorType: number): [number, number, number, number] {
-  if (colorType === 0) {
-    const value = buffer[offset];
-    return [value, value, value, 255];
-  }
-  if (colorType === 2) {
-    return [buffer[offset], buffer[offset + 1], buffer[offset + 2], 255];
-  }
-  if (colorType === 4) {
-    const value = buffer[offset];
-    return [value, value, value, buffer[offset + 1]];
-  }
-  return [buffer[offset], buffer[offset + 1], buffer[offset + 2], buffer[offset + 3]];
 }
 
 async function findCriticalOverlaps(page: Page): Promise<string[]> {

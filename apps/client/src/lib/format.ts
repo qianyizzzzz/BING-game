@@ -5,11 +5,14 @@ import {
   INFINITE_DAMAGE,
   PlayerActionPlan,
   PublicGameState,
+  SKY_PLAYER_ID,
+  STAR_COPY_PLAYER_ID,
+  SUN_PLAYER_ID,
   formatCombatValue,
   getActionLabel,
   getActionPlanLabel
 } from "@bing/shared";
-import type { AttackStats, CombatValue } from "@bing/shared";
+import type { AttackBlockedEvent, AttackStats, CombatValue } from "@bing/shared";
 import { getSkillCakeCostKind, getSkillPlay, getVortexCostOverride, PlayerState, RETIRE_EFFECT_POWER,
   VANISH_EFFECT_POWER, EXECUTE_EFFECT_POWER, EXPLODE_EFFECT_POWER } from "@bing/shared";
 
@@ -26,8 +29,11 @@ export function formatAttackStatNumber(value: number, exact?: CombatValue): stri
 
 export function formatSkillCakeCost(skillId: string | undefined, actualCost?: number, player?: PlayerState, stacks = 1): string {
   if (!skillId) return "—";
-  const pricing = getSkillPlay(skillId)?.elementCost;
-  if (pricing) return `${pricing.perStack * stacks}${pricing.element}`;
+  const play = getSkillPlay(skillId);
+  if (play?.bloodQiCost) return `${play.bloodQiCost * stacks}血气`;
+  const pricing = play?.elementCost;
+  if (pricing) return [pricing, play?.additionalElementCost].flatMap((cost) =>
+    cost ? [`${cost.perStack * stacks}${cost.element}`] : []).join("＋");
   const kind = getSkillCakeCostKind(skillId, player);
   if (kind === "none") return "无耗饼";
   if (actualCost === undefined && kind === "dynamic") return "按效果计算耗饼";
@@ -49,16 +55,47 @@ export function formatStatusDuration(buff: PlayerState["buffs"][number]): string
   return buff.infinite ? "无限" : `${buff.stacks} ${buff.expiresAtRound === undefined ? "回合" : "轮"}`;
 }
 
+import { TOTEM_KINDS } from "@bing/shared";
+
 export function playerName(state: PublicGameState, playerId: string | undefined): string {
+  if (playerId === SKY_PLAYER_ID) return "天";
+  if (playerId === STAR_COPY_PLAYER_ID) return "星辰";
+  if (playerId === SUN_PLAYER_ID) return "日";
   if (!playerId) {
     return "系统";
   }
 
-  return state.players.find((player) => player.id === playerId)?.name ?? "未知玩家";
+  const prefix = "empty_city_body:";
+  if (playerId.startsWith(prefix)) {
+    const owner = state.players.find((player) => player.id === playerId.slice(prefix.length));
+    return owner ? `${owner.name}（本体）` : "本体";
+  }
+  const totem = state.totems?.find(({ id }) => id === playerId);
+  return state.players.find((player) => player.id === playerId)?.name ?? (totem ? TOTEM_KINDS[totem.kind].name : "未知玩家");
 }
 
 export function formatActionPlan(plan: PlayerActionPlan): string {
   return getActionPlanLabel(plan);
+}
+
+const ATTACK_BLOCK_LABELS: Record<NonNullable<AttackBlockedEvent["blockKind"]>, string> = {
+  block: "防住",
+  dodge: "回避",
+  reduce: "减免",
+  invulnerable: "无敌",
+  shield: "抵挡",
+  immune: "免疫",
+  ignored: "无视",
+  invalid: "无效"
+};
+
+export function attackBlockLabel(event: AttackBlockedEvent): string {
+  return ATTACK_BLOCK_LABELS[event.blockKind ?? "block"];
+}
+
+export function attackInterceptionLabel(event: AttackBlockedEvent): string | undefined {
+  const kind = event.blockKind;
+  return kind === "invalid" || kind === "immune" || kind === "ignored" ? ATTACK_BLOCK_LABELS[kind] : undefined;
 }
 
 export function formatEvent(event: GameEvent, state: PublicGameState): string {
@@ -95,23 +132,32 @@ export function formatEvent(event: GameEvent, state: PublicGameState): string {
     }
     case "cake_changed":
       return `${playerName(state, event.playerId)} 饼 ${formatCake(event.before)} -> ${formatCake(event.after)}（${event.reason}）`;
-    case "attack_blocked":
-      if (event.blockKind === "dodge") {
-        return `${playerName(state, event.targetId)} 的闪现回避了${playerName(state, event.sourceId)}的攻击`;
-      }
-      if (event.blockKind === "reduce") {
-        return `${playerName(state, event.targetId)}的防御值减免了${playerName(state, event.sourceId)}的伤害`;
-      }
-      if (event.blockKind === "invulnerable") {
-        return `${playerName(state, event.targetId)}的无敌抵挡了${playerName(state, event.sourceId)}的攻击`;
-      }
-      if (event.blockKind === "shield") {
-        return `${playerName(state, event.targetId)}的${event.protectionName ?? "抵挡"}抵挡了${playerName(state, event.sourceId)}的攻击`;
+    case "attack_blocked": {
+      const source = playerName(state, event.sourceId);
+      const target = playerName(state, event.targetId);
+      if (event.blockKind === "invalid") {
+        return `${source} 的 ${event.attackName} 对 ${target} 无效`;
       }
       if (event.blockKind === "immune") {
-        return `${playerName(state, event.targetId)}免疫了${playerName(state, event.sourceId)}的伤害`;
+        return `${target} 对 ${source} 的 ${event.attackName} 触发免疫`;
       }
-      return `${playerName(state, event.targetId)} 防住了 ${playerName(state, event.sourceId)} 的 ${event.attackName}${event.defense ? `（${event.defense === "gain_cake" ? "饼" : DEFENSE_LABELS[event.defense]}）` : ""}`;
+      if (event.blockKind === "ignored") {
+        return `${target} 无视了 ${source} 的 ${event.attackName}`;
+      }
+      if (event.blockKind === "dodge") {
+        return `${target} 的闪现回避了${source}的攻击`;
+      }
+      if (event.blockKind === "reduce") {
+        return `${target}的防御值减免了${source}的伤害`;
+      }
+      if (event.blockKind === "invulnerable") {
+        return `${target}的无敌抵挡了${source}的攻击`;
+      }
+      if (event.blockKind === "shield") {
+        return `${target}的${event.protectionName ?? "抵挡"}抵挡了${source}的攻击`;
+      }
+      return `${target} 防住了 ${source} 的 ${event.attackName}${event.defense ? `（${event.defense === "gain_cake" ? "饼" : DEFENSE_LABELS[event.defense]}）` : ""}`;
+    }
     case "attack_reflected":
       return `${playerName(state, event.originalTargetId)} 将 ${event.attackName} 反弹给 ${playerName(state, event.reflectedTargetId)}`;
     case "rebound_broken":

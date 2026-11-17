@@ -11,10 +11,22 @@ import { changeCakes } from "./cakeResources";
 import { combatValue, scaleCombatValue, withAttackPower } from "./combatValues";
 import type { CombatValue } from "./combatValues";
 import { canAffectAcrossSpace } from "./spaces";
-import { hasInitialPlayerSnapshot, restorePlayerInitialState } from "./initialPlayerState";
+import { canRestoreWithInitialHpCap, hasInitialPlayerSnapshot, restorePlayerInitialState } from "./initialPlayerState";
+import { canRestoreTemporalState } from "./jueying";
+import { discountCakeCost } from "./actionCosts";
+import { finishSoulDeathIgnores, soulDeathIgnoresSkill } from "./soulPact";
+import { isSkillIgnored } from "./skillIgnore";
+import { hasRevivalRestrictionFlag, ignoresRevivalRestrictions } from "./siphon";
+import { PURPLE_REVIVAL_BLOCK } from "./purpleEye";
+import { FALLEN_SPLENDOR_REBIRTH_STAGES } from "./fallenSplendorIds";
+import { SEA_GOD_REVIVAL_BLOCK } from "./seaGodIgnore";
+import { isCorrupted } from "./corruptionIds";
+import { CURTAIN_RECOVERY_BLOCK } from "./curtainIds";
+import { hasDivineExitLock } from "./divineReversal";
+import { canRecoverWithHpCap } from "./infiniteValues";
 
 export const HUNYAO_QUEUED_SHA = "pending_hunyao_sha";
-const ELECTRIC_SHOCK_SKILL_ID = "skill_36_14343";
+const ELECTRIC_SHOCK_SKILL_ID = "1035";
 const THREE_SOULS = new Set(["1051302", "1061903", "1081102"]);
 type ContinuationKind = NonNullable<BuffState["continuationBlocks"]>[number];
 
@@ -45,13 +57,14 @@ export function applyHunyaoRiStats(player: PlayerState | undefined, stats: Attac
 }
 
 export function isHunyaoAreaAttack(stats: AttackStats): boolean {
-  return stats.isArea && stats.id !== ELECTRIC_SHOCK_SKILL_ID;
+  return stats.isArea && !stats.nonAttackMove && stats.id !== ELECTRIC_SHOCK_SKILL_ID;
 }
 
 export function getHunyaoExpandedTargets(
   state: Pick<GameState, "players">, sourceId: PlayerId, stats: AttackStats, targets: PlayerId[]
 ): PlayerId[] | undefined {
-  if (stats.isArea || stats.id === ELECTRIC_SHOCK_SKILL_ID) return undefined;
+  if (stats.isArea || stats.id === ELECTRIC_SHOCK_SKILL_ID ||
+    (stats.targetSkillIgnore && "all" in stats.targetSkillIgnore)) return undefined;
   if (!targets.some((targetId) => {
     const target = findPlayer(state, targetId);
     return targetId !== sourceId && canAffectAcrossSpace(state, sourceId, targetId) &&
@@ -72,10 +85,11 @@ export function getHunyaoPursuitTargets<T extends Pick<GameState, "players">>(
   state: T, skillId: SkillId
 ): PlayerState[] {
   return state.players.filter((target) => {
-    if (target.status !== "dead" || target.kind === "spectator") return false;
+    if (target.status !== "dead" || !canRecoverWithHpCap(target) || isCorrupted(target) || target.kind === "spectator" || target.emptyCityBodyDefeatId || target.emptyCityPhantomDefeat ||
+      hasDivineExitLock(target)) return false;
     const level = target.defeatLevel;
     if (skillId === CHASE_LIGHT_ID) {
-      return level === 1 && !target.buffs.some((buff) => buff.id === "no_revive");
+      return level === 1 && !hasRevivalRestrictionFlag(target);
     }
     if (skillId === CHASE_SHADOW_ID) return level === 2;
     return skillId === CHASE_SOUL_ID && level !== undefined && level < 4;
@@ -84,22 +98,34 @@ export function getHunyaoPursuitTargets<T extends Pick<GameState, "players">>(
 
 /** Pending big cards can register their restrictions here when those abilities are implemented. */
 export function hasContinuationBlock(
-  state: Pick<GameState, "players">, target: PlayerState, kind: ContinuationKind, bypass: "none" | "three_souls" | "all"
+  state: GameState, target: PlayerState, kind: ContinuationKind, bypass: "none" | "three_souls" | "all"
 ): boolean {
+  const canRecover = kind === "initial_reset" ? canRestoreWithInitialHpCap(state, target) : canRecoverWithHpCap(target);
+  if (!canRecover && (kind !== "initial_reset" || target.status !== "alive" ||
+    target.buffs.some(({ id }) => id === "pending_death" || id === "direct_non_damage_death"))) return true;
+  if (isCorrupted(target) || target.buffs.some((buff) => buff.id === CURTAIN_RECOVERY_BLOCK || kind === "revival" &&
+    (buff.id === PURPLE_REVIVAL_BLOCK || buff.id === SEA_GOD_REVIVAL_BLOCK))) return true;
+  if (hasDivineExitLock(target)) return true;
   if (bypass === "all") return false;
-  if (kind === "revival" && target.buffs.some((buff) => buff.id === "no_revive")) return true;
+  if (kind === "revival" && (ignoresRevivalRestrictions(target) || getActiveSkillCount(target, FALLEN_SPLENDOR_REBIRTH_STAGES[0]))) return false;
+  if (kind === "revival" && hasRevivalRestrictionFlag(target)) return true;
   return target.buffs.some((buff) => buff.continuationBlocks?.includes(kind) &&
+    !(buff.sourceAbilityId && (isSkillIgnored(target, buff.sourceAbilityId) || soulDeathIgnoresSkill(target, target.id, buff.sourceAbilityId))) &&
     !(bypass === "three_souls" && buff.sourceAbilityId && THREE_SOULS.has(buff.sourceAbilityId))) ||
     state.players.some((owner) => owner.status === "alive" && owner.id !== target.id && canAffectAcrossSpace(state, owner.id, target.id) &&
       owner.buffs.some((buff) => buff.sourcePlayerId === owner.id && buff.continuationBlocks?.includes(kind) &&
+        !(buff.sourceAbilityId && (isSkillIgnored(owner, buff.sourceAbilityId) || soulDeathIgnoresSkill(target, owner.id, buff.sourceAbilityId))) &&
         !(bypass === "three_souls" && buff.sourceAbilityId && THREE_SOULS.has(buff.sourceAbilityId))));
 }
 
 export function restoreHunyaoInitialState(state: GameState, player: PlayerState, defeatLevel: DefeatLevel): boolean {
-  if (defeatLevel >= 4 || !hasInitialPlayerSnapshot(state, player.id) || (player.actionCakes ?? 0) < 10 ||
-    !getActiveSkillCount(player, HUNYAO_RESET_ID) || hasContinuationBlock(state, player, "initial_reset", "none")) return false;
+  if (defeatLevel >= 4 || hasDivineExitLock(player, defeatLevel) || !hasInitialPlayerSnapshot(state, player.id) || (player.actionCakes ?? 0) < 10 ||
+    !getActiveSkillCount(player, HUNYAO_RESET_ID) || hasContinuationBlock(state, player, "initial_reset", "none") ||
+    !canRestoreTemporalState(state, player)) return false;
 
-  changeCakes(state, player.id, player.cakes - 10, "魂耀九州消耗出饼积累", { actionCakeDelta: -10 });
+  const cost = discountCakeCost(state, player, 10);
+  finishSoulDeathIgnores(state, player);
+  changeCakes(state, player.id, player.cakes - cost, "魂耀九州消耗出饼积累", { actionCakeDelta: -cost });
   restorePlayerInitialState(state, player);
   const keepsPursuits = [CHASE_LIGHT_ID, CHASE_SHADOW_ID, CHASE_SOUL_ID].some((id) => getActiveSkillCount(player, id) > 0);
   if (keepsPursuits) player.hunyaoAwakened = true;

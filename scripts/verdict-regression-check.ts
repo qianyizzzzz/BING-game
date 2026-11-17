@@ -91,15 +91,15 @@ test("裁决落败照样重开，仅给未参与玩家施加下一轮技能失�
 test("逆转先交换裁决双方，原发动者拿沙子，胜负计入新发动者", () => {
   let state = fixture(true);
   const [a, b] = state.players;
-  appendSkillInstances(b!, ["skill_93_50224"]);
-  const sandBefore = a!.skills.filter((id) => id === "skill_4_65637").length;
+  appendSkillInstances(b!, ["1092"]);
+  const sandBefore = a!.skills.filter((id) => id === "1003").length;
   state = verdict(state);
-  state = submitActionWindowSkill(state, b!.id, cast("skill_93_50224"));
+  state = submitActionWindowSkill(state, b!.id, cast("1092"));
   state = drain(state, "turn_reveal_check");
   const game = toPublicGameState(state, a!.id).pointGame!;
   assert.equal(game.sourceId, b!.id);
   assert.equal(game.targetId, a!.id);
-  assert.equal(state.players[0]!.skills.filter((id) => id === "skill_4_65637").length, sandBefore + 1);
+  assert.equal(state.players[0]!.skills.filter((id) => id === "1003").length, sandBefore + 1);
   state = drain(move(move(state, 1, "paper"), 0, "rock"));
   assert.equal(state.players[0]!.bigCards![0]!.verdictProgress, undefined);
   assert.equal(state.players[1]!.bigCards![0]!.verdictProgress?.wins, 1);
@@ -109,7 +109,7 @@ test("四连败移除大卡，额外的消除选择仅包括非化合态小技�
   let state = fixture();
   const [a, b] = state.players;
   a!.bigCards![0]!.verdictProgress = { wins: 0, losses: 3, streak: -3 };
-  appendSkillInstances(b!, ["skill_34_1533"]);
+  appendSkillInstances(b!, ["1033"]);
   grantInitializedSkill(state, b!.id, getFusionSkillId("破军"), "测试", false);
   state = drain(verdict(state), "turn_reveal_check");
   state = move(move(state, 0, "rock"), 1, "paper");
@@ -138,10 +138,10 @@ test("第四场连胜立即获胜，同时发放多来几次和两次免费裁�
 test("普通杀剥掉酒和古淀刀加成，技能攻击保留酒", () => {
   let state = fixture();
   const targetId = state.players[0]!.id;
-  appendSkillInstances(state.players[1]!, ["skill_34_1533", "skill_29_96125", "skill_82_45540"]);
+  appendSkillInstances(state.players[1]!, ["1033", "1028", "1081"]);
   state = drain(submit(state, [{ type: "defense", defense: "small" }, { type: "attack", attackId: "sha", stacks: 1, targetId }]));
   assert.equal(state.players[0]!.hp, 100);
-  state = drain(submit(state, [cake, cast("skill_82_45540", { targetId })]));
+  state = drain(submit(state, [cake, cast("1081", { targetId })]));
   assert.equal(state.players[0]!.hp, 98);
 });
 
@@ -149,8 +149,8 @@ test("变伤阶段主动用技挡下当前普通攻击，并用剩余次数挡�
   let state = fixture();
   const [a, b, c] = state.players;
   grantInitializedSkill(state, b!.id, FOUR_EMPTINESS_ID, "测试", false);
-  appendSkillInstances(b!, ["skill_82_45540", "skill_36_14343"]);
-  appendSkillInstances(c!, ["skill_34_1533"]);
+  appendSkillInstances(b!, ["1081", "1035"]);
+  appendSkillInstances(c!, ["1033"]);
   const choice = getBlindSkillChoices(state, b!.id, true).find((slot) => slot.playerId === c!.id)!;
   const sha = { type: "attack", attackId: "sha", stacks: 1, targetId: a!.id } as const;
   state = drain(submit(state, [cake, sha]), "turn_damage_modify");
@@ -160,10 +160,10 @@ test("变伤阶段主动用技挡下当前普通攻击，并用剩余次数挡�
   const remaining = () => state.players[0]!.buffs.find((buff) => buff.id === `verdict_guard:${b!.id}`)?.stacks ?? 0;
   assert.equal(state.players[0]!.hp, 100);
   assert.equal(remaining(), 3);
-  state = drain(submit(state, [cake, cast("skill_82_45540", { targetId: a!.id })]));
+  state = drain(submit(state, [cake, cast("1081", { targetId: a!.id })]));
   assert.equal(state.players[0]!.hp, 100);
   assert.equal(remaining(), 2);
-  state = drain(submit(state, [cake, cast("skill_36_14343", { targetIds: [a!.id] })]));
+  state = drain(submit(state, [cake, cast("1035", { targetIds: [a!.id] })]));
   assert.equal(remaining(), 1);
   assert.ok(!state.players[0]!.buffs.some((buff) => buff.id.startsWith("paralysis")));
   const attacker = state.players[1]!;
@@ -200,7 +200,7 @@ test("多来几次独立管理两组，重抽解开用到该组结果的融合",
   const player = state.players[0]!;
   grantInitializedSkill(state, player.id, MORE_TRIES_ID, "测试", false);
   const recipe = getFusionRecipe(getFusionSkillId("破军"))!;
-  const result = [...recipe.materialOptions[0]!, "skill_34_1533"];
+  const result = [...recipe.materialOptions[0]!, "1033"];
   const groups = player.skillFusions!.filter((item) => item.skillId === SLOT_MACHINE_ID);
   assert.equal(groups.length, 2);
   assert.ok(getSlotMachineSpin(player));
@@ -219,7 +219,7 @@ test("多来几次独立管理两组，重抽解开用到该组结果的融合",
   assert.equal(getActiveFusionCount(next, "破军"), 0);
   assert.equal(getActiveFusionCount(next, "多来几次"), 1);
   assert.deepEqual(getReadySlotMachines(next).map((item) => item.id), [groups[1]!.id]);
-  assert.equal(getActiveSkillCount(next, "skill_3_56718"), 3);
+  assert.equal(getActiveSkillCount(next, "1002"), 3);
 });
 
 test("老虎机使用真正的再来一次入口，记录被抽取的物理槽位", () => {
@@ -229,7 +229,7 @@ test("老虎机使用真正的再来一次入口，记录被抽取的物理槽�
   const slot = getSlotMachineSpin(a)!;
   assert.equal(slot.fusion.id, machineId);
   beginActionPrompt(state, "turn_before_action");
-  state = submitActionWindowSkill(state, a.id, cast("skill_3_56718"));
+  state = submitActionWindowSkill(state, a.id, cast("1002"));
   const after = state.players[0]!;
   assert.deepEqual(after.skillFusions!.find((entry) => entry.id === machineId)!.rerollCompletedSlotIds, [slot.id]);
   assert.equal(after.skillInventory![slot.index]!.instanceId, slot.id);

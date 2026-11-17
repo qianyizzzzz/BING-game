@@ -8,8 +8,9 @@ export function getSkillDamageSourceIds(event: Pick<DamageEvent, "sourceId" | "r
 export function getFatalDamageEvents(state: GameState, playerId: PlayerId): DamageEvent[] {
   const recorded = state.damageAttribution?.[playerId];
   const ids = recorded === undefined ? undefined : new Set(recorded);
+  const bodyId = state.players.find((player) => player.id === playerId)?.emptyCityBodyDefeatId;
   return state.eventLog.filter((event): event is DamageEvent => event.type === "damage" &&
-    event.targetId === playerId && event.amount > 0 && (ids ? ids.has(event.id) :
+    (event.targetId === playerId || bodyId === event.targetId) && event.amount > 0 && (ids ? ids.has(event.id) :
       event.roundNumber === state.roundNumber && event.turnNumber === state.roundTurnNumber));
 }
 

@@ -1,7 +1,8 @@
 import {
   GameEvent,
   PlayerId,
-  PublicGameState
+  PublicGameState,
+  getSkillPlay
 } from "@bing/shared";
 import {
   MAX_BATTLE_STEPS,
@@ -102,18 +103,19 @@ export function buildPresentationCue(
 ): BattlePresentationCue {
   const profile = BEAT_PROFILES[step.beat];
   const participants = eventParticipants(event, state);
+  const selfCast = event.type === "skill_used" && getSkillPlay(event.skillId)?.targetMode === "none";
   return {
     id: step.id,
     eventType: event.type,
     kind: step.kind,
     beat: step.beat,
     sourceId: participants.sourceId,
-    targetIds: participants.targetIds,
+    targetIds: selfCast ? [event.playerId] : participants.targetIds,
     startMs,
     durationMs: Math.max(profile.durationMs, STEP_DURATION_MS - 160),
     hitStopMs: profile.hitStopMs,
     intensity: profile.intensity,
-    vfx: vfxForStep(step),
+    vfx: selfCast ? "heal-pulse" : vfxForStep(step),
     sfx: step.soundCue,
     camera: profile.camera,
     label: step.label,

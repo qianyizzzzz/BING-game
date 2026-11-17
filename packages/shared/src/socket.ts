@@ -187,6 +187,14 @@ export interface ClientToServerEvents {
     payload: { roomId: GameId; action: import("./engine/pointGame").PointGameAction },
     ack: (response: SocketAck<{ state: PublicGameState }>) => void
   ) => void;
+  "game:submit_victory_counter": (
+    payload: { roomId: GameId; action: import("./engine/victoryCounter").VictoryCounterAction },
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
+  ) => void;
+  "game:submit_retirement_counter": (
+    payload: { roomId: GameId; action: import("./engine/retirementCounter").RetirementCounterAction },
+    ack: (response: SocketAck<{ state: PublicGameState }>) => void
+  ) => void;
   "game:guess_skill": (
     payload: GuessSkillPayload,
     ack: (response: SocketAck<{ state: PublicGameState }>) => void

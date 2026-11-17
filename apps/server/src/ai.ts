@@ -2,6 +2,22 @@ import {
   AttackStats,
   ATTACK_ORDER,
   BASE_ATTACKS,
+  MAX_ACTION_STACKS,
+  getAffordableSkillStacks,
+  canAffectAcrossSpace,
+  GAME_SWITCH_ACTION_ID,
+  isTotemCreation,
+  TOTEM_CHOOSE_ID,
+  UTOPIA_MOVE_ID,
+  XIELING_TRANSFORM_ID,
+  KURONG_LEAF_ID,
+  SWARM_RETURN_ID,
+  SHADOW_WIND_DANCE_ID,
+  shadowSeatChoices,
+  SWARM_INSECTS,
+  swarmInsectCount,
+  type SwarmAllocation,
+  getXielingConversionLimit,
   GameState,
   INFINITE_DAMAGE,
   RETIRE_EFFECT_POWER,
@@ -14,7 +30,6 @@ import {
   canPlayerSeeSkill,
   getActionSwitchChoicesForAction,
   getAttackMarkKind,
-  getAttackMarkCount,
   getAttackMarkChoices,
   getAttackMarkCapacity,
   getActionSwitchPlan,
@@ -30,6 +45,7 @@ import {
   getHunyaoPursuitTargets,
   isHunyaoPursuit,
   getSkillPlay,
+  isHurricane,
   getSkillUseLimit,
   getOwnedSkillIds,
   getAcquisitionSkillChoices,
@@ -40,24 +56,27 @@ import {
   getFusionEnhancementCount,
   getFreeSkillChargeId,
   getAttackActionCost,
+  getTurnSkillActionCost,
+  youkaiCakeCount,
   getSmallSkillIds,
   getStackedAttackStats,
   isActionSwitchSkillId,
   playerHasActiveSkill,
   skillHasTypeTag,
+  thornPierceChoices,
   validateAction,
   validateActionWindowSkill
 } from "@bing/shared";
 import { getPolicyBonus } from "./aiPolicy";
 
 const WINDOW_SKILL_SCORE_FLOOR = 22;
-const HELL_OVERLORD_SKILL_ID = "skill_112_59292";
-const LUANWU_SKILL_ID = "skill_54_99719";
-const SHENZU_CRYSTAL_SKILL_ID = "skill_98_7182";
+const HELL_OVERLORD_SKILL_ID = "1111";
+const LUANWU_SKILL_ID = "1053";
+const SHENZU_CRYSTAL_SKILL_ID = "1097";
 
 export function chooseAiAction(state: GameState, playerId: PlayerId): PlayerAction {
   const self = state.players.find((player) => player.id === playerId);
-  const enemies = alivePlayers(state).filter((player) => player.id !== playerId);
+  const enemies = alivePlayers(state).filter((player) => player.id !== playerId && canAffectAcrossSpace(state, playerId, player.id));
   const target = enemies[0];
 
   if (!self || !target) {
@@ -121,7 +140,8 @@ export function enumerateLegalAiActions(
     { type: "defense", defense: "stone" }
   );
 
-  if (self.cakes > 0 && enemies[0]) {
+  const normalCakeBalance = self.cakes + youkaiCakeCount(self);
+  if (normalCakeBalance > 0 && enemies[0]) {
     actions.push({
       type: "defense",
       defense: "rebound",
@@ -142,8 +162,8 @@ export function enumerateLegalAiActions(
     for (const attackId of ATTACK_ORDER) {
       const definition = BASE_ATTACKS[attackId];
       const cost = getAttackActionCost(state, self, { type: "attack", attackId, stacks: 1 });
-      const maxStacks = Math.min(3, cost > 0 ? Math.floor(self.cakes / cost) : 3);
-      for (let stacks = 1; stacks <= maxStacks; stacks += 1) {
+      const maxStacks = cost > 0 ? Math.min(MAX_ACTION_STACKS, Math.floor(normalCakeBalance / cost)) : MAX_ACTION_STACKS;
+      for (const stacks of sampleAiStacks(maxStacks)) {
         const forcedArea = hasForcedAreaAttacks(state, self);
         if (definition.isArea || forcedArea) {
           actions.push({ type: "attack", attackId, stacks });
@@ -163,7 +183,7 @@ export function enumerateLegalAiActions(
     }
   }
 
-  return uniqueActions(actions).filter((action) =>
+  return uniqueActions(actions.map((action) => payAiCakeWithYoukai(state, self, action))).filter((action) =>
     validateAction(state, self.id, action).ok
   );
 }
@@ -173,9 +193,17 @@ export function chooseAiActionWindowSkill(
   playerId: PlayerId
 ): SkillAction | undefined {
   const self = state.players.find((player) => player.id === playerId);
-  const enemies = alivePlayers(state).filter((player) => player.id !== playerId);
+  const enemies = alivePlayers(state).filter((player) => player.id !== playerId && canAffectAcrossSpace(state, playerId, player.id));
   if (!self || self.status !== "alive" || state.phase !== "action_window") {
     return undefined;
+  }
+
+  if (state.activeTimingPhase === "turn_damage_modify") {
+    const option = thornPierceChoices(state, playerId)[0];
+    if (option) {
+      const response = { type: "skill", skillId: option.skillId, stacks: 1, attackResponseId: option.id } as const;
+      if (validateActionWindowSkill({ ...state, actionWindowMode: "active" }, playerId, response).ok) return response;
+    }
   }
 
   const candidates = enumerateLegalAiActionWindowSkills(state, self, enemies);
@@ -229,9 +257,18 @@ export function enumerateLegalAiActionWindowSkills(
     return buildAiSkillActions(state, self, enemies, skillId, play);
   });
 
-  return uniqueActions(actions).filter((action) =>
+  return uniqueActions(actions.map((action) => payAiCakeWithYoukai(state, self, action))).filter((action) =>
     validateActionWindowSkill(validationState, self.id, action).ok
   );
+}
+
+function payAiCakeWithYoukai<T extends PlayerAction>(state: GameState, self: PlayerState, action: T): T {
+  const available = youkaiCakeCount(self);
+  if (!available || action.type !== "attack" && action.type !== "skill") return action;
+  const cost = action.type === "attack" ? getAttackActionCost(state, self, action) :
+    getActionSwitchPlan(state, self.id, action)?.cost ?? getTurnSkillActionCost(self, action, state);
+  const youkaiCakeSpent = Math.min(available, Math.max(0, cost - self.cakes));
+  return youkaiCakeSpent ? { ...action, youkaiCakeSpent } : action;
 }
 
 function buildAiSkillActions(
@@ -241,6 +278,32 @@ function buildAiSkillActions(
   skillId: string,
   play: SkillPlayDefinition
 ): SkillAction[] {
+  if (skillId === SHADOW_WIND_DANCE_ID) {
+    return (["insert", "behind"] as const).flatMap((shadowMoveMode) =>
+      shadowSeatChoices(state, self, shadowMoveMode).map(({ player }) =>
+        ({ type: "skill", skillId, stacks: 1, targetId: player.id, shadowMoveMode })));
+  }
+  if (isTotemCreation(skillId)) {
+    const target = enemies.length ? chooseWeakestEnemy(enemies) : self;
+    return [{ type: "skill", skillId, stacks: 1, targetId: target.id, totemRange: "center",
+      ...(skillId === TOTEM_CHOOSE_ID ? { totemKind: "flame" } : {}) }];
+  }
+  if (skillId === GAME_SWITCH_ACTION_ID) {
+    return [
+      { type: "skill", skillId, stacks: 1, gameSwitchMode: "rock_paper_scissors" },
+      { type: "skill", skillId, stacks: 1, gameSwitchMode: "basic_bing" }
+    ];
+  }
+  if (skillId === KURONG_LEAF_ID) {
+    const picks = (state.leafCardsByViewer?.[self.id] ?? []).slice(0, 3).map(({ cardInstanceId, abilityIds }) =>
+      ({ cardInstanceId, abilityId: abilityIds.find((id) => Boolean(getSkill(id))) ?? abilityIds[0]! }));
+    return picks.length ? [{ type: "skill", skillId, stacks: 1, leafAbilityChoices: picks }] : [];
+  }
+  if (skillId === XIELING_TRANSFORM_ID) {
+    const amount = Math.min(28, getXielingConversionLimit(self));
+    return amount ? [{ type: "skill", skillId, stacks: 1, xielingMarkCost: amount }] : [];
+  }
+  if (isHurricane(skillId)) return enemies.map((target) => ({ type: "skill", skillId, stacks: 1, targetIds: [target.id] }));
   if (
     play.usesPerGame &&
     getSkillUseCount(self, skillId) >= (getSkillUseLimit(self, skillId) ?? play.usesPerGame * getActiveSkillCount(self, skillId))
@@ -252,7 +315,7 @@ function buildAiSkillActions(
     return buildAiActionSwitchSkills(state, self, skillId);
   }
 
-  if (skillId === "skill_45_30424" || skillId === "skill_91_89631") {
+  if (skillId === "1044" || skillId === "1090") {
     return buildAiAttackStatModifierSkills(state, self, skillId);
   }
 
@@ -260,7 +323,7 @@ function buildAiSkillActions(
     return buildAiSandTransformSkills(state, self, skillId);
   }
 
-  if (skillId === "skill_68_57581") {
+  if (skillId === "1067") {
     return buildAiLishangSkills(state, self);
   }
 
@@ -271,25 +334,25 @@ function buildAiSkillActions(
     return getHunyaoPursuitTargets(state, skillId).map((target) => ({ type: "skill", skillId, stacks: 1, targetId: target.id }));
   }
 
-  if (skillId === "skill_94_627") {
+  if (skillId === "1093") {
     return buildAiDamageRedirectSkills(state, self, enemies);
   }
 
-  if (skillId === "skill_35_16792") {
+  if (skillId === "1034") {
     return buildAiLightningSpellSkills(state, self);
   }
 
-  if (skillId === "skill_36_14343") {
-    return buildAiElectricShockSkills(enemies);
+  if (skillId === "1035" || skillId === UTOPIA_MOVE_ID) {
+    return buildAiElectricShockSkills(enemies, skillId);
   }
   if (skillId === getFusionSkillId("魔域")) return enemies[0] ? [{ type: "skill", skillId, stacks: 1,
     targetIds: [enemies[0].id, enemies[0].id, enemies[0].id] }] : [];
-  if (skillId === "skill_74_34920") return state.players.flatMap((player) =>
+  if (skillId === "1073") return state.players.flatMap((player) =>
     (state.pendingActions[player.id]?.actions ?? []).flatMap((action, index): SkillAction[] => isAttackLikeAction(action) ? [
       { type: "skill", skillId, stacks: 1, targetId: player.id, switchActionIndex: index },
       { type: "skill", skillId, stacks: 1, targetId: player.id, switchActionIndex: index, absoluteGuardToSky: true }
     ] : []));
-  if (skillId === "skill_31_80497") return (state.pendingActions[self.id]?.actions ?? []).flatMap((action, index): SkillAction[] =>
+  if (skillId === "1030") return (state.pendingActions[self.id]?.actions ?? []).flatMap((action, index): SkillAction[] =>
     isAttackLikeAction(action) ? ["ignore_defense", "ignore_all_defense", "pierce_rebound"].map((mode) => ({ type: "skill", skillId, stacks: 1,
       switchActionIndex: index, doubleEdgeMode: mode as NonNullable<SkillAction["doubleEdgeMode"]> })) : []);
 
@@ -297,19 +360,31 @@ function buildAiSkillActions(
     return enumerateExposedSkillTargetActions(state, self, enemies, skillId);
   }
 
-  const maxStacks = getMaxAiSkillStacks(self, skillId, play);
+  const charge = getFreeSkillChargeId(self, skillId);
+  const availableFree = self.buffs.find((buff) => buff.id === charge)?.stacks ?? 0;
+  const maxStacks = getAffordableSkillStacks(state, self, skillId, availableFree);
   if (maxStacks <= 0) {
     return [];
   }
+  if (skillId === SWARM_RETURN_ID) {
+    let remaining = 10;
+    const allocation: SwarmAllocation = {};
+    const stock = SWARM_INSECTS.map((insect) => ({ insect, count: swarmInsectCount(self, insect) }))
+      .sort((a, b) => b.count - a.count);
+    for (const { insect, count } of stock) {
+      const take = Math.min(remaining, count);
+      if (take) allocation[insect] = take;
+      remaining -= take;
+    }
+    return remaining ? [] : [{ type: "skill", skillId, stacks: 1, swarmAllocation: allocation }];
+  }
 
   if (getAttackMarkKind(skillId)) return getAttackMarkChoices(state, self.id).flatMap(({ actionIndex }) =>
-    Array.from({ length: Math.min(maxStacks, getAttackMarkCapacity(self, skillId, actionIndex)) }, (_, index): SkillAction =>
-      ({ type: "skill", skillId, stacks: index + 1, switchActionIndex: actionIndex })));
+    sampleAiStacks(Math.min(maxStacks, getAttackMarkCapacity(self, skillId, actionIndex))).map((stacks): SkillAction =>
+      ({ type: "skill", skillId, stacks, switchActionIndex: actionIndex })));
 
   const actions: SkillAction[] = [];
-  const charge = getFreeSkillChargeId(self, skillId);
-  const availableFree = self.buffs.find((buff) => buff.id === charge)?.stacks ?? 0;
-  for (let stacks = 1; stacks <= maxStacks; stacks += 1) {
+  for (const stacks of sampleAiStacks(maxStacks)) {
     if (
       play.targetMode === "none" ||
       play.targetMode === "all" ||
@@ -371,7 +446,7 @@ function buildAiAttackStatModifierSkills(
       return [];
     }
 
-    if (skillId === "skill_91_89631") {
+    if (skillId === "1090") {
       return getLevelSwapModifiers(self, current).map((attackStatModifier) => ({
           type: "skill" as const,
           skillId,
@@ -391,7 +466,7 @@ function buildAiAttackStatModifierSkills(
   });
 }
 
-function buildAiSandTransformSkills(state: GameState, self: PlayerState, skillId = "skill_4_65637"): SkillAction[] {
+function buildAiSandTransformSkills(state: GameState, self: PlayerState, skillId = "1003"): SkillAction[] {
   const occupied = new Set(
     alivePlayers(state)
       .flatMap((player) => getOwnedSkillIds(player))
@@ -431,7 +506,7 @@ function buildAiLishangSkills(state: GameState, self: PlayerState): SkillAction[
     .filter((player) => fatalSourceIds.has(player.id) && player.status === "alive")
     .map((player) => ({
       type: "skill" as const,
-      skillId: "skill_68_57581",
+      skillId: "1067",
       stacks: 1,
       targetId: player.id
     }));
@@ -490,7 +565,7 @@ function buildAiDamageRedirectSkills(
   return [
     {
       type: "skill",
-      skillId: "skill_94_627",
+      skillId: "1093",
       stacks: 1,
       targetId: target.id,
       targetDamageId: damage.id
@@ -521,7 +596,7 @@ function buildAiLightningSpellSkills(state: GameState, self: PlayerState): Skill
   return [
     {
       type: "skill",
-      skillId: "skill_35_16792",
+      skillId: "1034",
       stacks: 1,
       targetId: primaryTargetId,
       targetIds
@@ -529,7 +604,7 @@ function buildAiLightningSpellSkills(state: GameState, self: PlayerState): Skill
   ];
 }
 
-function buildAiElectricShockSkills(enemies: PlayerState[]): SkillAction[] {
+function buildAiElectricShockSkills(enemies: PlayerState[], skillId: string): SkillAction[] {
   const targets = [...enemies]
     .sort((a, b) => a.hp - b.hp || b.cakes - a.cakes)
     .slice(0, 2);
@@ -541,7 +616,7 @@ function buildAiElectricShockSkills(enemies: PlayerState[]): SkillAction[] {
   return [
     {
       type: "skill",
-      skillId: "skill_36_14343",
+      skillId,
       stacks: 1,
       targetId: primary.id,
       targetIds: targets.map((target) => target.id)
@@ -561,9 +636,9 @@ function enumerateExposedSkillTargetActions(
         const skill = getSkill(targetSkillId);
         return (
           Boolean(skill) &&
-          (skillId !== "skill_101_4254" || !getFusionRecipe(targetSkillId)) &&
+          (skillId !== "1100" || !getFusionRecipe(targetSkillId)) &&
           (skillId !== getFusionSkillId("天魔舞") || Boolean(getFusionRecipe(targetSkillId)) && targetSkillId !== skillId) &&
-          (skillId !== "skill_5_34881" || skillHasTypeTag(skill, "锁定技")) &&
+          (skillId !== "1004" || skillHasTypeTag(skill, "锁定技")) &&
           canPlayerSeeSkill(state, self.id, enemy.id, targetSkillId)
         );
       })
@@ -580,21 +655,15 @@ function enumerateExposedSkillTargetActions(
 function needsExposedSkillTarget(skillId: string): boolean {
   const skill = getSkill(skillId);
   return Boolean(
-    skillId === "skill_5_34881" ||
+    skillId === "1004" ||
       (skill?.description.includes("\u66b4\u9732") &&
         skill.description.includes("\u6280\u80fd"))
   );
 }
 
-function getMaxAiSkillStacks(
-  self: PlayerState,
-  skillId: string,
-  play: SkillPlayDefinition
-): number {
-  const resourceStacks = getAvailableSkillResourceStacks(self, skillId);
-  const affordableStacks =
-    play.cost > 0 ? Math.floor(self.cakes / play.cost) + (self.buffs.find((buff) => buff.id === getFreeSkillChargeId(self, skillId))?.stacks ?? 0) : 1;
-  return Math.min(3, play.maxStacks, resourceStacks ?? affordableStacks);
+function sampleAiStacks(max: number): number[] {
+  if (max <= 8) return Array.from({ length: max }, (_, index) => index + 1);
+  return [...new Set([1, 2, 3, Math.ceil(max / 4), Math.ceil(max / 2), Math.ceil(max * 3 / 4), max])];
 }
 
 function uniqueActions<T extends PlayerAction>(actions: T[]): T[] {
@@ -615,24 +684,6 @@ function uniqueActions<T extends PlayerAction>(actions: T[]): T[] {
 
 function getSkillUseCount(player: PlayerState, skillId: string): number {
   return player.buffs.find((buff) => buff.id === `skill_used:${skillId}`)?.stacks ?? 0;
-}
-
-function getAvailableSkillResourceStacks(player: PlayerState, skillId: string): number | undefined {
-  const marks = getAttackMarkCount(player, skillId);
-  if (marks !== undefined) return marks;
-  if (skillId === "skill_37_68416") {
-    return player.buffs.find((buff) => buff.id === "guidao_charge")?.stacks ?? 0;
-  }
-
-  if (skillId === "skill_21_36332") {
-    return player.buffs.find((buff) => buff.id === "lava_mark")?.stacks ?? 0;
-  }
-
-  if (skillId === "skill_22_54978") {
-    return player.buffs.find((buff) => buff.id === "winter_mark")?.stacks ?? 0;
-  }
-
-  return undefined;
 }
 
 function isOffensiveAction(action: PlayerAction): boolean {
@@ -813,6 +864,7 @@ function scoreAiEffectSkill(
     : chooseWeakestEnemy(enemies);
   const incomingPressure = enemies.filter((enemy) => enemy.cakes > 0).length;
   const lowHpBonus = self.hp <= 2 ? 28 : self.hp <= 4 ? 10 : 0;
+  if (isTotemCreation(action.skillId)) return action.skillId === TOTEM_CHOOSE_ID ? 85 : 32;
   let score = 8;
 
   if (skillHasTypeTag(skill, "限定技")) {
@@ -864,19 +916,19 @@ function scoreAiEffectSkill(
     score += self.hp < 0 ? 90 : self.hp <= 2 ? 54 : 18;
   }
 
-  if (action.skillId === "skill_5_34881" && target) {
+  if (action.skillId === "1004" && target) {
     score += 48 + Math.max(0, target.skills.length - target.revealedSkillIds.length) * 4;
   }
 
-  if (action.targetSkillId && action.skillId !== "skill_5_34881") {
+  if (action.targetSkillId && action.skillId !== "1004") {
     score += 18;
   }
 
-  if (action.skillId === "skill_14_46860") {
+  if (action.skillId === "1013") {
     score += enemies.filter(playerHasFireSkill).length * 28;
   }
 
-  if (action.skillId === "skill_72_53933" && target) {
+  if (action.skillId === "1071" && target) {
     score += 22 + Math.max(0, 7 - target.hp) * 4;
   }
 
@@ -923,7 +975,7 @@ function estimateEffectTargets(
   if (play.targetMode === "all") {
     const skill = getSkill(action.skillId);
     return enemies.filter(
-      (enemy) => !(skillHasTypeTag(skill, "限定技") && enemy.skills.includes("skill_7_35434"))
+      (enemy) => !(skillHasTypeTag(skill, "限定技") && enemy.skills.includes("1006"))
     );
   }
 
@@ -948,7 +1000,8 @@ function scoreNoDirectEffectWindow(
   enemies: PlayerState[],
   action: SkillAction
 ): number {
-  if (action.skillId === "skill_90_32911" && getFusionEnhancementCount(self, action.skillId, ["杀级换"]) > 0) {
+  if (action.skillId === KURONG_LEAF_ID) return 80;
+  if (action.skillId === "1089" && getFusionEnhancementCount(self, action.skillId, ["杀级换"]) > 0) {
     const plan = getActionSwitchPlan(state, self.id, action);
     if (!plan) return -80;
     const before = previewPlayerAttackStats(state, self.id);
@@ -972,43 +1025,43 @@ function scoreNoDirectEffectWindow(
     }, 0);
     return damage > 0 ? 28 + Math.min(40, damage * 4) : -40;
   }
-  if (action.skillId === "skill_5_34881" || action.skillId === "skill_72_53933") {
+  if (action.skillId === "1004" || action.skillId === "1071") {
     return 0;
   }
 
   const useCount = getSkillUseCount(self, action.skillId);
   if (
     useCount > 0 &&
-    action.skillId !== "skill_15_64971" &&
-    action.skillId !== "skill_47_94841"
+    action.skillId !== "1014" &&
+    action.skillId !== "1046"
   ) {
     return -30;
   }
 
-  if (action.skillId === "skill_24_71363") {
+  if (action.skillId === "1023") {
     return self.hp === 0 && self.cakes >= 3 ? 90 : -80;
   }
 
-  if (action.skillId === "skill_47_94841") {
+  if (action.skillId === "1046") {
     const damageTaken = getRoundDamageTaken(self, state.roundNumber - 1);
     return damageTaken > 0 ? Math.min(4, damageTaken) * 24 : -40;
   }
 
-  if (action.skillId === "skill_15_64971") {
+  if (action.skillId === "1014") {
     const targetParity = useCount % 2 === 0 ? 1 : 0;
     const targets = enemies.filter((enemy) => Math.abs(enemy.hp) % 2 === targetParity);
     const lethalCount = targets.filter((enemy) => enemy.hp <= 1).length;
     return targets.length * 14 + lethalCount * 42;
   }
 
-  if (action.skillId === "skill_35_16792") {
+  if (action.skillId === "1034") {
     const targetIds = action.targetIds ?? (action.targetId ? [action.targetId] : []);
     const targets = enemies.filter((enemy) => targetIds.includes(enemy.id));
     const lethalCount = targets.filter((enemy) => enemy.hp <= 2).length;
     return targets.length * 26 + lethalCount * 42;
   }
 
-  if (action.skillId === "skill_107_53513") {
+  if (action.skillId === "1106") {
     const targets = enemies.filter((enemy) => enemy.hp <= 3);
     return targets.length > 0 ? targets.length * 70 : -50;
   }
@@ -1017,12 +1070,12 @@ function scoreNoDirectEffectWindow(
     return state.activeTimingPhase === "revival_action" ? 95 : 34;
   }
 
-  if (action.skillId === "skill_94_627") {
+  if (action.skillId === "1093") {
     const damage = (state.pendingDamageItems ?? []).find((item) => item.id === action.targetDamageId);
     return damage ? damage.amount * 34 : -80;
   }
 
-  if (action.skillId === "skill_45_30424" || action.skillId === "skill_91_89631") {
+  if (action.skillId === "1044" || action.skillId === "1090") {
     return scoreAttackStatModifierWindow(state, self, action);
   }
 
@@ -1047,7 +1100,7 @@ function scoreAttackStatModifierWindow(
   self: PlayerState,
   action: SkillAction
 ): number {
-  if (action.skillId === "skill_91_89631" && hasEnhancedLevelSwap(self)) {
+  if (action.skillId === "1090" && hasEnhancedLevelSwap(self)) {
     const index = normalizeActionIndex(action.switchActionIndex);
     const current = previewPlayerAttackStats(state, self.id);
     const candidate = previewPlayerAttackStats(state, self.id, { id: "candidate", actionIndex: index,
@@ -1063,7 +1116,7 @@ function scoreAttackStatModifierWindow(
   const current = plan?.actions[normalizeActionIndex(action.switchActionIndex)];
   const before = current ? estimatePendingAttackStats(current) : undefined;
   const modifier =
-    action.skillId === "skill_91_89631"
+    action.skillId === "1090"
       ? "swap_power_level"
       : action.attackStatModifier;
   if (!before || !modifier) {

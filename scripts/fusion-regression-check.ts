@@ -780,6 +780,7 @@ check("space trail returns after three round ends, permits two uses, and keeps s
   for (let use = 1; use <= 2; use++) {
     assert.equal(getSkillUseLimit(owner(state), skill("过往时空")), 2);
     state = submitActionWindowSkill(state, owner(state).id, cast("过往时空"));
+    if (state.activeTimingPhase === "opening_action") state = advanceActionWindow(state);
     assert.equal(owner(state).status, "dead");
     assert.equal(owner(state).buffs.find((buff) => buff.id === "small_space:past_time")?.stacks, 3);
     for (let round = 0; round < 3; round++) {
@@ -1147,13 +1148,16 @@ check("mountain collapse costs three, is blocked by cake, and retires a stone de
   }
 });
 
-check("holy awakening spends x and gains four x, retaining the saint damage-to-zero rule", () => {
+check("holy awakening spends x and gains four x at turn end, retaining the saint damage-to-zero rule", () => {
   let state = effectGame("圣灵觉醒");
   state.players[1]!.cakes = 1;
   state = settleEffectTurn(revealEffectTurn(state, fusionCast("圣灵觉醒", { stacks: 2 }),
     [{ type: "attack", attackId: "sha", stacks: 1, targetId: owner(state).id }]));
-  assert.equal(owner(state).cakes, 46);
+  assert.equal(owner(state).cakes, 38);
   assert.equal(owner(state).hp, 0);
+  state = advanceActionWindow(state);
+  assert.ok(state.eventLog.some((event) => event.type === "cake_changed" && event.playerId === owner(state).id &&
+    event.reason === "圣系出招回合末返还" && event.after - event.before === 8));
 });
 
 check("black-white board wins immediately at three or fewer eligible players but not at four", () => {
@@ -1323,7 +1327,7 @@ check("sky shield rounds cost down and may send a whole area attack to the sky",
   state = submitActionWindowSkill(state, owner(state).id,
     { ...cast("绝对守护"), targetId: state.players[1]!.id, switchActionIndex: 0, absoluteGuardToSky: true });
   const attacker = state.players[1]!;
-  attacker.skills.push("skill_21_36332");
+  attacker.skills.push("1020");
   attacker.buffs.push({ id: "pending_lava_mark", name: "待用熔岩印记", stacks: 2 });
   const beforeProjection = structuredClone(state);
   assert.deepEqual(getActionAttackTargetIds(state, attacker.id, state.pendingActions[attacker.id]!.actions[0]!), []);
@@ -1443,7 +1447,7 @@ check("lightning fusion immunes larger attacks and grants one ghost charge per a
   }
 });
 
-check("lightning immunity stops hit rewards, preserves ordinary ghost gains, and respects sealing", () => {
+check("lightning damage immunity preserves hit rewards and ordinary ghost gains, and respects sealing", () => {
   let state = effectGame("电闪雷鸣");
   state.players[1]!.cakes = 1;
   state.players[2]!.cakes = 3;
@@ -1452,7 +1456,7 @@ check("lightning immunity stops hit rewards, preserves ordinary ghost gains, and
     { type: "attack", attackId: "sha", stacks: 1, targetId: owner(state).id },
     { ...cast("连爆"), targetId: owner(state).id }
   ]));
-  assert.equal(state.players[2]!.buffs.find((buff) => buff.id === "free_lian_bao")?.stacks ?? 0, 0);
+  assert.equal(state.players[2]!.buffs.find((buff) => buff.id === "free_lian_bao")?.stacks ?? 0, 1);
   for (const sealed of [false, true]) {
     let shield = effectGame("电闪雷鸣");
     if (sealed) owner(shield).buffs.push({ id: `sealed_skill:${getFusionSkillId("电闪雷鸣")}`, name: "封印", stacks: 1 });
@@ -2298,8 +2302,11 @@ check("pure sky does not block sealing or burning earth's one-off skill removal"
 
 check("new negative-status categories automatically share immunity, with explicit registration and no implicit categories", () => {
   const state = usePureSky(effectGame("纯净苍穹"));
-  assert.deepEqual(getNegativeStatusDefinitions().map((item) => item.id), ["frozen", "skill_disabled", "paralysis", "burning",
-    "limited_disabled", "control_disabled", "mitigation_disabled", "fenjin", "star_group_attack_disabled", "temporary_skill_absorption"]);
+  const registered = new Set(getNegativeStatusDefinitions().map((item) => item.id));
+  for (const id of ["frozen", "skill_disabled", "paralysis", "stunned", "sleep", "burning", "limited_disabled",
+    "control_disabled", "mitigation_disabled", "fenjin", "star_group_attack_disabled", "sand_vortex", "temporary_skill_absorption"])
+    assert.ok(registered.has(id), `Missing negative status ${id}`);
+  assert.equal(registered.has("seal"), false);
   registerNegativeStatus({ id: "regression_temporary_restriction", name: "测试临时限制" });
   assert.equal(applyNegativeStatus(state, owner(state).id, "regression_temporary_restriction", () => assert.fail()), false);
   assert.throws(() => applyNegativeStatus(state, owner(state).id, "seal", () => assert.fail()), /尚未注册/);

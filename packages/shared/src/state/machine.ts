@@ -1,6 +1,9 @@
-import { GamePhase, GameState } from "../types";
-import { alivePlayers, playerHasActiveSkill, victoryEligiblePlayers } from "../engine/gameFactory";
+import { GamePhase, GameState, PlayerState } from "../types";
+import { alivePlayers, ordinaryVictoryPlayers, playerHasActiveSkill, victoryEligiblePlayers } from "../engine/gameFactory";
 import { getActiveFusionCount } from "../skills/fusion";
+import { dreamVictoryIds } from "../engine/utopia";
+import { hasEmptyCityRecovery } from "../engine/illusionRules";
+import { CHEAT_BACKLASH_ID, CHEAT_VICTORY_CLAIM } from "../engine/cheatServerIds";
 
 export type GameTransition =
   | "join"
@@ -39,15 +42,26 @@ export function canTransition(
   return Boolean(GAME_STATE_GRAPH[phase][transition]);
 }
 
+export function hasSettledCheatVictoryClaim(state: GameState, player: PlayerState): boolean {
+  return player.defeatLevel !== 6 && !state.pendingDamageItems?.some((item) =>
+    item.targetId === player.id && item.sourceAbilityId === CHEAT_BACKLASH_ID) &&
+    !player.buffs.some((buff) => buff.id === "pending_death") &&
+    player.buffs.some((buff) => buff.id === CHEAT_VICTORY_CLAIM);
+}
+
 export function shouldFinishGame(state: GameState): boolean {
+  if (state.victoryCounter || state.retirementCounter || state.sevenStarLegacyResume || state.gameSwitch || hasEmptyCityRecovery(state)) return false;
   const alive = alivePlayers(state);
   const victoryAlive = victoryEligiblePlayers(state);
+  const eligibleForBoard = victoryAlive.filter((player) => !state.spentBoardVictoryPlayerIds?.includes(player.id));
   return (
-    (victoryAlive.length <= 3 && victoryAlive.some((player) => getActiveFusionCount(player, "黑白板") > 0)) ||
-    victoryAlive.length <= 1 ||
-    alive.some((player) => player.buffs.some((buff) => buff.id.startsWith("instant_win:"))) ||
+    (victoryAlive.length <= 3 && eligibleForBoard.some((player) => getActiveFusionCount(player, "黑白板") > 0)) ||
+    ordinaryVictoryPlayers(state).length <= 1 ||
+    dreamVictoryIds(state).length > 0 ||
+    alive.some((player) => player.buffs.some((buff) => buff.id.startsWith("instant_win:") && buff.id !== CHEAT_VICTORY_CLAIM)) ||
+    state.players.some((player) => hasSettledCheatVictoryClaim(state, player)) ||
     (victoryAlive.length === 2 &&
-      victoryAlive.some((player) => playerHasActiveSkill(player, "skill_105_48309")))
+      eligibleForBoard.some((player) => playerHasActiveSkill(player, "1104")))
   );
 }
 

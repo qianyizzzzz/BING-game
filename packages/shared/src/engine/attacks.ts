@@ -138,6 +138,7 @@ export const DEFENSE_LABELS: Record<DefenseKind, string> = {
 export const DEFENSE_TAG_LABELS: Record<DefenseTag, string> = {
   rebound: "反弹防",
   small: "小防防",
+  small_or_youtiao: "小防或油条防",
   youtiao: "油条防",
   stone: "石头防",
   any: "任意防",
@@ -280,6 +281,7 @@ export function canActionDefend(
   if (defenseTag === "any") {
     return ["small", "youtiao", "stone"].includes(action.defense);
   }
+  if (defenseTag === "small_or_youtiao") return action.defense === "small" || action.defense === "youtiao";
 
   return action.defense === defenseTag;
 }

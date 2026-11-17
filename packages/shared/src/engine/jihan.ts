@@ -3,6 +3,7 @@ import { isBigSkillMode } from "../modes";
 import { INFINITE_DAMAGE, type GameState, type PendingDamageItem, type PlayerId, type PlayerState } from "../types";
 import { ALL_SKILLS_SEALED_BUFF_ID } from "./effectCategories";
 import { findPlayer, getActiveSkillCount } from "./gameFactory";
+import { canGainStatus } from "./karmaSong";
 
 export function getJihanCards(player: PlayerState | undefined, abilityId: string) {
   const cards = player?.bigCards?.filter((card) => bigCardHasAbility(card, abilityId)) ?? [];
@@ -26,8 +27,9 @@ export function recordJihanDamage(source: PlayerState | undefined, amount: numbe
 }
 
 export function applyJihanSkillSeal(state: GameState, sourceId: PlayerId, target: PlayerState, duration: number,
-  unit: "turn" | "round"): void {
-  const id = `${ALL_SKILLS_SEALED_BUFF_ID}:${unit}`;
+  unit: "turn" | "round", sourceAbilityId?: string): void {
+  if (!canGainStatus(target)) return;
+  const id = `${ALL_SKILLS_SEALED_BUFF_ID}:${unit}${sourceAbilityId ? `:${sourceAbilityId}` : ""}`;
   const boundary = unit === "turn" ? "expiresAtTurn" : "expiresAtRound";
   const infinite = duration >= INFINITE_DAMAGE;
   const expiry = (unit === "turn" ? state.turnNumber + 1 : state.roundNumber) + duration;
@@ -42,6 +44,6 @@ export function applyJihanSkillSeal(state: GameState, sourceId: PlayerId, target
     }
   } else {
     target.buffs.push({ id, name: "技能封锁", stateType: ALL_SKILLS_SEALED_BUFF_ID, stacks: duration,
-      sourcePlayerId: sourceId, ...(infinite ? { infinite } : { [boundary]: expiry }) });
+      sourcePlayerId: sourceId, ...(sourceAbilityId ? { sourceAbilityId } : {}), ...(infinite ? { infinite } : { [boundary]: expiry }) });
   }
 }

@@ -21,9 +21,9 @@ function drain(state: GameState, stop?: string): GameState {
   return state;
 }
 function fixture(cards = ["10501"], extra: string[][] = [[], [], []]): GameState {
-  let state = createGame("A", { skillMode: "big_test_select", skillCount: 3, firstTurnNoAttack: false });
+  let state = createGame("A", { skillMode: "big_test_select", skillCount: 3, firstTurnNoAttack: false, initialHp: 6 });
   state = addPlayerToGame(state, createPlayer("B")); state = addPlayerToGame(state, createPlayer("C"));
-  state.players.forEach((player, index) => { player.bigCards = (index === 0 ? cards : ["10504", "10509"]).map((cardId, n) => ({ instanceId: `card-${index}-${n}`, cardId })); });
+  state.players.forEach((player, index) => { player.bigCards = (index === 0 ? cards : ["10504", "10529"]).map((cardId, n) => ({ instanceId: `card-${index}-${n}`, cardId })); });
   state = startGame(state);
   state.players.forEach((player, index) => { player.hp = 50; player.cakes = 50; appendSkillInstances(player, (extra[index] ?? []).map(id)); });
   return drain(state);
@@ -157,12 +157,12 @@ check("destruction then a cost exchange uses only the primary segment and settle
     .map((event) => event.type === "damage" ? event.amount : 0), [4, 9, 6]);
   assert.ok(state.eventLog.some((event) => event.type === "cake_changed" && event.reason === "变招费用结算：补扣差额" && event.before - event.after === 8));
 });
-check("a source-specific golden bell blocks the entire segmented attack and all attached statuses", () => {
+check("a source-specific golden bell blocks all damage segments but leaves attached on-hit statuses", () => {
   let state = fixture();
   p(state, 1).buffs.push({ id: "jin_zhong_zhao", name: "金钟罩", stacks: 1, sourcePlayerId: p(state).id });
   state = turn(state, [cast(FENTIAN_ATTACK_ID, p(state, 1).id), cake, cake], "turn_end_action");
   assert.equal(p(state, 1).hp, 50);
-  assert.ok(!p(state, 1).buffs.some((buff) => buff.stateType === "burning"));
+  assert.ok(p(state, 1).buffs.some((buff) => buff.stateType === "burning"));
 });
 check("skill reflection defeats Origin, reflects nuclear attacks, and ignores absolute/scatter upgrades", () => {
   let state = fixture();

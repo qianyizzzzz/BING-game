@@ -1,0 +1,12 @@
+export const SHADOW_CARD_ID = "10553";
+export const SHADOW_GRANTS_ID = "1055301";
+export const SHADOW_STANCE_ID = "1055302";
+export const SHADOW_FOLLOW_ID = "1055303";
+export const SHADOW_BLADE_ID = "1055304";
+export const SHADOW_BLADE_DANCE_ID = "1055305";
+export const SHADOW_WIND_DANCE_ID = "1055306";
+export const SHADOW_SHRIEK_ID = "1055307";
+export const SHADOW_STOP_SHRIEK_ID = "1055308";
+export const SHADOW_COMBO_ID = "1055309";
+export const SHADOW_LEAVE_ID = "1055310";
+export const SHADOW_STANCE_STATE = "shadow_dance";

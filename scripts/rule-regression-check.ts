@@ -39,7 +39,7 @@ run("nanman is parried when target uses sha on someone else", () => {
 
 run("wine and crystal add one to total, not per stack", () => {
   const { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { cakes: 5, skills: ["skill_34_1533", "skill_33_55159"] });
+  seat(state, ids.A, { cakes: 5, skills: ["1033", "1032"] });
 
   const next = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 5, targetId: ids.B },
@@ -68,12 +68,12 @@ run("defense value does not absorb burning earth spell damage", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_13_68869"] });
+  seat(state, ids.A, { skills: ["1012"] });
   player(state, ids.B).buffs.push({ id: "defense_value", name: "defense", stacks: 5 });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
 
@@ -86,12 +86,12 @@ run("burning earth in round interval does not advance the round", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_13_68869"] });
+  seat(state, ids.A, { skills: ["1012"] });
   state = advanceActionWindow(state);
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
 
@@ -106,14 +106,14 @@ run("burning earth before a round advances to the next round interval", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_13_68869"] });
+  seat(state, ids.A, { skills: ["1012"] });
   state = advanceActionWindow(state);
   state = advanceActionWindow(state);
   assert.equal(state.activeTimingPhase, "round_before_action");
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
 
@@ -129,8 +129,8 @@ run("turn-change burning earth does not skip attacks but an earlier committed ba
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_65_71994"] });
-  seat(state, ids.B, { cakes: 2, skills: ["skill_13_68869"] });
+  seat(state, ids.A, { skills: ["1064"] });
+  seat(state, ids.B, { cakes: 2, skills: ["1012"] });
 
   state = submitAll(state, {
     A: { type: "gain_cake" },
@@ -142,7 +142,7 @@ run("turn-change burning earth does not skip attacks but an earlier committed ba
 
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
   assert.equal(state.phase, "action_window");
@@ -170,11 +170,11 @@ run("guding blade does not multiply burning earth spell damage", () => {
     skillMode: "test_select",
     skillCount: 2
   });
-  seat(state, ids.A, { skills: ["skill_13_68869", "skill_29_96125"] });
+  seat(state, ids.A, { skills: ["1012", "1028"] });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
 
@@ -188,7 +188,7 @@ run("flash dodge avoids all attack damage for the turn", () => {
     skillCount: 1
   });
   let next = drainActionWindows(state);
-  seat(next, ids.A, { skills: ["skill_103_56259"] });
+  seat(next, ids.A, { skills: ["1102"] });
   seat(next, ids.B, { cakes: 1 });
   seat(next, ids.C, { cakes: 1 });
 
@@ -202,7 +202,7 @@ run("flash dodge avoids all attack damage for the turn", () => {
 
   next = submitActionWindowSkill(next, ids.A, {
     type: "skill",
-    skillId: "skill_103_56259",
+    skillId: "1102",
     stacks: 1
   });
   next = drainActionWindows(next);
@@ -226,7 +226,7 @@ run("six star converts the highest pending damage into healing", () => {
     skillCount: 1
   });
   let next = drainActionWindows(state);
-  seat(next, ids.A, { skills: ["skill_108_76133"] });
+  seat(next, ids.A, { skills: ["1107"] });
   seat(next, ids.B, { cakes: 2 });
   seat(next, ids.C, { cakes: 1 });
 
@@ -249,7 +249,7 @@ run("six star converts the highest pending damage into healing", () => {
 
   next = submitActionWindowSkill(next, ids.A, {
     type: "skill",
-    skillId: "skill_108_76133",
+    skillId: "1107",
     stacks: 1
   });
   next = drainActionWindows(next);
@@ -273,11 +273,11 @@ run("six star converts the highest pending damage into healing", () => {
 
 run("guidao requires earned charges and consumes them", () => {
   const empty = makeGame(["A", "B"]);
-  seat(empty.state, empty.ids.B, { skills: ["skill_37_68416"] });
+  seat(empty.state, empty.ids.B, { skills: ["1036"] });
   assert.throws(() =>
     submitPlayerAction(empty.state, empty.ids.B, {
       type: "skill",
-      skillId: "skill_37_68416",
+      skillId: "1036",
       stacks: 1,
       targetId: empty.ids.A
     })
@@ -285,7 +285,7 @@ run("guidao requires earned charges and consumes them", () => {
 
   const { state, ids } = makeGame(["A", "B"]);
   seat(state, ids.A, { cakes: 2 });
-  seat(state, ids.B, { skills: ["skill_37_68416"] });
+  seat(state, ids.B, { skills: ["1036"] });
   const charged = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 2, targetId: ids.B },
     B: { type: "defense", defense: "small" }
@@ -296,7 +296,7 @@ run("guidao requires earned charges and consumes them", () => {
     A: { type: "gain_cake" },
     B: {
       type: "skill",
-      skillId: "skill_37_68416",
+      skillId: "1036",
       stacks: 2,
       targetId: ids.A
     }
@@ -309,11 +309,11 @@ run("lu grows once per target hit and uses the grown base stats later", () => {
     skillMode: "test_select",
     skillCount: 2
   });
-  seat(state, ids.A, { cakes: 1, skills: ["skill_81_59663", "skill_54_99719"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1080", "1053"] });
   state = drainActionWindows(state);
 
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_81_59663", stacks: 1 },
+    A: { type: "skill", skillId: "1080", stacks: 1 },
     B: { type: "gain_cake" },
     C: { type: "gain_cake" },
     D: { type: "gain_cake" }
@@ -328,7 +328,7 @@ run("lu grows once per target hit and uses the grown base stats later", () => {
   state = drainActionWindows(state);
   seat(state, ids.A, { cakes: 1 });
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_81_59663", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1080", stacks: 1, targetId: ids.B },
     B: { type: "gain_cake" },
     C: { type: "gain_cake" },
     D: { type: "gain_cake" }
@@ -344,11 +344,11 @@ run("stacked lu grows only once when it hits one target", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { cakes: 2, skills: ["skill_81_59663"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1080"] });
   state = drainActionWindows(state);
 
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_81_59663", stacks: 2, targetId: ids.B },
+    A: { type: "skill", skillId: "1080", stacks: 2, targetId: ids.B },
     B: { type: "gain_cake" }
   }, ids);
   state = drainActionWindows(state);
@@ -362,12 +362,12 @@ run("lu grows from clash damage and from zero-power hits", () => {
     skillMode: "test_select",
     skillCount: 2
   });
-  seat(state, ids.A, { cakes: 2, skills: ["skill_81_59663", "skill_45_30424"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1080", "1044"] });
   seat(state, ids.B, { cakes: 1 });
   state = drainActionWindows(state);
 
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_81_59663", stacks: 2, targetId: ids.B },
+    A: { type: "skill", skillId: "1080", stacks: 2, targetId: ids.B },
     B: { type: "attack", attackId: "sha", stacks: 1, targetId: ids.A }
   }, ids);
   state = drainActionWindows(state);
@@ -378,12 +378,12 @@ run("lu grows from clash damage and from zero-power hits", () => {
   state = drainActionWindows(state);
   seat(state, ids.A, { cakes: 2 });
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_81_59663", stacks: 2, targetId: ids.B },
+    A: { type: "skill", skillId: "1080", stacks: 2, targetId: ids.B },
     B: { type: "gain_cake" }
   }, ids);
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_45_30424",
+    skillId: "1044",
     stacks: 1,
     attackStatModifier: "power_to_zero_level_times_4"
   });
@@ -395,10 +395,10 @@ run("lu grows from clash damage and from zero-power hits", () => {
 
 run("lianbao grants and spends explicit free stacks", () => {
   const { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { cakes: 2, skills: ["skill_87_44771"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1086"] });
 
   let hit = submitAll(state, {
-    A: { type: "skill", skillId: "skill_87_44771", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1086", stacks: 1, targetId: ids.B },
     B: { type: "gain_cake" }
   }, ids);
   assert.equal(buffStacks(player(hit, ids.A), "free_lian_bao"), 1);
@@ -408,7 +408,7 @@ run("lianbao grants and spends explicit free stacks", () => {
   const free = submitAll(hit, {
     A: {
       type: "skill",
-      skillId: "skill_87_44771",
+      skillId: "1086",
       stacks: 2,
       freeStacks: 1,
       targetId: ids.B
@@ -419,17 +419,17 @@ run("lianbao grants and spends explicit free stacks", () => {
   assert.equal(player(free, ids.B).hp, 3);
 });
 
-run("hit rewards trigger through defense value but not invulnerability", () => {
+run("hit rewards trigger through defense value and invulnerability", () => {
   let { state, ids } = makeGame(["A", "B", "C"], {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { cakes: 2, skills: ["skill_87_44771"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1086"] });
   player(state, ids.B).buffs.push({ id: "defense_value", name: "defense", stacks: 3 });
   state = drainActionWindows(state);
 
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_87_44771", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1086", stacks: 1, targetId: ids.B },
     B: { type: "gain_cake" },
     C: { type: "gain_cake" }
   }, ids);
@@ -439,10 +439,10 @@ run("hit rewards trigger through defense value but not invulnerability", () => {
   assert.equal(buffStacks(player(state, ids.A), "free_lian_bao"), 1);
 
   state = drainActionWindows(state);
-  seat(state, ids.A, { cakes: 2, skills: ["skill_78_18866"] });
-  seat(state, ids.B, { skills: ["skill_32_19017"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1077"] });
+  seat(state, ids.B, { skills: ["1031"] });
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_78_18866", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1077", stacks: 1, targetId: ids.B },
     B: { type: "gain_cake" },
     C: { type: "gain_cake" }
   }, ids);
@@ -457,12 +457,12 @@ run("ding clashes cancel every attack except juanzi", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { cakes: 1, skills: ["skill_83_32356"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1082"] });
   seat(state, ids.B, { cakes: 14 });
   state = drainActionWindows(state);
 
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_83_32356", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1082", stacks: 1, targetId: ids.B },
     B: { type: "attack", attackId: "miao_sha", stacks: 1, targetId: ids.A }
   }, ids);
   state = drainActionWindows(state);
@@ -474,13 +474,13 @@ run("ding clashes cancel every attack except juanzi", () => {
     skillMode: "test_select",
     skillCount: 1
   }));
-  seat(state, ids.A, { cakes: 1, skills: ["skill_83_32356"] });
-  seat(state, ids.B, { skills: ["skill_95_91337"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1082"] });
+  seat(state, ids.B, { skills: ["1094"] });
   state = drainActionWindows(state);
 
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_83_32356", stacks: 1, targetId: ids.B },
-    B: { type: "skill", skillId: "skill_95_91337", stacks: 1, targetId: ids.A }
+    A: { type: "skill", skillId: "1082", stacks: 1, targetId: ids.B },
+    B: { type: "skill", skillId: "1094", stacks: 1, targetId: ids.A }
   }, ids);
   state = drainActionWindows(state);
 
@@ -493,13 +493,13 @@ run("ding versus kou retires the ding side after change windows", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { cakes: 1, skills: ["skill_83_32356"] });
-  seat(state, ids.B, { cakes: 2, skills: ["skill_84_6114"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1082"] });
+  seat(state, ids.B, { cakes: 2, skills: ["1083"] });
   state = drainActionWindows(state);
 
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_83_32356", stacks: 1, targetId: ids.B },
-    B: { type: "skill", skillId: "skill_84_6114", stacks: 1, targetId: ids.A }
+    A: { type: "skill", skillId: "1082", stacks: 1, targetId: ids.B },
+    B: { type: "skill", skillId: "1083", stacks: 1, targetId: ids.A }
   }, ids);
   state = drainActionWindows(state);
 
@@ -514,7 +514,7 @@ run("scatter rebound can be submitted without a target and rebounds to everyone"
     skillCount: 1
   });
   seat(state, ids.A, { cakes: 1 });
-  seat(state, ids.B, { cakes: 1, skills: ["skill_58_88471"] });
+  seat(state, ids.B, { cakes: 1, skills: ["1057"] });
   state = drainActionWindows(state);
 
   const next = drainActionWindows(submitAll(state, {
@@ -528,10 +528,10 @@ run("scatter rebound can be submitted without a target and rebounds to everyone"
 
 run("blizzard is one attack with two damage ticks", () => {
   const { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { cakes: 2, skills: ["skill_96_33279"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1095"] });
 
   const next = submitAll(state, {
-    A: { type: "skill", skillId: "skill_96_33279", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1095", stacks: 1, targetId: ids.B },
     B: { type: "gain_cake" }
   }, ids);
   const damageEvents = next.eventLog.filter(
@@ -544,12 +544,12 @@ run("blizzard is one attack with two damage ticks", () => {
 
 run("rocket can hit one or two consecutive targets only once", () => {
   const { state, ids } = makeGame(["A", "B", "C", "D"]);
-  seat(state, ids.A, { skills: ["skill_79_36319"] });
+  seat(state, ids.A, { skills: ["1078"] });
 
   const next = submitAll(state, {
     A: {
       type: "skill",
-      skillId: "skill_79_36319",
+      skillId: "1078",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B, ids.C]
@@ -561,17 +561,17 @@ run("rocket can hit one or two consecutive targets only once", () => {
 
   assert.equal(player(next, ids.B).hp, 0);
   assert.equal(player(next, ids.C).hp, 0);
-  assert.equal(buffStacks(player(next, ids.A), "skill_used:skill_79_36319"), 1);
+  assert.equal(buffStacks(player(next, ids.A), "skill_used:1078"), 1);
 });
 
 run("rocket rejects non-consecutive dual targets", () => {
   const { state, ids } = makeGame(["A", "B", "C", "D"]);
-  seat(state, ids.A, { skills: ["skill_79_36319"] });
+  seat(state, ids.A, { skills: ["1078"] });
 
   assert.throws(() =>
     submitPlayerAction(state, ids.A, {
       type: "skill",
-      skillId: "skill_79_36319",
+      skillId: "1078",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B, ids.D]
@@ -581,12 +581,12 @@ run("rocket rejects non-consecutive dual targets", () => {
 
 run("electric shock allows two non-consecutive targets", () => {
   const { state, ids } = makeGame(["A", "B", "C", "D"]);
-  seat(state, ids.A, { skills: ["skill_36_14343"] });
+  seat(state, ids.A, { skills: ["1035"] });
 
   const next = submitAll(state, {
     A: {
       type: "skill",
-      skillId: "skill_36_14343",
+      skillId: "1035",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B, ids.D]
@@ -607,18 +607,18 @@ run("electric shock allows two non-consecutive targets", () => {
 });
 
 run("electric shock is a skill action, not an attack action", () => {
-  assert.equal(getSkillPlay("skill_36_14343")?.kind, "effect");
+  assert.equal(getSkillPlay("1035")?.kind, "effect");
 });
 
 run("eternal night does not erase electric shock", () => {
   const { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { skills: ["skill_36_14343"] });
-  seat(state, ids.B, { skills: ["skill_44_20092"] });
+  seat(state, ids.A, { skills: ["1035"] });
+  seat(state, ids.B, { skills: ["1043"] });
 
   const next = submitAll(state, {
     A: {
       type: "skill",
-      skillId: "skill_36_14343",
+      skillId: "1035",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B]
@@ -634,12 +634,12 @@ run("eternal night does not erase electric shock", () => {
 
 run("vortex skills can hit up to three consecutive targets", () => {
   const { state, ids } = makeGame(["A", "B", "C", "D"]);
-  seat(state, ids.A, { cakes: 3, skills: ["skill_119_78843"] });
+  seat(state, ids.A, { cakes: 3, skills: ["1118"] });
 
   const next = submitAll(state, {
     A: {
       type: "skill",
-      skillId: "skill_119_78843",
+      skillId: "1118",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B, ids.C, ids.D]
@@ -661,12 +661,12 @@ run("ice vortex freezes the target into no action next turn", () => {
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 3, skills: ["skill_118_53580"] });
+  seat(state, ids.A, { cakes: 3, skills: ["1117"] });
 
   state = submitAll(state, {
     A: {
       type: "skill",
-      skillId: "skill_118_53580",
+      skillId: "1117",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B]
@@ -686,7 +686,7 @@ run("ice rain wanjian grants ice rain mark without freezing", () => {
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 2, skills: ["skill_20_63089"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1019"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "wan_jian", stacks: 1 },
@@ -705,7 +705,7 @@ run("winter wrath freezes for the consumed mark duration", () => {
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 1, skills: ["skill_22_54978"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1021"] });
   player(state, ids.A).buffs.push({
     id: "winter_mark",
     name: "凛冬印记",
@@ -718,7 +718,7 @@ run("winter wrath freezes for the consumed mark duration", () => {
   }, ids);
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_22_54978",
+    skillId: "1021",
     stacks: 3
   });
   state = drainActionWindows(state);
@@ -735,13 +735,13 @@ run("ghost shield blocks electric shock paralysis", () => {
     skillCount: 2
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_36_14343"] });
-  seat(state, ids.B, { skills: ["skill_56_42637"] });
+  seat(state, ids.A, { skills: ["1035"] });
+  seat(state, ids.B, { skills: ["1055"] });
 
   state = submitAll(state, {
     A: {
       type: "skill",
-      skillId: "skill_36_14343",
+      skillId: "1035",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B]
@@ -750,7 +750,7 @@ run("ghost shield blocks electric shock paralysis", () => {
   }, ids);
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_56_42637",
+    skillId: "1055",
     stacks: 1
   });
   state = drainActionWindows(state);
@@ -761,19 +761,19 @@ run("ghost shield blocks electric shock paralysis", () => {
   );
 });
 
-run("ghost shield blocks skill attacks and their hit effects", () => {
+run("ghost shield blocks skill attack damage while on-hit effects still apply", () => {
   let { state, ids } = makeGame(["A", "B"], {
     skillMode: "test_select",
     skillCount: 2
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { cakes: 3, skills: ["skill_118_53580"] });
-  seat(state, ids.B, { skills: ["skill_56_42637"] });
+  seat(state, ids.A, { cakes: 3, skills: ["1117"] });
+  seat(state, ids.B, { skills: ["1055"] });
 
   state = submitAll(state, {
     A: {
       type: "skill",
-      skillId: "skill_118_53580",
+      skillId: "1117",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B]
@@ -782,23 +782,23 @@ run("ghost shield blocks skill attacks and their hit effects", () => {
   }, ids);
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_56_42637",
+    skillId: "1055",
     stacks: 1
   });
   state = drainActionWindows(state);
 
   assert.equal(player(state, ids.B).hp, 6);
-  assert.equal(player(state, ids.B).buffs.some((buff) => buff.id === "frozen"), false);
+  assert.equal(player(state, ids.B).buffs.some((buff) => buff.id === "frozen"), true);
 });
 
 run("vortex skills reject non-consecutive targets", () => {
   const { state, ids } = makeGame(["A", "B", "C", "D", "E"]);
-  seat(state, ids.A, { cakes: 3, skills: ["skill_118_53580"] });
+  seat(state, ids.A, { cakes: 3, skills: ["1117"] });
 
   assert.throws(() =>
     submitPlayerAction(state, ids.A, {
       type: "skill",
-      skillId: "skill_118_53580",
+      skillId: "1117",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B, ids.D, ids.E]
@@ -814,7 +814,7 @@ run("huanfang switches small defense to stone and spends three cakes", () => {
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
   seat(state, ids.A, { cakes: 5 });
-  seat(state, ids.B, { cakes: 3, skills: ["skill_89_99375"] });
+  seat(state, ids.B, { cakes: 3, skills: ["1088"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "huo_wu", stacks: 1, targetId: ids.B },
@@ -822,7 +822,7 @@ run("huanfang switches small defense to stone and spends three cakes", () => {
   }, ids);
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_89_99375",
+    skillId: "1088",
     stacks: 1,
     switchToAction: { type: "defense", defense: "stone" }
   });
@@ -840,7 +840,7 @@ run("huanfang rejects an unaffordable three-cake switch", () => {
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
   seat(state, ids.A, { cakes: 5 });
-  seat(state, ids.B, { cakes: 2, skills: ["skill_89_99375"] });
+  seat(state, ids.B, { cakes: 2, skills: ["1088"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "huo_wu", stacks: 1, targetId: ids.B },
@@ -850,7 +850,7 @@ run("huanfang rejects an unaffordable three-cake switch", () => {
   assert.throws(() =>
     submitActionWindowSkill(state, ids.B, {
       type: "skill",
-      skillId: "skill_89_99375",
+      skillId: "1088",
       stacks: 1,
       switchToAction: { type: "defense", defense: "stone" }
     })
@@ -865,7 +865,7 @@ run("huanfang basic switch can turn small defense into youtiao", () => {
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
   seat(state, ids.A, { cakes: 3 });
-  seat(state, ids.B, { cakes: 1, skills: ["skill_88_62906"] });
+  seat(state, ids.B, { cakes: 1, skills: ["1087"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "nan_man", stacks: 1 },
@@ -873,7 +873,7 @@ run("huanfang basic switch can turn small defense into youtiao", () => {
   }, ids);
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_88_62906",
+    skillId: "1087",
     stacks: 1,
     switchToAction: { type: "defense", defense: "youtiao" }
   });
@@ -889,7 +889,7 @@ run("shahuan switches sha into qin before damage resolves", () => {
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 2, skills: ["skill_90_32911"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1089"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 1, targetId: ids.B },
@@ -897,7 +897,7 @@ run("shahuan switches sha into qin before damage resolves", () => {
   }, ids);
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_90_32911",
+    skillId: "1089",
     stacks: 1,
     switchToAction: {
       type: "attack",
@@ -919,7 +919,7 @@ run("jihuan swaps attack power and level before damage resolves", () => {
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 1, skills: ["skill_91_89631"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1090"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "qin", stacks: 1, targetId: ids.B },
@@ -927,7 +927,7 @@ run("jihuan swaps attack power and level before damage resolves", () => {
   }, ids);
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_91_89631",
+    skillId: "1090",
     stacks: 1,
     switchActionIndex: 0,
     attackStatModifier: "swap_power_level"
@@ -944,7 +944,7 @@ run("destruction power modifies selected attack and starts a two-round cooldown"
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 2, skills: ["skill_45_30424"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1044"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 2, targetId: ids.B },
@@ -952,7 +952,7 @@ run("destruction power modifies selected attack and starts a two-round cooldown"
   }, ids);
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_45_30424",
+    skillId: "1044",
     stacks: 1,
     switchActionIndex: 0,
     attackStatModifier: "power_plus_2_level_minus_2"
@@ -966,7 +966,7 @@ run("destruction power modifies selected attack and starts a two-round cooldown"
   assert.throws(() =>
     submitActionWindowSkill(state, ids.A, {
       type: "skill",
-      skillId: "skill_45_30424",
+      skillId: "1044",
       stacks: 1,
       switchActionIndex: 0,
       attackStatModifier: "power_minus_1_level_plus_1"
@@ -983,7 +983,7 @@ run("destruction power uses v3 multiplier options", () => {
     skillCount: 1
   });
   let tripleState = drainActionWindows(tripleSetup.state);
-  seat(tripleState, tripleSetup.ids.A, { cakes: 1, skills: ["skill_45_30424"] });
+  seat(tripleState, tripleSetup.ids.A, { cakes: 1, skills: ["1044"] });
 
   tripleState = submitAll(tripleState, {
     A: { type: "attack", attackId: "sha", stacks: 1, targetId: tripleSetup.ids.B },
@@ -991,7 +991,7 @@ run("destruction power uses v3 multiplier options", () => {
   }, tripleSetup.ids);
   tripleState = submitActionWindowSkill(tripleState, tripleSetup.ids.A, {
     type: "skill",
-    skillId: "skill_45_30424",
+    skillId: "1044",
     stacks: 1,
     switchActionIndex: 0,
     attackStatModifier: "power_times_3_level_to_zero"
@@ -1004,7 +1004,7 @@ run("destruction power uses v3 multiplier options", () => {
     skillCount: 1
   });
   let levelState = drainActionWindows(levelSetup.state);
-  seat(levelState, levelSetup.ids.A, { cakes: 1, skills: ["skill_45_30424"] });
+  seat(levelState, levelSetup.ids.A, { cakes: 1, skills: ["1044"] });
   seat(levelState, levelSetup.ids.B, { cakes: 1 });
 
   levelState = submitAll(levelState, {
@@ -1013,7 +1013,7 @@ run("destruction power uses v3 multiplier options", () => {
   }, levelSetup.ids);
   levelState = submitActionWindowSkill(levelState, levelSetup.ids.A, {
     type: "skill",
-    skillId: "skill_45_30424",
+    skillId: "1044",
     stacks: 1,
     switchActionIndex: 0,
     attackStatModifier: "power_to_zero_level_times_4"
@@ -1030,12 +1030,12 @@ run("electric shock fixes a defensive action for the next turn", () => {
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 1, skills: ["skill_36_14343"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1035"] });
 
   state = submitAll(state, {
     A: {
       type: "skill",
-      skillId: "skill_36_14343",
+      skillId: "1035",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B]
@@ -1064,12 +1064,12 @@ run("electric shock fixes cake without granting cake next turn", () => {
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 7, skills: ["skill_36_14343"] });
+  seat(state, ids.A, { cakes: 7, skills: ["1035"] });
 
   state = submitAll(state, {
     A: {
       type: "skill",
-      skillId: "skill_36_14343",
+      skillId: "1035",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B]
@@ -1098,13 +1098,13 @@ run("electric shock clash paralysis leaves target with no action next turn", () 
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 1, skills: ["skill_36_14343"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1035"] });
   seat(state, ids.B, { cakes: 1 });
 
   state = submitAll(state, {
     A: {
       type: "skill",
-      skillId: "skill_36_14343",
+      skillId: "1035",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B]
@@ -1131,14 +1131,14 @@ run("electric shock paralysis respects earth heart and holy realm", () => {
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { skills: ["skill_36_14343"] });
-  seat(state, ids.B, { skills: ["skill_39_77400"] });
-  seat(state, ids.C, { skills: ["skill_75_68329"] });
+  seat(state, ids.A, { skills: ["1035"] });
+  seat(state, ids.B, { skills: ["1038"] });
+  seat(state, ids.C, { skills: ["1074"] });
 
   state = submitAll(state, {
     A: {
       type: "skill",
-      skillId: "skill_36_14343",
+      skillId: "1035",
       stacks: 1,
       targetId: ids.B,
       targetIds: [ids.B, ids.C]
@@ -1155,7 +1155,7 @@ run("electric shock paralysis respects earth heart and holy realm", () => {
 
 run("qin versus sha uses normal clash when qin level is at least sha level", () => {
   const { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { cakes: 2, skills: ["zhu_que_yu_shan"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1016"] });
   seat(state, ids.B, { cakes: 1 });
 
   const next = submitAll(state, {
@@ -1169,8 +1169,8 @@ run("qin versus sha uses normal clash when qin level is at least sha level", () 
 
 run("sha versus qin uses clash damage and heals sha when sha level is higher", () => {
   const { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { cakes: 2, hp: 5, skills: ["huo_yan_dao"] });
-  seat(state, ids.B, { cakes: 1, skills: ["skill_51_92674"] });
+  seat(state, ids.A, { cakes: 2, hp: 5, skills: ["1015"] });
+  seat(state, ids.B, { cakes: 1, skills: ["1050"] });
 
   const next = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 2, targetId: ids.B },
@@ -1189,41 +1189,41 @@ run("test select mode preserves chosen skills and shows lobby selections", () =>
   });
   state = addPlayerToGame(state, createPlayer("B"));
   const ids = Object.fromEntries(state.players.map((item) => [item.name, item.id])) as PlayerMap;
-  seat(state, ids.A, { skills: ["skill_88_62906", "skill_90_32911"] });
-  seat(state, ids.B, { skills: ["skill_89_99375"] });
+  seat(state, ids.A, { skills: ["1087", "1089"] });
+  seat(state, ids.B, { skills: ["1088"] });
 
   const publicState = toPublicGameState(state, ids.A);
   assert.deepEqual(
     publicState.players.find((item) => item.id === ids.B)?.skills,
-    ["skill_89_99375"]
+    ["1088"]
   );
 
   const started = startGame(state);
   assert.equal(usesSkillActionWindows(started), true);
   assert.equal(started.phase, "action_window");
   assert.deepEqual(player(started, ids.A).skills, [
-    "skill_88_62906",
-    "skill_90_32911"
+    "1087",
+    "1089"
   ]);
-  assert.deepEqual(player(started, ids.B).skills, ["skill_89_99375"]);
+  assert.deepEqual(player(started, ids.B).skills, ["1088"]);
 });
 
 run("v3 exposure updates are reflected in the generated catalog", () => {
-  assert.equal(getSkill("skill_8_89763")?.exposureTiming, "开局");
-  assert.equal(getSkill("skill_18_34323")?.exposureTiming, "使用时");
-  assert.equal(getSkill("skill_13_68869")?.attribute, "fire");
-  assert.equal(getSkill("skill_14_46860")?.attribute, "ice");
-  assert.equal(getSkill("skill_75_68329")?.attribute, undefined);
-  assert.deepEqual(getSkill("skill_5_34881")?.typeTags, []);
-  assert.deepEqual(getSkill("skill_6_503")?.typeTags, []);
-  assert.deepEqual(getSkill("skill_7_35434")?.typeTags, []);
-  assert.deepEqual(getSkill("skill_8_89763")?.typeTags, []);
-  assert.deepEqual(getSkill("skill_9_93219")?.typeTags, []);
-  assert.deepEqual(getSkill("skill_13_68869")?.typeTags, ["限定技"]);
-  assert.deepEqual(getSkill("skill_14_46860")?.typeTags, ["限定技"]);
-  assert.deepEqual(getSkill("skill_75_68329")?.typeTags, ["锁定技"]);
-  assert.deepEqual(getSkill("skill_101_4254")?.typeTags, ["限定技"]);
-  assert.deepEqual(getSkill("skill_111_51056")?.typeTags, ["限定技"]);
+  assert.equal(getSkill("1007")?.exposureTiming, "开局");
+  assert.equal(getSkill("1017")?.exposureTiming, "使用时");
+  assert.equal(getSkill("1012")?.attribute, "fire");
+  assert.equal(getSkill("1013")?.attribute, "ice");
+  assert.equal(getSkill("1074")?.attribute, undefined);
+  assert.deepEqual(getSkill("1004")?.typeTags, []);
+  assert.deepEqual(getSkill("1005")?.typeTags, []);
+  assert.deepEqual(getSkill("1006")?.typeTags, []);
+  assert.deepEqual(getSkill("1007")?.typeTags, []);
+  assert.deepEqual(getSkill("1008")?.typeTags, []);
+  assert.deepEqual(getSkill("1012")?.typeTags, ["限定技"]);
+  assert.deepEqual(getSkill("1013")?.typeTags, ["限定技"]);
+  assert.deepEqual(getSkill("1074")?.typeTags, ["锁定技"]);
+  assert.deepEqual(getSkill("1100")?.typeTags, ["限定技"]);
+  assert.deepEqual(getSkill("1110")?.typeTags, ["限定技"]);
 });
 
 run("zailaiyici rerolls itself into an intro small skill", () => {
@@ -1232,17 +1232,17 @@ run("zailaiyici rerolls itself into an intro small skill", () => {
     skillCount: 1
   });
   const expectedSkillId = getSmallSkillIds()[0]!;
-  seat(state, ids.A, { skills: ["skill_3_56718"] });
+  seat(state, ids.A, { skills: ["1002"] });
 
   const next = withMockedRandom(0, () =>
     submitActionWindowSkill(state, ids.A, {
       type: "skill",
-      skillId: "skill_3_56718",
+      skillId: "1002",
       stacks: 1
     })
   );
 
-  assert.equal(player(next, ids.A).skills.includes("skill_3_56718"), false);
+  assert.equal(player(next, ids.A).skills.includes("1002"), false);
   assert.equal(player(next, ids.A).skills.includes(expectedSkillId), true);
   assert.equal(player(next, ids.A).revealedSkillIds.includes(expectedSkillId), false);
   assert.ok(
@@ -1259,19 +1259,19 @@ run("shazi transforms into a declared small skill when nobody else has it", () =
     skillMode: "test_select",
     skillCount: 1
   });
-  const targetSkillId = pickIntroSkill(["skill_4_65637"]);
-  seat(state, ids.A, { skills: ["skill_4_65637"] });
-  seat(state, ids.B, { skills: ["skill_89_99375"] });
+  const targetSkillId = pickIntroSkill(["1003"]);
+  seat(state, ids.A, { skills: ["1003"] });
+  seat(state, ids.B, { skills: ["1088"] });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_4_65637",
+    skillId: "1003",
     stacks: 1,
     targetSkillId
   });
 
   assert.equal(player(next, ids.A).status, "alive");
-  assert.equal(player(next, ids.A).skills.includes("skill_4_65637"), false);
+  assert.equal(player(next, ids.A).skills.includes("1003"), false);
   assert.equal(player(next, ids.A).skills.includes(targetSkillId), true);
   assert.equal(player(next, ids.A).revealedSkillIds.includes(targetSkillId), true);
 });
@@ -1281,13 +1281,13 @@ run("shazi reveals duplicate skill and self-retires on collision", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  const targetSkillId = pickIntroSkill(["skill_4_65637"]);
-  seat(state, ids.A, { skills: ["skill_4_65637"] });
+  const targetSkillId = pickIntroSkill(["1003"]);
+  seat(state, ids.A, { skills: ["1003"] });
   seat(state, ids.B, { skills: [targetSkillId] });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_4_65637",
+    skillId: "1003",
     stacks: 1,
     targetSkillId
   });
@@ -1321,14 +1321,14 @@ run("skill guess reveals a correct small skill and triggers chuanyin", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_109_65084"] });
-  seat(state, ids.B, { skills: ["skill_87_44771"] });
+  seat(state, ids.A, { skills: ["1108"] });
+  seat(state, ids.B, { skills: ["1086"] });
   const turnEnd = reachTurnEndAction(state, ids);
 
-  const next = guessPlayerSkill(turnEnd, ids.A, ids.B, "skill_87_44771");
+  const next = guessPlayerSkill(turnEnd, ids.A, ids.B, "1086");
 
-  assert.equal(player(next, ids.B).revealedSkillIds.includes("skill_87_44771"), true);
-  assert.equal(player(next, ids.A).revealedSkillIds.includes("skill_109_65084"), true);
+  assert.equal(player(next, ids.B).revealedSkillIds.includes("1086"), true);
+  assert.equal(player(next, ids.A).revealedSkillIds.includes("1108"), true);
   assert.equal(player(next, ids.B).hp, 4);
   assert.ok(
     next.eventLog.some(
@@ -1346,9 +1346,9 @@ run("wrong skill guess blocks another guess this turn", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.B, { skills: ["skill_87_44771"] });
+  seat(state, ids.B, { skills: ["1086"] });
   const turnEnd = reachTurnEndAction(state, ids);
-  const wrongSkillId = getSmallSkillIds().find((skillId) => skillId !== "skill_87_44771");
+  const wrongSkillId = getSmallSkillIds().find((skillId) => skillId !== "1086");
   assert.ok(wrongSkillId);
 
   const afterWrongGuess = guessPlayerSkill(turnEnd, ids.A, ids.B, wrongSkillId);
@@ -1360,7 +1360,7 @@ run("wrong skill guess blocks another guess this turn", () => {
     true
   );
   assert.throws(() =>
-    guessPlayerSkill(afterWrongGuess, ids.A, ids.B, "skill_87_44771")
+    guessPlayerSkill(afterWrongGuess, ids.A, ids.B, "1086")
   );
 });
 
@@ -1369,20 +1369,20 @@ run("mirror spell copies an exposed skill", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_101_4254"] });
-  seat(state, ids.B, { skills: ["skill_87_44771"] });
-  player(state, ids.B).revealedSkillIds = ["skill_87_44771"];
+  seat(state, ids.A, { skills: ["1100"] });
+  seat(state, ids.B, { skills: ["1086"] });
+  player(state, ids.B).revealedSkillIds = ["1086"];
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_101_4254",
+    skillId: "1100",
     stacks: 1,
     targetId: ids.B,
-    targetSkillId: "skill_87_44771"
+    targetSkillId: "1086"
   });
 
-  assert.equal(player(next, ids.A).skills.includes("skill_87_44771"), true);
-  assert.equal(player(next, ids.A).revealedSkillIds.includes("skill_87_44771"), true);
+  assert.equal(player(next, ids.A).skills.includes("1086"), true);
+  assert.equal(player(next, ids.A).revealedSkillIds.includes("1086"), true);
 });
 
 run("mirror spell can copy a duplicate skill, including from self", () => {
@@ -1390,19 +1390,19 @@ run("mirror spell can copy a duplicate skill, including from self", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_101_4254", "skill_87_44771"] });
-  player(state, ids.A).revealedSkillIds = ["skill_87_44771"];
+  seat(state, ids.A, { skills: ["1100", "1086"] });
+  player(state, ids.A).revealedSkillIds = ["1086"];
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_101_4254",
+    skillId: "1100",
     stacks: 1,
     targetId: ids.A,
-    targetSkillId: "skill_87_44771"
+    targetSkillId: "1086"
   });
 
   assert.equal(
-    player(next, ids.A).skills.filter((skillId) => skillId === "skill_87_44771").length,
+    player(next, ids.A).skills.filter((skillId) => skillId === "1086").length,
     2
   );
 });
@@ -1412,34 +1412,34 @@ run("seal locks an exposed skill without removing it, and mirror can still copy 
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_5_34881", "skill_18_34323"] });
-  seat(state, ids.B, { skills: ["skill_75_68329"] });
-  seat(state, ids.C, { skills: ["skill_101_4254"] });
-  player(state, ids.B).revealedSkillIds = ["skill_75_68329"];
+  seat(state, ids.A, { skills: ["1004", "1017"] });
+  seat(state, ids.B, { skills: ["1074"] });
+  seat(state, ids.C, { skills: ["1100"] });
+  player(state, ids.B).revealedSkillIds = ["1074"];
 
   const sealed = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_5_34881",
+    skillId: "1004",
     stacks: 1,
     targetId: ids.B,
-    targetSkillId: "skill_75_68329"
+    targetSkillId: "1074"
   });
 
-  assert.equal(player(sealed, ids.B).skills.includes("skill_75_68329"), true);
-  assert.equal(player(sealed, ids.B).revealedSkillIds.includes("skill_75_68329"), true);
+  assert.equal(player(sealed, ids.B).skills.includes("1074"), true);
+  assert.equal(player(sealed, ids.B).revealedSkillIds.includes("1074"), true);
   assert.equal(
-    player(sealed, ids.B).buffs.some((buff) => buff.id === "sealed_skill:skill_75_68329"),
+    player(sealed, ids.B).buffs.some((buff) => buff.id === "sealed_skill:1074"),
     true
   );
 
   const mirrored = submitActionWindowSkill(sealed, ids.C, {
     type: "skill",
-    skillId: "skill_101_4254",
+    skillId: "1100",
     stacks: 1,
     targetId: ids.B,
-    targetSkillId: "skill_75_68329"
+    targetSkillId: "1074"
   });
-  assert.equal(player(mirrored, ids.C).skills.includes("skill_75_68329"), true);
+  assert.equal(player(mirrored, ids.C).skills.includes("1074"), true);
 });
 
 run("seal rejects exposed skills without the locked type tag", () => {
@@ -1447,17 +1447,17 @@ run("seal rejects exposed skills without the locked type tag", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_5_34881"] });
-  seat(state, ids.B, { skills: ["skill_8_89763"] });
-  player(state, ids.B).revealedSkillIds = ["skill_8_89763"];
+  seat(state, ids.A, { skills: ["1004"] });
+  seat(state, ids.B, { skills: ["1007"] });
+  player(state, ids.B).revealedSkillIds = ["1007"];
 
   assert.throws(() =>
     submitActionWindowSkill(state, ids.A, {
       type: "skill",
-      skillId: "skill_5_34881",
+      skillId: "1004",
       stacks: 1,
       targetId: ids.B,
-      targetSkillId: "skill_8_89763"
+      targetSkillId: "1007"
     })
   );
 });
@@ -1467,25 +1467,25 @@ run("seal can be used once per target player", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_5_34881"] });
-  seat(state, ids.B, { skills: ["skill_75_68329"] });
-  seat(state, ids.C, { skills: ["skill_22_54978"] });
-  player(state, ids.B).revealedSkillIds = ["skill_75_68329"];
-  player(state, ids.C).revealedSkillIds = ["skill_22_54978"];
+  seat(state, ids.A, { skills: ["1004"] });
+  seat(state, ids.B, { skills: ["1074"] });
+  seat(state, ids.C, { skills: ["1021"] });
+  player(state, ids.B).revealedSkillIds = ["1074"];
+  player(state, ids.C).revealedSkillIds = ["1021"];
 
   const afterB = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_5_34881",
+    skillId: "1004",
     stacks: 1,
     targetId: ids.B,
-    targetSkillId: "skill_75_68329"
+    targetSkillId: "1074"
   });
   const afterC = submitActionWindowSkill(afterB, ids.A, {
     type: "skill",
-    skillId: "skill_5_34881",
+    skillId: "1004",
     stacks: 1,
     targetId: ids.C,
-    targetSkillId: "skill_22_54978"
+    targetSkillId: "1021"
   });
 
   assert.equal(
@@ -1498,10 +1498,10 @@ run("seal can be used once per target player", () => {
   );
   const repeated = submitActionWindowSkill(afterC, ids.A, {
     type: "skill",
-    skillId: "skill_5_34881",
+    skillId: "1004",
     stacks: 1,
     targetId: ids.B,
-    targetSkillId: "skill_75_68329"
+    targetSkillId: "1074"
   });
   assert.equal(
     player(repeated, ids.A).buffs.filter((buff) => buff.id === `sealed_player:${ids.B}`).length,
@@ -1514,15 +1514,15 @@ run("jingu blocks control skills before they can be used", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_8_89763"] });
-  seat(state, ids.B, { skills: ["skill_18_34323"] });
-  player(state, ids.A).revealedSkillIds = ["skill_8_89763"];
+  seat(state, ids.A, { skills: ["1007"] });
+  seat(state, ids.B, { skills: ["1017"] });
+  player(state, ids.A).revealedSkillIds = ["1007"];
   state.activeTimingPhase = "turn_change_action";
 
   assert.throws(() =>
     submitActionWindowSkill(state, ids.B, {
       type: "skill",
-      skillId: "skill_18_34323",
+      skillId: "1017",
       stacks: 1,
       targetId: ids.A
     })
@@ -1538,12 +1538,12 @@ run("jingu reveals when it locks control skills out of the action list", () => {
   });
   state = addPlayerToGame(state, createPlayer("B"));
   const ids = Object.fromEntries(state.players.map((item) => [item.name, item.id]));
-  seat(state, ids.A!, { skills: ["skill_8_89763"] });
-  seat(state, ids.B!, { skills: ["skill_18_34323"] });
+  seat(state, ids.A!, { skills: ["1007"] });
+  seat(state, ids.B!, { skills: ["1017"] });
 
   const started = startGame(state);
 
-  assert.equal(player(started, ids.A!).revealedSkillIds.includes("skill_8_89763"), true);
+  assert.equal(player(started, ids.A!).revealedSkillIds.includes("1007"), true);
 });
 
 run("poe prevents jingu from blocking control skills", () => {
@@ -1551,16 +1551,16 @@ run("poe prevents jingu from blocking control skills", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_8_89763"] });
-  seat(state, ids.B, { skills: ["skill_18_34323"] });
-  seat(state, ids.C, { skills: ["skill_9_93219"] });
-  player(state, ids.A).revealedSkillIds = ["skill_8_89763"];
+  seat(state, ids.A, { skills: ["1007"] });
+  seat(state, ids.B, { skills: ["1017"] });
+  seat(state, ids.C, { skills: ["1008"] });
+  player(state, ids.A).revealedSkillIds = ["1007"];
   state.activeTimingPhase = "turn_change_action";
 
   assert.doesNotThrow(() =>
     submitActionWindowSkill(state, ids.B, {
       type: "skill",
-      skillId: "skill_18_34323",
+      skillId: "1017",
       stacks: 1,
       targetId: ids.A
     })
@@ -1582,46 +1582,60 @@ run("self-targeted attack, seal, and mirror are allowed", () => {
   });
   seat(state, ids.A, {
     cakes: 1,
-    skills: ["skill_5_34881", "skill_75_68329", "skill_101_4254"]
+    skills: ["1004", "1074", "1100"]
   });
-  player(state, ids.A).revealedSkillIds = ["skill_75_68329"];
+  player(state, ids.A).revealedSkillIds = ["1074"];
 
   const selfSeal = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_5_34881",
+    skillId: "1004",
     stacks: 1,
     targetId: ids.A,
-    targetSkillId: "skill_75_68329"
+    targetSkillId: "1074"
   });
   assert.equal(
-    player(selfSeal, ids.A).buffs.some((buff) => buff.id === "sealed_skill:skill_75_68329"),
+    player(selfSeal, ids.A).buffs.some((buff) => buff.id === "sealed_skill:1074"),
     true
   );
 
   const selfMirror = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_101_4254",
+    skillId: "1100",
     stacks: 1,
     targetId: ids.A,
-    targetSkillId: "skill_75_68329"
+    targetSkillId: "1074"
   });
   assert.equal(player(selfMirror, ids.A).status, "alive");
   assert.equal(
-    player(selfMirror, ids.A).skills.filter((skillId) => skillId === "skill_75_68329").length,
+    player(selfMirror, ids.A).skills.filter((skillId) => skillId === "1074").length,
     2
   );
 });
 
 run("full-force strike backlash triggers when blocked", () => {
   const { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { skills: ["skill_27_23816"] });
+  seat(state, ids.A, { skills: ["1026"] });
 
   const next = submitAll(state, {
-    A: { type: "skill", skillId: "skill_27_23816", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1026", stacks: 1, targetId: ids.B },
     B: { type: "defense", defense: "small" }
   }, ids);
 
   assert.equal(player(next, ids.A).hp, 3);
+});
+
+run("invulnerability defends a full-force strike and triggers backlash", () => {
+  const { state, ids } = makeGame(["A", "B"]);
+  seat(state, ids.A, { skills: ["1026"] });
+  seat(state, ids.B, { skills: ["1031"] });
+
+  const next = submitAll(state, {
+    A: { type: "skill", skillId: "1026", stacks: 1, targetId: ids.B },
+    B: { type: "gain_cake" }
+  }, ids);
+
+  assert.equal(player(next, ids.A).hp, 3);
+  assert.equal(player(next, ids.B).hp, 6);
 });
 
 run("frostfall removes enemy fire skills", () => {
@@ -1629,16 +1643,16 @@ run("frostfall removes enemy fire skills", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_14_46860"] });
-  seat(state, ids.B, { skills: ["huo_yan_dao"] });
+  seat(state, ids.A, { skills: ["1013"] });
+  seat(state, ids.B, { skills: ["1015"] });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_14_46860",
+    skillId: "1013",
     stacks: 1
   });
 
-  assert.equal(player(next, ids.B).skills.includes("huo_yan_dao"), false);
+  assert.equal(player(next, ids.B).skills.includes("1015"), false);
 });
 
 run("tengjia adds one to fire spell damage", () => {
@@ -1646,12 +1660,12 @@ run("tengjia adds one to fire spell damage", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_13_68869"] });
-  seat(state, ids.B, { skills: ["skill_51_92674"] });
+  seat(state, ids.A, { skills: ["1012"] });
+  seat(state, ids.B, { skills: ["1050"] });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
 
@@ -1666,12 +1680,12 @@ run("tengjia adds one to fireball splash damage", () => {
   });
   const { ids } = game;
   let { state } = game;
-  seat(state, ids.A, { cakes: 2, skills: ["skill_78_18866"] });
-  seat(state, ids.C, { skills: ["skill_51_92674"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1077"] });
+  seat(state, ids.C, { skills: ["1050"] });
   state = drainActionWindows(state);
 
   const next = drainActionWindows(submitAll(state, {
-    A: { type: "skill", skillId: "skill_78_18866", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1077", stacks: 1, targetId: ids.B },
     B: { type: "gain_cake" },
     C: { type: "gain_cake" },
     D: { type: "gain_cake" }
@@ -1687,20 +1701,20 @@ run("holy realm blocks burning earth damage and ice skill removal", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_13_68869"] });
-  seat(state, ids.B, { skills: ["skill_75_68329", "skill_22_54978"] });
-  seat(state, ids.C, { skills: ["skill_22_54978"] });
+  seat(state, ids.A, { skills: ["1012"] });
+  seat(state, ids.B, { skills: ["1074", "1021"] });
+  seat(state, ids.C, { skills: ["1021"] });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
 
   assert.equal(player(next, ids.B).hp, 6);
-  assert.equal(player(next, ids.B).skills.includes("skill_22_54978"), true);
+  assert.equal(player(next, ids.B).skills.includes("1021"), true);
   assert.equal(player(next, ids.C).hp, 4);
-  assert.equal(player(next, ids.C).skills.includes("skill_22_54978"), false);
+  assert.equal(player(next, ids.C).skills.includes("1021"), false);
 });
 
 run("purification blocks other players' burning earth and ice skill removal", () => {
@@ -1708,21 +1722,21 @@ run("purification blocks other players' burning earth and ice skill removal", ()
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_13_68869"] });
-  seat(state, ids.B, { skills: ["skill_7_35434", "skill_22_54978"] });
-  seat(state, ids.C, { skills: ["skill_22_54978"] });
+  seat(state, ids.A, { skills: ["1012"] });
+  seat(state, ids.B, { skills: ["1006", "1021"] });
+  seat(state, ids.C, { skills: ["1021"] });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
 
   assert.equal(player(next, ids.B).hp, 6);
-  assert.equal(player(next, ids.B).skills.includes("skill_22_54978"), true);
-  assert.equal(player(next, ids.B).revealedSkillIds.includes("skill_7_35434"), true);
+  assert.equal(player(next, ids.B).skills.includes("1021"), true);
+  assert.equal(player(next, ids.B).revealedSkillIds.includes("1006"), true);
   assert.equal(player(next, ids.C).hp, 4);
-  assert.equal(player(next, ids.C).skills.includes("skill_22_54978"), false);
+  assert.equal(player(next, ids.C).skills.includes("1021"), false);
 });
 
 run("divine protection blocks attack damage but not burning earth spell damage", () => {
@@ -1732,7 +1746,7 @@ run("divine protection blocks attack damage but not burning earth spell damage",
   });
   let attackState = drainActionWindows(attackGame.state);
   seat(attackState, attackGame.ids.A, { cakes: 2 });
-  seat(attackState, attackGame.ids.B, { skills: ["skill_32_19017"] });
+  seat(attackState, attackGame.ids.B, { skills: ["1031"] });
 
   const attackNext = submitAll(attackState, {
     A: { type: "attack", attackId: "sha", stacks: 2, targetId: attackGame.ids.B },
@@ -1744,12 +1758,12 @@ run("divine protection blocks attack damage but not burning earth spell damage",
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(spellGame.state, spellGame.ids.A, { skills: ["skill_13_68869"] });
-  seat(spellGame.state, spellGame.ids.B, { skills: ["skill_32_19017"] });
+  seat(spellGame.state, spellGame.ids.A, { skills: ["1012"] });
+  seat(spellGame.state, spellGame.ids.B, { skills: ["1031"] });
 
   const spellNext = submitActionWindowSkill(spellGame.state, spellGame.ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
   assert.equal(player(spellNext, spellGame.ids.B).hp, 5);
@@ -1762,7 +1776,7 @@ run("shapeless shield blocks adjacent attack damage but not lightning spell dama
   });
   let attackState = drainActionWindows(attackGame.state);
   seat(attackState, attackGame.ids.A, { cakes: 2 });
-  seat(attackState, attackGame.ids.B, { skills: ["skill_99_65551"] });
+  seat(attackState, attackGame.ids.B, { skills: ["1098"] });
 
   const attackNext = submitAll(attackState, {
     A: { type: "attack", attackId: "sha", stacks: 2, targetId: attackGame.ids.B },
@@ -1776,14 +1790,14 @@ run("shapeless shield blocks adjacent attack damage but not lightning spell dama
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(spellGame.state, spellGame.ids.A, { skills: ["skill_35_16792"] });
-  seat(spellGame.state, spellGame.ids.B, { hp: 6, skills: ["skill_99_65551"] });
+  seat(spellGame.state, spellGame.ids.A, { skills: ["1034"] });
+  seat(spellGame.state, spellGame.ids.B, { hp: 6, skills: ["1098"] });
   seat(spellGame.state, spellGame.ids.C, { hp: 5 });
   seat(spellGame.state, spellGame.ids.D, { hp: 3 });
 
   const spellNext = submitActionWindowSkill(spellGame.state, spellGame.ids.A, {
     type: "skill",
-    skillId: "skill_35_16792",
+    skillId: "1034",
     stacks: 1
   });
   assert.equal(player(spellNext, spellGame.ids.B).hp, 4);
@@ -1795,20 +1809,20 @@ run("holy realm blocks frostfall healing and fire skill removal", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_14_46860"] });
-  seat(state, ids.B, { hp: 3, skills: ["skill_75_68329", "huo_yan_dao"] });
-  seat(state, ids.C, { hp: 3, skills: ["huo_yan_dao"] });
+  seat(state, ids.A, { skills: ["1013"] });
+  seat(state, ids.B, { hp: 3, skills: ["1074", "1015"] });
+  seat(state, ids.C, { hp: 3, skills: ["1015"] });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_14_46860",
+    skillId: "1013",
     stacks: 1
   });
 
   assert.equal(player(next, ids.B).hp, 3);
-  assert.equal(player(next, ids.B).skills.includes("huo_yan_dao"), true);
+  assert.equal(player(next, ids.B).skills.includes("1015"), true);
   assert.equal(player(next, ids.C).hp, 3);
-  assert.equal(player(next, ids.C).skills.includes("huo_yan_dao"), false);
+  assert.equal(player(next, ids.C).skills.includes("1015"), false);
 });
 
 run("purification blocks other players' frostfall healing and fire skill removal", () => {
@@ -1816,24 +1830,24 @@ run("purification blocks other players' frostfall healing and fire skill removal
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_14_46860"] });
-  seat(state, ids.B, { hp: 3, skills: ["skill_7_35434"] });
-  seat(state, ids.C, { hp: 3, skills: ["skill_7_35434", "huo_yan_dao"] });
-  seat(state, ids.D, { hp: 3, skills: ["huo_yan_dao"] });
+  seat(state, ids.A, { skills: ["1013"] });
+  seat(state, ids.B, { hp: 3, skills: ["1006"] });
+  seat(state, ids.C, { hp: 3, skills: ["1006", "1015"] });
+  seat(state, ids.D, { hp: 3, skills: ["1015"] });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_14_46860",
+    skillId: "1013",
     stacks: 1
   });
 
   assert.equal(player(next, ids.B).hp, 3);
-  assert.equal(player(next, ids.B).revealedSkillIds.includes("skill_7_35434"), true);
+  assert.equal(player(next, ids.B).revealedSkillIds.includes("1006"), true);
   assert.equal(player(next, ids.C).hp, 3);
-  assert.equal(player(next, ids.C).skills.includes("huo_yan_dao"), true);
-  assert.equal(player(next, ids.C).revealedSkillIds.includes("skill_7_35434"), true);
+  assert.equal(player(next, ids.C).skills.includes("1015"), true);
+  assert.equal(player(next, ids.C).revealedSkillIds.includes("1006"), true);
   assert.equal(player(next, ids.D).hp, 3);
-  assert.equal(player(next, ids.D).skills.includes("huo_yan_dao"), false);
+  assert.equal(player(next, ids.D).skills.includes("1015"), false);
 });
 
 run("purification does not stop mirror from copying its holder's exposed skill", () => {
@@ -1841,19 +1855,19 @@ run("purification does not stop mirror from copying its holder's exposed skill",
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_101_4254"] });
-  seat(state, ids.B, { skills: ["skill_7_35434", "skill_75_68329"] });
-  player(state, ids.B).revealedSkillIds = ["skill_75_68329"];
+  seat(state, ids.A, { skills: ["1100"] });
+  seat(state, ids.B, { skills: ["1006", "1074"] });
+  player(state, ids.B).revealedSkillIds = ["1074"];
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_101_4254",
+    skillId: "1100",
     stacks: 1,
     targetId: ids.B,
-    targetSkillId: "skill_75_68329"
+    targetSkillId: "1074"
   });
 
-  assert.equal(player(next, ids.A).skills.includes("skill_75_68329"), true);
+  assert.equal(player(next, ids.A).skills.includes("1074"), true);
 });
 
 run("balance redistributes hp across two selected targets", () => {
@@ -1861,13 +1875,13 @@ run("balance redistributes hp across two selected targets", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { hp: 6, skills: ["skill_111_51056"] });
+  seat(state, ids.A, { hp: 6, skills: ["1110"] });
   seat(state, ids.B, { hp: 4 });
   seat(state, ids.C, { hp: 3 });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_111_51056",
+    skillId: "1110",
     stacks: 1,
     targetId: ids.B,
     targetIds: [ids.B, ids.C]
@@ -1883,13 +1897,13 @@ run("purification makes balance fail completely when selected", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { hp: 6, skills: ["skill_111_51056"] });
-  seat(state, ids.B, { hp: 2, skills: ["skill_7_35434"] });
+  seat(state, ids.A, { hp: 6, skills: ["1110"] });
+  seat(state, ids.B, { hp: 2, skills: ["1006"] });
   seat(state, ids.C, { hp: 2 });
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_111_51056",
+    skillId: "1110",
     stacks: 1,
     targetId: ids.B,
     targetIds: [ids.B, ids.C]
@@ -1898,7 +1912,7 @@ run("purification makes balance fail completely when selected", () => {
   assert.equal(player(next, ids.A).hp, 6);
   assert.equal(player(next, ids.B).hp, 2);
   assert.equal(player(next, ids.C).hp, 2);
-  assert.equal(player(next, ids.B).revealedSkillIds.includes("skill_7_35434"), true);
+  assert.equal(player(next, ids.B).revealedSkillIds.includes("1006"), true);
 });
 
 run("lethal damage opens a revival window before turn end", () => {
@@ -1908,7 +1922,7 @@ run("lethal damage opens a revival window before turn end", () => {
   });
   state = drainActionWindows(state);
   seat(state, ids.A, { cakes: 7 });
-  seat(state, ids.B, { skills: ["skill_64_60978"] });
+  seat(state, ids.B, { skills: ["1063"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 7, targetId: ids.B },
@@ -1950,7 +1964,7 @@ run("healing spell revives to initial hp and respects holy bath", () => {
   });
   state = drainActionWindows(state);
   seat(state, ids.A, { cakes: 7 });
-  seat(state, ids.B, { skills: ["skill_64_60978", "skill_67_31717"] });
+  seat(state, ids.B, { skills: ["1063", "1066"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 7, targetId: ids.B },
@@ -1959,7 +1973,7 @@ run("healing spell revives to initial hp and respects holy bath", () => {
   state = advancePastTurnEndDamage(state);
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_64_60978",
+    skillId: "1063",
     stacks: 1
   });
 
@@ -1973,10 +1987,10 @@ run("tianyou can heal alive players and revive from negative hp", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(alive.state, alive.ids.A, { hp: 3, skills: ["skill_66_82448"] });
+  seat(alive.state, alive.ids.A, { hp: 3, skills: ["1065"] });
   const healed = submitActionWindowSkill(alive.state, alive.ids.A, {
     type: "skill",
-    skillId: "skill_66_82448",
+    skillId: "1065",
     stacks: 1
   });
   assert.equal(player(healed, alive.ids.A).hp, 9);
@@ -1987,7 +2001,7 @@ run("tianyou can heal alive players and revive from negative hp", () => {
   });
   state = drainActionWindows(state);
   seat(state, ids.A, { cakes: 7 });
-  seat(state, ids.B, { skills: ["skill_66_82448"] });
+  seat(state, ids.B, { skills: ["1065"] });
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 7, targetId: ids.B },
     B: { type: "gain_cake" }
@@ -1995,7 +2009,7 @@ run("tianyou can heal alive players and revive from negative hp", () => {
   state = advancePastTurnEndDamage(state);
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_66_82448",
+    skillId: "1065",
     stacks: 1
   });
   assert.equal(player(state, ids.B).hp, 7);
@@ -2007,9 +2021,9 @@ run("lishang revives from a fatal source and discards one exposed small skill", 
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { cakes: 7, hp: 5, skills: ["skill_87_44771"] });
-  seat(state, ids.B, { skills: ["skill_68_57581"] });
-  player(state, ids.A).revealedSkillIds = ["skill_87_44771"];
+  seat(state, ids.A, { cakes: 7, hp: 5, skills: ["1086"] });
+  seat(state, ids.B, { skills: ["1067"] });
+  player(state, ids.A).revealedSkillIds = ["1086"];
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 7, targetId: ids.B },
@@ -2018,15 +2032,15 @@ run("lishang revives from a fatal source and discards one exposed small skill", 
   state = advancePastTurnEndDamage(state);
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_68_57581",
+    skillId: "1067",
     stacks: 1,
     targetId: ids.A,
-    targetSkillId: "skill_87_44771"
+    targetSkillId: "1086"
   });
 
   assert.equal(player(state, ids.B).hp, 3);
   assert.equal(player(state, ids.A).hp, 2);
-  assert.equal(player(state, ids.A).skills.includes("skill_87_44771"), false);
+  assert.equal(player(state, ids.A).skills.includes("1086"), false);
 });
 
 run("liehun blocks active and passive revivals from fatal damage sources", () => {
@@ -2035,8 +2049,8 @@ run("liehun blocks active and passive revivals from fatal damage sources", () =>
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { cakes: 7, skills: ["skill_6_503"] });
-  seat(state, ids.B, { skills: ["skill_66_82448", "skill_69_22138"] });
+  seat(state, ids.A, { cakes: 7, skills: ["1005"] });
+  seat(state, ids.B, { skills: ["1065", "1068"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 7, targetId: ids.B },
@@ -2044,13 +2058,13 @@ run("liehun blocks active and passive revivals from fatal damage sources", () =>
   }, ids);
   state = advancePastTurnEndDamage(state);
 
-  assert.equal(player(state, ids.A).revealedSkillIds.includes("skill_6_503"), true);
+  assert.equal(player(state, ids.A).revealedSkillIds.includes("1005"), true);
   assert.equal(state.activeTimingPhase, "revival_action");
   assert.equal(buffStacks(player(state, ids.B), "no_revive"), 1);
   assert.throws(() =>
     submitActionWindowSkill(state, ids.B, {
       type: "skill",
-      skillId: "skill_66_82448",
+      skillId: "1065",
       stacks: 1
     })
   );
@@ -2065,7 +2079,7 @@ run("absolute value at zero enters revival and can use tianyou", () => {
   });
   state = drainActionWindows(state);
   seat(state, ids.A, { cakes: 6 });
-  seat(state, ids.B, { skills: ["skill_69_22138", "skill_66_82448"] });
+  seat(state, ids.B, { skills: ["1068", "1065"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 6, targetId: ids.B },
@@ -2077,7 +2091,7 @@ run("absolute value at zero enters revival and can use tianyou", () => {
   assert.equal(player(state, ids.B).hp, 0);
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_66_82448",
+    skillId: "1065",
     stacks: 1
   });
   assert.equal(player(state, ids.B).hp, 6);
@@ -2090,8 +2104,8 @@ run("fire rebirth revives from fire fatal damage and is a fire skill", () => {
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { cakes: 7, skills: ["huo_yan_dao"] });
-  seat(state, ids.B, { skills: ["skill_65_71994"] });
+  seat(state, ids.A, { cakes: 7, skills: ["1015"] });
+  seat(state, ids.B, { skills: ["1064"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 7, targetId: ids.B },
@@ -2099,7 +2113,7 @@ run("fire rebirth revives from fire fatal damage and is a fire skill", () => {
   }, ids);
   state = advancePastTurnEndDamage(state);
 
-  assert.equal(getSkill("skill_65_71994")?.attribute, "fire");
+  assert.equal(getSkill("1064")?.attribute, "fire");
   assert.equal(player(state, ids.B).status, "alive");
   assert.equal(player(state, ids.B).hp, 6);
 });
@@ -2110,8 +2124,8 @@ run("fire rebirth can trigger again on a later round fire fatal damage", () => {
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { cakes: 7, skills: ["huo_yan_dao"] });
-  seat(state, ids.B, { skills: ["skill_65_71994"] });
+  seat(state, ids.A, { cakes: 7, skills: ["1015"] });
+  seat(state, ids.B, { skills: ["1064"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 7, targetId: ids.B },
@@ -2142,7 +2156,7 @@ run("death scythe heals from every fatal damage event separately", () => {
   });
   state = drainActionWindows(state);
   seat(state, ids.A, { cakes: 3 });
-  seat(state, ids.C, { hp: 3, skills: ["skill_70_79685"] });
+  seat(state, ids.C, { hp: 3, skills: ["1069"] });
   seat(state, ids.D, { cakes: 4 });
 
   state = submitAll(state, {
@@ -2159,12 +2173,12 @@ run("death scythe heals from every fatal damage event separately", () => {
 
 run("skill reveal can trigger chuanyin damage once per player", () => {
   const { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { skills: ["skill_109_65084"] });
-  seat(state, ids.B, { cakes: 2, skills: ["skill_87_44771"] });
+  seat(state, ids.A, { skills: ["1108"] });
+  seat(state, ids.B, { cakes: 2, skills: ["1086"] });
 
   const next = submitAll(state, {
     A: { type: "gain_cake" },
-    B: { type: "skill", skillId: "skill_87_44771", stacks: 1, targetId: ids.A }
+    B: { type: "skill", skillId: "1086", stacks: 1, targetId: ids.A }
   }, ids);
 
   assert.equal(player(next, ids.B).hp, 4);
@@ -2173,7 +2187,7 @@ run("skill reveal can trigger chuanyin damage once per player", () => {
 
 run("putian qin costs half a cake", () => {
   const { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { cakes: 0.5, skills: ["skill_98_7182"] });
+  seat(state, ids.A, { cakes: 0.5, skills: ["1097"] });
 
   const next = submitAll(state, {
     A: { type: "attack", attackId: "qin", stacks: 1, targetId: ids.B },
@@ -2185,7 +2199,7 @@ run("putian qin costs half a cake", () => {
 
 run("putian area attacks omit the farthest seats", () => {
   const four = makeGame(["A", "B", "C", "D"]);
-  seat(four.state, four.ids.A, { cakes: 1, skills: ["skill_98_7182"] });
+  seat(four.state, four.ids.A, { cakes: 1, skills: ["1097"] });
   let next = submitAll(four.state, {
     A: { type: "attack", attackId: "sha", stacks: 1 },
     B: { type: "gain_cake" },
@@ -2197,7 +2211,7 @@ run("putian area attacks omit the farthest seats", () => {
   assert.equal(player(next, four.ids.D).hp, 5);
 
   const five = makeGame(["A", "B", "C", "D", "E"]);
-  seat(five.state, five.ids.A, { cakes: 1, skills: ["skill_98_7182"] });
+  seat(five.state, five.ids.A, { cakes: 1, skills: ["1097"] });
   next = submitAll(five.state, {
     A: { type: "attack", attackId: "sha", stacks: 1 },
     B: { type: "gain_cake" },
@@ -2211,7 +2225,7 @@ run("putian area attacks omit the farthest seats", () => {
   assert.equal(player(next, five.ids.E).hp, 5);
 
   const six = makeGame(["A", "B", "C", "D", "E", "F"]);
-  seat(six.state, six.ids.A, { cakes: 1, skills: ["skill_98_7182"] });
+  seat(six.state, six.ids.A, { cakes: 1, skills: ["1097"] });
   next = submitAll(six.state, {
     A: { type: "attack", attackId: "sha", stacks: 1 },
     B: { type: "gain_cake" },
@@ -2229,31 +2243,31 @@ run("putian area attacks omit the farthest seats", () => {
 
 run("shunshou lets the player choose one opening skill candidate", () => {
   let { state, ids } = makeGameWithAssignedSkills(["A", "B", "C"], {
-    A: ["skill_100_45717"],
-    B: ["skill_34_1533"],
-    C: ["skill_33_55159"]
+    A: ["1099"],
+    B: ["1033"],
+    C: ["1032"]
   });
   const crystalChoice = state.pendingSkillChoices?.find(
-    (choice) => choice.playerId === ids.A && choice.skillId === "skill_33_55159"
+    (choice) => choice.playerId === ids.A && choice.skillId === "1032"
   );
   assert.ok(crystalChoice);
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_100_45717",
+    skillId: "1099",
     stacks: 1,
-    targetSkillId: "skill_33_55159"
+    targetSkillId: "1032"
   });
 
-  assert.equal(player(state, ids.A).skills.includes("skill_33_55159"), true);
+  assert.equal(player(state, ids.A).skills.includes("1032"), true);
   assert.equal(state.pendingSkillChoices?.some((choice) => choice.playerId === ids.A), undefined);
 });
 
 run("shunshou defaults to an opening candidate when skipped", () => {
   let { state, ids } = makeGameWithAssignedSkills(["A", "B", "C"], {
-    A: ["skill_100_45717"],
-    B: ["skill_34_1533"],
-    C: ["skill_33_55159"]
+    A: ["1099"],
+    B: ["1033"],
+    C: ["1032"]
   });
 
   state = drainActionWindows(state);
@@ -2264,7 +2278,7 @@ run("shunshou defaults to an opening candidate when skipped", () => {
 
 run("xieyu uses the selected round-end target before defaulting", () => {
   let { state, ids } = makeGameWithAssignedSkills(["A", "B", "C"], {
-    A: ["skill_72_53933"]
+    A: ["1071"]
   });
   state = drainActionWindows(state);
   state.roundNumber = 3;
@@ -2280,7 +2294,7 @@ run("xieyu uses the selected round-end target before defaulting", () => {
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_72_53933",
+    skillId: "1071",
     stacks: 1,
     targetId: ids.B
   });
@@ -2293,7 +2307,7 @@ run("xieyu uses the selected round-end target before defaulting", () => {
 
 run("shen yin hong lian heals only exactly zero hp", () => {
   const zero = makeGame(["A", "B"]);
-  seat(zero.state, zero.ids.A, { hp: 1, skills: ["skill_23_90895"] });
+  seat(zero.state, zero.ids.A, { hp: 1, skills: ["1022"] });
   seat(zero.state, zero.ids.B, { cakes: 1 });
   const healed = submitAll(zero.state, {
     A: { type: "gain_cake" },
@@ -2302,7 +2316,7 @@ run("shen yin hong lian heals only exactly zero hp", () => {
   assert.equal(player(healed, zero.ids.A).hp, 1);
 
   const negative = makeGame(["A", "B"]);
-  seat(negative.state, negative.ids.A, { hp: 1, skills: ["skill_23_90895"] });
+  seat(negative.state, negative.ids.A, { hp: 1, skills: ["1022"] });
   seat(negative.state, negative.ids.B, { cakes: 2 });
   const dead = submitAll(negative.state, {
     A: { type: "gain_cake" },
@@ -2319,7 +2333,7 @@ run("absolute value zero death takes priority over shenyin skills", () => {
   state = drainActionWindows(state);
   seat(state, ids.A, {
     cakes: 3,
-    skills: ["skill_69_22138", "skill_23_90895", "skill_24_71363"]
+    skills: ["1068", "1022", "1023"]
   });
   seat(state, ids.B, { cakes: 6 });
 
@@ -2341,7 +2355,7 @@ run("absolute value zero death takes priority over shenyin skills", () => {
 
 run("infinite war spirit keeps negative hp without healing", () => {
   const { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { hp: 1, skills: ["skill_113_88141"] });
+  seat(state, ids.A, { hp: 1, skills: ["1112"] });
   seat(state, ids.B, { cakes: 2 });
 
   const next = submitAll(state, {
@@ -2356,16 +2370,16 @@ run("infinite war spirit keeps negative hp without healing", () => {
 
 run("zhong keeps a separate shield for each target across turns", () => {
   const { state, ids } = makeGame(["A", "B", "C"]);
-  seat(state, ids.A, { cakes: 2, skills: ["skill_85_26345"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1084"] });
 
   const first = submitAll(state, {
-    A: { type: "skill", skillId: "skill_85_26345", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1084", stacks: 1, targetId: ids.B },
     B: { type: "gain_cake" },
     C: { type: "gain_cake" }
   }, ids);
   seat(first, ids.A, { cakes: 1 });
   const second = submitAll(first, {
-    A: { type: "skill", skillId: "skill_85_26345", stacks: 1, targetId: ids.C },
+    A: { type: "skill", skillId: "1084", stacks: 1, targetId: ids.C },
     B: { type: "gain_cake" },
     C: { type: "gain_cake" }
   }, ids);
@@ -2380,8 +2394,8 @@ run("frost blade hit causes no damage but forces a round restart and disables ta
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { cakes: 1, skills: ["skill_18_34323"] });
-  seat(state, ids.B, { skills: ["skill_61_59049"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1017"] });
+  seat(state, ids.B, { skills: ["1060"] });
   state = drainActionWindows(state);
   state = submitPlayerAction(state, ids.A, {
     type: "attack",
@@ -2392,7 +2406,7 @@ run("frost blade hit causes no damage but forces a round restart and disables ta
   state = submitPlayerAction(state, ids.B, { type: "gain_cake" }).state;
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_18_34323",
+    skillId: "1017",
     stacks: 1
   });
   state = advancePastTurnEndDamage(state);
@@ -2414,9 +2428,9 @@ run("frost blade nullifies final clash damage after fire and tengjia adjustments
   });
   seat(state, ids.A, {
     cakes: 2,
-    skills: ["skill_18_34323", "huo_yan_dao", "skill_34_1533"]
+    skills: ["1017", "1015", "1033"]
   });
-  seat(state, ids.B, { cakes: 1, skills: ["skill_51_92674"] });
+  seat(state, ids.B, { cakes: 1, skills: ["1050"] });
   state = drainActionWindows(state);
   state = submitPlayerAction(state, ids.A, {
     type: "attack",
@@ -2432,7 +2446,7 @@ run("frost blade nullifies final clash damage after fire and tengjia adjustments
   }).state;
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_18_34323",
+    skillId: "1017",
     stacks: 1
   });
   state = advancePastTurnEndDamage(state);
@@ -2464,8 +2478,8 @@ run("disabled skills can be used and paid for but produce no effect", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { cakes: 1, skills: ["skill_18_34323"] });
-  seat(state, ids.B, { skills: ["skill_61_59049"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1017"] });
+  seat(state, ids.B, { skills: ["1060"] });
   state = drainActionWindows(state);
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 1, targetId: ids.B },
@@ -2473,7 +2487,7 @@ run("disabled skills can be used and paid for but produce no effect", () => {
   }, ids);
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_18_34323",
+    skillId: "1017",
     stacks: 1
   });
   state = advancePastTurnEndDamage(state);
@@ -2483,7 +2497,7 @@ run("disabled skills can be used and paid for but produce no effect", () => {
 
   state = submitAll(state, {
     A: { type: "gain_cake" },
-    B: { type: "skill", skillId: "skill_61_59049", stacks: 1 }
+    B: { type: "skill", skillId: "1060", stacks: 1 }
   }, ids);
 
   assert.equal(player(state, ids.B).cakes, 0);
@@ -2494,11 +2508,11 @@ run("shenyin qinglian requires zero hp, costs three cakes, heals, and grants nex
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(invalid.state, invalid.ids.A, { hp: 1, cakes: 3, skills: ["skill_24_71363"] });
+  seat(invalid.state, invalid.ids.A, { hp: 1, cakes: 3, skills: ["1023"] });
   assert.throws(() =>
     submitActionWindowSkill(invalid.state, invalid.ids.A, {
       type: "skill",
-      skillId: "skill_24_71363",
+      skillId: "1023",
       stacks: 1
     })
   );
@@ -2507,12 +2521,12 @@ run("shenyin qinglian requires zero hp, costs three cakes, heals, and grants nex
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { hp: 0, cakes: 3, skills: ["skill_24_71363"] });
+  seat(state, ids.A, { hp: 0, cakes: 3, skills: ["1023"] });
   state = advanceActionWindow(state);
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_24_71363",
+    skillId: "1023",
     stacks: 1
   });
 
@@ -2538,7 +2552,7 @@ run("coagulation power grants next round-start cakes from previous round damage 
     skillCount: 2
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_47_94841", "skill_47_94841"] });
+  seat(state, ids.A, { skills: ["1046", "1046"] });
   seat(state, ids.B, { cakes: 4 });
 
   state = submitAll(state, {
@@ -2554,13 +2568,13 @@ run("coagulation power grants next round-start cakes from previous round damage 
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_47_94841",
+    skillId: "1046",
     stacks: 1
   });
   assert.throws(() =>
     submitActionWindowSkill(state, ids.A, {
       type: "skill",
-      skillId: "skill_47_94841",
+      skillId: "1046",
       stacks: 1
     })
   );
@@ -2576,7 +2590,7 @@ run("same fate deals current turn damage at turn end and can repeat while uses r
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_115_74459"] });
+  seat(state, ids.A, { skills: ["1114"] });
   seat(state, ids.B, { cakes: 3 });
 
   state = submitAll(state, {
@@ -2591,7 +2605,7 @@ run("same fate deals current turn damage at turn end and can repeat while uses r
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_115_74459",
+    skillId: "1114",
     stacks: 1,
     targetId: ids.B
   });
@@ -2611,12 +2625,12 @@ run("same fate deals current turn damage at turn end and can repeat while uses r
   );
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_115_74459",
+    skillId: "1114",
     stacks: 1,
     targetId: ids.B
   });
   assert.equal(player(state, ids.B).hp, 0);
-  assert.equal(buffStacks(player(state, ids.A), "skill_used:skill_115_74459"), 2);
+  assert.equal(buffStacks(player(state, ids.A), "skill_used:1114"), 2);
 });
 
 run("douzhuan redirects spell damage before it is applied", () => {
@@ -2624,12 +2638,12 @@ run("douzhuan redirects spell damage before it is applied", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_13_68869"] });
-  seat(state, ids.B, { skills: ["skill_94_627"] });
+  seat(state, ids.A, { skills: ["1012"] });
+  seat(state, ids.B, { skills: ["1093"] });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
 
@@ -2641,7 +2655,7 @@ run("douzhuan redirects spell damage before it is applied", () => {
 
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_94_627",
+    skillId: "1093",
     stacks: 1,
     targetId: ids.C,
     targetDamageId: damage.id
@@ -2659,8 +2673,8 @@ run("douzhuan can be chained by the redirected target", () => {
   });
   state = drainActionWindows(state);
   seat(state, ids.A, { cakes: 2 });
-  seat(state, ids.B, { skills: ["skill_94_627"] });
-  seat(state, ids.D, { skills: ["skill_94_627"] });
+  seat(state, ids.B, { skills: ["1093"] });
+  seat(state, ids.D, { skills: ["1093"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "qin", stacks: 1, targetId: ids.D },
@@ -2674,7 +2688,7 @@ run("douzhuan can be chained by the redirected target", () => {
   assert.ok(firstDamage);
   state = submitActionWindowSkill(state, ids.D, {
     type: "skill",
-    skillId: "skill_94_627",
+    skillId: "1093",
     stacks: 1,
     targetId: ids.B,
     targetDamageId: firstDamage.id
@@ -2685,7 +2699,7 @@ run("douzhuan can be chained by the redirected target", () => {
   assert.equal(state.actionWindowPassPlayerIds.includes(ids.B), false);
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_94_627",
+    skillId: "1093",
     stacks: 1,
     targetId: ids.C,
     targetDamageId: redirectedDamage.id
@@ -2703,8 +2717,8 @@ run("douzhuan cannot redirect fire attack damage after tengjia raises it above t
     skillCount: 3
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { cakes: 1, skills: ["huo_yan_dao", "skill_34_1533"] });
-  seat(state, ids.B, { skills: ["skill_51_92674", "skill_94_627"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1015", "1033"] });
+  seat(state, ids.B, { skills: ["1050", "1093"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 1, targetId: ids.B },
@@ -2723,7 +2737,7 @@ run("ice rain mark can be spent on one matching pending damage", () => {
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_20_63089"] });
+  seat(state, ids.A, { skills: ["1019"] });
   seat(state, ids.B, { cakes: 2 });
   player(state, ids.B).buffs.push({
     id: `ice_rain:${ids.A}`,
@@ -2743,7 +2757,7 @@ run("ice rain mark can be spent on one matching pending damage", () => {
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_20_63089",
+    skillId: "1019",
     stacks: 1,
     targetDamageId: damage.id
   });
@@ -2759,7 +2773,7 @@ run("huyou mark halves a selected pending damage", () => {
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_73_76567"] });
+  seat(state, ids.A, { skills: ["1072"] });
   seat(state, ids.B, { cakes: 2 });
   player(state, ids.A).buffs.push({ id: "huyou_mark", name: "护佑印记", stacks: 1 });
 
@@ -2773,7 +2787,7 @@ run("huyou mark halves a selected pending damage", () => {
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_73_76567",
+    skillId: "1072",
     stacks: 1,
     targetDamageId: damage.id
   });
@@ -2789,7 +2803,7 @@ run("cross mark doubles adjacent pending damage", () => {
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_73_76567"] });
+  seat(state, ids.A, { skills: ["1072"] });
   seat(state, ids.B, { cakes: 2 });
   player(state, ids.A).buffs.push({ id: "cross_mark", name: "十字印记", stacks: 1 });
 
@@ -2804,7 +2818,7 @@ run("cross mark doubles adjacent pending damage", () => {
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_73_76567",
+    skillId: "1072",
     stacks: 1,
     targetDamageId: damage.id
   });
@@ -2819,14 +2833,15 @@ run("collapse removes skill opportunities until the next round end and rechecks 
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_10_9488"] });
-  seat(state, ids.B, { hp: 1, skills: ["skill_69_22138", "skill_61_59049"] });
+  seat(state, ids.A, { skills: ["1009"] });
+  seat(state, ids.B, { hp: 1, skills: ["1068", "1060"] });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_10_9488",
+    skillId: "1009",
     stacks: 1
   });
+  state = advanceActionWindow(state);
 
   assert.equal(state.roundNumber, 2);
   assert.equal(state.phase, "collecting_actions");
@@ -2840,7 +2855,7 @@ run("collapse removes skill opportunities until the next round end and rechecks 
   assert.throws(() =>
     submitPlayerAction(state, ids.B, {
       type: "skill",
-      skillId: "skill_61_59049",
+      skillId: "1060",
       stacks: 1
     })
   );
@@ -2867,26 +2882,26 @@ run("collapse preemptive restart refunds limited skills used as the submitted ac
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_95_91337"] });
-  seat(state, ids.B, { skills: ["skill_10_9488"] });
+  seat(state, ids.A, { skills: ["1094"] });
+  seat(state, ids.B, { skills: ["1009"] });
 
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_95_91337", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1094", stacks: 1, targetId: ids.B },
     B: { type: "gain_cake" }
   }, ids);
   assert.equal(state.phase, "action_window");
   assert.equal(state.activeTimingPhase, "turn_change_action");
-  assert.equal(buffStacks(player(state, ids.A), "skill_used:skill_95_91337"), 1);
+  assert.equal(buffStacks(player(state, ids.A), "skill_used:1094"), 1);
 
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_10_9488",
+    skillId: "1009",
     stacks: 1
   });
 
   assert.equal(state.roundNumber, 2);
-  assert.equal(buffStacks(player(state, ids.A), "skill_used:skill_95_91337"), 0);
-  assert.equal(buffStacks(player(state, ids.B), "skill_used:skill_10_9488"), 1);
+  assert.equal(buffStacks(player(state, ids.A), "skill_used:1094"), 0);
+  assert.equal(buffStacks(player(state, ids.B), "skill_used:1009"), 1);
 });
 
 run("collapse resolves the current round end before suppressing sanctuary", () => {
@@ -2894,13 +2909,13 @@ run("collapse resolves the current round end before suppressing sanctuary", () =
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_10_9488"] });
-  seat(state, ids.B, { hp: 3, skills: ["skill_71_40087"] });
+  seat(state, ids.A, { skills: ["1009"] });
+  seat(state, ids.B, { hp: 3, skills: ["1070"] });
   state.roundNumber = 3;
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_10_9488",
+    skillId: "1009",
     stacks: 1
   });
 
@@ -2917,13 +2932,13 @@ run("collapse suppresses sanctuary at the next round end before clearing", () =>
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_10_9488"] });
-  seat(state, ids.B, { hp: 3, skills: ["skill_71_40087"] });
+  seat(state, ids.A, { skills: ["1009"] });
+  seat(state, ids.B, { hp: 3, skills: ["1070"] });
   state.roundNumber = 2;
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_10_9488",
+    skillId: "1009",
     stacks: 1
   });
 
@@ -2955,14 +2970,14 @@ run("purifying wind alternates odd then even hp targets", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_15_64971"] });
+  seat(state, ids.A, { skills: ["1014"] });
   seat(state, ids.B, { hp: 5 });
   seat(state, ids.C, { hp: 4 });
   seat(state, ids.D, { hp: 3 });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_15_64971",
+    skillId: "1014",
     stacks: 1
   });
 
@@ -2972,14 +2987,14 @@ run("purifying wind alternates odd then even hp targets", () => {
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_15_64971",
+    skillId: "1014",
     stacks: 1
   });
 
   assert.equal(player(state, ids.B).hp, 3);
   assert.equal(player(state, ids.C).hp, 3);
   assert.equal(player(state, ids.D).hp, 1);
-  assert.equal(buffStacks(player(state, ids.A), "skill_used:skill_15_64971"), 2);
+  assert.equal(buffStacks(player(state, ids.A), "skill_used:1014"), 2);
 });
 
 run("lightning spell auto locks unique highest and second highest hp targets", () => {
@@ -2987,14 +3002,14 @@ run("lightning spell auto locks unique highest and second highest hp targets", (
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_35_16792"] });
+  seat(state, ids.A, { skills: ["1034"] });
   seat(state, ids.B, { hp: 6 });
   seat(state, ids.C, { hp: 5 });
   seat(state, ids.D, { hp: 3 });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_35_16792",
+    skillId: "1034",
     stacks: 1
   });
 
@@ -3017,7 +3032,7 @@ run("lightning spell locks highest target and chooses among tied second highest"
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_35_16792"] });
+  seat(state, ids.A, { skills: ["1034"] });
   seat(state, ids.B, { hp: 6 });
   seat(state, ids.C, { hp: 4 });
   seat(state, ids.D, { hp: 4 });
@@ -3025,7 +3040,7 @@ run("lightning spell locks highest target and chooses among tied second highest"
   assert.throws(() =>
     submitActionWindowSkill(state, ids.A, {
       type: "skill",
-      skillId: "skill_35_16792",
+      skillId: "1034",
       stacks: 1,
       targetIds: [ids.C, ids.D]
     })
@@ -3033,7 +3048,7 @@ run("lightning spell locks highest target and chooses among tied second highest"
 
   const next = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_35_16792",
+    skillId: "1034",
     stacks: 1,
     targetId: ids.B,
     targetIds: [ids.B, ids.D]
@@ -3049,7 +3064,7 @@ run("lightning spell chooses any two targets when at least three players tie for
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_35_16792"] });
+  seat(state, ids.A, { skills: ["1034"] });
   seat(state, ids.B, { hp: 6 });
   seat(state, ids.C, { hp: 6 });
   seat(state, ids.D, { hp: 6 });
@@ -3057,7 +3072,7 @@ run("lightning spell chooses any two targets when at least three players tie for
   assert.throws(() =>
     submitActionWindowSkill(state, ids.A, {
       type: "skill",
-      skillId: "skill_35_16792",
+      skillId: "1034",
       stacks: 1,
       targetIds: [ids.B, ids.B]
     })
@@ -3065,7 +3080,7 @@ run("lightning spell chooses any two targets when at least three players tie for
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_35_16792",
+    skillId: "1034",
     stacks: 1,
     targetId: ids.B,
     targetIds: [ids.B, ids.C]
@@ -3082,11 +3097,11 @@ run("juanzi deals retirement-point damage without ordinary HP or healing settlem
     skillCount: 2
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { hp: 3, skills: ["skill_95_91337", "skill_46_3651"] });
-  seat(state, ids.C, { hp: 3, skills: ["skill_70_79685"] });
+  seat(state, ids.A, { hp: 3, skills: ["1094", "1045"] });
+  seat(state, ids.C, { hp: 3, skills: ["1069"] });
 
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_95_91337", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1094", stacks: 1, targetId: ids.B },
     B: { type: "gain_cake" },
     C: { type: "gain_cake" }
   }, ids);
@@ -3111,16 +3126,16 @@ run("ghost shield cannot block juanzi retire", () => {
     skillCount: 2
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_95_91337"] });
-  seat(state, ids.B, { skills: ["skill_56_42637"] });
+  seat(state, ids.A, { skills: ["1094"] });
+  seat(state, ids.B, { skills: ["1055"] });
 
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_95_91337", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1094", stacks: 1, targetId: ids.B },
     B: { type: "gain_cake" }
   }, ids);
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_56_42637",
+    skillId: "1055",
     stacks: 1
   });
   state = advancePastTurnEndDamage(state);
@@ -3134,15 +3149,15 @@ run("thunder crack sunset applies electric retire effect and respects electric i
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_107_53513"] });
+  seat(state, ids.A, { skills: ["1106"] });
   seat(state, ids.B, { hp: 3 });
-  seat(state, ids.C, { hp: 3, skills: ["skill_39_77400"] });
-  seat(state, ids.D, { hp: 3, skills: ["skill_75_68329"] });
+  seat(state, ids.C, { hp: 3, skills: ["1038"] });
+  seat(state, ids.D, { hp: 3, skills: ["1074"] });
   seat(state, ids.E, { hp: 4 });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_107_53513",
+    skillId: "1106",
     stacks: 1
   });
 
@@ -3179,7 +3194,7 @@ run("double edge ignores only the selected attack's defensive action", () => {
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 4, skills: ["skill_31_80497"] });
+  seat(state, ids.A, { cakes: 4, skills: ["1030"] });
   seat(state, ids.C, { cakes: 4 });
 
   state = submitAll(state, {
@@ -3189,7 +3204,7 @@ run("double edge ignores only the selected attack's defensive action", () => {
   }, ids);
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_31_80497",
+    skillId: "1030",
     stacks: 1,
     switchActionIndex: 0
   });
@@ -3224,8 +3239,8 @@ run("double edge pays its hp cost even when later electric immunity blocks damag
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 4, skills: ["skill_31_80497"] });
-  seat(state, ids.B, { skills: ["skill_39_77400"] });
+  seat(state, ids.A, { cakes: 4, skills: ["1030"] });
+  seat(state, ids.B, { skills: ["1038"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "shan_dian", stacks: 1, targetId: ids.B },
@@ -3233,7 +3248,7 @@ run("double edge pays its hp cost even when later electric immunity blocks damag
   }, ids);
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_31_80497",
+    skillId: "1030",
     stacks: 1,
     switchActionIndex: 0
   });
@@ -3250,7 +3265,7 @@ run("double edge cannot ignore rebound or globally nullified attacks", () => {
     skillCount: 1
   });
   let reboundState = drainActionWindows(rebound.state);
-  seat(reboundState, rebound.ids.A, { cakes: 4, skills: ["skill_31_80497"] });
+  seat(reboundState, rebound.ids.A, { cakes: 4, skills: ["1030"] });
   seat(reboundState, rebound.ids.B, { cakes: 1 });
   reboundState = submitAll(reboundState, {
     A: { type: "attack", attackId: "shan_dian", stacks: 1, targetId: rebound.ids.B },
@@ -3259,7 +3274,7 @@ run("double edge cannot ignore rebound or globally nullified attacks", () => {
   assert.throws(() =>
     submitActionWindowSkill(reboundState, rebound.ids.A, {
       type: "skill",
-      skillId: "skill_31_80497",
+      skillId: "1030",
       stacks: 1,
       switchActionIndex: 0
     })
@@ -3270,8 +3285,8 @@ run("double edge cannot ignore rebound or globally nullified attacks", () => {
     skillCount: 1
   });
   let blockedState = drainActionWindows(globalBlock.state);
-  seat(blockedState, globalBlock.ids.A, { cakes: 4, skills: ["skill_31_80497"] });
-  seat(blockedState, globalBlock.ids.C, { skills: ["skill_42_94266"] });
+  seat(blockedState, globalBlock.ids.A, { cakes: 4, skills: ["1030"] });
+  seat(blockedState, globalBlock.ids.C, { skills: ["1041"] });
   blockedState = submitAll(blockedState, {
     A: { type: "attack", attackId: "shan_dian", stacks: 1, targetId: globalBlock.ids.B },
     B: { type: "defense", defense: "youtiao" },
@@ -3280,7 +3295,7 @@ run("double edge cannot ignore rebound or globally nullified attacks", () => {
   assert.throws(() =>
     submitActionWindowSkill(blockedState, globalBlock.ids.A, {
       type: "skill",
-      skillId: "skill_31_80497",
+      skillId: "1030",
       stacks: 1,
       switchActionIndex: 0
     })
@@ -3294,8 +3309,8 @@ run("qinggang sword does not ignore holy realm", () => {
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 4, skills: ["skill_30_38815"] });
-  seat(state, ids.B, { skills: ["skill_75_68329"] });
+  seat(state, ids.A, { cakes: 4, skills: ["1029"] });
+  seat(state, ids.B, { skills: ["1074"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "shan_dian", stacks: 1, targetId: ids.B },
@@ -3313,8 +3328,8 @@ run("qinggang sword still ignores divine protection", () => {
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 1, skills: ["skill_30_38815"] });
-  seat(state, ids.B, { skills: ["skill_32_19017"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1029"] });
+  seat(state, ids.B, { skills: ["1031"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 1, targetId: ids.B },
@@ -3332,8 +3347,8 @@ run("qinggang sword ignores defense switches only for its holder's attack", () =
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 1, skills: ["skill_30_38815"] });
-  seat(state, ids.B, { cakes: 1, skills: ["skill_88_62906"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1029"] });
+  seat(state, ids.B, { cakes: 1, skills: ["1087"] });
   seat(state, ids.C, { cakes: 1 });
 
   state = submitAll(state, {
@@ -3343,7 +3358,7 @@ run("qinggang sword ignores defense switches only for its holder's attack", () =
   }, ids);
   state = submitActionWindowSkill(state, ids.B, {
     type: "skill",
-    skillId: "skill_88_62906",
+    skillId: "1087",
     stacks: 1,
     switchActionIndex: 0,
     switchToAction: { type: "defense", defense: "small" }
@@ -3378,7 +3393,7 @@ run("double edge can ignore multiple defended area targets one at a time", () =>
   });
   let state = drainActionWindows(setup.state);
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 2, skills: ["skill_31_80497"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1030"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "wan_jian", stacks: 1 },
@@ -3388,7 +3403,7 @@ run("double edge can ignore multiple defended area targets one at a time", () =>
   }, ids);
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_31_80497",
+    skillId: "1030",
     stacks: 1,
     switchActionIndex: 0
   });
@@ -3398,7 +3413,7 @@ run("double edge can ignore multiple defended area targets one at a time", () =>
     }
     state = submitActionWindowSkill(state, ids.A, {
       type: "skill",
-      skillId: "skill_31_80497",
+      skillId: "1030",
       stacks: 1,
       switchActionIndex: 0,
       targetId
@@ -3418,14 +3433,14 @@ run("double edge can ignore cake defense and survives later defense switches", (
     skillCount: 1
   });
   let cakeState = drainActionWindows(cake.state);
-  seat(cakeState, cake.ids.A, { cakes: 7, skills: ["skill_31_80497"] });
+  seat(cakeState, cake.ids.A, { cakes: 7, skills: ["1030"] });
   cakeState = submitAll(cakeState, {
     A: { type: "attack", attackId: "chao_he_bao", stacks: 1, targetId: cake.ids.B },
     B: { type: "gain_cake" }
   }, cake.ids);
   cakeState = submitActionWindowSkill(cakeState, cake.ids.A, {
     type: "skill",
-    skillId: "skill_31_80497",
+    skillId: "1030",
     stacks: 1,
     switchActionIndex: 0,
     targetId: cake.ids.B
@@ -3447,22 +3462,22 @@ run("double edge can ignore cake defense and survives later defense switches", (
     skillCount: 1
   });
   let switchedState = drainActionWindows(switched.state);
-  seat(switchedState, switched.ids.A, { cakes: 2, skills: ["skill_31_80497"] });
-  seat(switchedState, switched.ids.B, { cakes: 1, skills: ["skill_88_62906"] });
+  seat(switchedState, switched.ids.A, { cakes: 2, skills: ["1030"] });
+  seat(switchedState, switched.ids.B, { cakes: 1, skills: ["1087"] });
   switchedState = submitAll(switchedState, {
     A: { type: "attack", attackId: "wan_jian", stacks: 1 },
     B: { type: "defense", defense: "small" }
   }, switched.ids);
   switchedState = submitActionWindowSkill(switchedState, switched.ids.A, {
     type: "skill",
-    skillId: "skill_31_80497",
+    skillId: "1030",
     stacks: 1,
     switchActionIndex: 0,
     targetId: switched.ids.B
   });
   switchedState = submitActionWindowSkill(switchedState, switched.ids.B, {
     type: "skill",
-    skillId: "skill_88_62906",
+    skillId: "1087",
     stacks: 1,
     switchActionIndex: 0,
     switchToAction: { type: "defense", defense: "youtiao" }
@@ -3478,8 +3493,8 @@ run("liegong crosses attacks without clash or last-hit effects", () => {
     skillCount: 2
   });
   let next = drainActionWindows(state);
-  seat(next, ids.A, { cakes: 2, skills: ["skill_26_70243"] });
-  seat(next, ids.B, { cakes: 1, skills: ["skill_60_57192", "skill_28_42646"] });
+  seat(next, ids.A, { cakes: 2, skills: ["1025"] });
+  seat(next, ids.B, { cakes: 1, skills: ["1059", "1027"] });
 
   next = submitAll(next, {
     A: { type: "attack", attackId: "wan_jian", stacks: 1 },
@@ -3488,7 +3503,7 @@ run("liegong crosses attacks without clash or last-hit effects", () => {
   }, ids);
   next = submitActionWindowSkill(next, ids.B, {
     type: "skill",
-    skillId: "skill_60_57192",
+    skillId: "1059",
     stacks: 1,
     switchActionIndex: 0,
     targetId: ids.A
@@ -3507,10 +3522,10 @@ run("absolute guard rewrites incoming attack target modes and pays half attack c
     skillCount: 1
   });
   let next = drainActionWindows(state);
-  seat(next, ids.P, { cakes: 10, skills: ["skill_74_34920"] });
+  seat(next, ids.P, { cakes: 10, skills: ["1073"] });
   seat(next, ids.AI1, { cakes: 3 });
-  seat(next, ids.AI2, { cakes: 4, skills: ["skill_54_99719"] });
-  seat(next, ids.AI3, { cakes: 2, skills: ["skill_28_42646"] });
+  seat(next, ids.AI2, { cakes: 4, skills: ["1053"] });
+  seat(next, ids.AI3, { cakes: 2, skills: ["1027"] });
 
   next = submitAll(next, {
     P: { type: "defense", defense: "youtiao" },
@@ -3520,7 +3535,7 @@ run("absolute guard rewrites incoming attack target modes and pays half attack c
   }, ids);
   next = submitActionWindowSkill(next, ids.P, {
     type: "skill",
-    skillId: "skill_74_34920",
+    skillId: "1073",
     stacks: 1,
     targetId: ids.AI1,
     switchActionIndex: 0
@@ -3528,7 +3543,7 @@ run("absolute guard rewrites incoming attack target modes and pays half attack c
   assert.equal(player(next, ids.P).cakes, 8);
   next = submitActionWindowSkill(next, ids.P, {
     type: "skill",
-    skillId: "skill_74_34920",
+    skillId: "1073",
     stacks: 1,
     targetId: ids.AI2,
     switchActionIndex: 0
@@ -3536,7 +3551,7 @@ run("absolute guard rewrites incoming attack target modes and pays half attack c
   assert.equal(player(next, ids.P).cakes, 6);
   next = submitActionWindowSkill(next, ids.P, {
     type: "skill",
-    skillId: "skill_74_34920",
+    skillId: "1073",
     stacks: 1,
     targetId: ids.AI3,
     switchActionIndex: 0
@@ -3577,8 +3592,8 @@ run("luanwu attacks are area before absolute guard choices are built", () => {
     skillCount: 1
   });
   let next = drainActionWindows(state);
-  seat(next, ids.P, { cakes: 1, skills: ["skill_74_34920"] });
-  seat(next, ids.AI1, { cakes: 1, skills: ["skill_54_99719"] });
+  seat(next, ids.P, { cakes: 1, skills: ["1073"] });
+  seat(next, ids.AI1, { cakes: 1, skills: ["1053"] });
 
   next = submitAll(next, {
     P: { type: "defense", defense: "small" },
@@ -3593,7 +3608,7 @@ run("luanwu attacks are area before absolute guard choices are built", () => {
 
   next = submitActionWindowSkill(next, ids.P, {
     type: "skill",
-    skillId: "skill_74_34920",
+    skillId: "1073",
     stacks: 1,
     targetId: ids.AI1,
     switchActionIndex: 0
@@ -3612,7 +3627,7 @@ run("reversal swaps a single targeted attack and removes cake gain", () => {
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_93_50224"] });
+  seat(state, ids.A, { skills: ["1092"] });
   seat(state, ids.B, { cakes: 1 });
 
   state = submitAll(state, {
@@ -3622,7 +3637,7 @@ run("reversal swaps a single targeted attack and removes cake gain", () => {
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_93_50224",
+    skillId: "1092",
     stacks: 1
   });
   for (let guard = 0; state.phase === "action_window" && state.activeTimingPhase !== "turn_end_action" && guard < 30; guard++) state = advanceActionWindow(state);
@@ -3638,7 +3653,7 @@ run("reversal splits area attacks into single reversed attacks", () => {
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_93_50224"] });
+  seat(state, ids.A, { skills: ["1092"] });
   seat(state, ids.B, { cakes: 2 });
 
   state = submitAll(state, {
@@ -3649,7 +3664,7 @@ run("reversal splits area attacks into single reversed attacks", () => {
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_93_50224",
+    skillId: "1092",
     stacks: 1
   });
   for (let guard = 0; state.phase === "action_window" && state.activeTimingPhase !== "turn_end_action" && guard < 30; guard++) state = advanceActionWindow(state);
@@ -3668,7 +3683,7 @@ run("reversal preserves modified attack stats after the source changes", () => {
   seat(state, ids.A, {
     cakes: 2,
     hp: 10,
-    skills: ["huo_yan_dao", "skill_45_30424", "skill_51_92674", "skill_93_50224"]
+    skills: ["1015", "1044", "1050", "1092"]
   });
 
   state = submitAll(state, {
@@ -3678,14 +3693,14 @@ run("reversal preserves modified attack stats after the source changes", () => {
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_45_30424",
+    skillId: "1044",
     stacks: 1,
     switchActionIndex: 0,
     attackStatModifier: "power_times_3_level_to_zero"
   });
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_93_50224",
+    skillId: "1092",
     stacks: 1
   });
   for (let guard = 0; state.phase === "action_window" && state.activeTimingPhase !== "turn_end_action" && guard < 30; guard++) state = advanceActionWindow(state);
@@ -3700,21 +3715,21 @@ run("reversal suppresses cake, saint, and forest gains", () => {
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_93_50224"] });
+  seat(state, ids.A, { skills: ["1092"] });
   seat(state, ids.B, { cakes: 1 });
-  seat(state, ids.C, { cakes: 1, skills: ["skill_61_59049"] });
-  seat(state, ids.D, { cakes: 3, hp: 4, skills: ["skill_77_30612"] });
+  seat(state, ids.C, { cakes: 1, skills: ["1060"] });
+  seat(state, ids.D, { cakes: 3, hp: 4, skills: ["1076"] });
 
   state = submitAll(state, {
     A: { type: "gain_cake" },
     B: { type: "attack", attackId: "sha", stacks: 1, targetId: ids.D },
-    C: { type: "skill", skillId: "skill_61_59049", stacks: 1 },
-    D: { type: "skill", skillId: "skill_77_30612", stacks: 1 }
+    C: { type: "skill", skillId: "1060", stacks: 1 },
+    D: { type: "skill", skillId: "1076", stacks: 1 }
   }, ids);
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_93_50224",
+    skillId: "1092",
     stacks: 1
   });
   for (let guard = 0; state.phase === "action_window" && state.activeTimingPhase !== "turn_end_action" && guard < 30; guard++) state = advanceActionWindow(state);
@@ -3731,8 +3746,8 @@ run("reversal swaps declarations before retargeting and resolving the resulting 
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.P, { cakes: 3, skills: ["skill_93_50224"] });
-  seat(state, ids.AI1, { cakes: 1, skills: ["skill_58_88471"] });
+  seat(state, ids.P, { cakes: 3, skills: ["1092"] });
+  seat(state, ids.AI1, { cakes: 1, skills: ["1057"] });
   seat(state, ids.AI2, { cakes: 2 });
   seat(state, ids.AI3, { cakes: 1 });
 
@@ -3745,7 +3760,7 @@ run("reversal swaps declarations before retargeting and resolving the resulting 
 
   state = submitActionWindowSkill(state, ids.P, {
     type: "skill",
-    skillId: "skill_93_50224",
+    skillId: "1092",
     stacks: 1
   });
   for (let guard = 0; state.phase === "action_window" && state.activeTimingPhase !== "turn_end_action" && guard < 30; guard++) state = advanceActionWindow(state);
@@ -3762,14 +3777,17 @@ run("past time small space removes its player from main-space win checks", () =>
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_104_71181"] });
-  seat(state, ids.B, { skills: ["skill_105_48309"] });
+  seat(state, ids.A, { skills: ["1103"] });
+  seat(state, ids.B, { skills: ["1104"] });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_104_71181",
+    skillId: "1103",
     stacks: 1
   });
+  assert.equal(state.activeTimingPhase, "opening_action");
+  assert.equal(player(state, ids.A).status, "alive");
+  state = advanceActionWindow(state);
 
   assert.equal(player(state, ids.A).status, "dead");
   assert.equal(player(state, ids.A).defeatLevel, 2);
@@ -3783,12 +3801,12 @@ run("past time small space lowers alive count for shapeless shield", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_104_71181"] });
-  seat(state, ids.B, { skills: ["skill_99_65551"] });
+  seat(state, ids.A, { skills: ["1103"] });
+  seat(state, ids.B, { skills: ["1098"] });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_104_71181",
+    skillId: "1103",
     stacks: 1
   });
   state = drainActionWindows(state);
@@ -3809,11 +3827,11 @@ run("main-space players cannot target a player in past time", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_104_71181"] });
+  seat(state, ids.A, { skills: ["1103"] });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_104_71181",
+    skillId: "1103",
     stacks: 1
   });
   state = drainActionWindows(state);
@@ -3834,13 +3852,14 @@ run("past time returns its player after five round ends", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_104_71181"] });
+  seat(state, ids.A, { skills: ["1103"] });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_104_71181",
+    skillId: "1103",
     stacks: 1
   });
+  state = advanceActionWindow(state);
   assert.equal(buffStacks(player(state, ids.A), "small_space:past_time"), 5);
 
   for (let index = 0; index < 5; index += 1) {
@@ -3863,14 +3882,14 @@ run("hell overlord revives a level 1 corpse as a skillless puppet", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_112_59292"] });
-  seat(state, ids.B, { hp: -1, skills: ["skill_87_44771"], cakes: 2 });
+  seat(state, ids.A, { skills: ["1111"] });
+  seat(state, ids.B, { hp: -1, skills: ["1086"], cakes: 2 });
   player(state, ids.B).status = "dead";
   player(state, ids.B).defeatLevel = 1;
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_112_59292",
+    skillId: "1111",
     stacks: 1,
     targetId: ids.B
   });
@@ -3900,15 +3919,15 @@ run("puppets are ignored only for victory count", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_112_59292"] });
-  seat(state, ids.C, { skills: ["skill_105_48309"] });
+  seat(state, ids.A, { skills: ["1111"] });
+  seat(state, ids.C, { skills: ["1104"] });
   player(state, ids.B).status = "dead";
   player(state, ids.B).defeatLevel = 1;
   player(state, ids.B).hp = -1;
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_112_59292",
+    skillId: "1111",
     stacks: 1,
     targetId: ids.B
   });
@@ -3922,7 +3941,7 @@ run("hell overlord cannot target a no-revive corpse", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_112_59292"] });
+  seat(state, ids.A, { skills: ["1111"] });
   player(state, ids.B).status = "dead";
   player(state, ids.B).defeatLevel = 1;
   player(state, ids.B).hp = -1;
@@ -3931,7 +3950,7 @@ run("hell overlord cannot target a no-revive corpse", () => {
   assert.throws(() =>
     submitActionWindowSkill(state, ids.A, {
       type: "skill",
-      skillId: "skill_112_59292",
+      skillId: "1111",
       stacks: 1,
       targetId: ids.B
     })
@@ -3944,7 +3963,7 @@ run("hell overlord self revival clears the user's skills", () => {
     skillCount: 1
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_112_59292"] });
+  seat(state, ids.A, { skills: ["1111"] });
   seat(state, ids.B, { cakes: 3 });
 
   state = submitAll(state, {
@@ -3956,7 +3975,7 @@ run("hell overlord self revival clears the user's skills", () => {
   assert.equal(state.activeTimingPhase, "revival_action");
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_112_59292",
+    skillId: "1111",
     stacks: 1,
     targetId: ids.A
   });
@@ -3972,22 +3991,22 @@ run("purification wastes hell overlord against its corpse", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_112_59292"] });
-  seat(state, ids.B, { skills: ["skill_7_35434"], hp: -1 });
+  seat(state, ids.A, { skills: ["1111"] });
+  seat(state, ids.B, { skills: ["1006"], hp: -1 });
   player(state, ids.B).status = "dead";
   player(state, ids.B).defeatLevel = 1;
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_112_59292",
+    skillId: "1111",
     stacks: 1,
     targetId: ids.B
   });
 
   assert.equal(player(state, ids.B).status, "dead");
   assert.equal(player(state, ids.B).defeatLevel, 1);
-  assert.equal(player(state, ids.B).revealedSkillIds.includes("skill_7_35434"), true);
-  assert.equal(buffStacks(player(state, ids.A), "skill_used:skill_112_59292"), 1);
+  assert.equal(player(state, ids.B).revealedSkillIds.includes("1006"), true);
+  assert.equal(buffStacks(player(state, ids.A), "skill_used:1111"), 1);
 });
 
 run("purification wastes lishang against its corpse", () => {
@@ -3995,8 +4014,8 @@ run("purification wastes lishang against its corpse", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.B, { skills: ["skill_7_35434"], hp: -1 });
-  seat(state, ids.C, { skills: ["skill_68_57581"], hp: -1 });
+  seat(state, ids.B, { skills: ["1006"], hp: -1 });
+  seat(state, ids.C, { skills: ["1067"], hp: -1 });
   player(state, ids.B).status = "dead";
   player(state, ids.B).defeatLevel = 1;
   player(state, ids.C).buffs.push({ id: "pending_death", name: "已死亡", stacks: 1 });
@@ -4019,24 +4038,24 @@ run("purification wastes lishang against its corpse", () => {
 
   state = submitActionWindowSkill(state, ids.C, {
     type: "skill",
-    skillId: "skill_68_57581",
+    skillId: "1067",
     stacks: 1,
     targetId: ids.B
   });
 
   assert.equal(player(state, ids.B).status, "dead");
   assert.equal(player(state, ids.C).status, "dead");
-  assert.equal(player(state, ids.B).revealedSkillIds.includes("skill_7_35434"), true);
-  assert.equal(buffStacks(player(state, ids.C), "skill_used:skill_68_57581"), 1);
+  assert.equal(player(state, ids.B).revealedSkillIds.includes("1006"), true);
+  assert.equal(buffStacks(player(state, ids.C), "skill_used:1067"), 1);
 });
 
 run("causal cognition reveals divine protection before later hidden defenses", () => {
   let { state, ids } = makeGameWithAssignedSkills(["A", "B"], {
-    A: ["skill_121_59557", "skill_109_65084"],
-    B: ["skill_32_19017", "skill_39_77400", "skill_51_92674"]
+    A: ["1120", "1108"],
+    B: ["1031", "1038", "1050"]
   });
-  assert.equal(player(state, ids.A).revealedSkillIds.includes("skill_121_59557"), true);
-  assert.equal(player(state, ids.B).revealedSkillIds.includes("skill_32_19017"), false);
+  assert.equal(player(state, ids.A).revealedSkillIds.includes("1120"), true);
+  assert.equal(player(state, ids.B).revealedSkillIds.includes("1031"), false);
 
   state = drainActionWindows(state);
   seat(state, ids.A, { cakes: 1 });
@@ -4046,15 +4065,15 @@ run("causal cognition reveals divine protection before later hidden defenses", (
   }, ids);
   state = drainActionWindows(state);
 
-  assert.equal(player(state, ids.B).revealedSkillIds.includes("skill_32_19017"), true);
-  assert.equal(player(state, ids.B).revealedSkillIds.includes("skill_51_92674"), false);
+  assert.equal(player(state, ids.B).revealedSkillIds.includes("1031"), true);
+  assert.equal(player(state, ids.B).revealedSkillIds.includes("1050"), false);
   assert.equal(player(state, ids.B).hp, 4);
 });
 
 run("causal cognition reveals tengjia only when tengjia actually triggers", () => {
   let { state, ids } = makeGameWithAssignedSkills(["A", "B"], {
-    A: ["skill_121_59557", "skill_109_65084"],
-    B: ["skill_51_92674"]
+    A: ["1120", "1108"],
+    B: ["1050"]
   });
   state = drainActionWindows(state);
   state.roundTurnNumber = 3;
@@ -4065,14 +4084,14 @@ run("causal cognition reveals tengjia only when tengjia actually triggers", () =
   }, ids);
   state = drainActionWindows(state);
 
-  assert.equal(player(state, ids.B).revealedSkillIds.includes("skill_51_92674"), true);
+  assert.equal(player(state, ids.B).revealedSkillIds.includes("1050"), true);
   assert.equal(player(state, ids.B).hp, 4);
 });
 
 run("causal cognition reveals earth heart when it immunes lightning", () => {
   let { state, ids } = makeGameWithAssignedSkills(["A", "B"], {
-    A: ["skill_121_59557", "skill_109_65084"],
-    B: ["skill_39_77400"]
+    A: ["1120", "1108"],
+    B: ["1038"]
   });
   state = drainActionWindows(state);
   seat(state, ids.A, { cakes: 4 });
@@ -4082,7 +4101,7 @@ run("causal cognition reveals earth heart when it immunes lightning", () => {
   }, ids);
   state = drainActionWindows(state);
 
-  assert.equal(player(state, ids.B).revealedSkillIds.includes("skill_39_77400"), true);
+  assert.equal(player(state, ids.B).revealedSkillIds.includes("1038"), true);
   assert.equal(buffStacks(player(state, ids.B), "defense_value"), 4);
   assert.equal(player(state, ids.B).hp, 4);
 });
@@ -4092,11 +4111,11 @@ run("voluntary discard removes an unused skill and heals without restarting", ()
     skillMode: "test_select",
     skillCount: 2
   });
-  seat(state, ids.A, { hp: 3, skills: ["skill_34_1533", "skill_33_55159"] });
+  seat(state, ids.A, { hp: 3, skills: ["1033", "1032"] });
   assert.throws(() =>
     submitPlayerAction(state, ids.A, {
       type: "discard_skill",
-      targetSkillId: "skill_34_1533"
+      targetSkillId: "1033"
     })
   );
   const collectingState = drainActionWindows(state);
@@ -4104,24 +4123,24 @@ run("voluntary discard removes an unused skill and heals without restarting", ()
   assert.throws(() =>
     submitPlayerAction(collectingState, ids.A, {
       type: "discard_skill",
-      targetSkillId: "skill_34_1533"
+      targetSkillId: "1033"
     })
   );
 
   state = enterActionWindow(state, ids.A);
   state = submitPlayerAction(state, ids.A, {
     type: "discard_skill",
-    targetSkillId: "skill_34_1533"
+    targetSkillId: "1033"
   }).state;
 
   assert.equal(player(state, ids.A).hp, 4);
-  assert.equal(player(state, ids.A).skills.includes("skill_34_1533"), false);
+  assert.equal(player(state, ids.A).skills.includes("1033"), false);
   assert.equal(state.phase, "action_window");
   assert.equal(state.roundNumber, 1);
 
   state = submitPlayerAction(state, ids.A, {
     type: "discard_skill",
-    targetSkillId: "skill_33_55159"
+    targetSkillId: "1032"
   }).state;
   assert.equal(player(state, ids.A).hp, 5);
   assert.equal(player(state, ids.A).skills.length, 0);
@@ -4132,21 +4151,21 @@ run("voluntary discard does not heal after the skill has been used", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { hp: 3, cakes: 3, skills: ["skill_13_68869"] });
+  seat(state, ids.A, { hp: 3, cakes: 3, skills: ["1012"] });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
   state = enterActionWindow(state, ids.A);
   state = submitPlayerAction(state, ids.A, {
     type: "discard_skill",
-    targetSkillId: "skill_13_68869"
+    targetSkillId: "1012"
   }).state;
 
   assert.equal(player(state, ids.A).hp, 3);
-  assert.equal(player(state, ids.A).skills.includes("skill_13_68869"), false);
+  assert.equal(player(state, ids.A).skills.includes("1012"), false);
 });
 
 run("blood sorrow suppresses voluntary discard healing after the discard is applied", () => {
@@ -4154,17 +4173,17 @@ run("blood sorrow suppresses voluntary discard healing after the discard is appl
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { hp: 3, skills: ["skill_34_1533"] });
-  seat(state, ids.B, { skills: ["skill_12_79004"] });
+  seat(state, ids.A, { hp: 3, skills: ["1033"] });
+  seat(state, ids.B, { skills: ["1011"] });
 
   state = enterActionWindow(state, ids.A);
   state = submitPlayerAction(state, ids.A, {
     type: "discard_skill",
-    targetSkillId: "skill_34_1533"
+    targetSkillId: "1033"
   }).state;
 
   assert.equal(player(state, ids.A).hp, 3);
-  assert.equal(player(state, ids.B).revealedSkillIds.includes("skill_12_79004"), true);
+  assert.equal(player(state, ids.B).revealedSkillIds.includes("1011"), true);
 });
 
 run("discarding the only blood sorrow allows the unused-skill heal", () => {
@@ -4172,16 +4191,16 @@ run("discarding the only blood sorrow allows the unused-skill heal", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { hp: 3, skills: ["skill_12_79004"] });
+  seat(state, ids.A, { hp: 3, skills: ["1011"] });
 
   state = enterActionWindow(state, ids.A);
   state = submitPlayerAction(state, ids.A, {
     type: "discard_skill",
-    targetSkillId: "skill_12_79004"
+    targetSkillId: "1011"
   }).state;
 
   assert.equal(player(state, ids.A).hp, 4);
-  assert.equal(player(state, ids.A).skills.includes("skill_12_79004"), false);
+  assert.equal(player(state, ids.A).skills.includes("1011"), false);
 });
 
 run("self destruct as an action skips to round end and still resolves sanctuary", () => {
@@ -4191,7 +4210,7 @@ run("self destruct as an action skips to round end and still resolves sanctuary"
   });
   let state = setup.state;
   const { ids } = setup;
-  seat(state, ids.B, { hp: 3, skills: ["skill_71_40087"] });
+  seat(state, ids.B, { hp: 3, skills: ["1070"] });
   state.roundNumber = 3;
   state.roundTurnNumber = 2;
   state.turnNumber = 2;
@@ -4222,7 +4241,7 @@ run("self destruct preemptive restart restores the turn-start checkpoint before 
   });
   let state = setup.state;
   const { ids } = setup;
-  seat(state, ids.A, { cakes: 2, skills: ["skill_52_22171", "skill_63_72549"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1051", "1062"] });
   state.roundTurnNumber = 4;
   state.turnNumber = 4;
   let guard = 0;
@@ -4281,16 +4300,16 @@ run("late self destruct refunds the submitted turn action and consumes one late 
     skillMode: "test_select",
     skillCount: 2
   });
-  seat(state, ids.A, { skills: ["skill_102_5546", "skill_95_91337"] });
+  seat(state, ids.A, { skills: ["1101", "1094"] });
   state = drainActionWindows(state);
 
   state = submitAll(state, {
-    A: { type: "skill", skillId: "skill_95_91337", stacks: 1, targetId: ids.B },
+    A: { type: "skill", skillId: "1094", stacks: 1, targetId: ids.B },
     B: { type: "gain_cake" }
   }, ids);
   assert.equal(state.phase, "action_window");
   assert.equal(state.activeTimingPhase, "turn_change_action");
-  assert.equal(buffStacks(player(state, ids.A), "skill_used:skill_95_91337"), 1);
+  assert.equal(buffStacks(player(state, ids.A), "skill_used:1094"), 1);
 
   state = submitPlayerAction(state, ids.A, {
     type: "defense",
@@ -4299,7 +4318,7 @@ run("late self destruct refunds the submitted turn action and consumes one late 
 
   assert.equal(player(state, ids.A).hp, 5);
   assert.equal(player(state, ids.B).status, "alive");
-  assert.equal(buffStacks(player(state, ids.A), "skill_used:skill_95_91337"), 0);
+  assert.equal(buffStacks(player(state, ids.A), "skill_used:1094"), 0);
   assert.equal(buffStacks(player(state, ids.A), "late_self_destruct_used"), 1);
   assert.equal(buffStacks(player(state, ids.A), "self_destruct_count"), 1);
   assert.equal(state.roundNumber, 2);
@@ -4310,7 +4329,7 @@ run("late self destruct limit scales with duplicate self destructer death copies
     skillMode: "test_select",
     skillCount: 2
   });
-  seat(state, ids.A, { skills: ["skill_102_5546", "skill_102_5546"] });
+  seat(state, ids.A, { skills: ["1101", "1101"] });
   player(state, ids.A).buffs.push({
     id: "late_self_destruct_used",
     name: "后期自爆次数",
@@ -4336,7 +4355,7 @@ run("late self destruct rejects uses beyond the provided chance count", () => {
     skillMode: "test_select",
     skillCount: 1
   });
-  seat(state, ids.A, { skills: ["skill_102_5546"] });
+  seat(state, ids.A, { skills: ["1101"] });
   player(state, ids.A).buffs.push({
     id: "late_self_destruct_used",
     name: "后期自爆次数",
@@ -4408,7 +4427,7 @@ run("repeated self destruct escalates to zero hp then retire", () => {
 
 run("second self destruct kills absolute value at zero hp", () => {
   let { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { skills: ["skill_69_22138"] });
+  seat(state, ids.A, { skills: ["1068"] });
 
   state = submitPlayerAction(state, ids.A, {
     type: "defense",
@@ -4426,7 +4445,7 @@ run("second self destruct kills absolute value at zero hp", () => {
 
 run("self destructer death prevents the owner's escalation", () => {
   let { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { skills: ["skill_102_5546"] });
+  seat(state, ids.A, { skills: ["1101"] });
 
   for (let index = 0; index < 3; index += 1) {
     state = submitPlayerAction(state, ids.A, {
@@ -4438,12 +4457,12 @@ run("self destructer death prevents the owner's escalation", () => {
   assert.equal(player(state, ids.A).status, "alive");
   assert.equal(player(state, ids.A).hp, 3);
   assert.equal(buffStacks(player(state, ids.A), "self_destruct_count"), 3);
-  assert.equal(player(state, ids.A).revealedSkillIds.includes("skill_102_5546"), true);
+  assert.equal(player(state, ids.A).revealedSkillIds.includes("1101"), true);
 });
 
 run("self destructer death retires other self destructors immediately", () => {
   let { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.B, { skills: ["skill_102_5546"] });
+  seat(state, ids.B, { skills: ["1101"] });
 
   state = submitPlayerAction(state, ids.A, {
     type: "defense",
@@ -4452,12 +4471,12 @@ run("self destructer death retires other self destructors immediately", () => {
 
   assert.equal(player(state, ids.A).status, "dead");
   assert.equal(player(state, ids.A).defeatLevel, 2);
-  assert.equal(player(state, ids.B).revealedSkillIds.includes("skill_102_5546"), true);
+  assert.equal(player(state, ids.B).revealedSkillIds.includes("1101"), true);
 });
 
 run("duplicate startup locked skills stack their numeric effects", () => {
   const { state, ids } = makeGameWithAssignedSkills(["A", "B"], {
-    A: ["skill_53_62958", "skill_53_62958", "skill_67_31717", "skill_67_31717"],
+    A: ["1052", "1052", "1066", "1066"],
     B: []
   });
 
@@ -4468,8 +4487,8 @@ run("duplicate startup locked skills stack their numeric effects", () => {
 
 run("duplicate fire blade and vine armor stack on fire sha damage", () => {
   const { state, ids } = makeGame(["A", "B"]);
-  seat(state, ids.A, { cakes: 1, skills: ["huo_yan_dao", "huo_yan_dao"] });
-  seat(state, ids.B, { skills: ["skill_51_92674", "skill_51_92674"] });
+  seat(state, ids.A, { cakes: 1, skills: ["1015", "1015"] });
+  seat(state, ids.B, { skills: ["1050", "1050"] });
 
   const next = submitAll(state, {
     A: { type: "attack", attackId: "sha", stacks: 1, targetId: ids.B },
@@ -4481,27 +4500,27 @@ run("duplicate fire blade and vine armor stack on fire sha damage", () => {
 
 run("duplicate limited skills increase the shared use count limit", () => {
   let { state, ids } = makeGameWithAssignedSkills(["A", "B"], {
-    A: ["skill_13_68869", "skill_13_68869"],
+    A: ["1012", "1012"],
     B: []
   });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_13_68869",
+    skillId: "1012",
     stacks: 1
   });
 
   assert.equal(player(state, ids.B).hp, 4);
-  assert.equal(buffStacks(player(state, ids.A), "skill_used:skill_13_68869"), 2);
+  assert.equal(buffStacks(player(state, ids.A), "skill_used:1012"), 2);
   assert.throws(() =>
     submitActionWindowSkill(state, ids.A, {
       type: "skill",
-      skillId: "skill_13_68869",
+      skillId: "1012",
       stacks: 1
     })
   );
@@ -4513,7 +4532,7 @@ run("duplicate flash dodge copies have independent cooldown slots", () => {
     skillCount: 2
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_103_56259", "skill_103_56259"] });
+  seat(state, ids.A, { skills: ["1102", "1102"] });
   seat(state, ids.B, { cakes: 1 });
   seat(state, ids.C, { cakes: 1 });
 
@@ -4527,12 +4546,12 @@ run("duplicate flash dodge copies have independent cooldown slots", () => {
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_103_56259",
+    skillId: "1102",
     stacks: 1
   });
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_103_56259",
+    skillId: "1102",
     stacks: 1
   });
 
@@ -4545,7 +4564,7 @@ run("duplicate ice rain grants multiple marks from one wanjian hit", () => {
     skillCount: 2
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { cakes: 2, skills: ["skill_20_63089", "skill_20_63089"] });
+  seat(state, ids.A, { cakes: 2, skills: ["1019", "1019"] });
 
   state = submitAll(state, {
     A: { type: "attack", attackId: "wan_jian", stacks: 1 },
@@ -4562,7 +4581,7 @@ run("duplicate xieyu can select one target per copy", () => {
     skillCount: 2
   });
   state = drainActionWindows(state);
-  seat(state, ids.A, { skills: ["skill_72_53933", "skill_72_53933"] });
+  seat(state, ids.A, { skills: ["1071", "1071"] });
   state.roundNumber = 3;
   state.phase = "action_window";
   state.actionWindowMode = "active";
@@ -4573,13 +4592,13 @@ run("duplicate xieyu can select one target per copy", () => {
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_72_53933",
+    skillId: "1071",
     stacks: 1,
     targetId: ids.B
   });
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_72_53933",
+    skillId: "1071",
     stacks: 1,
     targetId: ids.C
   });
@@ -4588,7 +4607,7 @@ run("duplicate xieyu can select one target per copy", () => {
   assert.throws(() =>
     submitActionWindowSkill(state, ids.A, {
       type: "skill",
-      skillId: "skill_72_53933",
+      skillId: "1071",
       stacks: 1,
       targetId: ids.B
     })
@@ -4597,24 +4616,24 @@ run("duplicate xieyu can select one target per copy", () => {
 
 run("duplicate sand detects a skill transformed by another sand copy", () => {
   let { state, ids } = makeGameWithAssignedSkills(["A", "B"], {
-    A: ["skill_4_65637", "skill_4_65637"],
+    A: ["1003", "1003"],
     B: []
   });
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_4_65637",
+    skillId: "1003",
     stacks: 1,
-    targetSkillId: "skill_53_62958"
+    targetSkillId: "1052"
   });
-  assert.equal(player(state, ids.A).skills.includes("skill_53_62958"), true);
+  assert.equal(player(state, ids.A).skills.includes("1052"), true);
   assert.equal(player(state, ids.A).status, "alive");
 
   state = submitActionWindowSkill(state, ids.A, {
     type: "skill",
-    skillId: "skill_4_65637",
+    skillId: "1003",
     stacks: 1,
-    targetSkillId: "skill_53_62958"
+    targetSkillId: "1052"
   });
 
   assert.equal(player(state, ids.A).status, "dead");

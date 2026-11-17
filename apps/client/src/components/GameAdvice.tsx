@@ -61,7 +61,9 @@ function buildAdvice(state: PublicGameState): string[] {
   const resultLine =
     viewer && state.winnerIds.includes(viewer.id)
       ? "你赢下了这局。下一步可以尝试更早逼出对手防御，再用高等级招式收尾。"
-      : `本局胜者：${winnerNames.join("、") || "无"}。你可以重点复盘最后两轮的饼量和防御选择。`;
+      : viewer && state.skillVictoryUnaffectedPlayerIds?.includes(viewer.id)
+        ? "幽冥白虎无视了这次技能胜利，本局你未判负。"
+        : `本局胜者：${winnerNames.join("、") || "无"}。你可以重点复盘最后两轮的饼量和防御选择。`;
 
   const advice = [resultLine];
   if (damageTaken > damageDone) {

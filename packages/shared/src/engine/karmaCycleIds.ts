@@ -1,0 +1,9 @@
+export const KARMA_CARD_ID = "10602";
+export const KARMA_INHERIT_ID = "1060201";
+export const KARMA_REBIRTH_ID = "1060202";
+export const KARMA_CONVERT_ID = "1060202_convert";
+export const KARMA_PUNISH_ID = "1060203";
+export const KARMA_SONG_ID = "1060204";
+export const KARMA_CYCLE_ID = "1060205";
+export const KARMA_SONG_END_ID = "1060204:end";
+export const KARMA_SONG_STATUS_LOCK = "karma_song_status_lock";
