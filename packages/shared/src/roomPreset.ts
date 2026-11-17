@@ -1,5 +1,6 @@
 import { MAX_PLAYERS, MIN_PLAYERS, type GameConfig, type PlayerState, type PublicGameState } from "./types";
-import { isBigSkillMode, MAX_BIG_CARDS_PER_PLAYER } from "./modes";
+import { isBigSkillMode, isValidInitialHp, MAX_BIG_CARDS_PER_PLAYER } from "./modes";
+import { validateRandomBigCardSettings } from "./bigCards/catalog";
 
 export interface RoomPreset {
   version: 1;
@@ -11,7 +12,12 @@ export interface RoomPreset {
 
 function presetConfig(config: GameConfig): GameConfig {
   const { maxPlayers, allowAI, firstTurnNoAttack, hideCakeCounts, turnTimeLimitSeconds, skillMode, skillCount } = config;
-  return { maxPlayers, allowAI, firstTurnNoAttack, hideCakeCounts, turnTimeLimitSeconds, skillMode, skillCount, speedMode: "normal" };
+  return {
+    maxPlayers, allowAI, firstTurnNoAttack, hideCakeCounts, turnTimeLimitSeconds, skillMode, skillCount, speedMode: "normal",
+    ...(skillMode !== "none" && config.initialHp !== undefined ? { initialHp: config.initialHp } : {}),
+    ...(config.bigCardPackIds !== undefined ? { bigCardPackIds: [...config.bigCardPackIds] } : {}),
+    ...(config.allowDuplicateBigCards !== undefined ? { allowDuplicateBigCards: config.allowDuplicateBigCards } : {})
+  };
 }
 
 export function createRoomPreset(state: PublicGameState): RoomPreset {
@@ -34,11 +40,13 @@ export function parseRoomPreset(input: unknown): RoomPreset {
   if (preset?.version !== 1 || !config ||
     !["none", "small_intro", "test_select", "big_random", "big_test_select"].includes(config.skillMode) ||
     !isIntegerIn(config.maxPlayers, MIN_PLAYERS, MAX_PLAYERS) || !isIntegerIn(config.turnTimeLimitSeconds, 5, 180) ||
+    (config.initialHp !== undefined && !isValidInitialHp(config.initialHp)) ||
     !isIntegerIn(config.skillCount, config.skillMode === "none" ? 0 : 1,
       isBigSkillMode(config.skillMode) ? MAX_BIG_CARDS_PER_PLAYER : config.skillMode === "none" ? 0 : 3) ||
     [config.allowAI, config.hideCakeCounts, config.firstTurnNoAttack].some((flag) => typeof flag !== "boolean")) {
     throw new Error("房间预设格式或设置数值无效");
   }
+  validateRandomBigCardSettings(config);
   const isSelection = (selection: unknown): selection is string[] => Array.isArray(selection) &&
     selection.length <= config.skillCount && selection.every((id) => typeof id === "string" && id.length <= 64);
   if (!isSelection(preset.ownerSkills) || !Array.isArray(preset.aiSkills) ||

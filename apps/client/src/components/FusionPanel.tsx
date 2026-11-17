@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { ActionSubmission, COMMON_FUSION_SKILL_ID, FUSION_CAKE_COST, FUSION_RECIPES,
-  createId, getAvailableFusionRecipes, getFusionMaterials, getFusionMaterialSelection, getFusionRecipe, getFusionTier,
+import { ActionSubmission, COMMON_FUSION_SKILL_ID, FUSION_RECIPES,
+  createId, getAvailableFusionRecipes, getFusionJudgmentRank, getFusionMaterials, getFusionMaterialSelection, getFusionRecipe, getFusionTier,
   getRootFusions, getSkill, getSkillUseLimit,
   isFusionImplemented, isFusionPreparation, countSuppressedFusionMaterials, PublicGameState,
-  getNextWitherSelectionIndex, getWitherNumber, isValidWitherNumber } from "@bing/shared";
+  getNextWitherSelectionIndex, getWitherNumber, getWitherSelectionGroups, isValidWitherNumber, getTurnSkillActionCost,
+  antiCakeCount, canUseAntiCakes, isBoundBrokenBladeFusion, JUDGMENT_RANK_LABELS, youkaiCakeCount } from "@bing/shared";
 
 interface FusionPanelProps {
   state: PublicGameState;
@@ -19,6 +20,8 @@ export function FusionPanel({ state, submitting, onSubmit, onDecompose, onChoose
   const [selectedId, setSelectedId] = useState("");
   const [materialPicks, setMaterialPicks] = useState<Record<number, string>>({});
   const [materialOption, setMaterialOption] = useState(0);
+  const [antiCakePayment, setAntiCakePayment] = useState(0);
+  const [youkaiCakePayment, setYoukaiCakePayment] = useState<number>();
   const [witherDrafts, setWitherDrafts] = useState<Record<number, string>>({});
   useEffect(() => setWitherDrafts({}), [viewer?.id]);
   const selected = recipes.find((recipe) => recipe.skill.id === selectedId) ??
@@ -35,15 +38,25 @@ export function FusionPanel({ state, submitting, onSubmit, onDecompose, onChoose
   const witherDraft = Number(witherDrafts[witherIndex] ?? getWitherNumber(viewer, witherIndex));
   const unsavedWither = preparation && selectedWither &&
     (!isValidWitherNumber(witherDraft) || witherDraft !== getWitherNumber(viewer, witherIndex));
-  const witherIndices = [...new Set([
-    ...(viewer.skillFusions ?? []).filter((fusion) => getFusionRecipe(fusion.skillId)?.skill.name === "枯萎")
-      .map((fusion) => fusion.witherSelectionIndex ?? 0),
-    ...(recipes.some((recipe) => recipe.skill.name === "枯萎") ? [witherIndex] : [])
-  ])].sort((a, b) => a - b);
+  const witherGroups = getWitherSelectionGroups(viewer);
+  const singleWitherSlot = (index: number) => ({ index, label: `第${index + 1}份枯萎数字`,
+    saveLabel: `保存第${index + 1}份枯萎选数` });
+  const witherSlots = witherGroups.flatMap(({ name, indices }) => indices.map((index, slot) => {
+    if (name === "枯萎" && indices.length === 1) return singleWitherSlot(index);
+    const label = `${name}第${slot + 1}个数字`;
+    return { index, label, saveLabel: `保存${label}` };
+  }));
+  if (recipes.some((recipe) => recipe.skill.name === "枯萎"))
+    witherSlots.push(singleWitherSlot(witherIndex));
+  const fusionCost = getTurnSkillActionCost(viewer, { type: "skill", skillId: COMMON_FUSION_SKILL_ID, stacks: 1 }, state);
+  const maxAntiPayment = preparation || !canUseAntiCakes(state, viewer) ? 0 : Math.min(Math.floor(fusionCost), antiCakeCount(viewer));
+  const antiPayment = Math.min(maxAntiPayment, antiCakePayment);
+  const maxYoukaiPayment = preparation ? 0 : Math.min(fusionCost - antiPayment, youkaiCakeCount(viewer));
+  const youkaiPayment = Math.min(maxYoukaiPayment, youkaiCakePayment ?? Math.max(0, fusionCost - antiPayment - viewer.cakes));
   const canFuse = !submitting && Boolean(selected && isFusionImplemented(selected.skill.id)) &&
     !unsavedWither &&
     (preparation ? !passed : state.phase === "collecting_actions" &&
-      !state.pendingActionPlayerIds.includes(viewer.id) && viewer.cakes >= FUSION_CAKE_COST);
+      !state.pendingActionPlayerIds.includes(viewer.id) && viewer.cakes >= fusionCost - antiPayment - youkaiPayment);
   const canDecompose = !submitting && state.phase === "action_window" &&
     (preparation || state.activeTimingPhase === "turn_end_action") && !passed;
   const availableOptions = selected?.materialOptions.flatMap((option, index) => {
@@ -71,18 +84,18 @@ export function FusionPanel({ state, submitting, onSubmit, onDecompose, onChoose
         <span className="text-xs text-gray-500">{viewer.skillSlotCount ?? viewer.skills.length} 槽</span>
       </div>
       <p className="text-sm text-gray-600">
-        {preparation ? "开局准备：免费融合，不占出招。" : "融合消耗2饼，占用本回合出招。"}
-        分解免费，仅回合末可用。次数、冷却和封印不会重置。
+        {preparation ? "开局准备：免费融合，不占出招。" : `融合消耗${fusionCost}饼，占用本回合出招。`}
+        分解免费，开局和回合末可用。次数、冷却和封印不会重置。
       </p>
-      {preparation && witherIndices.length > 0 ? <div className="space-y-2 rounded-xl border border-gray-200 p-3">
-        <p className="text-sm font-semibold">枯萎开局选数</p>
+      {preparation && witherSlots.length > 0 ? <div className="space-y-2 rounded-xl border border-gray-200 p-3">
+        <p className="text-sm font-semibold">{witherGroups.some(({ name }) => name === "繁荣") ? "枯萎与繁荣开局选数" : "枯萎开局选数"}</p>
         <p className="text-xs text-gray-600">每份默认1。准备结束后锁定，中途融合也沿用此处的选择；可先保存数字，稍后再融合。</p>
-        {witherIndices.map((index) => {
+        {witherSlots.map(({ index, label, saveLabel }) => {
           const saved = getWitherNumber(viewer, index);
           const draft = witherDrafts[index] ?? String(saved);
           const value = Number(draft);
           return <div className="space-y-1" key={index}>
-            <label className="block text-sm">第{index + 1}份枯萎数字
+            <label className="block text-sm">{label}
               <input className="soft-input mt-1 w-full" type="number" min={1} max={Number.MAX_SAFE_INTEGER} step={1}
                 data-testid={`wither-number-${index}`} value={draft} disabled={submitting || passed}
                 onChange={(event) => setWitherDrafts((previous) => ({ ...previous, [index]: event.target.value }))} />
@@ -90,7 +103,7 @@ export function FusionPanel({ state, submitting, onSubmit, onDecompose, onChoose
             <p className="text-xs text-gray-600">已保存：{saved}</p>
             <button type="button" className="btn-secondary disabled:opacity-50"
               disabled={submitting || passed || !isValidWitherNumber(value) || value === saved}
-              onClick={() => onChooseWitherNumber(index, value)}>保存第{index + 1}份枯萎选数</button>
+              onClick={() => onChooseWitherNumber(index, value)}>{saveLabel}</button>
           </div>;
         })}
       </div> : null}
@@ -128,12 +141,23 @@ export function FusionPanel({ state, submitting, onSubmit, onDecompose, onChoose
           <p className="text-sm">{getSkill(selected.skill.id)?.description ?? selected.skill.description}</p>
           {selectedWither ? <p className="text-xs text-gray-600">本次融合沿用第{witherIndex + 1}份开局选择：{getWitherNumber(viewer, witherIndex)}。</p> : null}
           {unsavedWither ? <p className="text-xs text-amber-700">请先保存有效的开局选数，再融合。</p> : null}
+          {maxAntiPayment > 0 ? <label className="block text-sm">融合反饼数量
+            <input className="soft-input ml-2 w-20" type="number" min={0} max={maxAntiPayment} step={1} value={antiPayment}
+              onChange={(event) => setAntiCakePayment(Math.max(0, Math.floor(Number(event.currentTarget.value) || 0)))} />
+            {antiPayment > 0 && antiPayment < fusionCost ? " · 混付会退回融合并自退游" : ""}
+          </label> : null}
+          {maxYoukaiPayment > 0 ? <label className="block text-sm">融合代付妖元数量
+            <input className="soft-input ml-2 w-20" type="number" min={0} max={maxYoukaiPayment} step="any" value={youkaiPayment}
+              onChange={(event) => setYoukaiCakePayment(Math.max(0, Number(event.currentTarget.value) || 0))} />
+          </label> : null}
           <button className="btn-primary w-full justify-center disabled:opacity-50" type="button" disabled={!canFuse}
             onClick={() => onSubmit({ type: "skill", skillId: COMMON_FUSION_SKILL_ID, stacks: 1, targetSkillId: selected.skill.id,
               fusionRequestId: createId("fusion_request"),
+              ...(antiPayment ? { antiCakeSpent: antiPayment } : {}),
+              ...(youkaiPayment ? { youkaiCakeSpent: youkaiPayment } : {}),
               materialSkillIds: defaultMaterials.map(({ skillId }) => skillId),
               ...(selectedTier > 2 ? { fusionMaterialInstanceIds: materialFields.map(({ choice }) => choice.instanceId) } : {}) })}>
-            {preparation ? "免费融合" : "融合并提交出招（2饼）"}
+            {preparation ? "免费融合" : `融合并提交出招（${fusionCost}饼）`}
           </button>
           {!isFusionImplemented(selected.skill.id) ? <p className="text-xs text-gray-500">这条配方已收录，开放效果后才可融合。</p> : null}
         </>
@@ -141,12 +165,13 @@ export function FusionPanel({ state, submitting, onSubmit, onDecompose, onChoose
       {getRootFusions(viewer).map((fusion) => (
         <div key={fusion.id} className="rounded-xl border border-gray-200 p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <strong>{getFusionRecipe(fusion.skillId)?.skill.name ?? "融合技能"} · 占{getFusionTier(fusion.skillId)}槽</strong>
-            <button className="btn-secondary disabled:opacity-50" type="button" disabled={!canDecompose}
-              onClick={() => onDecompose(fusion.id)}>分解{getSkill(fusion.skillId)?.name}</button>
+            <strong>{getFusionRecipe(fusion.skillId)?.skill.name ?? "融合技能"} · 占{getFusionTier(fusion.skillId)}槽
+              {fusion.judgmentRank !== undefined ? ` · 判定 ${getFusionJudgmentRank(fusion)}（${JUDGMENT_RANK_LABELS[getFusionJudgmentRank(fusion)]}）` : ""}</strong>
+            {!isBoundBrokenBladeFusion(viewer.bigCards, fusion.id) ? <button className="btn-secondary disabled:opacity-50" type="button"
+              disabled={!canDecompose} onClick={() => onDecompose(fusion.id)}>分解{getSkill(fusion.skillId)?.name}</button> : null}
           </div>
-          {getFusionRecipe(fusion.skillId)?.skill.name === "枯萎" ? <p className="mt-1 text-xs text-gray-600">
-            第{(fusion.witherSelectionIndex ?? 0) + 1}份选数：{getWitherNumber(viewer, fusion.witherSelectionIndex ?? 0)}
+          {witherGroups.some(({ fusionId }) => fusionId === fusion.id) ? <p className="mt-1 text-xs text-gray-600">
+            选数：{witherGroups.find(({ fusionId }) => fusionId === fusion.id)!.indices.map((index) => getWitherNumber(viewer, index)).join("、")}
             {preparation ? "（准备结束后锁定）" : "（已锁定）"}
           </p> : null}
           {getSkillUseLimit(viewer, fusion.skillId) !== undefined ? <p className="mt-1 text-xs text-gray-600">

@@ -275,7 +275,7 @@ function formatPlaySummary(skill: Skill, player?: PlayerState): string {
   }
 
   const parts = [formatSkillCakeCost(skill.id, undefined, player)];
-  if (skill.id === "skill_37_68416") {
+  if (skill.id === "1036") {
     const charge = player?.buffs.find((buff) => buff.id === "guidao_charge");
     parts.push(`鬼道剩余 ${charge?.infinite ? "∞" : charge?.stacks ?? 0} 次`);
   }

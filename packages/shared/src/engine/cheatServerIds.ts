@@ -1,0 +1,20 @@
+export const CHEAT_CARD_ID = "10603";
+export const CHEAT_GATHER_ID = "1060301";
+export const CHEAT_SHARP_ID = "1060302";
+export const CHEAT_SHARP_DAMAGE_ID = "1060302_damage";
+export const CHEAT_NOGLUES_ID = "1060303";
+export const CHEAT_PIERCE_ID = "1060304";
+export const CHEAT_WARP_ID = "1060305";
+export const CHEAT_ABSOLUTE_ID = "1060306";
+export const CHEAT_GREED_ID = "1060307";
+export const CHEAT_TRANSFER_ID = "1060308";
+export const CHEAT_VICTORY_ID = "1060309";
+export const CHEAT_BACKLASH_ID = "1060310";
+
+export const CHEAT_WARP_STATE = "cheat_warpten";
+export const CHEAT_GATHER_STATE = "cheat_gather_invulnerability";
+export const CHEAT_NOGLUES_STATE = "cheat_noglues_disabled";
+export const CHEAT_SHARP_BONUS = "cheat_sharp_bonus";
+export const CHEAT_SHARP_STOCK = "cheat_sharp_damage_uses";
+export const CHEAT_LAST_CAST = "cheat_last_cast";
+export const CHEAT_VICTORY_CLAIM = "instant_win:cheat_server";

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { withSixStarOutcomes } from "./six-star-test-dice";
 import { createGame, createPlayer, addPlayerToGame, startGame, submitPlayerAction, submitActionWindowSkill,
   advanceActionWindow, FUSION_RECIPES, COMMON_FUSION_SKILL_ID, getAllSkills, getFusionSkillId, getAttackMarkCount,
   getActiveSkillCount, previewPlayerAttackStats, decomposeSkill, recordSkillUse, GameState, PlayerAction, SkillAction, getSkill,
@@ -50,16 +51,16 @@ check("six-star normal outcome uses enhanced bagua; extra unfused bagua stays at
 });
 check("six-star invulnerability blocks subsequent attacks in the same turn", () => {
   let s = fixture("六芒星阵"); s = reveal(s, gain, sha(s, 5), sha(s, 5));
-  s = random(.01, () => end(s)); assert.equal(s.players[0]!.hp, 20);
+  s = withSixStarOutcomes([[true, false, false]], () => end(s)); assert.equal(s.players[0]!.hp, 20);
 });
 check("automatic six-star heals without spending the limited material", () => {
   let s = fixture("六芒星阵"); recordSkillUse(s.players[0]!, skill("六芒星"));
-  s = reveal(s, gain, sha(s, 4)); s = random(.20, () => end(s));
+  s = reveal(s, gain, sha(s, 4)); s = withSixStarOutcomes([[false, true, false]], () => end(s));
   assert.equal(s.players[0]!.hp, 28);
   assert.equal(s.players[0]!.buffs.find(b => b.id === `skill_used:${skill("六芒星")}`)!.stacks, 1);
 });
 check("six-star reflection sends damage back and prevents original damage", () => {
-  let s = fixture("六芒星阵"); s = reveal(s, gain, sha(s, 4)); s = random(.28, () => end(s));
+  let s = fixture("六芒星阵"); s = reveal(s, gain, sha(s, 4)); s = withSixStarOutcomes([[false, false, true]], () => end(s));
   assert.equal(s.players[0]!.hp,20); assert.equal(s.players[1]!.hp,16);
 });
 check("scholar doubles burning earth spell damage", () => {
@@ -119,7 +120,7 @@ check("solar combines stone and youtiao, spends marks for +2/+2, and clears only
 });
 check("each blizzard damage hit performs its own probability check", () => {
   let s=fixture("六芒星阵");s.players[1]!.skills=[skill("暴风雪")];s=reveal(s,gain,{...cast("暴风雪"),targetId:s.players[0]!.id});
-  s=random(.99,()=>end(s));assert.equal(s.eventLog.filter(e=>e.type==="system"&&e.message.startsWith("六芒星阵D12")).length,2);
+  s=withSixStarOutcomes([],()=>end(s));assert.equal(s.eventLog.filter(e=>e.type==="system"&&e.probabilityChecks?.skillId===getFusionSkillId("六芒星阵")).length,6);
 });
 check("a dying armor owner can revive before the chain continues", () => {
   let s=fixture("反伤刺甲",["治愈术"]);s.players[1]!.skills=[...FUSION_RECIPES.find(r=>r.skill.name==="反伤刺甲")!.materialOptions[0]!,skill("火球")];s=fuse(s,"反伤刺甲",1);

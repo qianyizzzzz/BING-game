@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import {
   BigCardAbilityDefinition, BigCardDefinition, PublicGameState, SkillId, HUNYAO_LIGHT_ID, JIHAN_FREEZE_ID,
-  getBigCard, getBigCards, getSkill, isBigSkillMode
+  demonSummonUses, getBigCard, getBigCards, getSkill, isBigSkillMode, isDemonSummonSkill
 } from "@bing/shared";
+import { PanelPlayerPicker, usePanelPlayer } from "./PanelPlayerPicker";
 
 interface BigCardPanelProps {
   state: PublicGameState;
@@ -13,10 +14,9 @@ interface BigCardPanelProps {
 
 export function BigCardPanel({ state, busy = false, isOwner = false, onChange }: BigCardPanelProps) {
   if (!isBigSkillMode(state.config.skillMode)) return null;
-  const viewer = state.players.find((player) => player.id === state.viewerPlayerId);
   const canSelect = state.phase === "lobby" && state.config.skillMode === "big_test_select" && Boolean(onChange);
   const controlled = state.players.filter((player) => player.kind !== "spectator" &&
-    (player.id === viewer?.id || (isOwner && player.kind === "ai")));
+    (player.id === state.viewerPlayerId || (isOwner && player.kind === "ai")));
 
   return (
     <section id="big-card-reference" className="surface-card min-w-0 space-y-3 p-4" data-testid="big-card-panel">
@@ -34,25 +34,53 @@ export function BigCardPanel({ state, busy = false, isOwner = false, onChange }:
         </div>
       ) : state.phase === "lobby" && state.config.skillMode === "big_random" ? (
         <p className="text-sm text-gray-600">开局时，每名玩家随机获得 {state.config.skillCount} 张原生大卡；融合大卡可在测试指定模式中选择。</p>
-      ) : viewer?.bigCards?.length ? (
-        <div className="space-y-2">{viewer.bigCards.map((instance) => {
-          const card = getBigCard(instance.cardId);
-          return card ? <BigCardDetails key={instance.instanceId} card={card} lostAbilityIds={instance.lostAbilityIds}
-            counters={state.statusOverview?.cardCounters[instance.instanceId]}
-            onlyAbilityId={instance.onlyAbilityId} borrowedUntilRound={instance.borrowedUntilRound} disabled={instance.junengDisabled} /> : null;
-        })}</div>
-      ) : <p className="text-sm text-gray-500">{viewer?.kind === "spectator" ? "观战中，其他玩家的未暴露大卡保持隐藏。" : "尚未指定大卡，可继续基础出招测试。"}</p>}
-      {state.phase !== "lobby" ? state.players.filter((player) => player.id !== viewer?.id && player.bigCards?.length).map((player) =>
-        <details key={player.id} className="rounded-lg border border-gray-200 p-2 text-sm">
-          <summary>{player.name} · 已知技能</summary>
-          <ul className="my-2 space-y-1">{[...new Set(player.skills)].filter((id) => !/^\d{7}$/.test(id)).map((id) =>
-            <li key={id}>{getSkill(id)?.name ?? id}</li>)}</ul>
-          {player.bigCards?.map((instance) => {
-            const card = getBigCard(instance.cardId);
-            return card ? <BigCardDetails key={instance.instanceId} card={card} /> : null;
-          })}
-        </details>) : null}
+      ) : <BigCardViewer state={state} />}
     </section>
+  );
+}
+
+function BigCardViewer({ state }: { state: PublicGameState }) {
+  const picker = usePanelPlayer(state);
+  const player = picker.player;
+  const isOwn = player?.id === picker.viewerId;
+  const cards = player?.bigCards ?? [];
+  const visible = isOwn ? cards : cards.filter((instance) => instance.publiclyRevealed);
+  const hiddenCount = isOwn ? 0 : Math.max(0, (player?.bigCardSlotCount ?? cards.length) - visible.length);
+  const knownSkills = !isOwn && state.phase !== "lobby" ?
+    [...new Set(player?.skills)].filter((id) => !/^\d{7}$/.test(id)) : [];
+
+  return (
+    <>
+      <PanelPlayerPicker {...picker} />
+      {visible.length || hiddenCount ? (
+        <div className="space-y-2">
+          {visible.map((instance) => {
+            const card = getBigCard(instance.cardId);
+            if (!card) return null;
+            const counters = isOwn ? {
+              ...state.statusOverview?.cardCounters[instance.instanceId],
+              ...Object.fromEntries(card.abilities.filter(({ id }) => isDemonSummonSkill(id) && !instance.lostAbilityIds?.includes(id))
+                .map(({ id }) => [id, [`召唤剩余 ${demonSummonUses(state, player, id, instance.instanceId)} 次`]]))
+            } : undefined;
+            return <BigCardDetails key={instance.instanceId} card={card}
+              lostAbilityIds={isOwn ? instance.lostAbilityIds : undefined}
+              counters={counters}
+              onlyAbilityId={isOwn ? instance.onlyAbilityId : undefined}
+              borrowedUntilRound={isOwn ? instance.borrowedUntilRound : undefined}
+              disabled={isOwn ? instance.junengDisabled : undefined} />;
+          })}
+          {Array.from({ length: hiddenCount }, (_, index) => (
+            <p key={index} className="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">未暴露</p>
+          ))}
+        </div>
+      ) : <p className="text-sm text-gray-500">暂无大卡。</p>}
+      {knownSkills.length ? (
+        <details key={player?.id} className="rounded-lg border border-gray-200 p-2 text-sm">
+          <summary>{player?.name} · 已知技能</summary>
+          <ul className="my-2 space-y-1">{knownSkills.map((id) => <li key={id}>{getSkill(id)?.name ?? id}</li>)}</ul>
+        </details>
+      ) : null}
+    </>
   );
 }
 
@@ -119,6 +147,7 @@ function BigCardDetails({ card, lostAbilityIds, onlyAbilityId, borrowedUntilRoun
       {card.id === "10503" ? <p className="mt-2 text-xs text-teal-800">冰伤反击只打其他玩家。开局发放极寒风暴、大雪球和极寒。</p> : null}
       <ol className="mt-3 space-y-3">{abilities.map((ability) => <li key={ability.id} className="min-w-0 border-t border-gray-100 pt-2">
         <span className="text-xs font-semibold text-teal-800">{ability.id}</span>
+        {ability.typeTags?.map((tag) => <span key={tag} className="ml-2 rounded bg-teal-50 px-1 text-xs text-teal-900">{tag}</span>)}
         {lostAbilityIds?.includes(ability.id) ? <span className="ml-2 text-xs text-amber-800">已永久失去</span> : null}
         <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-800">{displayedAbilityDescription(ability)}</p>
         {counters?.[ability.id]?.map((counter, index) => (

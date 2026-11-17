@@ -1,0 +1,10 @@
+export const LONE_STAR_CARD_ID = "10538";
+export const LONE_STAR_PASSIVE_ID = "1053801";
+export const LONE_STAR_STRIKE_ID = "1053802";
+export const LONE_STAR_PIERCE_ID = "1053803";
+export const LONE_STAR_RAGE_ID = "1053804";
+export const LONE_STAR_FINALE_ID = "1053805";
+export const LONE_STAR_FUSION_ID = "4019";
+export const LONE_STAR_DUEL = "lone_star_duel";
+export const LONE_STAR_SUICIDE = "lone_star_suicide";
+export const LONE_STAR_UPGRADE = "lone_star_upgrade";

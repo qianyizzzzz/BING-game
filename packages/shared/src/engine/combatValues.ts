@@ -12,10 +12,11 @@ export function combatValue(coefficient: number, exponent = 0): CombatValue {
 
 export const INFINITY_VALUE = combatValue(1, 1);
 export const RETIRE_VALUE = combatValue(1, 1.9);
+export const VANISH_VALUE = combatValue(1, 2.9);
 
 const legacyDefeatValues = [
   { code: RETIRE_EFFECT_POWER, value: RETIRE_VALUE, level: 2, trait: "defeat_retire" },
-  { code: VANISH_EFFECT_POWER, value: combatValue(1, 2.9), level: 3, trait: "defeat_vanish" },
+  { code: VANISH_EFFECT_POWER, value: VANISH_VALUE, level: 3, trait: "defeat_vanish" },
   { code: EXECUTE_EFFECT_POWER, value: combatValue(1, 3.9), level: 4, trait: "defeat_execute" },
   { code: EXPLODE_EFFECT_POWER, value: combatValue(1, 4.9), level: 5, trait: "defeat_explode" }
 ] as const;
@@ -96,10 +97,12 @@ export function attackLevelValue(stats: Pick<AttackStats, "level" | "levelValue"
 }
 
 export function withAttackPower(stats: AttackStats, value: CombatValue): AttackStats {
+  if (stats.fixedPointPower) return stats;
   return { ...stats, power: projectCombatValue(value), powerValue: value };
 }
 
 export function withAttackLevel(stats: AttackStats, value: CombatValue): AttackStats {
+  if (stats.noClashLevel) return stats;
   return { ...stats, level: projectCombatValue(value), levelValue: value };
 }
 
@@ -111,7 +114,8 @@ export function offsetAttackStats(stats: AttackStats, power: number, level: numb
 export function getPointDamageDefeatLevel(stats: AttackStats | undefined): DefeatLevel | undefined {
   if (!stats) return undefined;
   return [...legacyDefeatValues].reverse().find(rank => stats.traits.includes(rank.trait))?.level ??
-    (stats.powerValue === undefined ? legacyDefeatValues.find(rank => rank.code === stats.power)?.level : undefined);
+    (stats.powerValue === undefined ? legacyDefeatValues.find(rank => rank.code === stats.power)?.level : undefined) ??
+    stats.divineRiftRank;
 }
 
 export function getPointDamageTrait(value: CombatValue): AttackStats["traits"][number] | undefined {

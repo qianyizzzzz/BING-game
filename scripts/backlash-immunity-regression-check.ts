@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { withSixStarOutcomes } from "./six-star-test-dice";
 import {
   GameState, PlayerAction, SkillAction, ActionSubmission, FUSION_RECIPES, COMMON_FUSION_SKILL_ID, createId, createGame,
   createPlayer, addPlayerToGame, startGame, submitPlayerAction, submitActionWindowSkill, advanceActionWindow,
@@ -38,9 +39,7 @@ const rebound = (s: GameState, target = 0): PlayerAction => ({ type: "defense", 
 const damage = (s: GameState, i = 0) => s.eventLog.filter((e) => e.type === "damage" && e.targetId === s.players[i]!.id);
 const buff = (s: GameState, id: string) => s.players[0]!.buffs.find((b) => b.id === id);
 function dice<T>(roll: number, run: () => T): T {
-  const previous = Math.random;
-  Math.random = () => new Error().stack!.split("\n")[2]!.includes("addDamage") ? (roll - .5) / 12 : previous();
-  try { return run(); } finally { Math.random = previous; }
+  return withSixStarOutcomes([[roll <= 2, roll === 3, roll === 4]], run);
 }
 let passed = 0; const failures: string[] = [];
 function check(name: string, run: () => void) {
@@ -92,10 +91,10 @@ for (const protection of ["八卦阵", "神之庇护", "空城计", "temp_invuln
   if (protection === "gold") assert.equal(buff(s, "jin_zhong_zhao")?.stacks, 1);
   if (protection === "defense_pool") assert.equal(buff(s, "defense_value")?.stacks, 10);
 });
-for (const roll of [1, 2, 3, 4, 12]) check(`six-star array D12=${roll} separates immunity from invulnerability on backlash`, () => {
+for (const roll of [1, 3, 4, 12]) check(`six-star array outcome ${roll} separates immunity from invulnerability on backlash`, () => {
   let s = fixture([["六芒星阵"], [], []]); s = reveal(s, [sha(s), rebound(s), gain]); s = dice(roll, () => end(s));
   assert.equal(s.players[0]!.hp, roll === 3 ? 39 : 27);
-  assert.equal(s.eventLog.filter((e) => e.type === "system" && e.message.startsWith("六芒星阵D12")).length, 1);
+  assert.equal(s.eventLog.filter((e) => e.type === "system" && e.probabilityChecks?.skillId === getFusionSkillId("六芒星阵")).length, 3);
   assert.equal(damage(s).length, roll === 3 ? 0 : 1);
 });
 check("existing invulnerability does not suppress the array's immunity roll against backlash", () => {
@@ -132,10 +131,10 @@ check("infinite returned scatter can be immunized and rewards infinite ghost cha
   assert.equal(s.players[0]!.hp, 29); assert.equal(damage(s).length, 1);
   assert.equal(buff(s, "guidao_charge")?.infinite, true);
 });
-check("an immunized returned attack cannot grant its original source an extra lu-growth hit", () => {
+check("an immunized returned attack still counts for its original source's lu growth", () => {
   let s = fixture([["电闪雷鸣", "撸"], ["绝弹"], ["绝弹"]]);
   s = end(reveal(s, [{ actions: [cast("撸", { targetId: s.players[1]!.id }), cast("撸", { stacks: 2, targetId: s.players[2]!.id })] }, rebound(s), rebound(s)]));
-  assert.equal(s.players[0]!.hp, 29); assert.equal(buff(s, "lu_growth")?.stacks, 1); assert.equal(buff(s, "guidao_charge")?.stacks, 1);
+  assert.equal(s.players[0]!.hp, 29); assert.equal(buff(s, "lu_growth")?.stacks, 2); assert.equal(buff(s, "guidao_charge")?.stacks, 1);
 });
 for (const field of ["永远之夜", "破地之力", "衰竭"]) check(`${field} invalidates an attack before it can return as backlash`, () => {
   let s = fixture([[], [], [field]]);

@@ -1,0 +1,9 @@
+export const DIVINE_REVERSAL_CARD_ID = "10544";
+export const DIVINE_CROSS_ID = "1054401";
+export const DIVINE_BLIND_ID = "1054402";
+export const DIVINE_DOOM_ID = "1054403";
+export const DIVINE_FLAME_ID = "1054404";
+export const DIVINE_RIFT_ID = "1054405";
+export const DIVINE_EXIT_ID = "1054406";
+export const DIVINE_FLAME_ENABLED = "divine_reversal_flame";
+export const DIVINE_EXIT_LOCK = "divine_reversal_exit_lock";

@@ -50,10 +50,6 @@ export function CharacterSelect({
           <h3 className="mt-1 truncate text-lg font-black text-gray-950">
             {draft.name}
           </h3>
-          <p className="text-sm font-bold text-gray-600">{draft.archetype}</p>
-          <p className="mt-1 text-sm leading-6 text-gray-500">
-            {draft.description}
-          </p>
           <button
             className="btn-primary mt-3"
             data-testid="confirm-character"
@@ -92,7 +88,6 @@ export function CharacterSelect({
             />
             <span>
               <strong>{character.name}</strong>
-              <small>{character.archetype}</small>
             </span>
           </button>
         ))}

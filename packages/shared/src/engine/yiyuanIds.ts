@@ -1,0 +1,14 @@
+export const YIYUAN_CARD = "10612";
+export const YIYUAN_ETERNAL = "1061201";
+export const YIYUAN_STEP = "1061202";
+export const YIYUAN_CHANGE = "1061203";
+export const YIYUAN_MIMIC = "1061204";
+export const YIYUAN_GOD = "1061205";
+export const YIYUAN_REPEAT = "yiyuan_repeat";
+export const YIYUAN_RESTORE = "yiyuan_restore";
+export const YIYUAN_CAKES = "yiyuan_cake_preservation";
+export const YIYUAN_STEP_STATE = "yiyuan_step";
+export const YIYUAN_CHANGE_STATE = "yiyuan_change";
+export const YIYUAN_MIMIC_STATE = "yiyuan_mimic";
+export const YIYUAN_GROWTH = "yiyuan_god_growth";
+export const YIYUAN_INVINCIBLE = "yiyuan_god_invincible";

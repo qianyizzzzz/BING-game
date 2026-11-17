@@ -16,6 +16,7 @@ import { buildBattlePresentation } from "../apps/client/src/lib/battlePresentati
 import { battleDirectorSeatRole, buildBattleDirectorSnapshot } from "../apps/client/src/lib/battleDirector";
 import { getBattleCueProfile } from "../apps/client/src/lib/battleAudio";
 import { buildSeatFeedbackMap } from "../apps/client/src/lib/tableFeedback";
+import { formatEvent } from "../apps/client/src/lib/format";
 
 const now = Date.now();
 
@@ -336,6 +337,15 @@ const switchedState: PublicGameState = {
   }]
 };
 assert.equal(buildSeatFeedbackMap(switchedState).p2?.label, "油条", "seat reflects the switched defense");
+
+for (const [blockKind, label] of [["invalid", "无效"], ["immune", "免疫"], ["ignored", "无视"]] as const) {
+  const event = { ...baseEvent(blockKind), type: "attack_blocked" as const, sourceId: "p1", targetId: "p2",
+    attackName: "杀", blockKind };
+  const message = formatEvent(event, state);
+  assert.ok(message.includes(label));
+  assert.ok(!message.includes("防住"));
+  assert.equal(buildBattleSteps([event], state)[0]?.label, `杀 · ${label}`);
+}
 
 console.log(`turn timeline check passed: ${cases.length} event mappings and presentation cues covered`);
 

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { readSkillRecordJson } from "@bing/shared";
 
 const rootDir = process.env.MATCH_DATA_DIR ?? "data";
 const legacyRootDir = "apps/server/data";
@@ -30,7 +31,7 @@ for (const dir of sourceTrainingDirs) {
     const filePath = path.join(dir, file);
     const lines = fs.readFileSync(filePath, "utf-8").split(/\r?\n/).filter(Boolean);
     for (const line of lines) {
-      const sample = JSON.parse(line);
+      const sample = readSkillRecordJson(line);
       output.write(`${JSON.stringify(normalizeSample(sample))}\n`);
       exported += 1;
     }

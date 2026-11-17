@@ -6,6 +6,6 @@ export const SPELL_DAMAGE_NAMES = new Set([
   "火烧大地", "净化之风", "雷电法术", "火球溅射", "传音入密", "帝炎之境",
   "斗转星移", "同生共死", "邪域", "魔域", "帝灵之境", "反伤刺甲", "冰火两仪眼"
 ]);
-export function spellDamageMultiplier(player: PlayerState | undefined): number {
-  return 2 ** getActiveFusionCount(player, "博学者之怒");
+export function spellDamageMultiplier(player: PlayerState | undefined, multiplierPerLayer = 2): number {
+  return multiplierPerLayer ** getActiveFusionCount(player, "博学者之怒");
 }

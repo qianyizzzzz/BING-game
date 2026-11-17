@@ -53,7 +53,7 @@ function turn(state: GameState, actions: PlayerAction[]): GameState {
 test("48 条配方按实际槽数入库，只有实现完整的条目开放", () => {
   const triples = FUSION_RECIPES.filter((recipe) => recipe.tier === 3);
   assert.equal(triples.length, 48);
-  assert.equal(triples.filter((recipe) => getAllSkills({ includeFusions: true }).some((skill) => skill.id === recipe.skill.id && skill.implemented)).length, 25);
+  assert.equal(triples.filter((recipe) => getAllSkills({ includeFusions: true }).some((skill) => skill.id === recipe.skill.id && skill.implemented)).length, 32);
 });
 
 test("暗影之魂初始有两次暗影盾，只在暗影狙击使人退游时加次", () => {
@@ -159,6 +159,7 @@ test("风之轻灵的净化之风不限奇偶并分两段，过往时空改为�
   state = submitActionWindowSkill(state, owner(state).id, action("净化之风"));
   assert.deepEqual(state.players.slice(1).map(({ hp }) => hp), [5, 4]);
   state = submitActionWindowSkill(state, owner(state).id, action("过往时空"));
+  state = advanceActionWindow(state);
   assert.equal(owner(state).buffs.find(({ id }) => id === "small_space:past_time")?.stacks, 2);
 });
 
@@ -316,14 +317,16 @@ test("四融合可引用三融合实例，逐层分解；移除底层素材时�
   }
 });
 
-test("v4 的 40 条四融合配方包含四种素材组合，炽焰、极寒、天空之城和破晓已开放", () => {
+test("v4 的 40 条四融合配方包含四种素材组合，开放已实现的配方", () => {
   const recipes = FUSION_RECIPES.filter(({ tier }) => tier === 4);
   const patterns = new Set(recipes.flatMap(({ materialOptions }) => materialOptions.map((ids) =>
     ids.map(getFusionTier).sort((a, b) => b - a).join("+"))));
   assert.equal(recipes.length, 40);
   assert.deepEqual(patterns, new Set(["1+1+1+1", "2+1+1", "2+2", "3+1"]));
   const skillList = getAllSkills({ includeFusions: true });
-  assert.deepEqual(recipes.map(({ skill }) => skill.id).filter((id) => skillList.some((skill) => skill.id === id && skill.implemented)), ["4004", "4005", "4007", "4008", "4014", "4034"]);
+  assert.deepEqual(recipes.map(({ skill }) => skill.id).filter((id) => skillList.some((skill) => skill.id === id && skill.implemented)),
+    ["4001", "4002", "4004", "4005", "4006", "4007", "4008", "4010", "4011", "4012", "4014", "4015", "4016", "4017", "4018",
+      "4019", "4021", "4022", "4023", "4029", "4033", "4034", "4039"]);
 });
 
 test("天空之城保留双子融合，第三回合与第四回合的闪现均可挡卷子", () => {
@@ -557,6 +560,8 @@ test("圣宝五倍产饼与第三回合产饼；轮回吞噬用原吸血流程�
   let state = drain(fuse(fuse(fixture(["圣", "齐天大圣", "圣水收集器"]), "圣灵觉醒"), "圣宝"));
   owner(state).cakes = 3;
   state = turn(state, [action("圣灵觉醒"), cake, cake]);
+  assert.equal(owner(state).cakes, 2);
+  state = drain(state);
   assert.equal(owner(state).cakes, 7);
   state = drain(turn(state, [cake, cake, cake]));
   assert.equal(state.roundTurnNumber, 3);

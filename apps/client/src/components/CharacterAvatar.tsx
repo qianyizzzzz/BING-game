@@ -69,7 +69,7 @@ export function CharacterPortrait({
     <span
       className={["character-portrait-badge", className].join(" ")}
       role="img"
-      aria-label={`${name} 手绘头像`}
+      aria-label={`${name} 头像`}
       style={{
         "--portrait-a": portraitTone.a,
         "--portrait-b": portraitTone.b,

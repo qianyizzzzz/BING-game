@@ -23,7 +23,7 @@ npm.cmd run test:effect-assets -- --json
 | 缺失资产文件总数 | 833 |
 | 坏文件 / 尺寸错误 | 0 |
 
-当前已经跑通完整视频闭环的是 `skill_78_18866`（火球）：已有 `keyframe-01.png` 到 `keyframe-04.png`、`poster.png`、`effect.mp4`、`effect.webm`。
+当前已经跑通完整视频闭环的是 `1077`（火球）：已有 `keyframe-01.png` 到 `keyframe-04.png`、`poster.png`、`effect.mp4`、`effect.webm`。
 
 ## 生成顺序
 
@@ -33,7 +33,7 @@ npm.cmd run test:effect-assets -- --json
 
 范围：
 
-- `skill_78_18866` 火球
+- `1077` 火球
 - 生成 `effect.mp4`
 - 生成或转码 `effect.webm`
 - 保留 `poster.png`

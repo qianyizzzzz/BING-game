@@ -1,0 +1,16 @@
+export const VACUUM_CARD_ID = "10541";
+export const VACUUM_INHERIT_ID = "1054101";
+export const VACUUM_STATE_ID = "1054102";
+export const VACUUM_FLUCTUATION_ID = "1054103";
+export const VACUUM_EXTRACT_ID = "1054104";
+export const VACUUM_ENTER_ID = "1054105";
+export const VACUUM_UNLIMITED_ID = "1054106";
+export const VACUUM_MAX_ID = "1054107";
+export const VACUUM_PAYMENT_ID = "1054108";
+export const ANTI_CAKE_MOVE_ID = "1054103:anti_cake";
+export const VACUUM_ITEM = "anti_cake";
+export const VACUUM_SPACE = "vacuum_exile";
+export const VACUUM_DODGE = "vacuum_dodge";
+export const VACUUM_MAX_RANK = "vacuum_max_rank";
+export const VACUUM_PROGRESS = "vacuum_progress";
+export const VACUUM_STATE = "vacuum_state";

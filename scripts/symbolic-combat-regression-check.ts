@@ -113,9 +113,9 @@ withFentianPower(combatValue(4), xPlusOne, INFINITE_DAMAGE, () => {
     if (invulnerable) player(initial, 1).buffs.push({ id: "temp_invulnerable", name: "无敌", stacks: 1 });
     const state = turn(initial, aim(initial, FENTIAN_ATTACK_ID), counter(initial));
     assert.equal(player(state, 1).hp, 50);
-    assert.equal(player(state, 1).buffs.some(buff => buff.stateType === "burning"), !invulnerable);
+    assert.equal(player(state, 1).buffs.some(buff => buff.stateType === "burning"), true);
   }
-  console.log("ok - vanishing damage still attaches hit effects unless the attack is stopped");
+  console.log("ok - a zero-damage surviving clash still hits through invulnerability");
 });
 
 for (const power of [combatValue(3, 1), combatValue(1, 2)]) {
@@ -151,7 +151,7 @@ console.log("ok - 2x−3x = −x, and ordinary x² remains ordinary death");
 {
   const initial = fixture();
   const paper = getAllSkills().find(skill => skill.name === "卷子")!.id;
-  appendSkillInstances(player(initial), [paper, "skill_33_55159"]);
+  appendSkillInstances(player(initial), [paper, "1032"]);
   const originalLevel = sha.level;
   try {
     sha.level = RETIRE_EFFECT_POWER;

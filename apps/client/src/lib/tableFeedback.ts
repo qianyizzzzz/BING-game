@@ -9,6 +9,7 @@ import {
   getActionPlanLabel,
   getSkill
 } from "@bing/shared";
+import { attackBlockLabel, attackInterceptionLabel } from "./format";
 
 export type CharacterAnimationState =
   | "idle"
@@ -174,22 +175,10 @@ export function buildSeatFeedbackMap(state: PublicGameState): Record<PlayerId, S
     }
 
     if (event.type === "attack_blocked") {
-      const label =
-        event.blockKind === "dodge"
-          ? "回避"
-          : event.blockKind === "reduce"
-            ? "减免"
-            : event.blockKind === "invulnerable"
-              ? "无敌"
-              : event.blockKind === "shield"
-                ? "抵挡"
-                : event.blockKind === "immune"
-                  ? "免疫"
-                  : "防住";
       setFeedback(feedback, event.targetId, {
         animation: "defend",
         animationKey: event.id,
-        label,
+        label: attackBlockLabel(event),
         tone: "defense"
       });
       setFeedback(feedback, event.sourceId, {
@@ -269,7 +258,7 @@ export function buildTableEffects(state: PublicGameState): TableEffect[] {
   const effects: TableEffect[] = [];
   const aliveEnemyIds = (sourceId: PlayerId) =>
     state.players
-      .filter((player) => player.id !== sourceId && player.status === "alive")
+      .filter((player) => player.id !== sourceId && player.kind !== "spectator" && player.status === "alive")
       .map((player) => player.id);
 
   const latestRevealIndex = findLatestEventIndex(state.eventLog, "turn_revealed");
@@ -319,7 +308,7 @@ export function buildTableEffects(state: PublicGameState): TableEffect[] {
         targetType: "self",
         sourceId: event.sourceId,
         targetIds: [event.targetId],
-        label: "防御"
+        label: attackInterceptionLabel(event) ?? "防御"
       });
       continue;
     }
@@ -400,17 +389,17 @@ export function buildTableEffects(state: PublicGameState): TableEffect[] {
           }
 
           const skill = getSkill(action.skillId);
-          const explicitTargetIds = actionTargetIds(action);
-          const targetIds = explicitTargetIds.length > 0
-            ? explicitTargetIds
-            : aliveEnemyIds(sourceId);
-          const config = skillEffectForAction(action.skillId, targetIds.length);
+          const targetMode = skill?.play?.targetMode;
+          const targetIds = targetMode === "none" ? [] : actionTargetIds(action);
+          if (targetIds.length === 0 && targetMode === "all") targetIds.push(...aliveEnemyIds(sourceId));
+          const selfCast = targetIds.length === 0;
+          const config = selfCast ? SKILL_EFFECT_PRESETS.heal : skillEffectForAction(action.skillId, targetIds.length);
           effects.push({
             ...config,
             id: `${event.id}-${sourceId}-${action.skillId}`,
             skillId: action.skillId,
             sourceId,
-            targetIds: targetIds.length > 0 ? targetIds : [sourceId],
+            targetIds: selfCast ? [sourceId] : targetIds,
             label: skill?.name ?? "技能"
           });
         }

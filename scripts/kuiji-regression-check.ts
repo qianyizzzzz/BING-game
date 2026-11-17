@@ -43,7 +43,7 @@ test("开局授予实际技能；窥视只给持有者看原卡，公开复制�
   const [a, b, c] = state.players;
   assert.equal(getActiveFusionCount(a, "虚无"), 1);
   assert.equal(getActiveFusionCount(a, "天空之城"), 1);
-  assert.ok(a!.skills.includes("skill_5_34881") && a!.skills.includes(HEALING_ART_ID));
+  assert.ok(a!.skills.includes("1004") && a!.skills.includes(HEALING_ART_ID));
   assert.equal(toPublicGameState(state, a!.id).players[1]!.bigCards?.[0]?.cardId, "10504");
   assert.equal(toPublicGameState(state, c!.id).players[1]!.bigCards?.length, 0);
   state = submitActionWindowSkill(state, a!.id, cast(KUISHI_ID, { targetBigCardInstanceId: "card-1-0" }));
@@ -85,20 +85,37 @@ test("灵媒只按实际伤害和回血累计，增长治愈术次数不增发�
   assert.equal(a.bigCards?.[0]?.guidanceHealingUses, 1);
 });
 
+test("变招赋予必定成立可以恢复被灵媒无效的原招，原费用只扣一次", () => {
+  for (const mustResolve of [false, true]) {
+    let state = fixture();
+    const [a, b, c] = state.players;
+    state = [cast(SPIRIT_GUIDANCE_ID, { targetIds: [b!.id] }), sha(c!.id), cake, cake]
+      .reduce((current, action, index) => submitPlayerAction(current, current.players[index]!.id, action).state, state);
+    assert.equal(state.activeTimingPhase, "turn_change_action");
+    state.players[1]!.buffs.push({ id: "test-move-resolution", name: "测试必定成立", stacks: 1, attackActionIndex: 0,
+      expiresAtTurn: state.turnNumber, moveResolution: { mustResolve, ignoreMoveWhenUndefended: true } });
+    state = drain(state, "turn_end_action");
+    assert.equal(state.players[1]!.cakes, 29);
+    assert.equal(state.players[2]!.hp, mustResolve ? 24 : 25);
+    assert.equal(state.eventLog.some((event) => event.type === "damage" && event.sourceId === b!.id && event.targetId === c!.id), mustResolve);
+    assert.ok(state.eventLog.some((event) => event.type === "damage" && event.sourceId === a!.id));
+  }
+});
+
 test("被灵媒取消时仍消耗元素和限定次数", () => {
   let state = fixture([["10505"], ["10504"], [], []]);
   const [a, b, c] = state.players;
   b!.buffs.push({ id: "element:聚", name: "聚", stateType: "element_resource", stacks: 2 });
-  appendSkillInstances(c!, ["skill_95_91337"]);
+  appendSkillInstances(c!, ["1094"]);
   state = turn(state, [cast(SPIRIT_GUIDANCE_ID, { targetIds: [b!.id] }), cast(JUNENG_SHIELD_ID, { stacks: 2 }), small, small]);
   assert.equal(getElementAmount(state.players[1], "聚"), 0);
   assert.equal(state.players[1]!.hp, 25);
   assert.equal(state.players[1]!.buffs.find((buff) => buff.id === "defense_value"), undefined);
   state = drain(state);
   state.players[0]!.cakes = 3;
-  state = turn(state, [cast(SPIRIT_GUIDANCE_ID, { targetIds: [c!.id] }), small, cast("skill_95_91337", { targetId: a!.id }), small]);
+  state = turn(state, [cast(SPIRIT_GUIDANCE_ID, { targetIds: [c!.id] }), small, cast("1094", { targetId: a!.id }), small]);
   assert.equal(state.players[0]!.status, "alive");
-  assert.equal(state.players[2]!.buffs.find((buff) => buff.id === "skill_used:skill_95_91337")?.stacks, 1);
+  assert.equal(state.players[2]!.buffs.find((buff) => buff.id === "skill_used:1094")?.stacks, 1);
 });
 
 test("小空间主客隔离，群攻和焚天清场不跨空间；主空间轮末返回", () => {

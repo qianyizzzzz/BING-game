@@ -1,16 +1,22 @@
 import { GameState, PlayerState, SkillAction, SkillFusionState, SkillId } from "../types";
-import { FUSION_RECIPES, getEnhancedChildFusionIds, getFusionRecipe, getFusionSkillId, getFusionTier, getNextWitherSelectionIndex, isFusionActive, reconcileSkillFusions } from "../skills/fusion";
+import { FUSION_RECIPES, getEnhancedChildFusionIds, getFusionRecipe, getFusionSkillId, getFusionTier, reserveWitherSelections, isFusionActive, reconcileSkillFusions } from "../skills/fusion";
 import { getSmallSkillIds, getSkill } from "../skills/registry";
 import { alivePlayers, createBaseEvent, createId, findPlayer, revealSkillToAll, revealSkillOnUse, recordSkillUsed } from "./gameFactory";
-import { appendSkillInstances, ensureFusionSkillInventory, replaceSkillInstanceAt } from "./skillInventory";
-import { MORE_TRIES_ID, SLOT_MACHINE_ID, VERDICT_INHERIT_ID, bigCardHasAbility } from "../bigCards/abilities";
+import { appendSkillInstances, ensureFusionSkillInventory, nextSkillAcquisitionOrder, replaceSkillInstanceAt } from "./skillInventory";
+import { HEALING_ART_ID, MORE_TRIES_ID, SLOT_MACHINE_ID, VERDICT_INHERIT_ID, bigCardHasAbility } from "../bigCards/abilities";
+import { HOLY_POTENTIAL_FUSION_ID } from "./sanctuaryIds";
+import { rememberHexagramMirror } from "./hexagram";
 
-export const SAND_SKILL_ID = "skill_4_65637";
-export const MIRROR_SKILL_ID = "skill_101_4254";
-export const AGAIN_SKILL_ID = "skill_3_56718";
-export const UNCLE_SKILL_IDS = ["skill_81_59663", "skill_82_45540", "skill_83_32356", "skill_84_6114"];
+export const SAND_SKILL_ID = "1003";
+export const MIRROR_SKILL_ID = "1100";
+export const AGAIN_SKILL_ID = "1002";
+export const UNCLE_SKILL_IDS = ["1080", "1081", "1082", "1083"];
 
 export function initializeFusionAcquisition(player: PlayerState, fusion: SkillFusionState): void {
+  if (fusion.skillId === HOLY_POTENTIAL_FUSION_ID) {
+    appendSkillInstances(player, [HEALING_ART_ID, HEALING_ART_ID], fusion.sourceBigCardInstanceId);
+    return;
+  }
   if (fusion.skillId === SLOT_MACHINE_ID) {
     fusion.rerollCompletedSlotIds = [];
     return;
@@ -94,7 +100,7 @@ export function getAcquisitionSkillChoices(player: PlayerState, skillId: SkillId
 
 /** Copy effects and fresh capacity, never the other player's cooldowns, marks, seals or usage ledger. */
 export function grantInitializedSkill(state: GameState, playerId: string, skillId: SkillId, reason: string, expose = true,
-  copiedMaterials?: SkillId[], sourceBigCardInstanceId?: string): string | undefined {
+  copiedMaterials?: SkillId[], sourceBigCardInstanceId?: string, witherSelectionWidth = 1): string | undefined {
   const player = findPlayer(state, playerId)!;
   const recipe = getFusionRecipe(skillId);
   if (recipe) {
@@ -104,7 +110,8 @@ export function grantInitializedSkill(state: GameState, playerId: string, skillI
       grantInitializedSkill(state, playerId, id, reason, false, undefined, sourceBigCardInstanceId)!);
     const instanceIds = appendSkillInstances(player, materials.filter((id) => !getFusionRecipe(id)), sourceBigCardInstanceId);
     const fusion: SkillFusionState = { id: createId("fusion_instance"), skillId, materialSkillIds: materials,
-      ...(recipe.skill.name === "枯萎" ? { witherSelectionIndex: getNextWitherSelectionIndex(player) } : {}),
+      acquisitionOrder: nextSkillAcquisitionOrder(player),
+      ...reserveWitherSelections(player, skillId, witherSelectionWidth),
       ...(player.skillInventory ? { materialInstanceIds: instanceIds } : {}),
       ...(materialFusionIds.length ? { materialFusionIds } : {}),
       ...(sourceBigCardInstanceId ? { sourceBigCardInstanceId } : {}) };
@@ -154,5 +161,6 @@ export function resolveFusionAcquisition(state: GameState, playerId: string, act
   const copiedMaterials = name === "天魔舞" && action.targetId ? findPlayer(state, action.targetId)?.skillFusions
     ?.find((other) => other.skillId === action.targetSkillId)?.materialSkillIds : undefined;
   grantInitializedSkill(state, playerId, action.targetSkillId, name === "天魔舞" ? "镜像法术复制" : "沙子变化", name !== "猥琐小叔叔", copiedMaterials);
+  if (name === "天魔舞") rememberHexagramMirror(player, action.targetSkillId);
   return true;
 }

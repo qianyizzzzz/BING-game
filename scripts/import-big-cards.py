@@ -49,7 +49,10 @@ def main():
         card['abilities'].append(ability)
     for card in cards.values():
         card['abilities'].sort(key=lambda item: item['order'])
-        if len(card['abilities']) != card.pop('_childCount') or [a['order'] for a in card['abilities']] != list(range(1, len(card['abilities']) + 1)):
+        expected_count = card.pop('_childCount')
+        orders = [a['order'] for a in card['abilities']]
+        sparse_hidden = card['sourceGroup'] == '隐藏至尊' and len(orders) == len(set(orders)) and all(order > 0 for order in orders)
+        if len(card['abilities']) != expected_count or not sparse_hidden and orders != list(range(1, len(card['abilities']) + 1)):
             raise ValueError(f'Missing or noncontiguous children: {card["id"]}')
     output = ROOT / 'packages/shared/src/bigCards/generatedCatalog.ts'
     payload = json.dumps(list(cards.values()), ensure_ascii=False, indent=2)

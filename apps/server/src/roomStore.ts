@@ -1,3 +1,4 @@
+import { sevenStarLegacyChoices, SEVEN_STAR_YUHENG } from "@bing/shared";
 import {
   GameId,
   GameState,
@@ -15,20 +16,26 @@ import {
   createBaseEvent,
   createGame,
   createPlayer,
+  currentPurpleForesight,
   chooseWitherNumber,
   decomposeSkill,
   enterActionWindow,
   getSkill,
+  hasSunClockEffects,
   guessPlayerSkill,
   passActionWindow,
   skipActionWindowsUntilTurnAction,
+  settleSunPuppetClock,
   startGame,
   submitActionWindowSkill,
   submitPlayerAction,
   submitPointGameAction, hasPendingPointGame, POINT_GAME_MOVES, getBlindSkillChoices, type PointGameAction,
+  submitVictoryCounter, type VictoryCounterAction,
+  submitRetirementCounter, type RetirementCounterAction,
+  canCounterRetirement, canUseCharityExitHealing, canUseKarmaExitRebirth,
   toPublicGameState
 } from "@bing/shared";
-import { createId, getBigCard, isBigSkillMode, MAX_BIG_CARDS_PER_PLAYER, parseRoomPreset, sanitizeBigCardIds } from "@bing/shared";
+import { createId, getBigCard, getStartingHp, isBigSkillMode, isValidInitialHp, MAX_BIG_CARDS_PER_PLAYER, parseRoomPreset, sanitizeBigCardIds, validateRandomBigCardSettings } from "@bing/shared";
 import { chooseAiAction, chooseAiActionWindowSkill } from "./ai";
 import { MatchRecorder } from "./matchRecorder";
 
@@ -125,7 +132,7 @@ export class RoomStore {
     action: ActionSubmission
   ): SubmitActionResult {
     const state = this.requireRoom(roomId);
-    this.recorder.recordDecision(state, playerId, action);
+    if (!state.gameSwitch) this.recorder.recordDecision(state, playerId, action);
     const result = submitPlayerAction(state, playerId, action);
     this.rooms.set(roomId, result.state);
     this.recorder.recordState(result.state);
@@ -175,6 +182,20 @@ export class RoomStore {
 
   submitPointGame(roomId: GameId, playerId: PlayerId, action: PointGameAction): GameState {
     const next = submitPointGameAction(this.requireRoom(roomId), playerId, action);
+    this.rooms.set(roomId, next);
+    this.recorder.recordState(next);
+    return this.runAiTurns(roomId);
+  }
+
+  submitVictoryResponse(roomId: GameId, playerId: PlayerId, action: VictoryCounterAction): GameState {
+    const next = submitVictoryCounter(this.requireRoom(roomId), playerId, action);
+    this.rooms.set(roomId, next);
+    this.recorder.recordState(next);
+    return this.runAiTurns(roomId);
+  }
+
+  submitRetirementResponse(roomId: GameId, playerId: PlayerId, action: RetirementCounterAction): GameState {
+    const next = submitRetirementCounter(this.requireRoom(roomId), playerId, action);
     this.rooms.set(roomId, next);
     this.recorder.recordState(next);
     return this.runAiTurns(roomId);
@@ -274,10 +295,12 @@ export class RoomStore {
       next.ownerId = next.players[0]!.id;
     }
 
-    next.updatedAt = Date.now();
-    this.rooms.set(roomId, next);
-    this.recorder.recordState(next);
-    return next;
+    const leavingDuringSubgame = Boolean(next.gameSwitch);
+    const updated = leavingDuringSubgame ? advanceActionWindow(next) : next;
+    updated.updatedAt = Date.now();
+    this.rooms.set(roomId, updated);
+    this.recorder.recordState(updated);
+    return leavingDuringSubgame ? this.runAiTurns(roomId) : updated;
   }
 
   kickPlayer(roomId: GameId, ownerId: PlayerId, targetPlayerId: PlayerId): GameState {
@@ -331,8 +354,12 @@ export class RoomStore {
       throw new Error("游戏开始后不能修改设置");
     }
 
+    validateRandomBigCardSettings(config);
     const next = structuredClone(state);
     const requestedSkillMode = config.skillMode ?? next.config.skillMode;
+    if (config.initialHp !== undefined && !isValidInitialHp(config.initialHp)) {
+      throw new Error("初始血量必须是正整数");
+    }
     let skillCount = clampNumber(config.skillCount ?? next.config.skillCount, 0,
       isBigSkillMode(requestedSkillMode) ? MAX_BIG_CARDS_PER_PLAYER : 3);
     if (
@@ -355,6 +382,10 @@ export class RoomStore {
       skillCount
     };
     next.config.skillMode = normalizeSkillMode(requestedSkillMode, next.config.skillCount);
+    if (next.config.skillMode === "none" || (config.initialHp === undefined &&
+      isBigSkillMode(state.config.skillMode) !== isBigSkillMode(next.config.skillMode))) {
+      delete next.config.initialHp;
+    }
     syncLobbySkillsWithMode(next);
     next.updatedAt = Date.now();
     next.eventLog.push({
@@ -469,6 +500,17 @@ export class RoomStore {
     return next;
   }
 
+  resolveSunClock(roomId: GameId, at: number): void {
+    const state = this.rooms.get(roomId);
+    if (!state || !hasSunClockEffects(state)) return;
+    const next = structuredClone(state);
+    if (!settleSunPuppetClock(next, at)) return;
+    next.updatedAt = at;
+    this.rooms.set(roomId, next);
+    this.recorder.recordState(next);
+    this.runAiTurns(roomId);
+  }
+
   resolveTimedOutActions(roomId: GameId): GameState {
     let current = this.requireRoom(roomId);
     if (current.phase === "action_window") {
@@ -542,12 +584,51 @@ export class RoomStore {
   private runAiTurns(roomId: GameId): GameState {
     let current = this.requireRoom(roomId);
     let madeMove = true;
+    let subgameAiMoves = 0;
 
     while (
       (current.phase === "collecting_actions" || current.phase === "action_window") &&
       madeMove
     ) {
       madeMove = false;
+
+      if (current.gameSwitch) {
+        if (subgameAiMoves++ >= 32) break;
+        const session = current.gameSwitch;
+        if (Date.now() >= (current.actionWindowDeadlineAt ?? session.deadlineAt)) {
+          current = advanceActionWindow(current);
+        } else if (session.mode === "rock_paper_scissors") {
+          const actor = current.players.find((player) => player.kind === "ai" &&
+            session.remainingIds.includes(player.id) && !session.moves[player.id]);
+          if (!actor) break;
+          current = submitPointGameAction(current, actor.id, { kind: "move", gameId: session.id, round: session.round,
+            move: POINT_GAME_MOVES[Math.floor(Math.random() * POINT_GAME_MOVES.length)]! });
+        } else {
+          const actor = session.game.players.find((player) => player.kind === "ai" && player.status === "alive" &&
+            !session.game.pendingActions[player.id]);
+          if (!actor) break;
+          current = submitPlayerAction(current, actor.id, chooseAiAction(session.game, actor.id)).state;
+        }
+        this.rooms.set(roomId, current);
+        this.recorder.recordState(current);
+        madeMove = true;
+        continue;
+      }
+
+      if (current.retirementCounter) {
+        const counter = current.retirementCounter;
+        const actor = current.players.find((player) => player.kind === "ai" &&
+          (counter.playerIds.includes(player.id) || counter.soulResponderIds?.includes(player.id)));
+        if (actor) {
+          current = submitRetirementCounter(current, actor.id,
+            { windowId: counter.id, kind: canUseCharityExitHealing(current, actor) ? "healing_art" :
+              canCounterRetirement(current, actor) ? "reenter" : canUseKarmaExitRebirth(current, actor) ? "karma_rebirth" : "pass" });
+          this.rooms.set(roomId, current);
+          this.recorder.recordState(current);
+          madeMove = true;
+        }
+        continue;
+      }
 
       if (hasPendingPointGame(current)) {
         const removal = current.verdictTurn?.removalPlayerId;
@@ -566,7 +647,32 @@ export class RoomStore {
         continue;
       }
 
+      if (current.sevenStarLegacyResume) {
+        const actor = current.players.find((player) => player.kind === "ai" && sevenStarLegacyChoices(current, player.id).length);
+        if (actor) {
+          const { cardInstanceId, targetId } = sevenStarLegacyChoices(current, actor.id)[0]!;
+          current = submitActionWindowSkill(current, actor.id, { type: "skill", skillId: SEVEN_STAR_YUHENG, stacks: 1,
+            targetId, bigCardInstanceId: cardInstanceId });
+          this.rooms.set(roomId, current);
+          this.recorder.recordState(current);
+          madeMove = true;
+        }
+        continue;
+      }
+
       if (current.phase === "action_window") {
+        if (current.activeTimingPhase === "turn_before_action") {
+          const early = current.players.find((player) => player.kind === "ai" && player.status === "alive" &&
+            currentPurpleForesight(current, player.id) && !currentPurpleForesight(current, player.id)?.plan);
+          if (early) {
+            const preview = { ...current, phase: "collecting_actions" as const, activeTimingPhase: "turn_action" as const, pendingActions: {} };
+            current = submitPlayerAction(current, early.id, chooseAiAction(preview, early.id)).state;
+            this.rooms.set(roomId, current);
+            this.recorder.recordState(current);
+            madeMove = true;
+            continue;
+          }
+        }
         for (const player of current.players) {
           if (
             player.kind !== "ai" ||
@@ -660,6 +766,8 @@ function normalizeSkillMode(
 }
 
 function syncLobbySkillsWithMode(state: GameState): void {
+  const startingHp = getStartingHp(state.config);
+  for (const player of state.players) if (player.kind !== "spectator") player.hp = startingHp;
   if (isBigSkillMode(state.config.skillMode)) {
     for (const player of state.players) {
       player.skills = [];
@@ -723,7 +831,7 @@ function sanitizeSkillIds(skillIds: SkillId[], maxCount: number): SkillId[] {
       continue;
     }
 
-    result.push(skillId);
+    result.push(skill.id);
     if (result.length >= maxCount) {
       break;
     }

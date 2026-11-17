@@ -15,7 +15,7 @@ import {
   getActionPlanLabel,
   getSkill
 } from "@bing/shared";
-import { getCurrentTurnLimitSeconds, isBigSkillMode } from "@bing/shared";
+import { getCurrentTurnLimitSeconds, isBigSkillMode, nextSunClockBoundaryAt } from "@bing/shared";
 import { RoomStore } from "./roomStore";
 import type { PlayerState } from "@bing/shared";
 
@@ -392,6 +392,24 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("game:submit_victory_counter", (payload, ack) => {
+    safely(ack, () => {
+      const playerId = requirePlayerId(socket.data.playerId);
+      rooms.submitVictoryResponse(payload.roomId, playerId, payload.action);
+      void broadcastRoomState(payload.roomId);
+      return { state: rooms.publicState(payload.roomId, playerId) };
+    });
+  });
+
+  socket.on("game:submit_retirement_counter", (payload, ack) => {
+    safely(ack, () => {
+      const playerId = requirePlayerId(socket.data.playerId);
+      rooms.submitRetirementResponse(payload.roomId, playerId, payload.action);
+      void broadcastRoomState(payload.roomId);
+      return { state: rooms.publicState(payload.roomId, playerId) };
+    });
+  });
+
   socket.on("game:submit_point_game", (payload, ack) => {
     safely(ack, () => {
       const playerId = requirePlayerId(socket.data.playerId);
@@ -450,7 +468,9 @@ if (fs.existsSync(publicDir)) {
 }
 
 async function broadcastRoomState(roomId: string): Promise<void> {
-  scheduleTurnTimer(roomId);
+  const at = Date.now();
+  rooms.resolveSunClock(roomId, at);
+  scheduleTurnTimer(roomId, at);
   const sockets = await io.in(roomId).fetchSockets();
   for (const roomSocket of sockets) {
     roomSocket.emit(
@@ -474,23 +494,28 @@ async function kickSocketFromRoom(roomId: string, playerId: string): Promise<voi
   }
 }
 
-function scheduleTurnTimer(roomId: string): void {
+function scheduleTurnTimer(roomId: string, at: number): void {
   clearRoomTimer(roomId);
   const state = rooms.get(roomId);
-  const deadline =
-    state?.phase === "action_window"
+  if (!state) return;
+  const turnDeadline =
+    state.phase === "action_window"
       ? state.actionWindowDeadlineAt
-      : state?.phase === "collecting_actions"
+      : state.phase === "collecting_actions"
         ? state.turnDeadlineAt
         : undefined;
-  if (!state || !deadline) {
-    return;
-  }
+  const clockDeadline = nextSunClockBoundaryAt(state, at);
+  const deadline = Math.min(turnDeadline ?? Infinity, clockDeadline ?? Infinity);
+  if (!Number.isFinite(deadline)) return;
 
   const delay = Math.max(0, deadline - Date.now());
   const timer = setTimeout(() => {
     try {
-      rooms.resolveTimedOutActions(roomId);
+      const now = Date.now();
+      if (turnDeadline !== undefined && turnDeadline <= now) {
+        rooms.resolveSunClock(roomId, now);
+        rooms.resolveTimedOutActions(roomId);
+      }
       void broadcastRoomState(roomId);
     } catch (error) {
       console.error(error);
@@ -723,7 +748,7 @@ function buildReplaySummary(
   let biggestHit: Extract<RecordedEvent, { type: "damage" }> | undefined;
   let revealCount = 0;
   let reboundCount = 0;
-  let blockCount = 0;
+  const defenseCounts = { blocked: 0, invalid: 0, immune: 0, ignored: 0 };
 
   for (const event of state.eventLog) {
     if (event.type === "turn_revealed") {
@@ -753,7 +778,8 @@ function buildReplaySummary(
     }
 
     if (event.type === "attack_blocked") {
-      blockCount += 1;
+      const kind = event.blockKind;
+      defenseCounts[kind === "invalid" || kind === "immune" || kind === "ignored" ? kind : "blocked"] += 1;
     }
   }
 
@@ -765,8 +791,16 @@ function buildReplaySummary(
   const lines = [
     `- 本局共结算 ${revealCount} 个回合，发生 ${state.eventLog.length} 条事件，胜者：${winners}。`,
     `- 伤害输出最高：${topDamage}；承伤最高：${topTaken}；回复最高：${topHealing}。`,
-    `- 防御成功 ${blockCount} 次，反弹转移 ${reboundCount} 次。`
+    `- 防御成功 ${defenseCounts.blocked} 次，反弹转移 ${reboundCount} 次。`
   ];
+  const interceptions = [
+    { label: "无效", count: defenseCounts.invalid },
+    { label: "免疫", count: defenseCounts.immune },
+    { label: "无视", count: defenseCounts.ignored }
+  ].filter(({ count }) => count > 0);
+  if (interceptions.length > 0) {
+    lines.push(`- ${interceptions.map(({ label, count }) => `${label} ${count} 次`).join("，")}。`);
+  }
 
   if (biggestHit) {
     lines.push(
@@ -783,7 +817,7 @@ function buildReplaySummary(
   }
 
   const recommendation =
-    reboundCount > blockCount
+    reboundCount > defenseCounts.blocked
       ? "反弹参与度较高，复盘时重点看反弹目标选择和破弹攻击的出手窗口。"
       : "防御和出饼节奏更关键，复盘时重点看是否在对方饼数到达攻击阈值前选择了正确防御。";
   lines.push(`- AI 复盘建议：${recommendation}`);
@@ -876,7 +910,7 @@ function renderReplayTextEvent(
     case "heal":
       return [`${time} ${playerLabel(players, event.targetId)} 回复 ${event.amount} 血（${event.reason}）。`];
     case "attack_blocked":
-      return [`${time} ${playerLabel(players, event.targetId)} 防住了 ${playerLabel(players, event.sourceId)} 的 ${event.attackName}。`];
+      return [`${time} ${describeReplayBlock(event, players).message}。`];
     case "attack_reflected":
       return [`${time} ${playerLabel(players, event.originalTargetId)} 将 ${playerLabel(players, event.sourceId)} 的 ${event.attackName} 反弹给 ${playerLabel(players, event.reflectedTargetId)}。`];
     case "rebound_broken":
@@ -1085,14 +1119,16 @@ function renderReplayEvent(event: RecordedEvent, players: Map<string, string>): 
         `${playerLabel(players, event.targetId)} 回复 ${event.amount} 血`,
         event.reason
       );
-    case "attack_blocked":
+    case "attack_blocked": {
+      const outcome = describeReplayBlock(event, players);
       return replayEvent(
         "block",
-        "防",
+        outcome.badge,
         time,
-        `${playerLabel(players, event.targetId)} 防住了 ${event.attackName}`,
+        outcome.message,
         `来源：${playerLabel(players, event.sourceId)}`
       );
+    }
     case "attack_reflected":
       return replayEvent(
         "rebound",
@@ -1159,6 +1195,24 @@ function renderReplayEvent(event: RecordedEvent, players: Map<string, string>): 
       return replayEvent("system", "备", time, `${playerLabel(players, event.playerId)} 已准备`, "进入收招阶段。");
     default:
       return replayEvent("system", "事", time, "未知事件", "未分类事件。");
+  }
+}
+
+function describeReplayBlock(
+  event: Extract<RecordedEvent, { type: "attack_blocked" }>,
+  players: Map<string, string>
+): { badge: string; message: string } {
+  const target = playerLabel(players, event.targetId);
+  const attack = `${playerLabel(players, event.sourceId)} 的 ${event.attackName}`;
+  switch (event.blockKind) {
+    case "invalid":
+      return { badge: "效", message: `${attack} 对 ${target} 无效` };
+    case "immune":
+      return { badge: "免", message: `${target} 对 ${attack} 触发免疫` };
+    case "ignored":
+      return { badge: "视", message: `${target} 无视了 ${attack}` };
+    default:
+      return { badge: "防", message: `${target} 防住了 ${attack}` };
   }
 }
 

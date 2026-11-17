@@ -17,9 +17,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_2_8724",
-        "skill_3_56718",
-        "skill_4_65637"
+        "1001",
+        "1002",
+        "1003"
       ]
     ],
     "originalEffect": "失去",
@@ -42,32 +42,32 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_82_45540",
-        "skill_83_32356",
-        "skill_81_59663"
+        "1081",
+        "1082",
+        "1080"
       ],
       [
-        "skill_82_45540",
-        "skill_83_32356",
-        "skill_84_6114"
+        "1081",
+        "1082",
+        "1083"
       ],
       [
-        "skill_82_45540",
-        "skill_81_59663",
-        "skill_84_6114"
+        "1081",
+        "1080",
+        "1083"
       ],
       [
-        "skill_83_32356",
-        "skill_81_59663",
-        "skill_84_6114"
+        "1082",
+        "1080",
+        "1083"
       ]
     ],
     "originalEffect": "保留并强化：撸无成长上限，抠初始耗饼变为1",
     "retainedMaterialIds": [
-      "skill_82_45540",
-      "skill_83_32356",
-      "skill_81_59663",
-      "skill_84_6114"
+      "1081",
+      "1082",
+      "1080",
+      "1083"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -92,16 +92,16 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "huo_yan_dao",
-        "zhu_que_yu_shan",
-        "skill_90_32911"
+        "1015",
+        "1016",
+        "1089"
       ]
     ],
     "originalEffect": "保留并强化：杀·换不耗饼",
     "retainedMaterialIds": [
-      "huo_yan_dao",
-      "zhu_que_yu_shan",
-      "skill_90_32911"
+      "1015",
+      "1016",
+      "1089"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -127,13 +127,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_c9faa8d601c6",
-        "skill_76_76044"
+        "1075"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_c9faa8d601c6",
-      "skill_76_76044"
+      "1075"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -156,13 +156,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_aac6475c4356",
-        "skill_93_50224"
+        "1092"
       ]
     ],
     "originalEffect": "失去血之哀，保留衰竭、枯萎额外效果和逆转，枯萎额外效果强化为选择2个正整数",
     "retainedMaterialIds": [
       "fusion_aac6475c4356",
-      "skill_93_50224"
+      "1092"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -172,7 +172,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "3006",
       "name": "断绝",
-      "fusion": "破天圣剑+古淀",
+      "fusion": "破天圣剑+古淀刀",
       "timing": "被动",
       "exposureTiming": "不暴露",
       "description": "保留\n断绝：锁定技，你无视无敌，造成的攻击伤害恒×2",
@@ -185,13 +185,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_b9bb5eb9a4e6",
-        "skill_29_96125"
+        "1028"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_b9bb5eb9a4e6",
-      "skill_29_96125"
+      "1028"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -201,7 +201,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "3007",
       "name": "山河破碎",
-      "fusion": "山崩地裂+破地",
+      "fusion": "山崩地裂+破地之力",
       "timing": "无",
       "exposureTiming": "不暴露",
       "description": "保留并强化：山崩地裂变为攻无限，等无限，破地之力变为2至6的攻击无效\n无额外效果",
@@ -212,13 +212,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_b0e94b37d377",
-        "skill_42_94266"
+        "1041"
       ]
     ],
     "originalEffect": "保留并强化：山崩地裂变为攻无限，等无限，破地之力变为2至6的攻击无效",
     "retainedMaterialIds": [
       "fusion_b0e94b37d377",
-      "skill_42_94266"
+      "1041"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -241,13 +241,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_bdc80687d71f",
-        "skill_25_51277"
+        "1024"
       ]
     ],
     "originalEffect": "保留并强化：暗影盾可用2次",
     "retainedMaterialIds": [
       "fusion_bdc80687d71f",
-      "skill_25_51277"
+      "1024"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -268,13 +268,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_20177bf48fcf",
-        "skill_45_30424"
+        "1044"
       ]
     ],
     "originalEffect": "保留并强化：全力一击变为攻无限，等无限，毁灭之力选项升级为：攻击+2、等级-1；攻击-1、等级+2；攻击+4、等级-2；攻击-2、等级+4；攻击变为0、等级×8；攻击×6、等级变为0；并变为1轮1次",
     "retainedMaterialIds": [
       "fusion_20177bf48fcf",
-      "skill_45_30424"
+      "1044"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -296,13 +296,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_84_6114",
+        "1083",
         "fusion_de9476e91654"
       ]
     ],
     "originalEffect": "保留并强化：抠破弹，不再有对弹反噬，无限级；沙皇不会变换失败",
     "retainedMaterialIds": [
-      "skill_84_6114",
+      "1083",
       "fusion_de9476e91654"
     ],
     "targeting": "",
@@ -313,7 +313,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "3011",
       "name": "魔音贯耳",
-      "fusion": "梵+传音+钟",
+      "fusion": "梵+传音入密+钟",
       "timing": "无",
       "exposureTiming": "不暴露",
       "description": "保留并强化：钟和梵变为群攻，破弹，梵的耗饼变为1，梵命中时额外造成2点法伤\n无额外效果",
@@ -323,16 +323,16 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_86_14131",
-        "skill_109_65084",
-        "skill_85_26345"
+        "1085",
+        "1108",
+        "1084"
       ]
     ],
     "originalEffect": "保留并强化：钟和梵变为群攻，破弹，梵的耗饼变为1，梵命中时额外造成2点法伤",
     "retainedMaterialIds": [
-      "skill_86_14131",
-      "skill_109_65084",
-      "skill_85_26345"
+      "1085",
+      "1108",
+      "1084"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -352,14 +352,14 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_2_8724",
-        "skill_2_8724",
-        "skill_2_8724"
+        "1001",
+        "1001",
+        "1001"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_2_8724"
+      "1001"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -379,14 +379,14 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_3_56718",
-        "skill_3_56718",
-        "skill_3_56718"
+        "1002",
+        "1002",
+        "1002"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_3_56718"
+      "1002"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -406,13 +406,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_4_65637",
+        "1003",
         "fusion_de9476e91654"
       ]
     ],
     "originalEffect": "保留并强化：沙子和沙皇不会变换失败，3个沙子分别可变为1个自选小技能、1个自选二融合、1个自选三融合",
     "retainedMaterialIds": [
-      "skill_4_65637",
+      "1003",
       "fusion_de9476e91654"
     ],
     "targeting": "",
@@ -434,13 +434,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_c72da101820b",
-        "skill_63_72549"
+        "1062"
       ]
     ],
     "originalEffect": "保留并强化：圣灵觉醒的倍率由4变为5，圣水收集器变为第3x回合回合初+1饼",
     "retainedMaterialIds": [
       "fusion_c72da101820b",
-      "skill_63_72549"
+      "1062"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -461,13 +461,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_c94387021b9d",
-        "skill_54_99719"
+        "1053"
       ]
     ],
     "originalEffect": "保留并强化：魔域每3轮吸取除自己外所有人每人3血",
     "retainedMaterialIds": [
       "fusion_c94387021b9d",
-      "skill_54_99719"
+      "1053"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -477,7 +477,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "3017",
       "name": "血祭之道",
-      "fusion": "嗜血+血魔",
+      "fusion": "嗜血+血魔之怒",
       "timing": "随时",
       "exposureTiming": "使用时",
       "description": "保留\n祭天：限定技，限1次，随时可用，先让一人退游，然后让自己退游，再让另一人退游",
@@ -489,13 +489,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_46_3651",
+        "1045",
         "fusion_6f04516635bf"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_46_3651",
+      "1045",
       "fusion_6f04516635bf"
     ],
     "targeting": "",
@@ -506,7 +506,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "3018",
       "name": "三元协奏曲",
-      "fusion": "冰火狂暴曲+森林",
+      "fusion": "冰火狂暴曲+森林的低吟",
       "timing": "技能出招",
       "exposureTiming": "使用时",
       "description": "保留并强化：冰火印记积累和使用上限变为6，不再赋予攻击额外的属性\n三元协奏曲:3饼，+6血，此回合绝对无敌，+6层冰火印记",
@@ -517,13 +517,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_ee07da9aa56f",
-        "skill_77_30612"
+        "1076"
       ]
     ],
     "originalEffect": "保留并强化：冰火印记积累和使用上限变为6，不再赋予攻击额外的属性",
     "retainedMaterialIds": [
       "fusion_ee07da9aa56f",
-      "skill_77_30612"
+      "1076"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -546,13 +546,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_37b1ff9af68d",
-        "skill_7_35434"
+        "1006"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_37b1ff9af68d",
-      "skill_7_35434"
+      "1006"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -572,14 +572,14 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_103_56259",
-        "skill_103_56259",
-        "skill_103_56259"
+        "1102",
+        "1102",
+        "1102"
       ]
     ],
     "originalEffect": "保留并强化：闪现变为1轮限3次",
     "retainedMaterialIds": [
-      "skill_103_56259"
+      "1102"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -599,14 +599,14 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_101_4254",
-        "skill_101_4254",
-        "skill_101_4254"
+        "1100",
+        "1100",
+        "1100"
       ]
     ],
     "originalEffect": "保留并强化：你额外获得3次镜像法术",
     "retainedMaterialIds": [
-      "skill_101_4254"
+      "1100"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -627,13 +627,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_d686cd0a2736",
-        "skill_39_77400"
+        "1038"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_d686cd0a2736",
-      "skill_39_77400"
+      "1038"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -657,13 +657,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_664446a10af5",
-        "skill_97_60773"
+        "1096"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_664446a10af5",
-      "skill_97_60773"
+      "1096"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -687,13 +687,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_9bcc1250e90c",
-        "skill_38_81245"
+        "1037"
       ]
     ],
     "originalEffect": "保留并强化：三千雷动耗饼变为2；闪电护体优先保留电系攻击承受",
     "retainedMaterialIds": [
       "fusion_9bcc1250e90c",
-      "skill_38_81245"
+      "1037"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -714,13 +714,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_4a32d4612566",
-        "skill_67_31717"
+        "1066"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_4a32d4612566",
-      "skill_67_31717"
+      "1066"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -743,13 +743,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_df57851104d0",
-        "skill_82_45540"
+        "1081"
       ]
     ],
     "originalEffect": "保留并强化：使用辉月期间可以出招，使用辉月期间日的耗饼归零",
     "retainedMaterialIds": [
       "fusion_df57851104d0",
-      "skill_82_45540"
+      "1081"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -770,13 +770,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_80a5b015e79e",
-        "skill_15_64971"
+        "1014"
       ]
     ],
     "originalEffect": "保留并强化：净化之风扣血无血量无奇偶要求且变为1+1，3次；过往时空变为3次，每次持续2轮",
     "retainedMaterialIds": [
       "fusion_80a5b015e79e",
-      "skill_15_64971"
+      "1014"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -799,13 +799,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_62cf0ee35b0d",
-        "skill_95_91337"
+        "1094"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_62cf0ee35b0d",
-      "skill_95_91337"
+      "1094"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -828,13 +828,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_62102c230522",
-        "skill_42_94266"
+        "1041"
       ]
     ],
     "originalEffect": "保留并强化：破地之力收束到自己身边，你的阳光普照、永远之夜、破地之力无法被无视",
     "retainedMaterialIds": [
       "fusion_62102c230522",
-      "skill_42_94266"
+      "1041"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -857,13 +857,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_31e358876de9",
-        "skill_92_26484"
+        "1091"
       ]
     ],
     "originalEffect": "逆转星移强化：逆转变为2次；失去文明人",
     "retainedMaterialIds": [
       "fusion_31e358876de9",
-      "skill_92_26484"
+      "1091"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -883,16 +883,16 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_115_74459",
-        "skill_111_51056",
-        "skill_68_57581"
+        "1114",
+        "1110",
+        "1067"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_115_74459",
-      "skill_111_51056",
-      "skill_68_57581"
+      "1114",
+      "1110",
+      "1067"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -914,16 +914,16 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_64_60978",
-        "skill_66_82448",
-        "skill_112_59292"
+        "1063",
+        "1065",
+        "1111"
       ]
     ],
     "originalEffect": "保留并强化：地狱主宰对自己使用时不消除技能",
     "retainedMaterialIds": [
-      "skill_64_60978",
-      "skill_66_82448",
-      "skill_112_59292"
+      "1063",
+      "1065",
+      "1111"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -943,14 +943,14 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_92_26484",
-        "skill_92_26484",
-        "skill_92_26484"
+        "1091",
+        "1091",
+        "1091"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_92_26484"
+      "1091"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -973,13 +973,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_fc1a8cd132d3",
-        "skill_24_71363"
+        "1023"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_fc1a8cd132d3",
-      "skill_24_71363"
+      "1023"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1003,13 +1003,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_8c92208fbd96",
-        "skill_20_63089"
+        "1019"
       ]
     ],
     "originalEffect": "保留并强化：你的冰箭雨变为群攻2+2，4级，油条防",
     "retainedMaterialIds": [
       "fusion_8c92208fbd96",
-      "skill_20_63089"
+      "1019"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1031,16 +1031,16 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_34_1533",
-        "skill_87_44771",
-        "skill_113_88141"
+        "1033",
+        "1086",
+        "1112"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_34_1533",
-      "skill_87_44771",
-      "skill_113_88141"
+      "1033",
+      "1086",
+      "1112"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1063,7 +1063,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_66e82bea5ce1",
-        "skill_15_64971"
+        "1014"
       ]
     ],
     "originalEffect": "失去",
@@ -1089,13 +1089,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_8738ae0b8d19",
-        "skill_85_26345"
+        "1084"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_8738ae0b8d19",
-      "skill_85_26345"
+      "1084"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1117,16 +1117,16 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_102_5546",
-        "skill_115_74459",
-        "skill_87_44771"
+        "1101",
+        "1114",
+        "1086"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_102_5546",
-      "skill_115_74459",
-      "skill_87_44771"
+      "1101",
+      "1114",
+      "1086"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1149,13 +1149,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_78_18866",
+        "1077",
         "fusion_b0e94b37d377"
       ]
     ],
     "originalEffect": "保留并强化：火球变为群攻6，6级，油条防，对石头退游",
     "retainedMaterialIds": [
-      "skill_78_18866",
+      "1077",
       "fusion_b0e94b37d377"
     ],
     "targeting": "",
@@ -1179,7 +1179,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_ee07da9aa56f",
-        "skill_108_76133"
+        "1107"
       ]
     ],
     "originalEffect": "失去",
@@ -1202,16 +1202,16 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_109_65084",
-        "skill_121_59557",
-        "skill_101_4254"
+        "1108",
+        "1120",
+        "1100"
       ]
     ],
     "originalEffect": "保留并强化：传音入密无对玩家生效次数限制，对每个技能生效1次；你的镜像法术无使用次数限制，且必定会镜像暴露的技能，但只能收藏，无法使用。当你死亡时，可以尝试随机拿到你收藏中的2个技能",
     "retainedMaterialIds": [
-      "skill_109_65084",
-      "skill_121_59557",
-      "skill_101_4254"
+      "1108",
+      "1120",
+      "1100"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1237,13 +1237,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_74f3f43aa691",
-        "skill_19_45609"
+        "1018"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_74f3f43aa691",
-      "skill_19_45609"
+      "1018"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1270,13 +1270,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_02fe056f1ede",
-        "skill_34_1533"
+        "1033"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_02fe056f1ede",
-      "skill_34_1533"
+      "1033"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1299,13 +1299,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_62cf0ee35b0d",
-        "skill_34_1533"
+        "1033"
       ]
     ],
     "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_62cf0ee35b0d",
-      "skill_34_1533"
+      "1033"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1326,13 +1326,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_6002a752f550",
-        "skill_47_94841"
+        "1046"
       ]
     ],
     "originalEffect": "保留并强化：凝血之力无加饼上限；毁灭之力获得额外选项：攻×无限，等×无限",
     "retainedMaterialIds": [
       "fusion_6002a752f550",
-      "skill_47_94841"
+      "1046"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1352,16 +1352,16 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_117_55768",
-        "skill_116_97172",
-        "skill_54_99719"
+        "1116",
+        "1115",
+        "1053"
       ]
     ],
     "originalEffect": "保留并强化：百炼成神胜利次数降低为20，复仇之刃胜利次数降低为4，你的群攻视为对每人进行1次攻击",
     "retainedMaterialIds": [
-      "skill_117_55768",
-      "skill_116_97172",
-      "skill_54_99719"
+      "1116",
+      "1115",
+      "1053"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1382,13 +1382,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_0e8c706ceed2",
-        "skill_46_3651"
+        "1045"
       ]
     ],
     "originalEffect": "保留并强化：嗜血、死神之镰、暗影战斧均变成每x点伤害为你+x血",
     "retainedMaterialIds": [
       "fusion_0e8c706ceed2",
-      "skill_46_3651"
+      "1045"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1466,16 +1466,16 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     },
     "materialOptions": [
       [
-        "skill_77_30612",
+        "1076",
         "fusion_66e82bea5ce1",
-        "skill_92_26484"
+        "1091"
       ]
     ],
     "originalEffect": "部分保留并强化：你失去文明人，森林的低吟耗饼变为2。",
     "retainedMaterialIds": [
-      "skill_77_30612",
+      "1076",
       "fusion_66e82bea5ce1",
-      "skill_92_26484"
+      "1091"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1485,28 +1485,31 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "4004",
       "name": "炽焰",
-      "fusion": "火烧+熔岩+火刀+火漩",
-      "timing": "",
+      "fusion": "火烧大地+熔岩之怒+火焰刀+火漩决",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "保留并强化：你免疫消除火系技能，火烧大地2次法伤2，熔岩之怒+3/+3，火焰刀+2/+2，火漩决1饼\n",
-      "tags": [],
+      "description": "保留并强化：火烧大地变为2次，每次造成2点火系法伤，熔岩之怒变为每1层攻+3，等+3，火焰刀变为单重杀攻+2，等+2，火漩决耗饼变为1\n炽焰：你免疫消除火系技能类效果",
+      "tags": [
+        "火系技能"
+      ],
       "typeTags": [],
-      "sourceRow": 5
+      "sourceRow": 5,
+      "attribute": "fire"
     },
     "materialOptions": [
       [
-        "skill_13_68869",
-        "skill_21_36332",
-        "huo_yan_dao",
-        "skill_119_78843"
+        "1012",
+        "1020",
+        "1015",
+        "1118"
       ]
     ],
-    "originalEffect": "保留并强化：你免疫消除火系技能，火烧大地2次法伤2，熔岩之怒+3/+3，火焰刀+2/+2，火漩决1饼",
+    "originalEffect": "保留并强化：火烧大地变为2次，每次造成2点火系法伤，熔岩之怒变为每1层攻+3，等+3，火焰刀变为单重杀攻+2，等+2，火漩决耗饼变为1",
     "retainedMaterialIds": [
-      "skill_13_68869",
-      "skill_21_36332",
-      "huo_yan_dao",
-      "skill_119_78843"
+      "1012",
+      "1020",
+      "1015",
+      "1118"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1516,28 +1519,31 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "4005",
       "name": "极寒",
-      "fusion": "霜落+凛冬+冰剑+冰漩",
-      "timing": "",
+      "fusion": "霜落大地+凛冬之怒+寒冰剑+冰漩决",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "你免疫消除冰系技能，霜落大地2次+8/+2，凛冬之怒变为+1/+1，寒冰剑不减伤，冰漩决1饼\n",
-      "tags": [],
+      "description": "保留并强化：霜落大地变为2次，+8血/+2血，凛冬之怒变为每1层攻+1，等+1，寒冰剑不再需要将伤害变为0，冰漩决耗饼变为1\n极寒：你免疫消除冰系技能类效果",
+      "tags": [
+        "冰系技能"
+      ],
       "typeTags": [],
-      "sourceRow": 6
+      "sourceRow": 6,
+      "attribute": "ice"
     },
     "materialOptions": [
       [
-        "skill_14_46860",
-        "skill_22_54978",
-        "skill_18_34323",
-        "skill_118_53580"
+        "1013",
+        "1021",
+        "1017",
+        "1117"
       ]
     ],
-    "originalEffect": "你免疫消除冰系技能，霜落大地2次+8/+2，凛冬之怒变为+1/+1，寒冰剑不减伤，冰漩决1饼",
+    "originalEffect": "保留并强化：霜落大地变为2次，+8血/+2血，凛冬之怒变为每1层攻+1，等+1，寒冰剑不再需要将伤害变为0，冰漩决耗饼变为1",
     "retainedMaterialIds": [
-      "skill_14_46860",
-      "skill_22_54978",
-      "skill_18_34323",
-      "skill_118_53580"
+      "1013",
+      "1021",
+      "1017",
+      "1117"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1548,12 +1554,15 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4006",
       "name": "天雷",
       "fusion": "交流电+电闪雷鸣",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "你免疫消除电系技能，无视大地之心。你每造成4点电系伤害由天对血量最高的玩家（除你）造成6点电系伤害\n",
-      "tags": [],
+      "description": "保留\n天雷：你免疫消除电系技能类效果，无视大地之心；你每造成4点电系伤害，由天对除你外血量最高的玩家造成7点电系伤害，有多个最高则均受伤",
+      "tags": [
+        "电系技能"
+      ],
       "typeTags": [],
-      "sourceRow": 7
+      "sourceRow": 7,
+      "attribute": "electric"
     },
     "materialOptions": [
       [
@@ -1561,7 +1570,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
         "fusion_3f92cfae18b2"
       ]
     ],
-    "originalEffect": "你免疫消除电系技能，无视大地之心。你每造成4点电系伤害由天对血量最高的玩家（除你）造成6点电系伤害",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_83028488b9f0",
       "fusion_3f92cfae18b2"
@@ -1574,25 +1583,25 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "4007",
       "name": "四大皆空",
-      "fusion": "空*4",
-      "timing": "",
-      "exposureTiming": "不暴露",
-      "description": "你可以消除全场16个小技能\n",
+      "fusion": "空+空+空+空",
+      "timing": "随时",
+      "exposureTiming": "使用时",
+      "description": "保留\n四大皆空：你可以消除全场16个小技能，可对未暴露的小技能使用",
       "tags": [],
       "typeTags": [],
       "sourceRow": 8
     },
     "materialOptions": [
       [
-        "skill_2_8724",
-        "skill_2_8724",
-        "skill_2_8724",
-        "skill_2_8724"
+        "1001",
+        "1001",
+        "1001",
+        "1001"
       ]
     ],
-    "originalEffect": "你可以消除全场16个小技能",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_2_8724"
+      "1001"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1602,25 +1611,25 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "4008",
       "name": "多来几次",
-      "fusion": "再来一次*4",
-      "timing": "",
+      "fusion": "再来一次+再来一次+再来一次+再来一次",
+      "timing": "融合时",
       "exposureTiming": "不暴露",
-      "description": "获得2个再来一次，立刻转变为2个老虎机，老虎机可以单独重抽\n",
+      "description": "保留\n多来几次：获得额外2个再来一次，并立刻转变为2组老虎机，老虎机可以单独对每一个再来一次进行重抽",
       "tags": [],
       "typeTags": [],
       "sourceRow": 9
     },
     "materialOptions": [
       [
-        "skill_3_56718",
-        "skill_3_56718",
-        "skill_3_56718",
-        "skill_3_56718"
+        "1002",
+        "1002",
+        "1002",
+        "1002"
       ]
     ],
-    "originalEffect": "获得2个再来一次，立刻转变为2个老虎机，老虎机可以单独重抽",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_3_56718"
+      "1002"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1630,25 +1639,25 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "4009",
       "name": "沙漠",
-      "fusion": "沙子*4",
-      "timing": "",
-      "exposureTiming": "不暴露",
-      "description": "4/3/2/1，获得捡沙子：2饼，有1/4概率捡到一个沙子\n",
+      "fusion": "沙子+沙子+沙子+沙子",
+      "timing": "技能出招",
+      "exposureTiming": "使用时",
+      "description": "保留并强化：4个沙子可分别变换为1个小技能、1个二融合、1个三融合、1个四融合，不会变换失败\n捡沙子：2饼，有1/4概率捡到一个沙子",
       "tags": [],
       "typeTags": [],
       "sourceRow": 10
     },
     "materialOptions": [
       [
-        "skill_4_65637",
-        "skill_4_65637",
-        "skill_4_65637",
-        "skill_4_65637"
+        "1003",
+        "1003",
+        "1003",
+        "1003"
       ]
     ],
-    "originalEffect": "4/3/2/1，获得捡沙子：2饼，有1/4概率捡到一个沙子",
+    "originalEffect": "保留并强化：4个沙子可分别变换为1个小技能、1个二融合、1个三融合、1个四融合，不会变换失败",
     "retainedMaterialIds": [
-      "skill_4_65637"
+      "1003"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1659,27 +1668,27 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4010",
       "name": "猥琐老司机",
       "fusion": "撸+丁+日+抠",
-      "timing": "",
-      "exposureTiming": "不暴露",
-      "description": "获得节操碎。节操：2饼，小防防，2级，命中获得1次碎。碎：攻无限，无限级，油条防，破弹\n",
+      "timing": "节操：技能出招，碎：技能攻击",
+      "exposureTiming": "使用时",
+      "description": "保留并强化：撸无成长上限，抠耗饼变为1，日命中后获得1次免费日，丁命中后获得1个金钟罩\n节操：2饼，小防防，2级，命中获得1次碎；碎：攻无限，无限级，油条防，破弹",
       "tags": [],
       "typeTags": [],
       "sourceRow": 11
     },
     "materialOptions": [
       [
-        "skill_81_59663",
-        "skill_83_32356",
-        "skill_82_45540",
-        "skill_84_6114"
+        "1080",
+        "1082",
+        "1081",
+        "1083"
       ]
     ],
-    "originalEffect": "获得节操碎。节操：2饼，小防防，2级，命中获得1次碎。碎：攻无限，无限级，油条防，破弹",
+    "originalEffect": "保留并强化：撸无成长上限，抠耗饼变为1，日命中后获得1次免费日，丁命中后获得1个金钟罩",
     "retainedMaterialIds": [
-      "skill_81_59663",
-      "skill_83_32356",
-      "skill_82_45540",
-      "skill_84_6114"
+      "1080",
+      "1082",
+      "1081",
+      "1083"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1690,9 +1699,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4011",
       "name": "终结",
       "fusion": "烽火赤壁+雷裂残阳+沦陷",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "火烧大地变为2，雷裂残阳变为≤6，火烧大地、净化之风、雷裂残阳可在沦陷内使用\n",
+      "description": "保留并强化：火烧大地变为3次2点火系法伤，雷裂残阳变为≤6血退游\n终结：本技能的火烧大地、净化之风、雷裂残阳可在本技能的沦陷内使用",
       "tags": [],
       "typeTags": [],
       "sourceRow": 12
@@ -1700,15 +1709,15 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_0255097fd6a4",
-        "skill_107_53513",
-        "skill_10_9488"
+        "1106",
+        "1009"
       ]
     ],
-    "originalEffect": "火烧大地变为2，雷裂残阳变为≤6，火烧大地、净化之风、雷裂残阳可在沦陷内使用",
+    "originalEffect": "保留并强化：火烧大地变为3次2点火系法伤，雷裂残阳变为≤6血退游",
     "retainedMaterialIds": [
       "fusion_0255097fd6a4",
-      "skill_107_53513",
-      "skill_10_9488"
+      "1106",
+      "1009"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1719,11 +1728,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4012",
       "name": "寂灭",
       "fusion": "无尽战刃+破军",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "保留断绝效果，破到绝对无敌\n",
+      "description": "保留\n寂灭：锁定技，你无视无敌和绝对无敌，造成的攻击伤害恒×2",
       "tags": [],
-      "typeTags": [],
+      "typeTags": [
+        "锁定技"
+      ],
       "sourceRow": 13
     },
     "materialOptions": [
@@ -1732,7 +1743,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
         "fusion_2484bb487234"
       ]
     ],
-    "originalEffect": "保留断绝效果，破到绝对无敌",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_a86ab75e97b5",
       "fusion_2484bb487234"
@@ -1745,26 +1756,24 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "4013",
       "name": "圣水瓶",
-      "fusion": "圣收*4",
-      "timing": "",
+      "fusion": "圣水收集器+圣水收集器+圣水收集器+圣水收集器",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "失去原效果。每回合初+1饼，可以储存至多4个饼\n",
+      "description": "失去\n圣水瓶：每回合回合初+1饼，可以储存至多4个饼不被轮末清除",
       "tags": [],
       "typeTags": [],
       "sourceRow": 14
     },
     "materialOptions": [
       [
-        "skill_63_72549",
-        "skill_63_72549",
-        "skill_63_72549",
-        "skill_63_72549"
+        "1062",
+        "1062",
+        "1062",
+        "1062"
       ]
     ],
-    "originalEffect": "失去原效果。每回合初+1饼，可以储存至多4个饼",
-    "retainedMaterialIds": [
-      "skill_63_72549"
-    ],
+    "originalEffect": "失去",
+    "retainedMaterialIds": [],
     "targeting": "",
     "materialUseCosts": []
   },
@@ -1774,9 +1783,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4014",
       "name": "天空之城",
       "fusion": "空城计+空之轨迹",
-      "timing": "",
+      "timing": "无",
       "exposureTiming": "不暴露",
-      "description": "前3回合绝对无敌，闪现变为绝对无敌，你的过往时空结束时触发遗计\n",
+      "description": "保留并强化：空城计变为前3回合绝对无敌，闪现变为本回合绝对无敌，你的过往时空结束时触发遗计\n无额外效果",
       "tags": [],
       "typeTags": [],
       "sourceRow": 15
@@ -1787,7 +1796,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
         "fusion_80a5b015e79e"
       ]
     ],
-    "originalEffect": "前3回合绝对无敌，闪现变为绝对无敌，你的过往时空结束时触发遗计",
+    "originalEffect": "保留并强化：空城计变为前3回合绝对无敌，闪现变为本回合绝对无敌，你的过往时空结束时触发遗计",
     "retainedMaterialIds": [
       "fusion_19ef5096de13",
       "fusion_80a5b015e79e"
@@ -1801,9 +1810,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4015",
       "name": "长生",
       "fusion": "神之子+灵魂修复",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "你无视裂魂，触发灵魂修复后获得1次治愈术或天佑之魂\n",
+      "description": "保留\n长生：你无视裂魂，触发灵魂修复后获得1次治愈术和1次天佑之魂",
       "tags": [],
       "typeTags": [],
       "sourceRow": 16
@@ -1814,7 +1823,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
         "fusion_4a32d4612566"
       ]
     ],
-    "originalEffect": "你无视裂魂，触发灵魂修复后获得1次治愈术或天佑之魂",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_87c73b31738c",
       "fusion_4a32d4612566"
@@ -1828,27 +1837,27 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4016",
       "name": "不死",
       "fusion": "神隐•红莲+不死金身+浴火重生+绝对值",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "绝对值0血不会死亡，你只能在0血时受到1点冰系法伤才能死亡\n",
+      "description": "保留\n不死：绝对值0血时不会死亡，你只能在0血受到1点冰系法伤时才会死亡，其他伤害会继续触发不死金身、绝对值或浴火重生",
       "tags": [],
       "typeTags": [],
       "sourceRow": 17
     },
     "materialOptions": [
       [
-        "skill_23_90895",
-        "skill_114_87583",
-        "skill_65_71994",
-        "skill_69_22138"
+        "1022",
+        "1113",
+        "1064",
+        "1068"
       ]
     ],
-    "originalEffect": "绝对值0血不会死亡，你只能在0血时受到1点冰系法伤才能死亡",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_23_90895",
-      "skill_114_87583",
-      "skill_65_71994",
-      "skill_69_22138"
+      "1022",
+      "1113",
+      "1064",
+      "1068"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1859,9 +1868,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4017",
       "name": "起源弹",
       "fusion": "根源之目+暗影狙击",
-      "timing": "",
-      "exposureTiming": "不暴露",
-      "description": "你可-1血获得1次起源弹：攻1，等级同丁，无法防，对反弹退游，补刀时目标退游，命中且目标无饼时退游\n",
+      "timing": "技能攻击",
+      "exposureTiming": "使用时",
+      "description": "保留\n起源弹：你可随时受到1点反噬伤害，获得1次起源弹：攻1，与攻击对撞则完全抵消，无法防，对反弹退游，补刀时目标退游，命中且目标无饼时目标退游",
       "tags": [],
       "typeTags": [],
       "sourceRow": 18
@@ -1872,7 +1881,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
         "fusion_bdc80687d71f"
       ]
     ],
-    "originalEffect": "你可-1血获得1次起源弹：攻1，等级同丁，无法防，对反弹退游，补刀时目标退游，命中且目标无饼时退游",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_a2b378575580",
       "fusion_bdc80687d71f"
@@ -1886,9 +1895,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4018",
       "name": "遗迹",
       "fusion": "野蛮人+遗计+过往时空",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "使用过往时空时获得1个再来一次，过往时空5次1轮\n",
+      "description": "保留并强化：过往时空变为5次，每次1轮\n遗迹：你的过往时空结束后，获得1个再来一次",
       "tags": [],
       "typeTags": [],
       "sourceRow": 19
@@ -1896,15 +1905,15 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_62cf0ee35b0d",
-        "skill_49_75347",
-        "skill_104_71181"
+        "1048",
+        "1103"
       ]
     ],
-    "originalEffect": "使用过往时空时获得1个再来一次，过往时空5次1轮",
+    "originalEffect": "保留并强化：过往时空变为5次，每次1轮",
     "retainedMaterialIds": [
       "fusion_62cf0ee35b0d",
-      "skill_49_75347",
-      "skill_104_71181"
+      "1048",
+      "1103"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1914,28 +1923,28 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "4019",
       "name": "天煞孤星",
-      "fusion": "独裁+无形+普天+顺手",
+      "fusion": "独裁+无形之盾+普天同庆+顺手牵羊",
       "timing": "",
       "exposureTiming": "不暴露",
-      "description": "你无视除你和最远玩家外所有玩家\n",
+      "description": "保留\n天煞孤星：你无视除你和最远玩家外的所有玩家",
       "tags": [],
       "typeTags": [],
       "sourceRow": 20
     },
     "materialOptions": [
       [
-        "skill_53_62958",
-        "skill_99_65551",
-        "skill_98_7182",
-        "skill_100_45717"
+        "1052",
+        "1098",
+        "1097",
+        "1099"
       ]
     ],
-    "originalEffect": "你无视除你和最远玩家外所有玩家",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_53_62958",
-      "skill_99_65551",
-      "skill_98_7182",
-      "skill_100_45717"
+      "1052",
+      "1098",
+      "1097",
+      "1099"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -1946,9 +1955,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4020",
       "name": "抠皇之怒",
       "fusion": "沙皇+大抠天下",
-      "timing": "",
+      "timing": "无",
       "exposureTiming": "不暴露",
-      "description": "同时继承抠皇和大抠天下效果\n",
+      "description": "保留并强化：同时继承抠皇和大抠天下的额外效果\n无额外效果",
       "tags": [],
       "typeTags": [],
       "sourceRow": 21
@@ -1959,7 +1968,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
         "fusion_02ac45845a7c"
       ]
     ],
-    "originalEffect": "同时继承抠皇和大抠天下效果",
+    "originalEffect": "保留并强化：同时继承抠皇和大抠天下的额外效果",
     "retainedMaterialIds": [
       "fusion_de9476e91654",
       "fusion_02ac45845a7c"
@@ -1973,11 +1982,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4021",
       "name": "弑神",
       "fusion": "神界炼魂+泣血之刃",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "15/3，若你的攻击命中，目标持有带“神”的技能，且本次攻击是复仇，目标退游；你的攻击等级恒为对方+1\n",
+      "description": "保留并强化：百炼成神胜利次数降低为15，复仇之刃胜利次数降低为3，攻击对撞时，你的攻击等级恒为对方的攻击等级+1\n弑神：锁定技，若你攻击命中，且目标持有技能名含“神”字的技能，且本次攻击是复仇，则目标退游",
       "tags": [],
-      "typeTags": [],
+      "typeTags": [
+        "锁定技"
+      ],
       "sourceRow": 22
     },
     "materialOptions": [
@@ -1986,7 +1997,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
         "fusion_167998bc532b"
       ]
     ],
-    "originalEffect": "15/3，若你的攻击命中，目标持有带“神”的技能，且本次攻击是复仇，目标退游；你的攻击等级恒为对方+1",
+    "originalEffect": "保留并强化：百炼成神胜利次数降低为15，复仇之刃胜利次数降低为3，攻击对撞时，你的攻击等级恒为对方的攻击等级+1",
     "retainedMaterialIds": [
       "fusion_ee95d3500374",
       "fusion_167998bc532b"
@@ -2000,11 +2011,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4022",
       "name": "神圣禁域",
       "fusion": "神域之种+神域守护",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "当有人招式指向你为唯一目标时，天对他使用相同的招式\n",
+      "description": "保留\n神圣禁域：锁定技，当他人的招式以你为唯一目标时，天对他使用相同的招式",
       "tags": [],
-      "typeTags": [],
+      "typeTags": [
+        "锁定技"
+      ],
       "sourceRow": 23
     },
     "materialOptions": [
@@ -2013,7 +2026,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
         "fusion_efd42942c4a3"
       ]
     ],
-    "originalEffect": "当有人招式指向你为唯一目标时，天对他使用相同的招式",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_f0b6bd35b2db",
       "fusion_efd42942c4a3"
@@ -2027,9 +2040,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4023",
       "name": "六转生死阵",
       "fusion": "六芒星阵+逆转星移",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "1/6变为1/3,1/12变为1/6，逆转2次，逆转星移用完时，六芒星阵有1/12概率使你获得1组逆星\n",
+      "description": "保留并强化：六芒星阵三个选项的概率×2，逆转变为2次\n六转生死阵：逆转星移的次数耗尽时，六芒星阵增加新选项：有1/12概率使你获得1个逆转星移",
       "tags": [],
       "typeTags": [],
       "sourceRow": 24
@@ -2040,7 +2053,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
         "fusion_31e358876de9"
       ]
     ],
-    "originalEffect": "1/6变为1/3,1/12变为1/6，逆转2次，逆转星移用完时，六芒星阵有1/12概率使你获得1组逆星",
+    "originalEffect": "保留并强化：六芒星阵三个选项的概率×2，逆转变为2次",
     "retainedMaterialIds": [
       "fusion_9ef124aee213",
       "fusion_31e358876de9"
@@ -2053,25 +2066,25 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "4024",
       "name": "试卷打印室",
-      "fusion": "卷子*4",
-      "timing": "",
+      "fusion": "卷子+卷子+卷子+卷子",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "每2轮初+1卷子\n",
+      "description": "保留\n试卷打印室：每2轮轮初，+1次卷子",
       "tags": [],
       "typeTags": [],
       "sourceRow": 25
     },
     "materialOptions": [
       [
-        "skill_95_91337",
-        "skill_95_91337",
-        "skill_95_91337",
-        "skill_95_91337"
+        "1094",
+        "1094",
+        "1094",
+        "1094"
       ]
     ],
-    "originalEffect": "每2轮初+1卷子",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_95_91337"
+      "1094"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2081,25 +2094,27 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "4025",
       "name": "时光倒流",
-      "fusion": "过往*4",
-      "timing": "",
-      "exposureTiming": "不暴露",
-      "description": "获得5次时光倒流：自身除此技能外恢复至1轮前状态，获得1次重启：全局恢复至初始状态\n",
+      "fusion": "过往时空+过往时空+过往时空+过往时空",
+      "timing": "随时",
+      "exposureTiming": "使用时",
+      "description": "保留\n时光倒流：限定技，限5次，自身除此技能的次数状态外，恢复至1轮前状态；重启：限定技，限2次，除此技能的次数状态外，全场恢复至初始状态",
       "tags": [],
-      "typeTags": [],
+      "typeTags": [
+        "限定技"
+      ],
       "sourceRow": 26
     },
     "materialOptions": [
       [
-        "skill_104_71181",
-        "skill_104_71181",
-        "skill_104_71181",
-        "skill_104_71181"
+        "1103",
+        "1103",
+        "1103",
+        "1103"
       ]
     ],
-    "originalEffect": "获得5次时光倒流：自身除此技能外恢复至1轮前状态，获得1次重启：全局恢复至初始状态",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_104_71181"
+      "1103"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2109,25 +2124,25 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "4026",
       "name": "文明",
-      "fusion": "文明*4",
-      "timing": "",
-      "exposureTiming": "不暴露",
-      "description": "场上有人说脏话时，他退游\n",
+      "fusion": "文明人+文明人+文明人+文明人",
+      "timing": "被动",
+      "exposureTiming": "触发时",
+      "description": "保留\n文明：场上有人说脏话时，他退游",
       "tags": [],
       "typeTags": [],
       "sourceRow": 27
     },
     "materialOptions": [
       [
-        "skill_92_26484",
-        "skill_92_26484",
-        "skill_92_26484",
-        "skill_92_26484"
+        "1091",
+        "1091",
+        "1091",
+        "1091"
       ]
     ],
-    "originalEffect": "场上有人说脏话时，他退游",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_92_26484"
+      "1091"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2137,10 +2152,10 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "skill": {
       "id": "4027",
       "name": "黑暗森林",
-      "fusion": "暗影狙击+文明人+森林",
-      "timing": "",
+      "fusion": "暗影狙击+文明人+森林的低吟",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "所有人被补刀时退游\n",
+      "description": "保留\n黑暗森林：你在场时，任何人被补刀时退游",
       "tags": [],
       "typeTags": [],
       "sourceRow": 28
@@ -2148,15 +2163,15 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_bdc80687d71f",
-        "skill_92_26484",
-        "skill_77_30612"
+        "1091",
+        "1076"
       ]
     ],
-    "originalEffect": "所有人被补刀时退游",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_bdc80687d71f",
-      "skill_92_26484",
-      "skill_77_30612"
+      "1091",
+      "1076"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2167,9 +2182,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4028",
       "name": "同归于尽",
       "fusion": "同舟共济+雷裂残阳",
-      "timing": "",
-      "exposureTiming": "不暴露",
-      "description": "同舟共济可以散伙，若你无法继续游戏时，未释放雷裂残阳，则使同舟共济的两个目标退游；雷裂残阳变为≤6，变为无属性\n",
+      "timing": "被动",
+      "exposureTiming": "触发时",
+      "description": "保留并强化：同舟共济可以随时解除，解除后不可再选取；雷裂残阳变为≤6血无属性退游\n同归于尽：若你无法继续游戏时，未耗尽雷裂残阳次数，则使同舟共济的两个目标退游",
       "tags": [],
       "typeTags": [],
       "sourceRow": 29
@@ -2177,13 +2192,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "3031",
-        "skill_107_53513"
+        "1106"
       ]
     ],
-    "originalEffect": "同舟共济可以散伙，若你无法继续游戏时，未释放雷裂残阳，则使同舟共济的两个目标退游；雷裂残阳变为≤6，变为无属性",
+    "originalEffect": "保留并强化：同舟共济可以随时解除，解除后不可再选取；雷裂残阳变为≤6血无属性退游",
     "retainedMaterialIds": [
       "3031",
-      "skill_107_53513"
+      "1106"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2194,23 +2209,25 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4029",
       "name": "拆迁队",
       "fusion": "山河破碎+毁灭之力",
-      "timing": "",
-      "exposureTiming": "不暴露",
-      "description": "你使用毁灭之力时，立刻消除全场黑板、白板、黑白板、地板，持有天花板的目标对全场造成1点法伤，天花板变为纯净苍穹\n",
+      "timing": "被动",
+      "exposureTiming": "触发时",
+      "description": "保留\n拆迁：锁定技，你使用毁灭之力时，立刻消除全场黑板、白板、黑白板、地板，持有天花板的目标对全场造成1点法伤，天花板变为纯净苍穹",
       "tags": [],
-      "typeTags": [],
+      "typeTags": [
+        "锁定技"
+      ],
       "sourceRow": 30
     },
     "materialOptions": [
       [
         "3007",
-        "skill_45_30424"
+        "1044"
       ]
     ],
-    "originalEffect": "你使用毁灭之力时，立刻消除全场黑板、白板、黑白板、地板，持有天花板的目标对全场造成1点法伤，天花板变为纯净苍穹",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
       "3007",
-      "skill_45_30424"
+      "1044"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2221,9 +2238,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4030",
       "name": "天花板",
       "fusion": "黑白板+纯净苍穹",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "所有攻击天的玩家不计入黑白板人数\n",
+      "description": "保留\n天花板：所有攻击天的玩家在当回合不计入黑白板人数",
       "tags": [],
       "typeTags": [],
       "sourceRow": 31
@@ -2234,7 +2251,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
         "fusion_37b1ff9af68d"
       ]
     ],
-    "originalEffect": "所有攻击天的玩家不计入黑白板人数",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
       "fusion_d686cd0a2736",
       "fusion_37b1ff9af68d"
@@ -2248,9 +2265,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4031",
       "name": "塞子",
       "fusion": "弹力球+卷子+沙子",
-      "timing": "",
+      "timing": "无",
       "exposureTiming": "不暴露",
-      "description": "当你的沙子变为他人技能时，他死亡\n",
+      "description": "保留并强化：当你的沙子变为他人持有的技能时，本次变换成功，持有该技能的其他玩家立即死亡\n无额外效果",
       "tags": [],
       "typeTags": [],
       "sourceRow": 32
@@ -2258,15 +2275,15 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_664446a10af5",
-        "skill_95_91337",
-        "skill_4_65637"
+        "1094",
+        "1003"
       ]
     ],
-    "originalEffect": "当你的沙子变为他人技能时，他死亡",
+    "originalEffect": "保留并强化：当你的沙子变为他人持有的技能时，本次变换成功，持有该技能的其他玩家立即死亡",
     "retainedMaterialIds": [
       "fusion_664446a10af5",
-      "skill_95_91337",
-      "skill_4_65637"
+      "1094",
+      "1003"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2277,23 +2294,25 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4032",
       "name": "涤荡",
       "fusion": "元素冲击+大地之心",
-      "timing": "",
+      "timing": "被动；随时",
       "exposureTiming": "不暴露",
-      "description": "元素冲击可不消除属性技能，你承受他人的属性效果时，免疫并+4防御值，可消耗4防御值再次释放元素冲击\n",
+      "description": "保留并强化：元素冲击可选择不消除属性技能\n涤荡：锁定技，当你承受来自他人的属性效果时，免疫之并+4防御值；你可随时消耗4防御值，+1次元素冲击",
       "tags": [],
-      "typeTags": [],
+      "typeTags": [
+        "锁定技"
+      ],
       "sourceRow": 33
     },
     "materialOptions": [
       [
         "3037",
-        "skill_39_77400"
+        "1038"
       ]
     ],
-    "originalEffect": "元素冲击可不消除属性技能，你承受他人的属性效果时，免疫并+4防御值，可消耗4防御值再次释放元素冲击",
+    "originalEffect": "保留并强化：元素冲击可选择不消除属性技能",
     "retainedMaterialIds": [
       "3037",
-      "skill_39_77400"
+      "1038"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2304,27 +2323,27 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4033",
       "name": "永恒",
       "fusion": "遗计+独裁+克己+圣收",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "你的饼不会被消除\n",
+      "description": "部分保留：失去克己\n永恒：你的饼不会在轮末被清除",
       "tags": [],
       "typeTags": [],
       "sourceRow": 34
     },
     "materialOptions": [
       [
-        "skill_49_75347",
-        "skill_53_62958",
-        "skill_52_22171",
-        "skill_63_72549"
+        "1048",
+        "1052",
+        "1051",
+        "1062"
       ]
     ],
-    "originalEffect": "你的饼不会被消除",
+    "originalEffect": "部分保留：失去克己",
     "retainedMaterialIds": [
-      "skill_49_75347",
-      "skill_53_62958",
-      "skill_52_22171",
-      "skill_63_72549"
+      "1048",
+      "1052",
+      "1051",
+      "1062"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2335,9 +2354,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4034",
       "name": "破晓",
       "fusion": "后羿·七日连珠+逐日之弓",
-      "timing": "",
+      "timing": "无",
       "exposureTiming": "不暴露",
-      "description": "第x次日攻x，无上限\n",
+      "description": "保留并强化：第x次日攻x，无成长上限\n无额外效果",
       "tags": [],
       "typeTags": [],
       "sourceRow": 35
@@ -2348,7 +2367,7 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
         "fusion_a4454c79b4c9"
       ]
     ],
-    "originalEffect": "第x次日攻x，无上限",
+    "originalEffect": "保留并强化：第x次日攻x，无成长上限",
     "retainedMaterialIds": [
       "fusion_2be64389a860",
       "fusion_a4454c79b4c9"
@@ -2362,9 +2381,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4035",
       "name": "拍卖会",
       "fusion": "收藏家+顺手牵羊",
-      "timing": "",
-      "exposureTiming": "不暴露",
-      "description": "顺手牵羊隐性，你可在死亡时爆出全部收藏，收藏技能的原本持有者需要消耗1个饼来“购买”技能，其技能在购买前归你，拍卖结束后，你加所有消耗饼数量的血，防御值，初始饼\n",
+      "timing": "死亡时",
+      "exposureTiming": "触发时",
+      "description": "保留并强化：顺手牵羊不再暴露\n拍卖会：你可在死亡时爆出全部收藏，收藏技能的原本持有者需要消耗1个饼来“购买”技能，其技能在购买前归你，拍卖结束后，你加所有消耗饼数量的血，防御值，初始饼",
       "tags": [],
       "typeTags": [],
       "sourceRow": 36
@@ -2372,13 +2391,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "3042",
-        "skill_100_45717"
+        "1099"
       ]
     ],
-    "originalEffect": "顺手牵羊隐性，你可在死亡时爆出全部收藏，收藏技能的原本持有者需要消耗1个饼来“购买”技能，其技能在购买前归你，拍卖结束后，你加所有消耗饼数量的血，防御值，初始饼",
+    "originalEffect": "保留并强化：顺手牵羊不再暴露",
     "retainedMaterialIds": [
       "3042",
-      "skill_100_45717"
+      "1099"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2389,23 +2408,25 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4036",
       "name": "核冬天",
       "fusion": "核辐射+冰箭雨",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "场上所有光系技能失效\n",
+      "description": "保留\n核冬天：锁定技，场上所有光系技能失效",
       "tags": [],
-      "typeTags": [],
+      "typeTags": [
+        "锁定技"
+      ],
       "sourceRow": 37
     },
     "materialOptions": [
       [
         "3043",
-        "skill_20_63089"
+        "1019"
       ]
     ],
-    "originalEffect": "场上所有光系技能失效",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
       "3043",
-      "skill_20_63089"
+      "1019"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2416,9 +2437,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4037",
       "name": "火箭发射中心",
       "fusion": "交流电+火箭+核反应堆",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "每轮初获得1次火箭，火箭攻等变为9\n",
+      "description": "保留并强化：火箭变为攻9，9级\n火箭发射中心：每轮初+1次火箭",
       "tags": [],
       "typeTags": [],
       "sourceRow": 38
@@ -2426,15 +2447,15 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "fusion_83028488b9f0",
-        "skill_79_36319",
-        "skill_80_20445"
+        "1078",
+        "1079"
       ]
     ],
-    "originalEffect": "每轮初获得1次火箭，火箭攻等变为9",
+    "originalEffect": "保留并强化：火箭变为攻9，9级",
     "retainedMaterialIds": [
       "fusion_83028488b9f0",
-      "skill_79_36319",
-      "skill_80_20445"
+      "1078",
+      "1079"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2445,27 +2466,29 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4038",
       "name": "救赎",
       "fusion": "大地之心+暗影盾+血水屏障+天佑之魂",
-      "timing": "",
-      "exposureTiming": "不暴露",
-      "description": "你有x点防御值时，全场不超过x的伤害可由你承担，且为你加2x防御值，你收到非承担的不超过x的伤害转为回血\n",
+      "timing": "变招阶段",
+      "exposureTiming": "触发时",
+      "description": "保留\n救赎：控制技，你有x点防御值时，全场不超过x的伤害可由你承担，且为你加2x防御值；你受到的非承担的不超过x的伤害转为回血",
       "tags": [],
-      "typeTags": [],
+      "typeTags": [
+        "控制技"
+      ],
       "sourceRow": 39
     },
     "materialOptions": [
       [
-        "skill_39_77400",
-        "skill_25_51277",
-        "skill_48_26455",
-        "skill_66_82448"
+        "1038",
+        "1024",
+        "1047",
+        "1065"
       ]
     ],
-    "originalEffect": "你有x点防御值时，全场不超过x的伤害可由你承担，且为你加2x防御值，你收到非承担的不超过x的伤害转为回血",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
-      "skill_39_77400",
-      "skill_25_51277",
-      "skill_48_26455",
-      "skill_66_82448"
+      "1038",
+      "1024",
+      "1047",
+      "1065"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2476,9 +2499,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4039",
       "name": "日月星辰",
       "fusion": "日月同辉+六芒星",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "日月同辉效果触发后，加1次六芒星，累计获得6个六芒星后，解除全场融合且无法再次融合\n",
+      "description": "保留\n日月星辰：日月同辉的额外效果触发后，加1次六芒星，累计通过此途径获得6次六芒星后，解除全场融合，且无法再次融合",
       "tags": [],
       "typeTags": [],
       "sourceRow": 40
@@ -2486,13 +2509,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "3026",
-        "skill_108_76133"
+        "1107"
       ]
     ],
-    "originalEffect": "日月同辉效果触发后，加1次六芒星，累计获得6个六芒星后，解除全场融合且无法再次融合",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
       "3026",
-      "skill_108_76133"
+      "1107"
     ],
     "targeting": "",
     "materialUseCosts": []
@@ -2503,9 +2526,9 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
       "id": "4040",
       "name": "力量",
       "fusion": "无限之力+无限战意",
-      "timing": "",
+      "timing": "被动",
       "exposureTiming": "不暴露",
-      "description": "无限战意效果触发期间，你可以无限次使用毁灭之力且可叠加\n",
+      "description": "保留\n无限：无限战意效果触发期间，你的毁灭之力不再有使用次数限制",
       "tags": [],
       "typeTags": [],
       "sourceRow": 41
@@ -2513,13 +2536,13 @@ export const HIGHER_FUSION_RECIPES: FusionRecipe[] = [
     "materialOptions": [
       [
         "3046",
-        "skill_113_88141"
+        "1112"
       ]
     ],
-    "originalEffect": "无限战意效果触发期间，你可以无限次使用毁灭之力且可叠加",
+    "originalEffect": "保留",
     "retainedMaterialIds": [
       "3046",
-      "skill_113_88141"
+      "1112"
     ],
     "targeting": "",
     "materialUseCosts": []

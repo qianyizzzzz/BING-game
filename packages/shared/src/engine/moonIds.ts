@@ -1,0 +1,13 @@
+export const MOON_CARD_ID = "10556";
+export const MOON_HUIYUE_ID = "1055601";
+export const MOON_LONGING_ID = "1055602";
+export const MOON_RITUAL_ID = "1055603";
+export const MOON_GRIEF_ID = "1055604";
+export const MOON_SHADOW_ID = "1055605";
+export const MOON_PUNISH_ID = "1055606";
+export const MOON_CHANT_ID = "1055607";
+export const MOON_PRAISE_ID = "1055608";
+export const MOON_DANCE_ID = "1055609";
+export const MOON_TIDE_ID = "1055610";
+export const MOON_CHANT_STATE = "moon_chant";
+export const MOON_PRAISE_STATE = "moon_praise";

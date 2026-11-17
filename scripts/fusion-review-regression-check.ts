@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
+import { withSixStarOutcomes } from "./six-star-test-dice";
 import { createGame, createPlayer, addPlayerToGame, startGame, submitPlayerAction, submitActionWindowSkill,
   advanceActionWindow, getAllSkills, FUSION_RECIPES, COMMON_FUSION_SKILL_ID, getFusionSkillId,
   GameState, PlayerAction, SkillAction, getActiveSkillCount, getAttackMarkCount, decomposeSkill } from "@bing/shared";
-const skill = (name: string) => name === "古锭刀" ? "skill_29_96125" : getAllSkills().find((entry) => entry.name === name)!.id;
+const skill = (name: string) => name === "古锭刀" ? "1028" : getAllSkills().find((entry) => entry.name === name)!.id;
 const gain: PlayerAction = { type: "gain_cake" };
 const cast = (name: string, extra: Partial<SkillAction> = {}): SkillAction => ({ type: "skill", skillId: skill(name), stacks: 1, ...extra });
 function fixture(name: string, extras: string[] = [], playerCount = 3): GameState {
@@ -30,9 +31,7 @@ function end(s: GameState): GameState {
 }
 const sha = (s: GameState, stacks = 1): PlayerAction => ({ type: "attack", attackId: "sha", stacks, targetId: s.players[0]!.id });
 function rolls<T>(sequence: number[], run: () => T): T {
-  let index = 0; const original = Math.random;
-  Math.random = () => new Error().stack!.split("\n")[2]!.includes("addDamage") ? ((sequence[Math.min(index++, sequence.length - 1)]! - .5) / 12) : original();
-  try { return run(); } finally { Math.random = original; }
+  return withSixStarOutcomes(sequence.map((roll) => [roll <= 2, roll === 3, roll === 4]), run);
 }
 const results: Array<Record<string, unknown>> = [];
 function check(name: string, run: () => unknown): void {
@@ -43,15 +42,15 @@ function check(name: string, run: () => unknown): void {
   }
 }
 const hp = (s: GameState) => s.players.map((player) => player.hp);
-check("D12=3: free six-star still heals 6 when bagua reduces one-sha damage to zero", () => {
+check("free six-star still heals 6 when bagua reduces one-sha damage to zero", () => {
   let s = fixture("六芒星阵"); s = reveal(s, [gain, sha(s), gain]); s = rolls([3], () => end(s));
-  const actual = { hp: hp(s), dice: s.eventLog.filter((event) => event.type === "system" && event.message.startsWith("六芒星阵D12")) };
+  const actual = { hp: hp(s), dice: s.eventLog.filter((event) => event.type === "system" && event.probabilityChecks?.skillId === getFusionSkillId("六芒星阵")) };
   assert.equal(s.players[0]!.hp, 26, JSON.stringify(actual)); return actual;
 });
-check("D12=4 then 12: the second blizzard damage tick must not disappear", () => {
+check("reflecting only the first blizzard damage tick keeps the second tick", () => {
   let s = fixture("六芒星阵"); s.players[1]!.skills = [skill("暴风雪"), skill("酒")];
   s = reveal(s, [gain, cast("暴风雪", { targetId: s.players[0]!.id }), gain]); s = rolls([4, 12], () => end(s));
-  const actual = { hp: hp(s), damage: s.eventLog.filter((event) => event.type === "damage"), dice: s.eventLog.filter((event) => event.type === "system" && event.message.startsWith("六芒星阵D12")) };
+  const actual = { hp: hp(s), damage: s.eventLog.filter((event) => event.type === "damage"), dice: s.eventLog.filter((event) => event.type === "system" && event.probabilityChecks?.skillId === getFusionSkillId("六芒星阵")) };
   assert.deepEqual(hp(s), [19, 17, 20], JSON.stringify(actual)); return actual;
 });
 check("six-star automatic reflection does not add the reflector's guding damage multiplier", () => {
@@ -113,7 +112,7 @@ check("original red lotus now respects blood sorrow", () => {
 check("original caster guding applies when the retargeted attack hits its zero-cake caster", () => {
   function scenario(withWeapon: boolean) {
     let s = fixture("六芒星阵", ["绝弹"]);
-    s.players[1]!.skills = [skill("暴风雪"), skill("酒"), ...(withWeapon ? ["skill_29_96125"] : [])];
+    s.players[1]!.skills = [skill("暴风雪"), skill("酒"), ...(withWeapon ? ["1028"] : [])];
     s = reveal(s, [{ type: "defense", defense: "rebound", targetId: s.players[1]!.id }, cast("暴风雪", { targetId: s.players[0]!.id }), gain], (state) => { state.players[1]!.cakes = 2; });
     return end(s);
   }

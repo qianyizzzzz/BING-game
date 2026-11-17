@@ -1,17 +1,23 @@
 import { DRAGON_BLOOD_FIELD_ID, STAR_RESIST_ID } from "../bigCards/abilities";
 import type { SkillDefinition } from "../skills/types";
 import type { AttackStats, GameState, PendingDamageItem, PlayerAction, PlayerId, PlayerState } from "../types";
-import { INFINITY_VALUE, addCombatValues, combatValue, compareCombatValues, subtractCombatValues, withAttackLevel,
+import { INFINITY_VALUE, addCombatValues, combatValue, compareCombatValues, scaleCombatValue, subtractCombatValues, withAttackLevel,
   withAttackPower, type CombatValue } from "./combatValues";
 import { pendingDamageValue } from "./damageKinds";
 import { getSkillActivationKind } from "./effectCategories";
+import { isSkillIgnored } from "./skillIgnore";
 import { getActiveSkillCount } from "./gameFactory";
 import { getPlayerHpValue } from "./infiniteValues";
 import { playersInSpace } from "./spaces";
+import { getBloodQi } from "./asura";
 
-export function getDefenseTotal(player: Pick<PlayerState, "buffs">): CombatValue {
+export function getOrdinaryDefenseTotal(player: Pick<PlayerState, "buffs">): CombatValue {
   return player.buffs.filter((buff) => buff.id === "defense_value").reduce<CombatValue>((total, buff) =>
     addCombatValues(total, buff.defenseValue ?? (buff.infinite ? INFINITY_VALUE : combatValue(buff.stacks))), []);
+}
+
+export function getDefenseTotal(player: Pick<PlayerState, "buffs">): CombatValue {
+  return addCombatValues(getOrdinaryDefenseTotal(player), getBloodQi(player));
 }
 
 export function canUseStarResistance(player: PlayerState): boolean {
@@ -19,6 +25,7 @@ export function canUseStarResistance(player: PlayerState): boolean {
 }
 
 export function isStarResistible(item: PendingDamageItem): boolean {
+  if (item.defensePiercing) return false;
   return item.pointDefeatLevel === 2 || (!item.pointDefeatLevel && !item.unprocessedSpell &&
     compareCombatValues(pendingDamageValue(item), []) > 0 && compareCombatValues(pendingDamageValue(item), INFINITY_VALUE) <= 0);
 }
@@ -40,7 +47,7 @@ export function shapeDragonBloodAttack(state: Pick<GameState, "players">, player
   const mode = getDragonBloodMode(total);
   if (mode === "heal") return undefined;
   const area = mode === "area";
-  const value = area ? subtractCombatValues(combatValue(60), total) : subtractCombatValues(total, combatValue(95));
+  const value = scaleCombatValue(area ? subtractCombatValues(combatValue(60), total) : subtractCombatValues(total, combatValue(95)), action.stacks);
   return withAttackLevel(withAttackPower({ ...stats, isArea: area, defenseTag: area ? "youtiao" : "stone",
     traits: area ? [...stats.traits, "area"] : stats.traits }, value), value);
 }
@@ -48,5 +55,6 @@ export function shapeDragonBloodAttack(state: Pick<GameState, "players">, player
 export function ignoresOtherActiveSkill(target: PlayerState | undefined, sourceId: PlayerId | undefined,
   skill: Pick<SkillDefinition, "timingPhases"> | undefined): boolean {
   return Boolean(target && sourceId && sourceId !== target.id && skill && getSkillActivationKind(skill) === "active" &&
-    target.buffs.some((buff) => buff.stateType === "dragon_active_immunity"));
+    target.buffs.some((buff) => buff.stateType === "dragon_active_immunity" &&
+      (!buff.sourceAbilityId || !isSkillIgnored(target, buff.sourceAbilityId))));
 }

@@ -1,22 +1,29 @@
 import { ReactNode, useEffect, useMemo, useState } from "react";
+import { formatActionPlan } from "./lib/format";
 import { ArrowRight, BadgeCheck, Bot, Camera, Copy, Crown, Download, LogOut, Play, Search, Settings, Sparkles, Timer, Trophy, UserPen, UsersRound, X } from "lucide-react";
 import {
   ActionSubmission,
+  BIG_CARD_PACKS,
   GameConfig,
   MIN_PLAYERS,
   PublicGameState,
   RoomIdentity,
   SkillAction,
   type PointGameAction,
+  type VictoryCounterAction,
+  type RetirementCounterAction,
   SkillId,
   SocketAck,
   createRoomPreset,
-  getAllSkills
+  getAllSkills,
+  getRandomBigCardIds
 } from "@bing/shared";
-import { getActionPromptSeconds, getActionWindowSeconds, getCurrentTurnLimitSeconds, isBigSkillMode, MAX_BIG_CARDS_PER_PLAYER } from "@bing/shared";
+import { getActionPromptSeconds, getActionWindowSeconds, getCurrentTurnLimitSeconds, getStartingHp, isBigSkillMode, isValidInitialHp, MAX_BIG_CARDS_PER_PLAYER } from "@bing/shared";
 import { BigCardPanel } from "./components/BigCardPanel";
 import { ActionPanel } from "./components/ActionPanel";
 import { PointGamePanel } from "./components/PointGamePanel";
+import { VictoryCounterPanel } from "./components/VictoryCounterPanel";
+import { RetirementCounterPanel } from "./components/RetirementCounterPanel";
 import { EventLog } from "./components/EventLog";
 import { StatusPanel } from "./components/StatusPanel";
 import { GameAdvice } from "./components/GameAdvice";
@@ -28,15 +35,13 @@ import { FusionPanel } from "./components/FusionPanel";
 import { TutorialPanel } from "./components/TutorialPanel";
 import { TurnAnimation } from "./components/TurnAnimation";
 import { Button } from "./components/ui/button";
-import { DEFAULT_CHARACTER_ID, getCharacterById } from "./lib/characters";
+import { DEFAULT_CHARACTER_ID, getCharacterById, resolveCharacterAvatarUrl } from "./lib/characters";
 import { SERVER_URL, socket } from "./lib/socket";
 
 type Identity = RoomIdentity | null;
 const ROOM_IDENTITY_STORAGE_KEY = "bing.roomIdentity.v1";
 const ACCOUNT_STORAGE_KEY = "bing.account.v1";
 const MAX_AVATAR_BYTES = 10 * 1024 * 1024;
-const HERO_VIDEO_URL =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4";
 
 interface LocalAccount {
   id: string;
@@ -73,7 +78,7 @@ export function App() {
     () => getCharacterById(account.characterId),
     [account.characterId]
   );
-  const accountAvatarUrl = account.avatarUrl ?? selectedCharacter.avatarUrl;
+  const accountAvatarUrl = resolveCharacterAvatarUrl(account.avatarUrl, selectedCharacter);
 
   useEffect(() => {
     let resumeInFlight = false;
@@ -165,15 +170,15 @@ export function App() {
     [state]
   );
   const aliveCount = useMemo(
-    () => state?.players.filter((player) => player.status === "alive").length ?? 0,
+    () => state?.players.filter((player) => player.status === "alive" && !player.summon).length ?? 0,
     [state]
   );
   const seatedCount = useMemo(
-    () => state?.players.filter((player) => player.kind !== "spectator").length ?? 0,
+    () => state?.players.filter((player) => player.kind !== "spectator" && !player.summon).length ?? 0,
     [state]
   );
-  const submittedCount = state?.pendingActionPlayerIds.length ?? 0;
-  const passCount = state?.actionWindowPassPlayerIds.length ?? 0;
+  const submittedCount = state?.players.filter((player) => !player.summon && state.pendingActionPlayerIds.includes(player.id)).length ?? 0;
+  const passCount = state?.players.filter((player) => !player.summon && state.actionWindowPassPlayerIds.includes(player.id)).length ?? 0;
   const viewerSubmitted = Boolean(
     state &&
       identity &&
@@ -507,6 +512,24 @@ export function App() {
     });
   }
 
+  function submitVictoryResponse(action: VictoryCounterAction) {
+    if (!identity) return;
+    setBusy(true);
+    socket.emit("game:submit_victory_counter", { roomId: identity.roomId, action }, (response) => {
+      setBusy(false);
+      handleStateResponse(response);
+    });
+  }
+
+  function submitRetirementResponse(action: RetirementCounterAction) {
+    if (!identity) return;
+    setBusy(true);
+    socket.emit("game:submit_retirement_counter", { roomId: identity.roomId, action }, (response) => {
+      setBusy(false);
+      handleStateResponse(response);
+    });
+  }
+
   function guessSkill(targetPlayerId: string, targetSkillId: SkillId) {
     if (!identity) {
       return;
@@ -712,6 +735,11 @@ export function App() {
     setMessage("");
   }
 
+  function showSidePanel(tab: "skills" | "status") {
+    setSidePanelTab(tab);
+    window.requestAnimationFrame(() => document.getElementById("game-side-panel")?.scrollIntoView({ block: "start" }));
+  }
+
   const hasActiveRoom = Boolean(identity && state);
 
   return (
@@ -721,13 +749,6 @@ export function App() {
         hasActiveRoom ? "text-gray-900" : "hero-shell text-foreground"
       ].join(" ")}
     >
-      {hasActiveRoom ? (
-        <div className="cake-sticker-field" aria-hidden="true">
-          <span className="cake-sticker cake-sticker-a">饼</span>
-          <span className="cake-sticker cake-sticker-b">饼</span>
-          <span className="cake-sticker cake-sticker-c">饼</span>
-        </div>
-      ) : null}
       {state ? <TurnAnimation state={state} /> : null}
       {identity && state ? (
       <div className="topbar sticky top-0 z-30 border-b border-white/70">
@@ -777,18 +798,7 @@ export function App() {
       ) : null}
 
       {!identity || !state ? (
-        <section className="hero-page relative min-h-screen overflow-hidden bg-background text-foreground">
-          <video
-            aria-hidden="true"
-            autoPlay
-            className="absolute inset-0 z-0 h-full w-full object-cover"
-            loop
-            muted
-            playsInline
-          >
-            <source src={HERO_VIDEO_URL} type="video/mp4" />
-          </video>
-
+        <section className="hero-page relative min-h-screen overflow-hidden text-foreground">
           <nav className="hero-nav relative z-10 mx-auto flex max-w-7xl flex-row items-center justify-between px-8 py-6">
             <a
               className="hero-brand"
@@ -849,7 +859,7 @@ export function App() {
               <div className="hero-proof-row animate-fade-rise-delay">
                 <span>2-6 人实时房间</span>
                 <span>实时同步</span>
-                <span>3D 牌桌 / 对局复盘</span>
+                <span>牌桌对战 / 对局复盘</span>
               </div>
               <Button
                 className="mt-12 rounded-full px-14 py-5 text-base hover:scale-[1.03]"
@@ -873,7 +883,7 @@ export function App() {
                     <BadgeCheck className="h-4 w-4" aria-hidden="true" />
                     你的座位
                   </span>
-                  <strong>{selectedCharacter.archetype}</strong>
+                  <strong>{selectedCharacter.name}</strong>
                 </div>
                 <label className="block text-left text-sm font-medium text-muted-foreground">
                   玩家名
@@ -972,18 +982,51 @@ export function App() {
             {state.phase !== "lobby" ? (
               <PokerTableGame
                 readingSidePanel={sidePanelTab === "status" || (isBigSkillMode(state.config.skillMode) && sidePanelTab === "skills")}
-                onReadBigCards={isBigSkillMode(state.config.skillMode) ? () => {
-                  setSidePanelTab("skills");
-                  window.requestAnimationFrame(() => document.getElementById("big-card-reference")?.scrollIntoView({ block: "start" }));
-                } : undefined}
-                onReadStatus={() => {
-                  setSidePanelTab("status");
-                  window.requestAnimationFrame(() => document.getElementById("status-panel")?.scrollIntoView({ block: "start" }));
-                }}
+                onReadBigCards={isBigSkillMode(state.config.skillMode) ? () => showSidePanel("skills") : undefined}
+                onReadStatus={() => showSidePanel("status")}
                 actionPanel={
-                  state.pointGame || state.verdictRemovalPlayerId ? (
+                  state.retirementCounter ? (
+                    <RetirementCounterPanel counter={state.retirementCounter} players={state.players}
+                      playerId={identity.playerId} busy={busy} submit={submitRetirementResponse} />
+                  ) : state.victoryCounter ? (
+                    <VictoryCounterPanel state={state} playerId={identity.playerId} busy={busy}
+                      submit={submitVictoryResponse} pass={passActionWindow} />
+                  ) : state.pointGame || state.verdictRemovalPlayerId ? (
                     <PointGamePanel key={state.pointGame?.id ?? state.verdictRemovalPlayerId} state={state} playerId={identity.playerId} busy={busy} submit={submitPointGame} />
-                  ) : state.phase !== "finished" && viewer?.kind !== "spectator" ? (
+                  ) : state.basicGameSwitch ? (
+                    <section className="space-y-2 p-3" aria-label="无技能的饼子局">
+                      <h3 className="font-bold">游戏切换服务器 · 无技能的饼</h3>
+                      <p>主游戏已暂停。子局剩余 {Math.max(0, Math.ceil(((state.gameSwitchDeadlineAt ?? clockNow) - clockNow) / 1000))} 秒，时间到时所有存活玩家获胜。</p>
+                      <ul className="flex flex-wrap gap-2 text-sm">{state.basicGameSwitch.players.map((player) => (
+                        <li className="rounded border px-2 py-1" key={player.id}>{player.name} · {player.hp} 血 · {player.cakes} 饼
+                          {player.status === "dead" ? " · 已出局" : ""}</li>
+                      ))}</ul>
+                      {state.basicGameSwitch.players.some((player) => player.id === identity.playerId && player.status === "alive") ?
+                        <ActionPanel key={state.basicGameSwitch.id} state={state.basicGameSwitch} submitting={busy}
+                          onSubmit={submitAction} onEnterActionWindow={enterActionWindow} onPassActionWindow={passActionWindow}
+                          onSkipToNextAction={skipToNextAction} onGuessSkill={guessSkill} onSubmitWindowSkill={submitWindowSkill} /> :
+                        <p>等待子局结算。</p>}
+                    </section>
+                  ) : state.purpleForesight && "mustSubmit" in state.purpleForesight ? (
+                    <section className="space-y-2" aria-label="芥子提前交招">
+                      <p className="p-2 text-sm">受芥子影响，请先锁定本回合出招。只有芥子使用者能提前看到。</p>
+                      <ActionPanel state={{ ...state, phase: "collecting_actions", activeTimingPhase: "turn_action",
+                        pendingActionPlayerIds: [], ...(state.actionWindowDeadlineAt ? { turnDeadlineAt: state.actionWindowDeadlineAt } : {}) }}
+                        submitting={busy} onSubmit={submitAction} onEnterActionWindow={enterActionWindow}
+                        onPassActionWindow={passActionWindow} onSkipToNextAction={skipToNextAction}
+                        onGuessSkill={guessSkill} onSubmitWindowSkill={submitWindowSkill} />
+                    </section>
+                  ) : state.phase !== "finished" && viewer?.kind !== "spectator" ? (<>
+                    {state.purpleForesight && "targets" in state.purpleForesight ? <ul className="space-y-1 p-2 text-sm" aria-label="芥子私密结果">
+                      {state.purpleForesight.targets.map(({ targetId, plan }) => <li key={targetId}>
+                        芥子 · {state.players.find(({ id }) => id === targetId)?.name}：{plan ? plan.actions.map((action) => {
+                          const ids = action.type === "skill" && action.targetIds?.length ? action.targetIds :
+                            "targetId" in action && action.targetId ? [action.targetId] : [];
+                          const names = ids.map((id) => state.players.find((player) => player.id === id)?.name).filter(Boolean).join("、");
+                          return `${formatActionPlan({ actions: [action] })}${names ? ` → ${names}` : ""}`;
+                        }).join(" / ") || "空过" : "等待提前提交"}
+                      </li>)}
+                    </ul> : null}
                     <ActionPanel
                       fusionControls={viewer && viewer.skills.length >= 2 ? (
                         <FusionPanel state={state} submitting={busy} onSubmit={submitAction} onDecompose={decomposeFusion} onChooseWitherNumber={chooseWitherNumber} />
@@ -998,7 +1041,7 @@ export function App() {
                       onSubmitWindowSkill={submitWindowSkill}
                       state={state}
                       submitting={busy}
-                    />
+                    /></>
                   ) : null
                 }
                 highlightedPlayerIds={highlightedPlayerIds}
@@ -1303,8 +1346,7 @@ function buildRoomPayload(playerName: string, account: LocalAccount) {
     playerName: playerName.trim() || account.name || "玩家",
     accountId: account.id
   };
-  payload.avatarUrl =
-    account.avatarUrl ?? getCharacterById(account.characterId).avatarUrl;
+  payload.avatarUrl = resolveCharacterAvatarUrl(account.avatarUrl, getCharacterById(account.characterId));
 
   return payload;
 }
@@ -1417,7 +1459,7 @@ function SidePanel({
   state: PublicGameState;
 }) {
   return (
-    <aside className="side-panel-stack">
+    <aside id="game-side-panel" className="side-panel-stack">
       <div className="surface-card side-panel-tabs p-3">
         <div className="side-panel-tab-list" role="tablist" aria-label="辅助信息">
           {SIDE_PANEL_TABS.map((tab) => (
@@ -1684,6 +1726,8 @@ function SettingsPanel({
   onLoad: (file: File) => void;
 }) {
   const config = state.config;
+  const selectedPacks = config.bigCardPackIds ?? BIG_CARD_PACKS.map((pack) => pack.id);
+  const startingHp = getStartingHp(config);
   return (
     <div
       className="mt-4 grid gap-3 border-t border-teal-100/70 pt-4 text-sm md:grid-cols-2"
@@ -1780,6 +1824,57 @@ function SettingsPanel({
           </>}
         </select>
       </label>
+      <label className="settings-field block font-medium text-gray-700">
+        初始血量{config.skillMode === "none" ? "（固定）" : ""}
+        <input
+          key={`${config.skillMode}:${startingHp}`}
+          className="soft-input mt-1 w-full"
+          data-testid="settings-initial-hp"
+          type="number"
+          min={1}
+          step={1}
+          disabled={busy || config.skillMode === "none"}
+          defaultValue={startingHp}
+          onBlur={(event) => {
+            const value = event.currentTarget.valueAsNumber;
+            if (!isValidInitialHp(value)) event.currentTarget.value = String(startingHp);
+            else if (value !== startingHp) onChange({ initialHp: value });
+          }}
+          onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+        />
+      </label>
+      {config.skillMode === "big_random" ? (
+        <fieldset className="settings-field min-w-0 md:col-span-2" disabled={busy}>
+          <legend className="px-1 font-medium">参与随机的大卡包</legend>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2 lg:grid-cols-4">
+            {BIG_CARD_PACKS.map((pack) => (
+              <label key={pack.id} className="flex items-start gap-2">
+                <input
+                  className="mt-0.5 shrink-0"
+                  type="checkbox"
+                  checked={selectedPacks.includes(pack.id)}
+                  onChange={(event) => onChange({
+                    bigCardPackIds: event.target.checked
+                      ? [...selectedPacks, pack.id]
+                      : selectedPacks.filter((id) => id !== pack.id)
+                  })}
+                />
+                <span>{pack.name}</span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 text-xs" role="status">随机卡池共 {getRandomBigCardIds(selectedPacks).length} 张大卡</p>
+          <label className="mt-3 flex items-center gap-2 font-medium">
+            <input
+              type="checkbox"
+              checked={config.allowDuplicateBigCards !== false}
+              onChange={(event) => onChange({ allowDuplicateBigCards: event.target.checked })}
+            />
+            允许重复
+          </label>
+          <p className="mt-1 text-xs">开启后，不同玩家可以抽到同一张大卡。</p>
+        </fieldset>
+      ) : null}
     </div>
   );
 }

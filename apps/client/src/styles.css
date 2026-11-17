@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 :root {
+  --play-surface: #f5f2ea;
   --font-display: "Instrument Serif", serif;
   --font-body: "Inter", sans-serif;
   --background: 201 100% 13%;
@@ -18,7 +19,7 @@
   --border: 0 0% 18%;
   --input: 0 0% 18%;
   color: hsl(var(--foreground));
-  background: hsl(var(--background));
+  background: var(--play-surface);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -26,13 +27,6 @@
 }
 
 /* Art director pass: lighter oil-paint UI, less plastic chrome. */
-.app-shell {
-  background:
-    linear-gradient(115deg, rgba(255, 252, 241, 0.9), rgba(229, 232, 218, 0.72) 48%, rgba(246, 238, 216, 0.82)),
-    repeating-linear-gradient(105deg, rgba(64, 73, 65, 0.026) 0 1px, transparent 1px 30px),
-    #f3efe2;
-}
-
 .surface-card,
 .hero-lobby-panel,
 .character-select-panel,
@@ -252,89 +246,12 @@ select {
 .app-shell {
   position: relative;
   overflow-x: hidden;
-  background:
-    repeating-linear-gradient(45deg, rgba(217, 119, 6, 0.035) 0 1px, transparent 1px 34px),
-    linear-gradient(135deg, rgba(20, 184, 166, 0.08), transparent 28%),
-    linear-gradient(315deg, rgba(245, 158, 11, 0.09), transparent 26%),
-    #f4f5f1;
-}
-
-.app-shell::before,
-.app-shell::after {
-  content: "饼";
-  position: fixed;
-  z-index: 0;
-  pointer-events: none;
-  color: rgba(217, 119, 6, 0.08);
-  font-size: clamp(120px, 18vw, 280px);
-  font-weight: 900;
-  line-height: 1;
-}
-
-.app-shell::before {
-  right: -42px;
-  top: 92px;
-  transform: rotate(12deg);
-}
-
-.app-shell::after {
-  bottom: 24px;
-  left: -36px;
-  transform: rotate(-10deg);
+  background: var(--play-surface);
 }
 
 .app-shell > * {
   position: relative;
   z-index: 1;
-}
-
-.cake-sticker-field {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: visible;
-}
-
-.cake-sticker {
-  position: absolute;
-  display: grid;
-  width: 74px;
-  height: 74px;
-  place-items: center;
-  border: 3px solid rgba(146, 64, 14, 0.18);
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 34% 32%, rgba(255, 255, 255, 0.72) 0 8px, transparent 9px),
-    radial-gradient(circle at 66% 66%, rgba(146, 64, 14, 0.16) 0 5px, transparent 6px),
-    #fbbf24;
-  color: rgba(120, 53, 15, 0.42);
-  font-weight: 900;
-  box-shadow: 0 18px 36px rgba(146, 64, 14, 0.12);
-}
-
-.cake-sticker-a {
-  right: 7%;
-  top: 18%;
-  transform: rotate(13deg);
-}
-
-.cake-sticker-b {
-  left: 6%;
-  top: 42%;
-  width: 58px;
-  height: 58px;
-  opacity: 0.72;
-  transform: rotate(-18deg);
-}
-
-.cake-sticker-c {
-  right: 18%;
-  bottom: 9%;
-  width: 48px;
-  height: 48px;
-  opacity: 0.58;
-  transform: rotate(-8deg);
 }
 
 .topbar {
@@ -470,12 +387,7 @@ select {
   display: grid;
   align-content: start;
   gap: 14px;
-}
-
-.side-panel-tabs {
-  position: sticky;
-  top: 84px;
-  z-index: 4;
+  scroll-margin-top: 12px;
 }
 
 .side-panel-tab-list {
@@ -1280,13 +1192,6 @@ select {
 .battle-grid {
   position: relative;
   min-height: calc(100vh - 82px);
-  background-image:
-    radial-gradient(circle at 8% 14%, rgba(245, 158, 11, 0.11), transparent 26%),
-    radial-gradient(circle at 86% 10%, rgba(20, 184, 166, 0.12), transparent 25%),
-    linear-gradient(rgba(136, 247, 219, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(136, 247, 219, 0.035) 1px, transparent 1px);
-  background-color: #030807;
-  background-size: auto, auto, 32px 32px, 32px 32px;
 }
 
 @keyframes turn-reveal {
@@ -2062,24 +1967,7 @@ select {
   position: relative;
   min-height: clamp(560px, 52vw, 650px);
   overflow: hidden;
-  background:
-    radial-gradient(ellipse at 50% 36%, rgba(136, 247, 219, 0.16), transparent 36%),
-    linear-gradient(180deg, rgba(22, 31, 23, 0.96), rgba(5, 8, 7, 0.98));
-  background-position: center;
-  background-size: cover;
-}
-
-.poker-table-board::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at center, transparent 0 34%, rgba(94, 234, 212, 0.1) 72%, rgba(4, 8, 7, 0.72) 100%),
-    linear-gradient(rgba(94, 234, 212, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(94, 234, 212, 0.038) 1px, transparent 1px);
-  background-size: auto, 34px 34px, 34px 34px;
+  background: var(--play-surface);
 }
 
 .poker-table-board::after {
@@ -2107,39 +1995,13 @@ select {
   animation: battle-director-hit-stop 0.38s ease-out both;
 }
 
-.table-scene-3d {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.table-scene-3d canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-  filter:
-    drop-shadow(0 34px 42px rgba(15, 23, 42, 0.28))
-    saturate(1.08);
-}
-
 .poker-table-felt {
   position: absolute;
   inset: 16% 8% 13%;
   z-index: 1;
-  border: 22px solid #4a2d19;
-  border-radius: 999px;
-  background:
-    radial-gradient(ellipse at 50% 42%, rgba(94, 234, 212, 0.18), transparent 58%),
-    radial-gradient(ellipse at center, rgba(247, 243, 223, 0.08), transparent 42%),
-    linear-gradient(135deg, #123b35, #08221f 62%, #111a12);
-  box-shadow:
-    0 0 0 8px rgba(247, 243, 223, 0.16),
-    0 0 0 14px rgba(4, 8, 7, 0.58),
-    inset 0 0 0 7px rgba(94, 234, 212, 0.07),
-    inset 0 26px 54px rgba(247, 243, 223, 0.05),
-    inset 0 -30px 58px rgba(0, 0, 0, 0.38),
-    0 34px 70px rgba(0, 0, 0, 0.42);
+  border-radius: 50%;
+  background: #c5d7ce;
+  pointer-events: none;
 }
 
 .table-rail {
@@ -2264,6 +2126,52 @@ select {
 
 .table-card-board-reveal .discard-card-preview {
   animation: discard-card-pulse 0.92s ease both;
+}
+
+.table-creation-zone {
+  position: absolute;
+  z-index: 15;
+  transform: translate(-50%, -50%);
+}
+
+.table-creation-zone > summary {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  cursor: pointer;
+  list-style: none;
+  border: 1px solid #a78e6b;
+  border-radius: 50%;
+  color: #643614;
+  background: #fff6e3;
+}
+
+.table-creation-zone > summary::-webkit-details-marker {
+  display: none;
+}
+
+.table-creation-zone > ul {
+  position: absolute;
+  top: calc(100% + .3rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(12rem, 45vw);
+  max-height: 10rem;
+  overflow-y: auto;
+  padding: .45rem;
+  border: 1px solid #a78e6b;
+  border-radius: .5rem;
+  background: #fffaf0;
+  color: #382b1a;
+  box-shadow: 0 5px 20px #36271432;
+}
+
+.table-creation-zone li {
+  display: grid;
+  gap: .1rem;
+  padding: .25rem;
+  font-size: .75rem;
 }
 
 .poker-seat {
@@ -3868,7 +3776,6 @@ select {
 
   .poker-table-felt {
     inset: 18% 3% 24%;
-    border-width: 12px;
   }
 
   .table-card-board {
@@ -4009,42 +3916,6 @@ select {
 }
 
 /* Abyss expedition visual pass: original dark relic fantasy, not a direct franchise copy. */
-.app-shell {
-  color: #eadfbe;
-  background:
-    radial-gradient(circle at 18% 6%, rgba(113, 90, 48, 0.36), transparent 26%),
-    radial-gradient(circle at 84% 12%, rgba(25, 118, 110, 0.18), transparent 24%),
-    radial-gradient(ellipse at 50% 105%, rgba(3, 7, 18, 0.94), rgba(3, 7, 18, 0.48) 42%, transparent 70%),
-    repeating-linear-gradient(90deg, rgba(234, 223, 190, 0.025) 0 1px, transparent 1px 46px),
-    linear-gradient(180deg, #1b241d 0%, #0b1110 54%, #050807 100%);
-}
-
-.app-shell::before,
-.app-shell::after {
-  content: "";
-  width: clamp(210px, 22vw, 380px);
-  height: clamp(210px, 22vw, 380px);
-  border: 1px solid rgba(201, 178, 124, 0.16);
-  border-radius: 999px;
-  background:
-    radial-gradient(circle, transparent 0 38%, rgba(201, 178, 124, 0.1) 39% 40%, transparent 41%),
-    conic-gradient(from 30deg, transparent, rgba(136, 247, 219, 0.1), transparent 28%, rgba(201, 178, 124, 0.12), transparent 58%);
-  color: transparent;
-  filter: blur(0.2px);
-}
-
-.cake-sticker {
-  border-color: rgba(201, 178, 124, 0.22);
-  background:
-    radial-gradient(circle at 50% 42%, rgba(136, 247, 219, 0.36), transparent 34%),
-    radial-gradient(circle at 50% 50%, rgba(201, 178, 124, 0.28), transparent 58%),
-    rgba(8, 17, 16, 0.74);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 18px 42px rgba(0, 0, 0, 0.36),
-    0 0 24px rgba(136, 247, 219, 0.12);
-}
-
 .topbar {
   border-color: rgba(201, 178, 124, 0.2) !important;
   background:
@@ -4248,16 +4119,6 @@ select {
     linear-gradient(90deg, rgba(62, 50, 28, 0.9), rgba(12, 42, 38, 0.88));
 }
 
-.battle-grid .poker-table-board {
-  background:
-    radial-gradient(ellipse at 50% 48%, rgba(247, 204, 92, 0.14), transparent 34%),
-    radial-gradient(ellipse at 50% 52%, rgba(136, 247, 219, 0.2), transparent 56%),
-    linear-gradient(180deg, rgba(63, 66, 35, 0.72), rgba(12, 33, 28, 0.94));
-  box-shadow:
-    inset 0 18px 48px rgba(0, 0, 0, 0.28),
-    inset 0 -26px 70px rgba(0, 0, 0, 0.36);
-}
-
 .battle-grid .side-panel-tabs,
 .battle-grid .side-panel-content,
 .battle-grid .quick-hint-panel {
@@ -4282,34 +4143,6 @@ select {
 
 .poker-table-board {
   min-height: clamp(650px, 58vw, 760px);
-  background:
-    radial-gradient(ellipse at 50% 34%, rgba(136, 247, 219, 0.14), transparent 33%),
-    radial-gradient(ellipse at 50% 112%, rgba(0, 0, 0, 0.82), transparent 56%),
-    linear-gradient(180deg, #1f271d 0%, #0c1715 48%, #050807 100%);
-}
-
-.poker-table-board::before {
-  background:
-    radial-gradient(ellipse at 50% 58%, transparent 0 28%, rgba(0, 0, 0, 0.28) 66%, rgba(0, 0, 0, 0.68) 100%),
-    repeating-linear-gradient(120deg, rgba(201, 178, 124, 0.045) 0 1px, transparent 1px 38px);
-}
-
-.table-scene-3d canvas {
-  filter:
-    drop-shadow(0 42px 60px rgba(0, 0, 0, 0.48))
-    saturate(1.14)
-    contrast(1.06);
-}
-
-.table-scene-3d-first-person::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at 50% 115%, rgba(5, 8, 7, 0.88), transparent 42%),
-    radial-gradient(ellipse at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.42) 100%);
-  mix-blend-mode: multiply;
 }
 
 .table-action-dock {
@@ -5650,48 +5483,6 @@ select {
   }
 }
 
-.event-card {
-  border-color: rgba(201, 178, 124, 0.18);
-  border-left-color: rgba(201, 178, 124, 0.56);
-  background:
-    linear-gradient(90deg, rgba(201, 178, 124, 0.12), transparent 42%),
-    rgba(5, 8, 7, 0.7);
-  color: rgba(248, 237, 210, 0.82);
-}
-
-.event-card .text-gray-400 {
-  color: rgba(201, 178, 124, 0.82) !important;
-}
-
-.event-danger {
-  border-left-color: #e76f2f;
-  background:
-    linear-gradient(90deg, rgba(231, 111, 47, 0.18), transparent 46%),
-    rgba(5, 8, 7, 0.72);
-}
-
-.event-heal {
-  border-left-color: #88f7db;
-  background:
-    linear-gradient(90deg, rgba(136, 247, 219, 0.14), transparent 44%),
-    rgba(5, 8, 7, 0.72);
-}
-
-.event-rebound,
-.event-block {
-  border-left-color: #c084fc;
-  background:
-    linear-gradient(90deg, rgba(192, 132, 252, 0.15), transparent 44%),
-    rgba(5, 8, 7, 0.72);
-}
-
-.event-turn {
-  border-left-color: #88f7db;
-  background:
-    linear-gradient(90deg, rgba(136, 247, 219, 0.16), transparent 44%),
-    rgba(5, 8, 7, 0.72);
-}
-
 .poker-seat {
   border-color: rgba(201, 178, 124, 0.28);
   background:
@@ -6474,32 +6265,18 @@ select {
   }
 }
 
-.hero-shell {
-  min-height: 100vh;
-  overflow-x: hidden;
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-}
-
-.hero-shell::before,
-.hero-shell::after,
-.hero-shell .cake-sticker-field {
-  display: none;
-}
-
 .hero-page {
+  background: var(--play-surface);
   font-family: var(--font-body);
 }
 
-.hero-page::after {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  content: "";
-  background:
-    radial-gradient(circle at 50% 18%, rgba(241, 188, 85, 0.2), transparent 34%),
-    linear-gradient(180deg, rgba(1, 8, 14, 0.42), rgba(1, 6, 10, 0.78) 62%, rgba(1, 6, 10, 0.95));
+.hero-nav a.text-foreground,
+.hero-nav a:hover {
+  color: #202633;
+}
+
+.hero-nav a.text-muted-foreground:not(:hover) {
+  color: #53545a;
 }
 
 .hero-nav {
@@ -6550,11 +6327,6 @@ select {
   color: rgba(248, 237, 210, 0.68);
   font-size: 12px;
   font-weight: 700;
-}
-
-.hero-page video {
-  background: hsl(var(--background));
-  filter: brightness(0.62) saturate(1.08) contrast(1.06);
 }
 
 .hero-page #hero {
@@ -6830,60 +6602,6 @@ select {
 }
 
 /* Shared Dining art pass: warm gallery canvas, translucent apparatus, oil-paint pigment. */
-.app-shell,
-.hero-shell {
-  color: #1e2430;
-  background:
-    linear-gradient(rgba(246, 241, 232, 0.56), rgba(232, 224, 212, 0.72)),
-    url("/assets/ui/shared-dining-installation-bg.png") center / cover fixed,
-    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.94), transparent 28%),
-    radial-gradient(circle at 73% 22%, rgba(12, 155, 150, 0.12), transparent 17%),
-    radial-gradient(circle at 84% 73%, rgba(226, 38, 45, 0.08), transparent 16%),
-    linear-gradient(180deg, #f6f1e8 0%, #e8e0d4 54%, #d8d0c5 100%);
-}
-
-.app-shell::before,
-.app-shell::after,
-.hero-page::before {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  content: "";
-}
-
-.app-shell::before,
-.hero-page::before {
-  background:
-    linear-gradient(90deg, rgba(29, 34, 43, 0.1) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(29, 34, 43, 0.08) 1px, transparent 1px),
-    radial-gradient(circle at 22% 34%, rgba(207, 28, 40, 0.72) 0 2px, transparent 3px),
-    radial-gradient(circle at 27% 36%, rgba(207, 28, 40, 0.46) 0 1px, transparent 2px),
-    radial-gradient(circle at 67% 32%, rgba(0, 145, 151, 0.74) 0 5px, transparent 6px),
-    radial-gradient(circle at 71% 38%, rgba(245, 187, 33, 0.78) 0 3px, transparent 4px),
-    radial-gradient(circle at 81% 71%, rgba(0, 98, 180, 0.62) 0 5px, transparent 6px);
-  background-size: 120px 120px, 120px 120px, auto, auto, auto, auto, auto;
-  opacity: 0.3;
-  mix-blend-mode: multiply;
-}
-
-.app-shell::after,
-.hero-page::after {
-  background:
-    radial-gradient(ellipse at 45% 24%, rgba(255, 255, 255, 0.62), transparent 36%),
-    radial-gradient(ellipse at 64% 42%, rgba(0, 145, 151, 0.12), transparent 18%),
-    radial-gradient(ellipse at 34% 53%, rgba(207, 28, 40, 0.1), transparent 16%),
-    repeating-linear-gradient(112deg, rgba(69, 62, 54, 0.045) 0 1px, transparent 1px 13px),
-    linear-gradient(180deg, rgba(246, 241, 232, 0.84), rgba(232, 224, 212, 0.72));
-  opacity: 1;
-  mix-blend-mode: normal;
-}
-
-.hero-page video {
-  opacity: 0.16;
-  filter: grayscale(0.75) sepia(0.28) brightness(1.34) contrast(0.72) blur(1px);
-}
-
 .hero-brand,
 .hero-copy,
 .hero-lobby-grid,
@@ -7104,43 +6822,11 @@ select {
   backdrop-filter: blur(18px) saturate(1.08);
 }
 
-.battle-grid {
-  background-image:
-    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.86), transparent 24%),
-    radial-gradient(circle at 74% 20%, rgba(0, 145, 151, 0.1), transparent 18%),
-    radial-gradient(circle at 82% 74%, rgba(238, 37, 48, 0.08), transparent 16%),
-    linear-gradient(rgba(32, 38, 51, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(32, 38, 51, 0.045) 1px, transparent 1px);
-  background-color: transparent;
-  background-size: auto, auto, auto, 58px 58px, 58px 58px;
-}
-
 .poker-table-toolbar,
 .battle-grid .poker-table-toolbar {
   border-bottom-color: rgba(32, 38, 51, 0.12);
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.56), rgba(235, 229, 219, 0.42));
-}
-
-.poker-table-board,
-.battle-grid .poker-table-board {
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.08), rgba(238, 231, 221, 0.18)),
-    url("/assets/ui/shared-dining-tabletop.png") center / cover,
-    radial-gradient(circle at 47% 52%, rgba(245, 190, 39, 0.28), transparent 12%),
-    radial-gradient(circle at 34% 38%, rgba(206, 28, 40, 0.2), transparent 16%),
-    radial-gradient(circle at 66% 36%, rgba(0, 145, 151, 0.22), transparent 18%),
-    radial-gradient(circle at 78% 62%, rgba(0, 95, 181, 0.14), transparent 16%),
-    radial-gradient(ellipse at 50% 54%, rgba(255, 255, 255, 0.46), transparent 56%),
-    linear-gradient(180deg, rgba(232, 224, 212, 0.78), rgba(216, 208, 197, 0.82));
-  box-shadow:
-    inset 0 22px 58px rgba(255, 255, 255, 0.28),
-    inset 0 -28px 70px rgba(82, 72, 59, 0.1);
-}
-
-.poker-table-board::before {
-  opacity: 0.5;
-  filter: sepia(0.28) saturate(0.82);
 }
 
 .player-card-shell,
@@ -7188,35 +6874,6 @@ select {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.74),
     0 10px 22px rgba(82, 72, 59, 0.08);
-}
-
-.table-scene-3d canvas {
-  opacity: 0.38;
-  filter:
-    sepia(0.34)
-    saturate(0.74)
-    contrast(0.72)
-    brightness(1.28)
-    drop-shadow(0 30px 42px rgba(82, 72, 59, 0.14)) !important;
-}
-
-.table-scene-3d-first-person::after {
-  background:
-    radial-gradient(ellipse at 50% 58%, rgba(255, 255, 255, 0.46), transparent 34%),
-    radial-gradient(ellipse at 50% 50%, transparent 54%, rgba(232, 224, 212, 0.34) 100%) !important;
-  mix-blend-mode: screen;
-}
-
-.poker-table-felt {
-  border-color: rgba(0, 145, 151, 0.28);
-  background:
-    radial-gradient(ellipse at 44% 45%, rgba(245, 190, 39, 0.18), transparent 30%),
-    radial-gradient(ellipse at 58% 48%, rgba(0, 145, 151, 0.18), transparent 44%),
-    rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 0 0 7px rgba(255, 255, 255, 0.2),
-    inset 0 20px 46px rgba(255, 255, 255, 0.16),
-    inset 0 -26px 52px rgba(82, 72, 59, 0.1);
 }
 
 .battle-stage-panel,
@@ -8881,7 +8538,7 @@ select {
   font-weight: 560 !important;
 }
 
-.side-panel-stack .surface-card :is(p, span, small, div),
+.side-panel-stack .surface-card :is(p, span, small, div):not(:where(.event-card, .event-card *)),
 .table-action-dock :is(p, span, label, small, div),
 .hero-lobby-panel :is(p, span, small, label, div) {
   color: rgba(32, 38, 51, 0.55) !important;
@@ -9760,13 +9417,6 @@ select {
 }
 
 /* Final art-director sweep: keep the whole game lighter, quieter, and portrait-led. */
-.app-shell {
-  background:
-    linear-gradient(120deg, rgba(255, 252, 241, 0.94), rgba(226, 231, 220, 0.72) 48%, rgba(246, 238, 218, 0.84)) !important,
-    repeating-linear-gradient(105deg, rgba(64, 73, 65, 0.026) 0 1px, transparent 1px 30px) !important,
-    #f3efe2 !important;
-}
-
 .surface-card,
 .hero-lobby-panel,
 .hero-shell .character-select-panel,
@@ -10900,23 +10550,40 @@ select {
 .character-select-portrait,
 .character-portrait-badge,
 .player-avatar,
-.account-avatar,
-.poker-table-board .character-avatar-shell {
-  border-radius: 49% 43% 46% 42% / 43% 50% 39% 47% !important;
+.account-avatar {
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #e8e3d9 !important;
+  box-shadow: none !important;
 }
 
-.character-select-painted-portrait,
-.character-option-painted-portrait,
-.character-avatar-sticker,
 .character-portrait-badge {
-  filter: saturate(0.88) contrast(1.03) sepia(0.025) !important;
+  height: 48px;
+  filter: none !important;
+  transform: none;
 }
 
-.character-select-painted-portrait,
+.character-portrait-badge::before {
+  display: none;
+}
+
+.character-select-painted-portrait {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.character-option-painted-portrait {
+  height: 38px !important;
+}
+
 .character-avatar-sticker {
-  box-shadow:
-    0 8px 17px rgba(48, 42, 30, 0.065),
-    inset 0 0 0 1px rgba(255, 253, 241, 0.24) !important;
+  height: 42px !important;
+}
+
+.poker-table-board .character-avatar-shell {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .poker-table-board .poker-seat {
@@ -11203,4 +10870,9 @@ select {
   .table-action-dock .action-board {
     padding: 12px !important;
   }
+}
+
+img[src^="/assets/characters/elements/"] {
+  filter: none !important;
+  object-position: center !important;
 }

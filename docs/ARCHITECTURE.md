@@ -158,7 +158,7 @@ flowchart TD
 
 ## 6. 技能系统扩展方案
 
-Excel 技能表已通过 `scripts/import-skills.py` 导入为 `RAW_SKILL_CATALOG`。当前每条技能都有稳定 id、名称、融合方法、描述、标签和来源行号。
+Excel 技能表通过 `scripts/import-skills.py` 导入为 `RAW_SKILL_CATALOG`。小技能 ID 以 v4「小技能」页的「技能ID」列为准，例如「空」为 `1001`。技能原文仍取自归档 v3；旧预设、复盘和训练样本中的小技能 ID 在读取时转换。
 
 融合源数据位于 `docs/archive/技能规范化（v3）.xlsx` 的 Sheet2。导入脚本生成独立的 `generatedFusionCatalog.ts`，保留原基础技能 ID，并为融合产物生成独立 ID。72 条配方均可检索，当前开放 67 条；未开放的配方不能提交融合。文明人相关的三条配方按确认规则开放，聊天触发的效果明确标注待定。火眼金睛已单独按确认的v4描述覆盖为破弹且无视绝弹，不整表导入v4的其他改动。
 

@@ -1,8 +1,8 @@
 import { CSSProperties, useEffect, useRef, useState } from "react";
-import { CheckCircle2, Cookie, HeartPulse, Skull, Sparkles, Timer, X } from "lucide-react";
-import { DEFEAT_LEVEL_LABELS, INITIAL_HP, PlayerState, PublicGameState, formatPlayerHp, getSkill, getBigCard, isAllSkillsSealedBuff, isBigSkillMode } from "@bing/shared";
+import { CheckCircle2, Cookie, Dog, HeartPulse, Skull, Sparkles, Timer, X } from "lucide-react";
+import { DEFEAT_LEVEL_LABELS, PlayerState, PublicGameState, formatPlayerHp, getSkill, getBigCard, getStartingHp, isAllSkillsSealedBuff, isBigSkillMode } from "@bing/shared";
 import { CharacterAvatar } from "./CharacterAvatar";
-import { CHARACTER_ROSTER } from "../lib/characters";
+import { CHARACTER_ROSTER, resolveCharacterAvatarUrl } from "../lib/characters";
 import { SeatFeedback } from "../lib/tableFeedback";
 import { formatStatusDuration } from "../lib/format";
 
@@ -45,14 +45,14 @@ export function PlayerSeat({
     player.status === "alive" &&
     player.buffs.some((buff) => buff.id === "pending_death");
   const cakeText = player.cakes < 0 ? "?" : String(player.cakes);
-  const hpPercent = Math.max(0, Math.min(100, (player.hp / INITIAL_HP) * 100));
+  const hpPercent = Math.max(0, Math.min(100, (player.hp / getStartingHp(state.config)) * 100));
   const bigMode = isBigSkillMode(state.config.skillMode);
   const skillCount = bigMode ? player.bigCardSlotCount ?? player.bigCards?.length ?? 0 : player.skillSlotCount ?? player.skills.length;
   const skillSlots = bigMode ? Array.from({ length: Math.min(3, skillCount) }, (_, index) => player.bigCards?.[index]?.cardId)
     : buildSkillSlots(player, skillCount);
   const visibleBuffs = getVisibleSeatBuffs(player.buffs);
   const fallbackCharacter = CHARACTER_ROSTER[stableIndex(player.id, CHARACTER_ROSTER.length)]!;
-  const avatarUrl = player.avatarUrl ?? fallbackCharacter.avatarUrl;
+  const avatarUrl = resolveCharacterAvatarUrl(player.avatarUrl, fallbackCharacter);
   const cardOffset = seatCardOffset(position);
 
   return (
@@ -71,6 +71,7 @@ export function PlayerSeat({
       style={{
         left: `${position.x}%`,
         top: `${position.y}%`,
+        zIndex: player.summon ? 10 : 20,
         "--seat-shift-x": `${cardOffset.x}px`,
         "--seat-shift-y": `${cardOffset.y}px`
       } as CSSProperties}
@@ -79,20 +80,28 @@ export function PlayerSeat({
       data-player-hp={player.hp}
       data-player-id={player.id}
       data-player-name={player.name}
+      data-entity-kind={player.summon?.kind ?? "player"}
     >
       <div className="seat-identity-row">
-        <CharacterAvatar
-          animation={feedback.animation}
-          animationKey={feedback.animationKey}
-          avatarUrl={avatarUrl}
-          dead={dead || pendingDeath}
-          kind={player.kind}
-          name={player.name}
-        />
+        {player.summon ? (
+          <div className="character-avatar-shell grid place-items-center" role="img" aria-label="猎犬">
+            <Dog className="h-10 w-10 text-amber-900" />
+          </div>
+        ) : (
+          <CharacterAvatar
+            animation={feedback.animation}
+            animationKey={feedback.animationKey}
+            avatarUrl={avatarUrl}
+            dead={dead || pendingDeath}
+            kind={player.kind}
+            name={player.name}
+          />
+        )}
         <div className="min-w-0 flex-1">
           <div className="seat-name-line">
-            <strong title={player.name}>{player.name}</strong>
+            <strong title={player.name}>{player.summon ? "猎犬" : player.name}</strong>
             {isViewer ? <span>你</span> : null}
+            {player.karmaReincarnation && !dead ? <span>轮回</span> : null}
           </div>
           <div className="seat-status-line">
             {dead ? (
@@ -100,6 +109,8 @@ export function PlayerSeat({
                 <Skull className="h-3.5 w-3.5" aria-hidden="true" />
                 {defeatLabel}
               </>
+            ) : player.summon ? (
+              <span>余{Math.max(0, player.summon.expiresAtTurn - state.turnNumber)}回合</span>
             ) : pendingDeath ? (
               <>
                 <Skull className="h-3.5 w-3.5" aria-hidden="true" />

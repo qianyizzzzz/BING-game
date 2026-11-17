@@ -7,7 +7,7 @@ import { GameState, PlayerAction, SkillAction, FUSION_RECIPES, COMMON_FUSION_SKI
 const skill = (name: string) => { const entry = getAllSkills().find((item) => item.name === name); assert.ok(entry, name); return entry.id; };
 const gain: PlayerAction = { type: "gain_cake" };
 const cast = (name: string, extra: Partial<SkillAction> = {}): SkillAction => ({ type: "skill", skillId: skill(name), stacks: 1, ...extra });
-const flame = "skill_76_76044";
+const flame = "1075";
 const armor = getFusionSkillId("反伤刺甲"), cloak = getFusionSkillId("红莲斗篷"), spirit = getFusionSkillId("帝灵之境");
 function fixture(loadouts: string[][], hp = 6): GameState {
   let s = createGame("A", { skillMode: "test_select", skillCount: 12, firstTurnNoAttack: false });

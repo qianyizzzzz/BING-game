@@ -12,9 +12,10 @@ import { BASE_ATTACKS, getStackedAttackStats } from "./attacks";
 import type { ReboundAttack } from "./scatterRebound";
 import { getSkillActivationKind } from "./effectCategories";
 import { getSkill } from "../skills/registry";
+import { canGainStatus } from "./karmaSong";
 
 export const VERDICT_SHADOW_BONUS_ID = "verdict_shadow_uses";
-const SHADOW_ID = "skill_25_51277";
+const SHADOW_ID = "1024";
 
 export function notifyPointGameTarget(state: GameState, targetId: PlayerId): void {
   const target = findPlayer(state, targetId);
@@ -29,6 +30,7 @@ function awardShadowUse(player: PlayerState): void {
     player.buffs = player.buffs.filter((buff) => buff.id !== VERDICT_SHADOW_BONUS_ID);
     return;
   }
+  if (!canGainStatus(player)) return;
   const bonus = player.buffs.find((buff) => buff.id === VERDICT_SHADOW_BONUS_ID);
   if (bonus) bonus.stacks++;
   else player.buffs.push({ id: VERDICT_SHADOW_BONUS_ID, name: "御秽裁决·暗影盾额外次数", stacks: 1 });
@@ -49,9 +51,11 @@ export function recordVerdictResult(state: GameState, game: PointGame): boolean 
   progress.streak = win ? Math.max(0, progress.streak) + 1 : Math.min(0, progress.streak) - 1;
   if ((win ? progress.wins : progress.losses) === 4) {
     grantInitializedSkill(state, source.id, win ? MORE_TRIES_ID : FOUR_EMPTINESS_ID, "御秽裁决胜负奖励", false);
-    const free = source.buffs.find((buff) => buff.id === "free_imperial_verdict");
-    if (free) free.stacks += win ? 2 : 1;
-    else source.buffs.push({ id: "free_imperial_verdict", name: "免费御秽裁决", stacks: win ? 2 : 1 });
+    if (canGainStatus(source)) {
+      const free = source.buffs.find((buff) => buff.id === "free_imperial_verdict");
+      if (free) free.stacks += win ? 2 : 1;
+      else source.buffs.push({ id: "free_imperial_verdict", name: "免费御秽裁决", stacks: win ? 2 : 1 });
+    }
   }
   if (progress.streak === 4) source.buffs.push({ id: "instant_win:imperial_verdict", name: "御秽裁决四连胜", stacks: 1 });
   if (progress.streak !== -4) return false;
@@ -64,17 +68,18 @@ export function applyVerdictRoundPenalty(state: GameState, games: readonly Point
     if (!game.winnerId || game.winnerId === game.sourceId) continue;
     for (const target of playersInSpace(state, game.sourceId)) {
       if (target.status !== "alive" || [game.sourceId, game.targetId].includes(target.id)) continue;
-      applyNegativeStatus(state, target.id, "skill_disabled", (player) => {
+      applyNegativeStatus(state, target.id, "skill_disabled", (player, appliedBy) => {
         const id = `${SKILL_DISABLED_BUFF_PREFIX}${state.roundNumber}`;
-        if (!player.buffs.some((buff) => buff.id === id)) player.buffs.push({ id, name: "御秽裁决·技能失效", stacks: 1, sourcePlayerId: game.sourceId });
+        if (!player.buffs.some((buff) => buff.id === id)) player.buffs.push({ id, name: "御秽裁决·技能失效", stacks: 1, ...(appliedBy ? { sourcePlayerId: appliedBy } : {}) });
       }, game.sourceId);
     }
   }
 }
 
 export function announcePointResult(state: GameState, game: PointGame): void {
+  const name = game.kind === "god_king" ? "神王审判" : "御秽裁决";
   state.eventLog.push({ ...createBaseEvent(state, "system"), type: "system",
-    message: `${findPlayer(state, game.winnerId!)?.name ?? "玩家"} 赢得御秽裁决的石头剪刀布` });
+    message: `${findPlayer(state, game.winnerId!)?.name ?? "玩家"} 赢得${name}的石头剪刀布` });
 }
 
 export function stripVerdictAttack(target: PlayerState | undefined, attack: ReboundAttack): void {
@@ -83,7 +88,8 @@ export function stripVerdictAttack(target: PlayerState | undefined, attack: Rebo
   if (!base) return;
   attack.verdictOriginalStats = original;
   attack.verdictStripped = Boolean(target && target.id !== attack.sourceId && getActiveSkillCount(target, VERDICT_GUARD_ID));
-  attack.stats = attack.verdictStripped ? getStackedAttackStats(base, original.stacks) : original;
+  attack.stats = attack.verdictStripped ? { ...getStackedAttackStats(base, original.stacks),
+    ...(original.moveResolution ? { moveResolution: original.moveResolution } : {}) } : original;
 }
 
 export function blockVerdictMove(state: GameState, target: PlayerState | undefined, sourceId: PlayerId | undefined,

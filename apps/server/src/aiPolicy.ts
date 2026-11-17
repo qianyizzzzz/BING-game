@@ -6,7 +6,8 @@ import {
   GameState,
   PlayerAction,
   PlayerState,
-  getStackedAttackStats
+  getStackedAttackStats,
+  readSkillRecordJson
 } from "@bing/shared";
 
 export interface AiPolicyModel {
@@ -54,7 +55,7 @@ export function loadAiPolicy(): AiPolicyModel | undefined {
   }
 
   try {
-    cachedPolicy = JSON.parse(fs.readFileSync(policyPath, "utf-8")) as AiPolicyModel;
+    cachedPolicy = readSkillRecordJson<AiPolicyModel>(fs.readFileSync(policyPath, "utf-8"));
     cachedMtime = stat.mtimeMs;
     return cachedPolicy;
   } catch {

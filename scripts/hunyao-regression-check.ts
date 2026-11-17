@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import {
   CHASE_LIGHT_ID, CHASE_SHADOW_ID, CHASE_SOUL_ID, ETERNAL_NIGHT_SKILL_ID, FENTIAN_ATTACK_ID, KUISHI_ID,
-  GameState, HUNYAO_QUEUED_SHA, PlayerAction, RI_SKILL_ID, SUNSHINE_SKILL_ID, SkillTimingPhase,
+  GameState, HUNYAO_QUEUED_SHA, PlayerAction, QIANQIU_CARD_ID, RI_SKILL_ID, SUNSHINE_SKILL_ID, SkillTimingPhase,
+  THOUSAND_WAVES_ID, TIANLIE_CONTINUE_ID,
   addPlayerToGame, appendSkillInstances, beginActionPrompt, createGame, createPlayer, getActiveSkillCount,
   getActiveFusionCount, getFusionSkillId, getHunyaoExpandedTargets, getStackedAttackStats, BASE_ATTACKS,
   grantInitializedSkill, getSkillUseLimit,
@@ -12,7 +13,7 @@ import { changeCakes } from "../packages/shared/src/engine/cakeResources";
 
 const cake: PlayerAction = { type: "gain_cake" };
 const small: PlayerAction = { type: "defense", defense: "small" };
-const holyBath = "skill_67_31717";
+const holyBath = "1066";
 const player = (state: GameState, index = 0) => state.players[index]!;
 const sha = (state: GameState, target: number): PlayerAction => ({
   type: "attack", attackId: "sha", targetId: player(state, target).id, stacks: 1
@@ -65,11 +66,37 @@ const hits = (state: GameState, attackName: string) => state.eventLog
   .map((event) => event.type === "damage" ? [event.targetId, event.amount] : []);
 
 const checks: Array<[string, () => void]> = [
-  ["单攻转为群攻，发出者不入列，魂耀持有者免除命中", () => {
+  ["单攻转为群攻，发出者不入列，魂耀只让指向自己的那份出招无效", () => {
     let state = fixture();
     player(state, 1).cakes = 1;
     state = turn(state, [cake, sha(state, 0)]);
     assert.deepEqual(hits(state, "杀"), [[player(state, 2).id, 1], [player(state, 3).id, 1]]);
+    assert.ok(state.eventLog.some((event) => event.type === "attack_blocked" && event.blockKind === "invalid" &&
+      event.targetId === player(state).id && event.attackName === "杀"));
+  }],
+  ["浪打千击的无效目标不发命中奖励，也不触发未命中续攻", () => {
+    let state = fixture(["10502"], [QIANQIU_CARD_ID]);
+    appendSkillInstances(player(state, 1), [TIANLIE_CONTINUE_ID]);
+    player(state, 1).cakes = 40;
+    state = turn(state, [cake, { type: "skill", skillId: THOUSAND_WAVES_ID, stacks: 1 }, small, small], "turn_damage_modify");
+    assert.ok(!state.tianlieAttackResponses?.length);
+    state = advance(state, "turn_end_action");
+    const rewards = state.eventLog.flatMap((event) => event.type === "cake_changed" && event.playerId === player(state, 1).id &&
+      event.reason === "浪打千击·命中" ? [event.after - event.before] : []);
+    assert.deepEqual(rewards, [1, 1]);
+    assert.deepEqual([0, 2, 3].map((index) => player(state, index).hp), [50, 34, 34]);
+    const invalid = state.eventLog.filter((event) => event.type === "attack_blocked" && event.blockKind === "invalid" &&
+      event.attackName === "浪打千击");
+    assert.equal(invalid.length, 1);
+    assert.equal(invalid[0]?.targetId, player(state).id);
+  }],
+  ["变招赋予必定成立的攻击仍可对魂耀生效", () => {
+    let state = fixture();
+    player(state, 1).cakes = 1;
+    player(state, 1).buffs.push({ id: "test_guaranteed", name: "必定成立", stacks: 1,
+      moveResolution: { mustResolve: true }, attackActionIndex: 0, expiresAtTurn: state.turnNumber });
+    state = turn(state, [cake, sha(state, 0)]);
+    assert.deepEqual(hits(state, "杀"), [0, 2, 3].map((index) => [player(state, index).id, 1]));
   }],
   ["反弹来的单攻正常命中，发出者与其他玩家不被群攻", () => {
     let state = fixture();
@@ -81,9 +108,9 @@ const checks: Array<[string, () => void]> = [
     let state = fixture();
     const host = player(state);
     assert.equal(getHunyaoExpandedTargets(state, host.id, getStackedAttackStats(BASE_ATTACKS.sha, 1), [host.id]), undefined);
-    appendSkillInstances(player(state, 1), ["skill_36_14343", "skill_54_99719"]);
+    appendSkillInstances(player(state, 1), ["1035", "1053"]);
     player(state, 1).cakes = 10;
-    state = turn(state, [cake, { type: "skill", skillId: "skill_36_14343", stacks: 1,
+    state = turn(state, [cake, { type: "skill", skillId: "1035", stacks: 1,
       targetIds: [host.id, player(state, 2).id] }]);
     assert.ok(player(state).buffs.some((buff) => buff.id.startsWith("paralysis_next_action:")));
     assert.ok(player(state, 2).buffs.some((buff) => buff.id.startsWith("paralysis_next_action:")));
@@ -156,7 +183,7 @@ const checks: Array<[string, () => void]> = [
     assert.ok(!host.revealedSkillIds.includes(getFusionSkillId("破晓")));
     assert.deepEqual(state.pendingSkillChoices?.filter(({ playerId }) => playerId === host.id).map(({ sourcePlayerId }) => sourcePlayerId),
       state.players.slice(1).map(({ id }) => id));
-    assert.equal(getSkillUseLimit(host, "skill_100_45717"), 2);
+    assert.equal(getSkillUseLimit(host, "1099"), 2);
   }],
   ["持有者的低攻和高攻分别绕过永远之夜、阳光普照，并保留普天同庆的群攻", () => {
     let state = fixture();
@@ -183,7 +210,7 @@ const checks: Array<[string, () => void]> = [
     player(state, 1).buffs = [{ id: "keep_me", name: "保留状态", stacks: 1 }];
     appendSkillInstances(player(state, 1), [holyBath]);
     state = pursue(state, CHASE_LIGHT_ID, 1);
-    assert.equal(player(state, 1).hp, 18);
+    assert.equal(player(state, 1).hp, 54);
     assert.ok(player(state, 1).buffs.some((buff) => buff.id === "keep_me"));
     assert.ok(state.eventLog.some((event) => event.type === "heal" && event.recoveryKind === "revival"));
   }],
@@ -277,11 +304,11 @@ const checks: Array<[string, () => void]> = [
     for (let i = 0; i < 10; i++) state = advance(turn(state, [cake]));
     const host = player(state);
     removeBigCardInstance(state, host.id, host.bigCards!.find((card) => card.cardId === "10501")!.instanceId);
-    host.buffs.push({ id: "skill_used:skill_101_4254", name: "镜像已使用", stacks: 1 });
-    host.buffs.push({ id: "skill_used:skill_4_65637", name: "沙子已使用", stacks: 1 });
+    host.buffs.push({ id: "skill_used:1100", name: "镜像已使用", stacks: 1 });
+    host.buffs.push({ id: "skill_used:1003", name: "沙子已使用", stacks: 1 });
     host.hp = -1;
     state = turn(state, [cake]);
-    assert.equal(player(state).hp, 6);
+    assert.equal(player(state).hp, 18);
     assert.ok(player(state).hunyaoAwakened);
     assert.equal(player(state).actionCakes, 0);
     assert.equal(player(state).cakes, 0);
@@ -308,7 +335,7 @@ const checks: Array<[string, () => void]> = [
     player(state).hp = -1;
     state = turn(state, [small]);
     assert.equal(player(state).status, "alive");
-    assert.equal(player(state).hp, 6);
+    assert.equal(player(state).hp, 18);
     assert.deepEqual(player(state).bigCards?.map((card) => card.cardId), ["10505"]);
     assert.equal(getActiveSkillCount(player(state), CHASE_LIGHT_ID), 0);
   }],

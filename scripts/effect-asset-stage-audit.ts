@@ -13,7 +13,7 @@ const requiredFiles = [
   "effect.webm",
   "effect.mp4"
 ] as const;
-const requiredSampleSkillId = "skill_78_18866";
+const requiredSampleSkillId = "1077";
 const failures: string[] = [];
 
 const audits = getAllSkills()

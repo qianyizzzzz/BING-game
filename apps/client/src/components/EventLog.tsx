@@ -1,6 +1,6 @@
 import { ScrollText } from "lucide-react";
 import { PublicGameState } from "@bing/shared";
-import { formatEvent } from "../lib/format";
+import { attackInterceptionLabel, formatEvent } from "../lib/format";
 import { battleBeatForEvent, battleBeatLabel } from "../lib/turnTimeline";
 
 interface EventLogProps {
@@ -34,13 +34,14 @@ export function EventLog({ state }: EventLogProps) {
         ) : (
           events.map((event) => {
             const beat = battleBeatForEvent(event, state);
+            const outcome = event.type === "attack_blocked" ? attackInterceptionLabel(event) : undefined;
             return (
               <div
                 key={event.id}
                 className={["event-card", eventTone(event.type)].join(" ")}
               >
                 <div className="flex items-start gap-2">
-                  <span className="shrink-0 font-bold text-gray-400">
+                  <span className="shrink-0 font-bold text-gray-600">
                     R{event.roundNumber}/T{event.turnNumber}
                   </span>
                   <span className="min-w-0 flex-1">{formatEvent(event, state)}</span>
@@ -52,7 +53,7 @@ export function EventLog({ state }: EventLogProps) {
                         : "border-gray-200 bg-gray-50 text-gray-500"
                     ].join(" ")}
                   >
-                    {beat ? battleBeatLabel(beat) : "牌桌"}
+                    {outcome ?? (beat ? battleBeatLabel(beat) : "牌桌")}
                   </span>
                 </div>
               </div>

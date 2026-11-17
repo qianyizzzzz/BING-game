@@ -1,0 +1,9 @@
+export const SPACE_TIME_CARD = "10605";
+export const SPACE_TIME_GUARD = "1060501";
+export const TIME_RIFT = "1060502";
+export const SPACE_BURST = "1060503";
+export const TIME_CONFUSION = "1060504";
+export const SPACE_SHATTER = "1060505";
+export const SPACE_TIME_CHAOS = "1060506";
+export const SPACE_BURST_SPACE = "space_burst";
+export const SPACE_TIME_VICTORY_CLAIM = "instant_win:space_time_chaos";

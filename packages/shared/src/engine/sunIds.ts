@@ -1,0 +1,11 @@
+export const SUN_CARD_ID = "10555";
+export const SUN_WHEEL_ID = "1055501";
+export const SUN_PUPPET_ID = "1055502";
+export const SUN_NIGHT_CAP_ID = "1055503";
+export const SUN_GLORY_ID = "1055504";
+export const SUN_RETURN_ID = "1055505";
+export const SUN_CROWN_ID = "1055506";
+export const SUN_PLAYER_ID = "virtual_sun";
+export const SUN_PUPPET_STATE = "sun_puppet";
+export const SUN_CROWN_STATE = "sun_crown";
+export const SUN_CROWN_COOLDOWN = "sun_crown_cooldown";

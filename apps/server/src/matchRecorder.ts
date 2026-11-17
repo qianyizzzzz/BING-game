@@ -9,6 +9,7 @@ import {
   ActionSubmission,
   PublicGameState,
   PlayerId,
+  readSkillRecordJson,
   toPublicGameState
 } from "@bing/shared";
 
@@ -84,7 +85,7 @@ export class MatchRecorder {
       return undefined;
     }
 
-    return JSON.parse(fs.readFileSync(filePath, "utf-8")) as PublicGameState;
+    return readSkillRecordJson<PublicGameState>(fs.readFileSync(filePath, "utf-8"));
   }
 
   readTrainingSamples(gameId: GameId): MatchTrainingSample[] {
@@ -97,7 +98,7 @@ export class MatchRecorder {
       .readFileSync(filePath, "utf-8")
       .split(/\r?\n/)
       .filter(Boolean)
-      .map((line) => JSON.parse(line) as MatchTrainingSample);
+      .map((line) => readSkillRecordJson<MatchTrainingSample>(line));
   }
 
   private matchPath(gameId: GameId): string {

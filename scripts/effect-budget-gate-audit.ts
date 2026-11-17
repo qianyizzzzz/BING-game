@@ -58,7 +58,7 @@ fs.writeFileSync(
             model: "doubao-seedance-2-0-260128",
             status: "succeeded"
           },
-          skillId: "skill_78_18866",
+          skillId: "1077",
           skillName: "火球"
         }
       ]
@@ -79,7 +79,7 @@ fs.writeFileSync(
             model: "doubao-seedance-2-0-260128",
             status: "succeeded"
           },
-          skillId: "skill_78_18866",
+          skillId: "1077",
           skillName: "火球",
           status: "downloaded",
           taskId: "cgt-20260616032151-pr4n7"
